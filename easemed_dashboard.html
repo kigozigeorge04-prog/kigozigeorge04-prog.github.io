@@ -13,6 +13,9 @@
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="EaseMed Clinical Clerk System — comprehensive patient history taking guide">
+
+    <!-- Supabase JS SDK — loaded early so auth check runs immediately -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -1794,30 +1797,26 @@
         }
 
         // ── AUTH GUARD (Supabase) ───────────────────────────────
-        // Checks for a real Supabase session. If none, redirects to
-        // login. On success, shows user's name in the top bar.
+        // SDK is already loaded in <head>, so we can run this immediately.
+        // If there is no valid session, the user is sent back to login.
         const SUPABASE_URL  = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
-        // Load Supabase SDK then run auth check
-        (function loadSupabase() {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-            script.onload = async function () {
+        (async function authCheck() {
+            try {
                 const { createClient } = supabase;
                 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-                // Check session
                 const { data: { session } } = await sb.auth.getSession();
 
                 if (!session) {
-                    // No valid session — redirect to login
+                    // No valid session — send back to login immediately
                     window.location.href = 'easemed_login.html';
                     return;
                 }
 
-                // Session valid — show user name
-                const user        = session.user;
+                // ✅ Session valid — populate the top bar greeting
+                const user = session.user;
                 const displayName =
                     user.user_metadata?.full_name ||
                     user.user_metadata?.name      ||
@@ -1827,17 +1826,20 @@
                 const greeting = document.getElementById('userGreeting');
                 if (greeting) greeting.textContent = '👤 ' + displayName;
 
-                // Store for records filtering
+                // Keep localStorage in sync for records filtering
                 localStorage.setItem('easemed_user',      user.email);
                 localStorage.setItem('easemed_user_name', displayName);
 
-                // Now safe to render records
+                // Safe to render records now that we know the user
                 renderRecords();
 
-                // Expose logout function using Supabase
+                // Expose sb for the logout button
                 window._sb = sb;
-            };
-            document.head.appendChild(script);
+
+            } catch (err) {
+                console.error('[EaseMed] Auth check failed:', err);
+                window.location.href = 'easemed_login.html';
+            }
         })();
 
         // ── LOGOUT (Supabase) ───────────────────────────────────
