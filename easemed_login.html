@@ -613,33 +613,23 @@
         </div>
     </div>
 
-    <!-- ── SUPABASE SDK ─────────────────────────────────────── -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
     // ================================================================
     //  EASEMED — SUPABASE INTEGRATION
-    //  Replace the two values below with your actual Supabase project
-    //  credentials. Find them in: Supabase Dashboard → Settings → API
     // ================================================================
     const SUPABASE_URL    = 'https://uhjcybwczelmqkkapeac.supabase.co';
     const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
-    // Initialise the Supabase client
     const { createClient } = supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-    // ── Demo account credentials (keep these for easy testing) ──────
     const DEMO_ACCOUNTS = [
         { email: 'student@easemed.com', password: 'student123', name: 'Demo Student' },
         { email: 'doctor@easemed.com',  password: 'doctor123',  name: 'Demo Doctor'  },
     ];
 
-    // ================================================================
-    //  UTILITY FUNCTIONS
-    // ================================================================
-
-    // Show alert message inside the form
     function showAlert(message, type) {
         const alertDiv = document.getElementById('alertMsg');
         alertDiv.textContent = message;
@@ -648,15 +638,13 @@
         setTimeout(() => { alertDiv.style.display = 'none'; }, 4000);
     }
 
-    // Show/hide loading state on a button
     function setLoading(btnId, loading, originalText) {
         const btn = document.getElementById(btnId);
         if (!btn) return;
-        btn.disabled  = loading;
+        btn.disabled = loading;
         btn.textContent = loading ? '⏳ Please wait...' : originalText;
     }
 
-    // Switch between Login and Sign Up tabs
     function switchTab(tab) {
         const loginForm  = document.getElementById('loginForm');
         const signupForm = document.getElementById('signupForm');
@@ -674,16 +662,12 @@
         }
     }
 
-    // Fill demo credentials into login form
     function fillDemo(email, password) {
         document.getElementById('loginEmail').value    = email;
         document.getElementById('loginPassword').value = password;
         showAlert('Demo credentials filled! Click Login to continue.', 'success');
     }
 
-    // ================================================================
-    //  DEVICE DETECTION — captured for session tracking
-    // ================================================================
     function getDeviceType() {
         const ua = navigator.userAgent;
         if (/Mobi|Android/i.test(ua)) return 'mobile';
@@ -700,10 +684,6 @@
         return 'Unknown';
     }
 
-    // ================================================================
-    //  SESSION MANAGEMENT
-    //  Creates a session row in Supabase on login, closes it on logout
-    // ================================================================
     async function createSession(userId) {
         try {
             const { data, error } = await db
@@ -717,10 +697,7 @@
                 })
                 .select('id')
                 .single();
-
             if (error) throw error;
-
-            // Store session ID in localStorage so we can close it on logout
             localStorage.setItem('easemed_session_id', data.id);
             return data.id;
         } catch (err) {
@@ -743,10 +720,6 @@
         }
     }
 
-    // ================================================================
-    //  ACTIVITY LOGGING
-    //  Logs every significant action to the activity_logs table
-    // ================================================================
     async function logActivity(userId, action, metadata = {}) {
         try {
             const sessionId = localStorage.getItem('easemed_session_id');
@@ -759,16 +732,10 @@
                 user_agent: navigator.userAgent,
             });
         } catch (err) {
-            // Non-blocking — never let logging crash the app
             console.warn('Activity log warning:', err.message);
         }
     }
 
-    // ================================================================
-    //  LOGIN HANDLER
-    //  1. Check if demo account → bypass Supabase, use localStorage
-    //  2. Otherwise → authenticate with Supabase Auth
-    // ================================================================
     async function handleLogin() {
         const email    = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
@@ -778,7 +745,6 @@
             return;
         }
 
-        // ── Demo account shortcut ─────────────────────────────────
         const demoAccount = DEMO_ACCOUNTS.find(
             d => d.email === email && d.password === password
         );
@@ -789,19 +755,17 @@
             localStorage.setItem('easemed_user_name', demoAccount.name);
             localStorage.setItem('easemed_is_demo', 'true');
             setTimeout(() => {
-                window.location.href = 'easemed_dashboard__2_.html';
+                window.location.href = 'easemed_dashboard.html';
             }, 1200);
             return;
         }
 
-        // ── Real Supabase login ───────────────────────────────────
         setLoading('loginBtn', true, 'Login to EaseMed');
 
         try {
             const { data, error } = await db.auth.signInWithPassword({ email, password });
 
             if (error) {
-                // Supabase returns specific error messages
                 if (error.message.includes('Invalid login')) {
                     showAlert('Incorrect email or password. Please try again.', 'error');
                 } else if (error.message.includes('Email not confirmed')) {
@@ -815,7 +779,6 @@
 
             const user = data.user;
 
-            // Fetch the user's profile to get their name and check status
             const { data: profile, error: profileError } = await db
                 .from('profiles')
                 .select('full_name, status, role, plan')
@@ -836,17 +799,13 @@
                 return;
             }
 
-            // Create a session record in Supabase
-            const sessionId = await createSession(user.id);
-
-            // Log the login activity
+            await createSession(user.id);
             await logActivity(user.id, 'login', {
                 email      : email,
                 device_type: getDeviceType(),
                 browser    : getBrowserName(),
             });
 
-            // Update login count and last_seen in profiles
             await db
                 .from('profiles')
                 .update({
@@ -855,7 +814,6 @@
                 })
                 .eq('id', user.id);
 
-            // Store user info in localStorage for the dashboard to use
             localStorage.setItem('easemed_logged_in',  'true');
             localStorage.setItem('easemed_user',        email);
             localStorage.setItem('easemed_user_id',     user.id);
@@ -868,11 +826,10 @@
             showAlert(`Welcome back, ${name}! Redirecting...`, 'success');
 
             setTimeout(() => {
-                // Redirect admins to admin dashboard, others to main dashboard
                 if (profile?.role === 'admin' || profile?.role === 'superadmin') {
                     window.location.href = 'easemed_admin.html';
                 } else {
-                    window.location.href = 'easemed_dashboard__2_.html';
+                    window.location.href = 'easemed_dashboard.html';
                 }
             }, 1200);
 
@@ -883,13 +840,6 @@
         }
     }
 
-    // ================================================================
-    //  SIGNUP HANDLER
-    //  1. Validates all fields client-side
-    //  2. Creates Supabase Auth user
-    //  3. Profile is auto-created by the database trigger (handle_new_user)
-    //  4. Logs the signup activity
-    // ================================================================
     async function handleSignup() {
         const name            = document.getElementById('signupName').value.trim();
         const email           = document.getElementById('signupEmail').value.trim();
@@ -902,7 +852,6 @@
         const license         = document.getElementById('signupLicense').value.trim();
         const location        = document.getElementById('signupLocation').value.trim();
 
-        // ── Client-side validation ────────────────────────────────
         if (!name || !email || !password || !role || !university || !yearOfStudy) {
             showAlert('Please fill in all required fields (*).', 'error');
             return;
@@ -927,9 +876,6 @@
         setLoading('signupBtn', true, 'Create Account');
 
         try {
-            // ── Create user in Supabase Auth ──────────────────────
-            // We pass extra metadata that the handle_new_user trigger
-            // will use to populate the profiles table automatically
             const { data, error } = await db.auth.signUp({
                 email   : email,
                 password: password,
@@ -937,7 +883,7 @@
                     data: {
                         full_name      : name,
                         phone          : phone,
-                        role           : 'student',   // Everyone starts as student
+                        role           : 'student',
                         university     : university,
                         year_of_study  : yearOfStudy,
                         license_number : license,
@@ -956,8 +902,6 @@
                 return;
             }
 
-            // ── Update additional profile fields not in auth metadata ──
-            // The trigger creates the basic profile — now we add the rest
             if (data.user) {
                 await db.from('profiles').update({
                     phone          : phone || null,
@@ -967,14 +911,12 @@
                 }).eq('id', data.user.id);
             }
 
-            // ── Success ───────────────────────────────────────────
             showAlert(
                 `Account created! Welcome to EaseMed, ${name}. ` +
                 `Please check your email to verify your account.`,
                 'success'
             );
 
-            // Switch to login tab and pre-fill email
             setTimeout(() => {
                 switchTab('login');
                 document.getElementById('loginEmail').value    = email;
@@ -989,18 +931,13 @@
         }
     }
 
-    // ================================================================
-    //  SOCIAL LOGIN (Google & Facebook)
-    //  Uses Supabase OAuth — no passwords needed
-    // ================================================================
     async function socialLogin(provider) {
         try {
             showAlert(`Connecting with ${provider}...`, 'success');
             const { error } = await db.auth.signInWithOAuth({
                 provider: provider.toLowerCase(),
                 options : {
-                    // After OAuth completes, redirect back to dashboard
-                    redirectTo: window.location.origin + '/easemed_dashboard__2_.html'
+                    redirectTo: window.location.origin + '/easemed_dashboard.html'
                 }
             });
             if (error) showAlert(error.message, 'error');
@@ -1010,24 +947,17 @@
     }
 
     async function socialSignup(provider) {
-        // Same flow as social login — Supabase handles new vs existing accounts
         await socialLogin(provider);
     }
 
-    // ================================================================
-    //  FAILED LOGIN TRACKING
-    //  Detects brute force attempts and logs them to security_flags
-    // ================================================================
     let failedAttempts = parseInt(localStorage.getItem('easemed_failed_attempts') || '0');
 
     async function trackFailedLogin(email) {
         failedAttempts++;
         localStorage.setItem('easemed_failed_attempts', failedAttempts.toString());
 
-        // After 5 failed attempts — log a security flag
         if (failedAttempts >= 5) {
             try {
-                // Look up user ID by email
                 const { data: profile } = await db
                     .from('profiles')
                     .select('id')
@@ -1050,17 +980,10 @@
         }
     }
 
-    // ================================================================
-    //  AUTH STATE LISTENER
-    //  Fires whenever the auth state changes — catches OAuth callbacks
-    //  and auto-redirects logged-in users away from login page
-    // ================================================================
     db.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-            // Reset failed attempt counter on successful login
             localStorage.removeItem('easemed_failed_attempts');
 
-            // If arriving from OAuth redirect
             if (window.location.search.includes('access_token') ||
                 window.location.hash.includes('access_token')) {
 
@@ -1073,22 +996,18 @@
                 localStorage.setItem('easemed_user_id',   user.id);
                 localStorage.setItem('easemed_is_demo',   'false');
 
-                window.location.href = 'easemed_dashboard__2_.html';
+                window.location.href = 'easemed_dashboard.html';
             }
         }
 
-        // If user is already logged in and visits login page → redirect
         if (event === 'INITIAL_SESSION' && session) {
             const isDemo = localStorage.getItem('easemed_is_demo') === 'true';
             if (!isDemo) {
-                window.location.href = 'easemed_dashboard__2_.html';
+                window.location.href = 'easemed_dashboard.html';
             }
         }
     });
 
-    // ================================================================
-    //  CREATE FLOATING PARTICLES (original UI code — unchanged)
-    // ================================================================
     function createParticles() {
         const container = document.getElementById('particles');
         for (let i = 0; i < 30; i++) {
@@ -1105,7 +1024,6 @@
     }
     createParticles();
 
-    // ── Enter key support ──────────────────────────────────────────
     document.getElementById('loginPassword').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') handleLogin();
     });
