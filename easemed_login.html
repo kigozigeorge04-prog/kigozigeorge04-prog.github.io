@@ -615,7 +615,7 @@
 
     <script>
     // ================================================================
-    //  EASEMED — SIMPLE LOCAL LOGIN (No Supabase Redirect Issues)
+    //  EASEMED — LOGIN THAT CONNECTS TO DASHBOARD
     // ================================================================
     
     const DEMO_ACCOUNTS = [
@@ -668,13 +668,47 @@
         );
         
         if (demoAccount) {
-            showAlert(`✅ Welcome, ${demoAccount.name}! Login successful.`, 'success');
+            showAlert(`✅ Welcome, ${demoAccount.name}! Redirecting to dashboard...`, 'success');
+            
             // Store login state
             localStorage.setItem('easemed_logged_in', 'true');
             localStorage.setItem('easemed_user', email);
             localStorage.setItem('easemed_user_name', demoAccount.name);
+            
+            // Also store in users array for dashboard to read
+            const users = JSON.parse(localStorage.getItem('easemed_users') || '[]');
+            if (!users.find(u => u.email === email)) {
+                users.push({
+                    name: demoAccount.name,
+                    email: email,
+                    password: password,
+                    role: email === 'doctor@easemed.com' ? 'Doctor' : 'Medical Student',
+                    registeredAt: new Date().toISOString()
+                });
+                localStorage.setItem('easemed_users', JSON.stringify(users));
+            }
+            
+            // Redirect to dashboard
+            setTimeout(() => {
+                window.location.href = 'easemed_dashboard.html';
+            }, 1500);
         } else {
-            showAlert('Invalid credentials. Use student@easemed.com / student123', 'error');
+            // Check if user exists in registered users
+            const users = JSON.parse(localStorage.getItem('easemed_users') || '[]');
+            const registeredUser = users.find(u => u.email === email && u.password === password);
+            
+            if (registeredUser) {
+                showAlert(`✅ Welcome back, ${registeredUser.name}! Redirecting to dashboard...`, 'success');
+                localStorage.setItem('easemed_logged_in', 'true');
+                localStorage.setItem('easemed_user', email);
+                localStorage.setItem('easemed_user_name', registeredUser.name);
+                
+                setTimeout(() => {
+                    window.location.href = 'easemed_dashboard.html';
+                }, 1500);
+            } else {
+                showAlert('Invalid credentials. Use student@easemed.com / student123', 'error');
+            }
         }
     }
 
@@ -702,7 +736,6 @@
             return;
         }
 
-        // Simple demo signup - store in localStorage
         const users = JSON.parse(localStorage.getItem('easemed_users') || '[]');
         
         if (users.find(u => u.email === email)) {
@@ -722,22 +755,49 @@
         
         localStorage.setItem('easemed_users', JSON.stringify(users));
         
-        showAlert(`✅ Account created successfully! Welcome, ${name}! You can now login.`, 'success');
+        showAlert(`✅ Account created successfully! Welcome, ${name}! Redirecting to dashboard...`, 'success');
         
-        // Switch to login tab and pre-fill email
+        // Auto-login after signup
+        localStorage.setItem('easemed_logged_in', 'true');
+        localStorage.setItem('easemed_user', email);
+        localStorage.setItem('easemed_user_name', name);
+        
         setTimeout(() => {
-            switchTab('login');
-            document.getElementById('loginEmail').value = email;
-            document.getElementById('loginPassword').value = '';
+            window.location.href = 'easemed_dashboard.html';
         }, 1500);
     }
 
     async function socialLogin(provider) {
-        showAlert(`🔐 ${provider} login would work here with proper OAuth setup. For demo, please use email login.`, 'success');
+        showAlert(`🔐 ${provider} login: Demo mode - logging in as ${provider} user.`, 'success');
+        
+        const email = `${provider}_user@easemed.com`;
+        const name = provider.charAt(0).toUpperCase() + provider.slice(1) + ' User';
+        
+        localStorage.setItem('easemed_logged_in', 'true');
+        localStorage.setItem('easemed_user', email);
+        localStorage.setItem('easemed_user_name', name);
+        
+        // Store in users if not exists
+        const users = JSON.parse(localStorage.getItem('easemed_users') || '[]');
+        if (!users.find(u => u.email === email)) {
+            users.push({
+                name: name,
+                email: email,
+                password: null,
+                role: 'Medical Student',
+                provider: provider,
+                registeredAt: new Date().toISOString()
+            });
+            localStorage.setItem('easemed_users', JSON.stringify(users));
+        }
+        
+        setTimeout(() => {
+            window.location.href = 'easemed_dashboard.html';
+        }, 1000);
     }
 
     async function socialSignup(provider) {
-        showAlert(`📝 ${provider} signup would work here with proper OAuth setup. For demo, please use email signup.`, 'success');
+        socialLogin(provider);
     }
 
     // Create floating particles
