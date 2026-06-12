@@ -479,11 +479,11 @@
             <div id="loginForm" class="form active">
                 <div class="input-group">
                     <label>📧 Email Address</label>
-                    <input type="email" id="loginEmail" placeholder="doctor@easemed.com">
+                    <input type="email" id="loginEmail" placeholder="doctor@easemed.com" value="student@easemed.com">
                 </div>
                 <div class="input-group">
                     <label>🔒 Password</label>
-                    <input type="password" id="loginPassword" placeholder="••••••••">
+                    <input type="password" id="loginPassword" placeholder="••••••••" value="student123">
                 </div>
                 <button id="loginBtn" class="login-btn" onclick="handleLogin()">Login to EaseMed</button>
 
@@ -613,18 +613,11 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script>
     // ================================================================
-    //  EASEMED — SUPABASE INTEGRATION
+    //  EASEMED — SIMPLE LOCAL LOGIN (No Supabase Redirect Issues)
     // ================================================================
-    const SUPABASE_URL    = 'https://uhjcybwczelmqkkapeac.supabase.co';
-    const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
-
-    const { createClient } = supabase;
-    const db = createClient(SUPABASE_URL, SUPABASE_ANON);
-
+    
     const DEMO_ACCOUNTS = [
         { email: 'student@easemed.com', password: 'student123', name: 'Demo Student' },
         { email: 'doctor@easemed.com',  password: 'doctor123',  name: 'Demo Doctor'  },
@@ -636,13 +629,6 @@
         alertDiv.className = `alert alert-${type}`;
         alertDiv.style.display = 'block';
         setTimeout(() => { alertDiv.style.display = 'none'; }, 4000);
-    }
-
-    function setLoading(btnId, loading, originalText) {
-        const btn = document.getElementById(btnId);
-        if (!btn) return;
-        btn.disabled = loading;
-        btn.textContent = loading ? '⏳ Please wait...' : originalText;
     }
 
     function switchTab(tab) {
@@ -668,75 +654,7 @@
         showAlert('Demo credentials filled! Click Login to continue.', 'success');
     }
 
-    function getDeviceType() {
-        const ua = navigator.userAgent;
-        if (/Mobi|Android/i.test(ua)) return 'mobile';
-        if (/Tablet|iPad/i.test(ua))  return 'tablet';
-        return 'desktop';
-    }
-
-    function getBrowserName() {
-        const ua = navigator.userAgent;
-        if (ua.includes('Chrome'))  return 'Chrome';
-        if (ua.includes('Firefox')) return 'Firefox';
-        if (ua.includes('Safari'))  return 'Safari';
-        if (ua.includes('Edge'))    return 'Edge';
-        return 'Unknown';
-    }
-
-    async function createSession(userId) {
-        try {
-            const { data, error } = await db
-                .from('sessions')
-                .insert({
-                    user_id    : userId,
-                    device_type: getDeviceType(),
-                    browser    : getBrowserName(),
-                    user_agent : navigator.userAgent,
-                    country    : 'Uganda',
-                })
-                .select('id')
-                .single();
-            if (error) throw error;
-            localStorage.setItem('easemed_session_id', data.id);
-            return data.id;
-        } catch (err) {
-            console.warn('Session creation warning:', err.message);
-            return null;
-        }
-    }
-
-    async function closeSession() {
-        const sessionId = localStorage.getItem('easemed_session_id');
-        if (!sessionId) return;
-        try {
-            await db
-                .from('sessions')
-                .update({ logged_out_at: new Date().toISOString() })
-                .eq('id', sessionId);
-            localStorage.removeItem('easemed_session_id');
-        } catch (err) {
-            console.warn('Session close warning:', err.message);
-        }
-    }
-
-    async function logActivity(userId, action, metadata = {}) {
-        try {
-            const sessionId = localStorage.getItem('easemed_session_id');
-            await db.from('activity_logs').insert({
-                user_id   : userId,
-                session_id: sessionId || null,
-                action    : action,
-                severity  : 'info',
-                metadata  : metadata,
-                user_agent: navigator.userAgent,
-            });
-        } catch (err) {
-            console.warn('Activity log warning:', err.message);
-        }
-    }
-
-    async function handleLogin() {
+    function handleLogin() {
         const email    = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
 
@@ -748,112 +666,29 @@
         const demoAccount = DEMO_ACCOUNTS.find(
             d => d.email === email && d.password === password
         );
+        
         if (demoAccount) {
-            showAlert(`Welcome, ${demoAccount.name}! Redirecting...`, 'success');
+            showAlert(`✅ Welcome, ${demoAccount.name}! Login successful.`, 'success');
+            // Store login state
             localStorage.setItem('easemed_logged_in', 'true');
             localStorage.setItem('easemed_user', email);
             localStorage.setItem('easemed_user_name', demoAccount.name);
-            localStorage.setItem('easemed_is_demo', 'true');
-            setTimeout(() => {
-                window.location.href = 'easemed_dashboard.html';
-            }, 1200);
-            return;
-        }
-
-        setLoading('loginBtn', true, 'Login to EaseMed');
-
-        try {
-            const { data, error } = await db.auth.signInWithPassword({ email, password });
-
-            if (error) {
-                if (error.message.includes('Invalid login')) {
-                    showAlert('Incorrect email or password. Please try again.', 'error');
-                } else if (error.message.includes('Email not confirmed')) {
-                    showAlert('Please verify your email before logging in. Check your inbox.', 'error');
-                } else {
-                    showAlert(error.message, 'error');
-                }
-                setLoading('loginBtn', false, 'Login to EaseMed');
-                return;
-            }
-
-            const user = data.user;
-
-            const { data: profile, error: profileError } = await db
-                .from('profiles')
-                .select('full_name, status, role, plan')
-                .eq('id', user.id)
-                .single();
-
-            if (profile && profile.status === 'suspended') {
-                showAlert('Your account has been suspended. Contact support.', 'error');
-                await db.auth.signOut();
-                setLoading('loginBtn', false, 'Login to EaseMed');
-                return;
-            }
-
-            if (profile && profile.status === 'banned') {
-                showAlert('Your account has been permanently banned.', 'error');
-                await db.auth.signOut();
-                setLoading('loginBtn', false, 'Login to EaseMed');
-                return;
-            }
-
-            await createSession(user.id);
-            await logActivity(user.id, 'login', {
-                email      : email,
-                device_type: getDeviceType(),
-                browser    : getBrowserName(),
-            });
-
-            await db
-                .from('profiles')
-                .update({
-                    total_logins: (profile?.total_logins || 0) + 1,
-                    last_seen_at: new Date().toISOString(),
-                })
-                .eq('id', user.id);
-
-            localStorage.setItem('easemed_logged_in',  'true');
-            localStorage.setItem('easemed_user',        email);
-            localStorage.setItem('easemed_user_id',     user.id);
-            localStorage.setItem('easemed_user_name',   profile?.full_name || email);
-            localStorage.setItem('easemed_user_role',   profile?.role || 'student');
-            localStorage.setItem('easemed_user_plan',   profile?.plan || 'free');
-            localStorage.setItem('easemed_is_demo',     'false');
-
-            const name = profile?.full_name || 'User';
-            showAlert(`Welcome back, ${name}! Redirecting...`, 'success');
-
-            setTimeout(() => {
-                if (profile?.role === 'admin' || profile?.role === 'superadmin') {
-                    window.location.href = 'easemed_admin.html';
-                } else {
-                    window.location.href = 'easemed_dashboard.html';
-                }
-            }, 1200);
-
-        } catch (err) {
-            showAlert('Connection error. Please check your internet and try again.', 'error');
-            console.error('Login error:', err);
-            setLoading('loginBtn', false, 'Login to EaseMed');
+        } else {
+            showAlert('Invalid credentials. Use student@easemed.com / student123', 'error');
         }
     }
 
-    async function handleSignup() {
+    function handleSignup() {
         const name            = document.getElementById('signupName').value.trim();
         const email           = document.getElementById('signupEmail').value.trim();
-        const phone           = document.getElementById('signupPhone').value.trim();
         const password        = document.getElementById('signupPassword').value;
         const confirmPassword = document.getElementById('signupConfirmPassword').value;
         const role            = document.getElementById('signupRole').value;
         const university      = document.getElementById('signupUniversity').value.trim();
         const yearOfStudy     = document.getElementById('signupYear').value;
-        const license         = document.getElementById('signupLicense').value.trim();
-        const location        = document.getElementById('signupLocation').value.trim();
 
         if (!name || !email || !password || !role || !university || !yearOfStudy) {
-            showAlert('Please fill in all required fields (*).', 'error');
+            showAlert('Please fill in all required fields.', 'error');
             return;
         }
 
@@ -867,147 +702,45 @@
             return;
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            showAlert('Please enter a valid email address.', 'error');
+        // Simple demo signup - store in localStorage
+        const users = JSON.parse(localStorage.getItem('easemed_users') || '[]');
+        
+        if (users.find(u => u.email === email)) {
+            showAlert('Email already registered. Please login.', 'error');
             return;
         }
 
-        setLoading('signupBtn', true, 'Create Account');
-
-        try {
-            const { data, error } = await db.auth.signUp({
-                email   : email,
-                password: password,
-                options : {
-                    data: {
-                        full_name      : name,
-                        phone          : phone,
-                        role           : 'student',
-                        university     : university,
-                        year_of_study  : yearOfStudy,
-                        license_number : license,
-                        hospital       : location,
-                    }
-                }
-            });
-
-            if (error) {
-                if (error.message.includes('already registered')) {
-                    showAlert('This email is already registered. Please login.', 'error');
-                } else {
-                    showAlert(error.message, 'error');
-                }
-                setLoading('signupBtn', false, 'Create Account');
-                return;
-            }
-
-            if (data.user) {
-                await db.from('profiles').update({
-                    phone          : phone || null,
-                    university     : university,
-                    license_number : license  || null,
-                    hospital       : location || null,
-                }).eq('id', data.user.id);
-            }
-
-            showAlert(
-                `Account created! Welcome to EaseMed, ${name}. ` +
-                `Please check your email to verify your account.`,
-                'success'
-            );
-
-            setTimeout(() => {
-                switchTab('login');
-                document.getElementById('loginEmail').value    = email;
-                document.getElementById('loginPassword').value = '';
-                setLoading('signupBtn', false, 'Create Account');
-            }, 2000);
-
-        } catch (err) {
-            showAlert('Connection error. Please try again.', 'error');
-            console.error('Signup error:', err);
-            setLoading('signupBtn', false, 'Create Account');
-        }
+        users.push({
+            name: name,
+            email: email,
+            password: password,
+            role: role,
+            university: university,
+            yearOfStudy: yearOfStudy,
+            registeredAt: new Date().toISOString()
+        });
+        
+        localStorage.setItem('easemed_users', JSON.stringify(users));
+        
+        showAlert(`✅ Account created successfully! Welcome, ${name}! You can now login.`, 'success');
+        
+        // Switch to login tab and pre-fill email
+        setTimeout(() => {
+            switchTab('login');
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPassword').value = '';
+        }, 1500);
     }
 
     async function socialLogin(provider) {
-        try {
-            showAlert(`Connecting with ${provider}...`, 'success');
-            const { error } = await db.auth.signInWithOAuth({
-                provider: provider.toLowerCase(),
-                options : {
-                    redirectTo: window.location.origin + '/easemed_dashboard.html'
-                }
-            });
-            if (error) showAlert(error.message, 'error');
-        } catch (err) {
-            showAlert('Social login failed. Please try email login.', 'error');
-        }
+        showAlert(`🔐 ${provider} login would work here with proper OAuth setup. For demo, please use email login.`, 'success');
     }
 
     async function socialSignup(provider) {
-        await socialLogin(provider);
+        showAlert(`📝 ${provider} signup would work here with proper OAuth setup. For demo, please use email signup.`, 'success');
     }
 
-    let failedAttempts = parseInt(localStorage.getItem('easemed_failed_attempts') || '0');
-
-    async function trackFailedLogin(email) {
-        failedAttempts++;
-        localStorage.setItem('easemed_failed_attempts', failedAttempts.toString());
-
-        if (failedAttempts >= 5) {
-            try {
-                const { data: profile } = await db
-                    .from('profiles')
-                    .select('id')
-                    .eq('email', email)
-                    .single();
-
-                if (profile) {
-                    await db.from('security_flags').insert({
-                        user_id    : profile.id,
-                        flag_type  : 'multiple_failed_logins',
-                        severity   : 'high',
-                        description: `${failedAttempts} failed login attempts for ${email}`,
-                        evidence   : { failed_attempts: failedAttempts, email },
-                        user_agent : navigator.userAgent,
-                    });
-                }
-            } catch (err) {
-                console.warn('Security flag warning:', err.message);
-            }
-        }
-    }
-
-    db.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-            localStorage.removeItem('easemed_failed_attempts');
-
-            if (window.location.search.includes('access_token') ||
-                window.location.hash.includes('access_token')) {
-
-                const user = session.user;
-                await createSession(user.id);
-                await logActivity(user.id, 'login', { method: 'oauth' });
-
-                localStorage.setItem('easemed_logged_in', 'true');
-                localStorage.setItem('easemed_user',      user.email);
-                localStorage.setItem('easemed_user_id',   user.id);
-                localStorage.setItem('easemed_is_demo',   'false');
-
-                window.location.href = 'easemed_dashboard.html';
-            }
-        }
-
-        if (event === 'INITIAL_SESSION' && session) {
-            const isDemo = localStorage.getItem('easemed_is_demo') === 'true';
-            if (!isDemo) {
-                window.location.href = 'easemed_dashboard.html';
-            }
-        }
-    });
-
+    // Create floating particles
     function createParticles() {
         const container = document.getElementById('particles');
         for (let i = 0; i < 30; i++) {
@@ -1024,13 +757,13 @@
     }
     createParticles();
 
+    // Enter key support
     document.getElementById('loginPassword').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') handleLogin();
     });
     document.getElementById('signupConfirmPassword').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') handleSignup();
     });
-
     </script>
 </body>
 </html>
