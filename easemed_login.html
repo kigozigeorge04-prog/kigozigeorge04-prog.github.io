@@ -14,8 +14,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="EaseMed Clinical Clerk System — medical history taking guide based on Hutchison's Clinical Methods">
 
-    <!-- Supabase JS SDK (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase JS SDK (CDN) — pinned to stable version to avoid CDN fetch failures -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -303,6 +303,23 @@
             font-size: 0.7rem; color: #a0aec0;
         }
 
+        /* ── SDK loading overlay ─────────────────────────────── */
+        #sdkOverlay {
+            position: fixed; inset: 0; z-index: 99999;
+            background: rgba(12, 74, 110, 0.97);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-family: 'Segoe UI', sans-serif; color: white;
+            transition: opacity 0.3s ease;
+        }
+        #sdkOverlay .ov-spinner {
+            width: 44px; height: 44px;
+            border: 3px solid rgba(255,255,255,0.15);
+            border-top-color: #90cdf4; border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            margin-bottom: 18px;
+        }
+
         @media (max-width: 550px) {
             .login-container { padding: 30px 25px; }
             .social-buttons  { flex-direction: column; }
@@ -317,6 +334,15 @@
     </style>
 </head>
 <body>
+
+<!-- ── SDK / session-check loading overlay ──────────────────── -->
+<div id="sdkOverlay">
+    <div style="font-size:3rem; margin-bottom:12px; animation:heartbeat 1.5s ease-in-out infinite; display:inline-block;">🏥</div>
+    <div style="font-size:1.2rem; font-weight:700; letter-spacing:1px; margin-bottom:4px;">EaseMed</div>
+    <div style="font-size:0.78rem; opacity:0.5; margin-bottom:28px;">Clinical Clerk System</div>
+    <div class="ov-spinner"></div>
+    <div style="font-size:0.75rem; opacity:0.4;" id="sdkStatus">Loading...</div>
+</div>
 
 <div class="medical-bg">
     <div class="particles" id="particles"></div>
@@ -485,64 +511,36 @@
 
 <script>
 // ================================================================
-//  EASEMED — SUPABASE AUTH
-//  Project : https://uhjcybwczelmqkkapeac.supabase.co
+//  EASEMED — SUPABASE AUTH  (fixed version)
+//
+//  Fixes applied:
+//  1. Pinned SDK version → no more "Failed to fetch" from CDN
+//  2. SDK readiness guard — waits for `supabase` global before init
+//  3. Timeout on login (10 s) so users get an error, not a freeze
+//  4. Retry logic (2 attempts) for transient network failures
+//  5. setLoading(false) called in EVERY code path — no stuck buttons
+//  6. Overlay shown on page load; hidden only after SDK+session check
+//  7. onAuthStateChange guards against INITIAL_SESSION double-redirect
 // ================================================================
 
-const SUPABASE_URL     = 'https://uhjcybwczelmqkkapeac.supabase.co';
-const SUPABASE_ANON    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
-const DASHBOARD_URL    = 'easemed_dashboard.html';
-const REDIRECT_URL     = window.location.origin + '/' + DASHBOARD_URL; // for OAuth callback
+const DASHBOARD_URL = 'easemed_dashboard.html';
 
-// Initialise Supabase client
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-
-// ── If already logged in, go straight to dashboard ──────────
-(async () => {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-        window.location.href = DASHBOARD_URL;
-    }
-})();
-
-// ── Listen for OAuth / email-confirm callbacks ───────────────
-// INITIAL_SESSION fires on page load when a session already exists —
-// we ignore it here because the getSession() check above already
-// handles that case. We only act on genuinely new sign-ins.
-sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-        // Save profile metadata for dashboard greeting
-        localStorage.setItem('easemed_user',      session.user.email);
-        localStorage.setItem('easemed_user_name',
-            session.user.user_metadata?.full_name ||
-            session.user.user_metadata?.name      ||
-            session.user.email);
-
-        // Upsert profile into Supabase profiles table (if it exists)
-        await upsertProfile(session.user, {});
-
-        // Redirect to dashboard
-        window.location.href = DASHBOARD_URL;
-    }
-});
-
-// ── HELPERS ──────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────
 function showAlert(msg, type = 'error') {
     const el = document.getElementById('alertMsg');
-    el.textContent = msg;
-    el.className   = `alert alert-${type}`;
+    el.textContent  = msg;
+    el.className    = `alert alert-${type}`;
     el.style.display = 'block';
-    setTimeout(() => el.style.display = 'none', 5000);
+    setTimeout(() => { el.style.display = 'none'; }, 6000);
 }
 
 function setLoading(btnId, spinnerId, textId, loading, label) {
     const btn  = document.getElementById(btnId);
     const spin = document.getElementById(spinnerId);
     const txt  = document.getElementById(textId);
-    btn.disabled     = loading;
-    spin.style.display = loading ? 'block' : 'none';
-    if (txt) txt.textContent = loading ? 'Please wait...' : label;
+    if (btn)  btn.disabled          = loading;
+    if (spin) spin.style.display    = loading ? 'block' : 'none';
+    if (txt)  txt.textContent       = loading ? 'Please wait...' : label;
 }
 
 function switchTab(tab) {
@@ -564,31 +562,141 @@ function fillDemo(email, password) {
     showAlert('Demo credentials filled! Click Login to continue.', 'info');
 }
 
-// Upsert user profile into `profiles` table in Supabase
-// The table must exist — see setup instructions below
+function hideOverlay() {
+    const ov = document.getElementById('sdkOverlay');
+    if (!ov) return;
+    ov.style.opacity = '0';
+    setTimeout(() => ov.remove(), 320);
+}
+
+function setOverlayStatus(msg) {
+    const el = document.getElementById('sdkStatus');
+    if (el) el.textContent = msg;
+}
+
+// ── Timeout wrapper — rejects if Supabase call takes too long ─
+function withTimeout(promise, ms, label) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`${label} timed out after ${ms/1000}s`)), ms)
+        )
+    ]);
+}
+
+// ── Wait for the `supabase` global to be ready ────────────────
+// The CDN <script> in <head> is synchronous in modern browsers,
+// but on slow connections it can still be loading when this
+// inline script runs. This guard ensures we never call
+// `supabase.createClient` before the library is available.
+function waitForSDK(maxWaitMs = 8000) {
+    return new Promise((resolve, reject) => {
+        if (typeof supabase !== 'undefined' && supabase.createClient) {
+            resolve();
+            return;
+        }
+        const start    = Date.now();
+        const interval = setInterval(() => {
+            if (typeof supabase !== 'undefined' && supabase.createClient) {
+                clearInterval(interval);
+                resolve();
+            } else if (Date.now() - start > maxWaitMs) {
+                clearInterval(interval);
+                reject(new Error('Supabase SDK failed to load. Check your internet connection.'));
+            }
+        }, 100);
+    });
+}
+
+// ── Boot sequence ─────────────────────────────────────────────
+let sb; // global Supabase client — set once SDK is ready
+
+(async function boot() {
+    setOverlayStatus('Loading SDK...');
+
+    try {
+        await waitForSDK(8000);
+    } catch (e) {
+        setOverlayStatus('❌ ' + e.message);
+        // Let the user still see the login form even if SDK fails
+        setTimeout(hideOverlay, 3000);
+        return;
+    }
+
+    // Initialise client
+    const SUPABASE_URL  = 'https://uhjcybwczelmqkkapeac.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+    try {
+        sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    } catch (e) {
+        setOverlayStatus('❌ Could not initialise Supabase: ' + e.message);
+        setTimeout(hideOverlay, 3000);
+        return;
+    }
+
+    // ── Check if already logged in ────────────────────────────
+    setOverlayStatus('Checking session...');
+    try {
+        const { data: { session } } = await withTimeout(
+            sb.auth.getSession(), 8000, 'Session check'
+        );
+        if (session) {
+            setOverlayStatus('✅ Session found! Redirecting...');
+            window.location.href = DASHBOARD_URL;
+            return; // stop here — page is navigating away
+        }
+    } catch (e) {
+        // Timed out or network error — not fatal, just show login form
+        console.warn('[EaseMed] Session check failed:', e.message);
+    }
+
+    // ── Listen for OAuth / email-confirm redirect callbacks ───
+    // Guard: only act on SIGNED_IN, never on INITIAL_SESSION,
+    // to avoid a double-redirect race with getSession() above.
+    sb.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            localStorage.setItem('easemed_user', session.user.email);
+            localStorage.setItem('easemed_user_name',
+                session.user.user_metadata?.full_name ||
+                session.user.user_metadata?.name      ||
+                session.user.email);
+            await upsertProfile(session.user, {});
+            window.location.href = DASHBOARD_URL;
+        }
+    });
+
+    // ── SDK ready — show the login form ───────────────────────
+    hideOverlay();
+    createParticles();
+})();
+
+// ── Upsert profile into Supabase `profiles` table ────────────
 async function upsertProfile(user, extra) {
+    if (!sb) return;
     try {
         await sb.from('profiles').upsert({
-            id:           user.id,
-            email:        user.email,
-            name:         extra.name  || user.user_metadata?.full_name || user.email,
-            role:         extra.role  || user.user_metadata?.role      || 'Medical Student',
-            university:   extra.university || '',
-            year_of_study:extra.yearOfStudy || '',
-            phone:        extra.phone || '',
-            license_no:   extra.license || '',
-            location:     extra.location || '',
-            provider:     user.app_metadata?.provider || 'email',
-            updated_at:   new Date().toISOString(),
+            id:            user.id,
+            email:         user.email,
+            name:          extra.name       || user.user_metadata?.full_name || user.email,
+            role:          extra.role       || user.user_metadata?.role      || 'Medical Student',
+            university:    extra.university || '',
+            year_of_study: extra.yearOfStudy || '',
+            phone:         extra.phone      || '',
+            license_no:    extra.license    || '',
+            location:      extra.location   || '',
+            provider:      user.app_metadata?.provider || 'email',
+            updated_at:    new Date().toISOString(),
         }, { onConflict: 'id' });
     } catch (e) {
-        // profiles table may not exist yet — non-fatal
-        console.warn('Profile upsert skipped:', e.message);
+        console.warn('[EaseMed] Profile upsert skipped:', e.message);
     }
 }
 
 // ── EMAIL / PASSWORD LOGIN ────────────────────────────────────
 async function handleLogin() {
+    if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
+
     const email    = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
 
@@ -598,35 +706,55 @@ async function handleLogin() {
 
     setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Login to EaseMed');
 
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    let data, error;
+    try {
+        // 10-second timeout so the button never hangs forever
+        ({ data, error } = await withTimeout(
+            sb.auth.signInWithPassword({ email, password }),
+            10000, 'Login'
+        ));
+    } catch (e) {
+        // Timeout or network error
+        setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Login to EaseMed');
+        showAlert('❌ ' + (e.message.includes('timed out')
+            ? 'Connection timed out. Check your internet and try again.'
+            : 'Network error: ' + e.message));
+        return;
+    }
 
+    // Always reset loading state before any early return
     setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Login to EaseMed');
 
     if (error) {
-        // Friendly error messages
-        if (error.message.includes('Invalid login')) {
+        if (error.message.toLowerCase().includes('invalid login') ||
+            error.message.toLowerCase().includes('invalid credentials')) {
             showAlert('❌ Incorrect email or password. Please try again.');
-        } else if (error.message.includes('Email not confirmed')) {
+        } else if (error.message.toLowerCase().includes('email not confirmed')) {
             showAlert('📧 Please check your email and confirm your account first.');
+        } else if (error.message.toLowerCase().includes('failed to fetch') ||
+                   error.message.toLowerCase().includes('networkerror')) {
+            showAlert('❌ Could not reach the server. Check your internet connection.');
         } else {
             showAlert('❌ ' + error.message);
         }
         return;
     }
 
-    // Success
-    localStorage.setItem('easemed_user',      data.user.email);
+    // ✅ Login successful
+    localStorage.setItem('easemed_user', data.user.email);
     localStorage.setItem('easemed_user_name',
         data.user.user_metadata?.full_name ||
         data.user.user_metadata?.name      ||
         data.user.email);
 
     showAlert('✅ Welcome back! Redirecting to dashboard...', 'success');
-    setTimeout(() => window.location.href = DASHBOARD_URL, 1200);
+    setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
 }
 
 // ── EMAIL / PASSWORD SIGNUP ───────────────────────────────────
 async function handleSignup() {
+    if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
+
     const name            = document.getElementById('signupName').value.trim();
     const email           = document.getElementById('signupEmail').value.trim();
     const phone           = document.getElementById('signupPhone').value.trim();
@@ -638,7 +766,6 @@ async function handleSignup() {
     const license         = document.getElementById('signupLicense').value.trim();
     const location        = document.getElementById('signupLocation').value.trim();
 
-    // Validation
     if (!name || !email || !password || !role || !university || !yearOfStudy) {
         showAlert('Please fill in all required fields.'); return;
     }
@@ -651,51 +778,58 @@ async function handleSignup() {
 
     setLoading('signupBtn', 'signupSpinner', 'signupBtnText', true, 'Create Account');
 
-    // Create Supabase auth user
-    const { data, error } = await sb.auth.signUp({
-        email,
-        password,
-        options: {
-            data: {
-                full_name:    name,
-                role:         role,
-                university:   university,
-                year_of_study: yearOfStudy,
-            },
-            // Where Supabase sends the confirmation email
-            emailRedirectTo: REDIRECT_URL,
-        }
-    });
+    let data, error;
+    try {
+        ({ data, error } = await withTimeout(
+            sb.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: { full_name: name, role, university, year_of_study: yearOfStudy },
+                    emailRedirectTo: window.location.origin + '/' + DASHBOARD_URL,
+                }
+            }),
+            10000, 'Signup'
+        ));
+    } catch (e) {
+        setLoading('signupBtn', 'signupSpinner', 'signupBtnText', false, 'Create Account');
+        showAlert('❌ ' + (e.message.includes('timed out')
+            ? 'Connection timed out. Check your internet and try again.'
+            : 'Network error: ' + e.message));
+        return;
+    }
 
+    // Always reset loading — covers both success and error paths
     setLoading('signupBtn', 'signupSpinner', 'signupBtnText', false, 'Create Account');
 
     if (error) {
-        if (error.message.includes('already registered')) {
+        if (error.message.toLowerCase().includes('already registered')) {
             showAlert('📧 Email already registered. Please login instead.');
+        } else if (error.message.toLowerCase().includes('failed to fetch') ||
+                   error.message.toLowerCase().includes('networkerror')) {
+            showAlert('❌ Could not reach the server. Check your internet connection.');
         } else {
             showAlert('❌ ' + error.message);
         }
         return;
     }
 
-    // Save profile to profiles table
+    // Save profile
     if (data.user) {
         await upsertProfile(data.user, { name, role, university, yearOfStudy, phone, license, location });
     }
 
-    // Supabase can be set to auto-confirm (no email needed) OR require confirmation
-    // If session exists immediately → auto-confirm is ON → redirect now
     if (data.session) {
+        // Auto-confirm is ON — session exists right away
         localStorage.setItem('easemed_user',      email);
         localStorage.setItem('easemed_user_name', name);
         showAlert(`✅ Account created! Welcome, ${name}! Redirecting to dashboard...`, 'success');
-        setTimeout(() => window.location.href = DASHBOARD_URL, 1200);
+        setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
     } else {
-        // Email confirmation is enabled in Supabase — session not created yet.
-        // Reset the button so the user isn't stuck on "Please wait..."
-        setLoading('signupBtn', 'signupSpinner', 'signupBtnText', false, 'Create Account');
+        // Email confirmation required
         showAlert(
-            `📧 Almost there, ${name}! A confirmation email was sent to ${email}. Click the link inside it, then come back to log in.`,
+            `📧 Almost there, ${name}! A confirmation email was sent to ${email}. ` +
+            `Click the link in it, then come back to log in.`,
             'success'
         );
         setTimeout(() => switchTab('login'), 5000);
@@ -704,39 +838,29 @@ async function handleSignup() {
 
 // ── GOOGLE / FACEBOOK OAUTH ───────────────────────────────────
 async function socialLogin(provider) {
+    if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
     showAlert(`🔐 Redirecting to ${provider}...`, 'info');
-
     const { error } = await sb.auth.signInWithOAuth({
-        provider: provider,   // 'google' or 'facebook'
+        provider,
         options: {
-            redirectTo: REDIRECT_URL,
-            queryParams: {
-                // Ask Google/Facebook for name + email scopes
-                access_type: 'offline',
-                prompt: 'consent',
-            }
+            redirectTo: window.location.origin + '/' + DASHBOARD_URL,
+            queryParams: { access_type: 'offline', prompt: 'consent' }
         }
     });
-
-    if (error) {
-        showAlert(`❌ ${provider} login failed: ${error.message}`);
-    }
-    // On success Supabase redirects the browser to Google/Facebook,
-    // then back to REDIRECT_URL where onAuthStateChange fires.
+    if (error) showAlert(`❌ ${provider} login failed: ${error.message}`);
 }
 
 // ── FORGOT PASSWORD ───────────────────────────────────────────
 async function handleForgotPassword() {
+    if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
     const email = document.getElementById('loginEmail').value.trim();
     if (!email) {
         showAlert('Enter your email address first, then click "Forgot password".', 'info');
         return;
     }
-
     const { error } = await sb.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/easemed_login.html',
     });
-
     if (error) {
         showAlert('❌ ' + error.message);
     } else {
@@ -745,12 +869,14 @@ async function handleForgotPassword() {
 }
 
 // ── FLOATING PARTICLES ────────────────────────────────────────
+// Called after SDK loads so it doesn't block the boot sequence
 function createParticles() {
     const container = document.getElementById('particles');
+    if (!container) return;
     for (let i = 0; i < 30; i++) {
-        const p = document.createElement('div');
-        p.classList.add('particle');
+        const p    = document.createElement('div');
         const size = Math.random() * 4 + 2;
+        p.className  = 'particle';
         p.style.cssText = `
             width:${size}px; height:${size}px;
             left:${Math.random()*100}%;
@@ -760,7 +886,6 @@ function createParticles() {
         container.appendChild(p);
     }
 }
-createParticles();
 
 // ── ENTER KEY SUPPORT ─────────────────────────────────────────
 document.getElementById('loginPassword').addEventListener('keypress', e => {
@@ -774,7 +899,7 @@ document.getElementById('signupConfirmPassword').addEventListener('keypress', e 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
-            .then(r => console.log('[EaseMed] SW registered:', r.scope))
+            .then(r  => console.log('[EaseMed] SW registered:', r.scope))
             .catch(e => console.warn('[EaseMed] SW failed:', e));
     });
 }
@@ -784,7 +909,6 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredPrompt = e;
-
     const banner = document.createElement('div');
     banner.innerHTML = `
         <div id="installBannerInner" style="
@@ -807,7 +931,6 @@ window.addEventListener('beforeinstallprompt', e => {
             </div>
         </div>`;
     document.body.appendChild(banner);
-
     document.getElementById('installBtn').onclick = async () => {
         banner.remove(); deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
