@@ -506,7 +506,10 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
     }
 })();
 
-// ── Listen for OAuth callback (Google/Facebook redirect) ─────
+// ── Listen for OAuth / email-confirm callbacks ───────────────
+// INITIAL_SESSION fires on page load when a session already exists —
+// we ignore it here because the getSession() check above already
+// handles that case. We only act on genuinely new sign-ins.
 sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
         // Save profile metadata for dashboard greeting
@@ -519,6 +522,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
         // Upsert profile into Supabase profiles table (if it exists)
         await upsertProfile(session.user, {});
 
+        // Redirect to dashboard
         window.location.href = DASHBOARD_URL;
     }
 });
@@ -680,19 +684,21 @@ async function handleSignup() {
     }
 
     // Supabase can be set to auto-confirm (no email needed) OR require confirmation
-    // If session exists immediately → auto-confirm is ON → redirect
+    // If session exists immediately → auto-confirm is ON → redirect now
     if (data.session) {
         localStorage.setItem('easemed_user',      email);
         localStorage.setItem('easemed_user_name', name);
-        showAlert(`✅ Account created! Welcome, ${name}! Redirecting...`, 'success');
+        showAlert(`✅ Account created! Welcome, ${name}! Redirecting to dashboard...`, 'success');
         setTimeout(() => window.location.href = DASHBOARD_URL, 1200);
     } else {
-        // Email confirmation required
+        // Email confirmation is enabled in Supabase — session not created yet.
+        // Reset the button so the user isn't stuck on "Please wait..."
+        setLoading('signupBtn', 'signupSpinner', 'signupBtnText', false, 'Create Account');
         showAlert(
-            `✅ Account created for ${name}! Check your email (${email}) and click the confirmation link, then log in.`,
+            `📧 Almost there, ${name}! A confirmation email was sent to ${email}. Click the link inside it, then come back to log in.`,
             'success'
         );
-        setTimeout(() => switchTab('login'), 3000);
+        setTimeout(() => switchTab('login'), 5000);
     }
 }
 
