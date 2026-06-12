@@ -1561,11 +1561,90 @@
             }
         }
 
-        // ========== CLINICAL SUMMARY (unchanged, but uses the new symptomDetails) ==========
+        // ============================================================
+        // MODIFIED CLINICAL SUMMARY (adds concise paragraph at top)
+        // ============================================================
         function generateClinicalSummary() {
+            // ---- 1. Build the concise case presentation paragraph ----
+            const age = document.getElementById('age').value || 'unknown age';
+            const gender = (document.getElementById('gender').value || 'patient').toLowerCase();
+            let opening = `This is a ${age}-year-old ${gender}`;
+
+            // HIV status & ART
+            const hivStatus = document.getElementById('hivStatus').value;
+            if (hivStatus === 'positive') {
+                opening += ` living with HIV`;
+                const onArt = document.getElementById('hivOnArt')?.value;
+                if (onArt === 'yes') {
+                    let adherence = '';
+                    const adh = document.getElementById('hivAdherence')?.value || '';
+                    if (adh.includes('Excellent')) adherence = 'excellent';
+                    else if (adh.includes('Good')) adherence = 'good';
+                    else if (adh.includes('Fair')) adherence = 'fair';
+                    else if (adh.includes('Poor')) adherence = 'poor';
+                    let regimen = document.getElementById('hivArtRegimen')?.value || '';
+                    if (regimen.includes('TDF/3TC/DTG')) regimen = 'TLD';
+                    else if (regimen.includes('TDF/3TC/EFV')) regimen = 'TLE';
+                    else regimen = 'ART';
+                    if (adherence) opening += ` with ${adherence} adherence on ${regimen}`;
+                    else opening += ` on ${regimen}`;
+                } else {
+                    opening += ` not on ART`;
+                }
+                opening += `,`;
+            }
+
+            // Presenting complaint details
+            const duration = (symptomDetails[currentSymptom] && symptomDetails[currentSymptom][0]) || '';
+            let symptomName = currentSymptom || 'presenting complaint';
+            if (symptomName === 'fever') symptomName = 'fever';
+            else if (symptomName === 'cough') symptomName = 'cough';
+            else if (symptomName === 'shortness of breath') symptomName = 'shortness of breath';
+
+            opening += ` who presented with a ${duration} history of ${symptomName}`;
+
+            // Add pattern / chills / etc.
+            let pattern = '', chills = '';
+            if (currentSymptom && symptomDetails[currentSymptom]) {
+                const guide = getQuestionSet(currentSymptom);
+                if (guide) {
+                    const resp = symptomDetails[currentSymptom];
+                    if (guide.questions[1]?.q.includes('Pattern')) pattern = resp[1] || '';
+                    if (guide.questions[3]?.q.includes('chills')) chills = resp[3] || '';
+                }
+            }
+            if (pattern) opening += ` described as ${pattern.toLowerCase()}`;
+            if (chills) opening += ` associated with ${chills.toLowerCase()}`;
+
+            // Add cough detail if present
+            let coughDetail = '';
+            if (currentSymptom === 'fever' && symptomDetails['fever'] && symptomDetails['fever'][4] && symptomDetails['fever'][4].toLowerCase().includes('cough')) {
+                coughDetail = symptomDetails['fever'][4];
+                opening += `. He also reports a ${coughDetail.toLowerCase()}`;
+            }
+            if (currentSymptom === 'cough') {
+                const productive = (symptomDetails['cough'] && symptomDetails['cough'][1]) || '';
+                if (productive.toLowerCase().includes('productive')) opening += ` with productive cough`;
+                else opening += ` with dry cough`;
+            }
+
+            // Important negatives
+            let negatives = [];
+            if (currentSymptom === 'fever') {
+                if (!(symptomDetails['fever']?.[4] || '').toLowerCase().includes('haemoptysis')) negatives.push('no haemoptysis');
+                if (!(symptomDetails['fever']?.[7] || '').toLowerCase().includes('tb')) negatives.push('no known TB contact');
+                if (!(symptomDetails['fever']?.[4] || '').toLowerCase().includes('sputum')) negatives.push('no sputum production');
+            } else if (currentSymptom === 'cough') {
+                if (!(symptomDetails['cough']?.[4] || '').toLowerCase().includes('haemoptysis')) negatives.push('no haemoptysis');
+                if (!(symptomDetails['cough']?.[3] || '').toLowerCase().includes('tb')) negatives.push('no TB contact');
+            }
+            if (negatives.length) {
+                opening += `; however, ${negatives.join(' and ')}`;
+            }
+            opening += `.`;
+
+            // ---- 2. Build the detailed summary (your original code) ----
             const fullName = document.getElementById('fullName').value || 'Not provided';
-            const age = document.getElementById('age').value || 'Not provided';
-            const gender = document.getElementById('gender').value || 'Not provided';
             const maritalStatus = document.getElementById('maritalStatus').value || 'Not provided';
             const occupation = document.getElementById('occupation').value || 'Not provided';
             const religion = document.getElementById('religion').value || 'Not provided';
@@ -1580,10 +1659,7 @@
             const social = document.getElementById('social').value || 'Not documented';
             const familyHistory = document.getElementById('familyHistory').value || 'Not documented';
 
-            // HIV Data
-            const hivStatus = document.getElementById('hivStatus').value || 'Not documented';
             let hivSummary = '';
-            
             if (hivStatus === 'positive') {
                 const diagnosisDate = document.getElementById('hivDiagnosisDate').value || 'Not documented';
                 const whoStage = document.getElementById('hivWhoStage').value || 'Not documented';
@@ -1592,12 +1668,10 @@
                 const adherence = document.getElementById('hivAdherence').value || 'Not documented';
                 const cd4 = document.getElementById('hivCd4').value || 'Not documented';
                 const viralLoad = document.getElementById('hivViralLoad').value || 'Not documented';
-                
                 const ois = [];
                 document.querySelectorAll('#hivDetails input[type="checkbox"]:checked').forEach(cb => {
                     if (cb.value !== 'Other') ois.push(cb.value);
                 });
-                
                 hivSummary = `
                     <br><strong>🩸 HIV History:</strong><br>
                     • HIV Positive, diagnosed ${diagnosisDate}<br>
@@ -1610,7 +1684,7 @@
                 `;
             }
 
-            let summary = `
+            let detailed = `
                 <strong>📚 EaseMed CLINICAL SUMMARY - ${new Date().toLocaleString()}</strong><br><br>
                 <strong>📋 PATIENT DEMOGRAPHICS</strong><br>
                 • Name: ${fullName} | Age: ${age} | Sex: ${gender}<br>
@@ -1626,12 +1700,12 @@
             `;
 
             if (currentSymptom && symptomDetails[currentSymptom]) {
-                summary += `<br><strong>📝 History of Presenting Complaint:</strong><br>`;
+                detailed += `<br><strong>📝 History of Presenting Complaint:</strong><br>`;
                 const guide = getQuestionSet(currentSymptom);
                 if (guide) {
                     guide.questions.forEach((item, idx) => {
                         if (symptomDetails[currentSymptom][idx]) {
-                            summary += `• ${item.q}: ${symptomDetails[currentSymptom][idx]}<br>`;
+                            detailed += `• ${item.q}: ${symptomDetails[currentSymptom][idx]}<br>`;
                         }
                     });
                 } else {
@@ -1643,22 +1717,20 @@
                     const timing = document.getElementById('genericTiming')?.value;
                     const factors = document.getElementById('genericFactors')?.value;
                     const severity = document.getElementById('genericSeverity')?.value;
-                    if (site) summary += `• Site: ${site}<br>`;
-                    if (onset) summary += `• Onset: ${onset}<br>`;
-                    if (character) summary += `• Character: ${character}<br>`;
-                    if (radiation) summary += `• Radiation: ${radiation}<br>`;
-                    if (associated) summary += `• Associated features: ${associated}<br>`;
-                    if (timing) summary += `• Timing: ${timing}<br>`;
-                    if (factors) summary += `• Exacerbating/Relieving factors: ${factors}<br>`;
-                    if (severity) summary += `• Severity: ${severity}/10<br>`;
+                    if (site) detailed += `• Site: ${site}<br>`;
+                    if (onset) detailed += `• Onset: ${onset}<br>`;
+                    if (character) detailed += `• Character: ${character}<br>`;
+                    if (radiation) detailed += `• Radiation: ${radiation}<br>`;
+                    if (associated) detailed += `• Associated features: ${associated}<br>`;
+                    if (timing) detailed += `• Timing: ${timing}<br>`;
+                    if (factors) detailed += `• Exacerbating/Relieving factors: ${factors}<br>`;
+                    if (severity) detailed += `• Severity: ${severity}/10<br>`;
                 }
             }
 
-            summary += `<br><strong>📜 PAST MEDICAL HISTORY</strong><br>${pmh}<br><br>`;
-            summary += `<strong>💊 MEDICATIONS & ALLERGIES</strong><br>Current Medications: ${medications}<br>Allergies: ${allergies}<br><br>`;
-            
-            // Review of Systems
-            summary += `<strong>🔄 REVIEW OF SYSTEMS</strong><br>`;
+            detailed += `<br><strong>📜 PAST MEDICAL HISTORY</strong><br>${pmh}<br><br>`;
+            detailed += `<strong>💊 MEDICATIONS & ALLERGIES</strong><br>Current Medications: ${medications}<br>Allergies: ${allergies}<br><br>`;
+            detailed += `<strong>🔄 REVIEW OF SYSTEMS</strong><br>`;
             for (const [system, data] of Object.entries(reviewOfSystems)) {
                 let hasFindings = false;
                 let findings = [];
@@ -1671,17 +1743,27 @@
                     });
                 }
                 if (hasFindings) {
-                    summary += `<strong>${data.icon} ${data.name}:</strong> ${findings.join('; ')}<br>`;
+                    detailed += `<strong>${data.icon} ${data.name}:</strong> ${findings.join('; ')}<br>`;
                 } else {
-                    summary += `<strong>${data.icon} ${data.name}:</strong> No significant findings reported<br>`;
+                    detailed += `<strong>${data.icon} ${data.name}:</strong> No significant findings reported<br>`;
                 }
             }
-            
-            summary += `<br><strong>🏠 SOCIAL HISTORY</strong><br>${social}<br><br>`;
-            summary += `<strong>👨‍👩‍👧 FAMILY HISTORY</strong><br>${familyHistory}<br><br>`;
-            summary += `<em>Based on Hutchison's Clinical Methods, 25th Edition | Generated by EaseMed Clinical Clerk System</em>`;
-            
-            document.getElementById('clinicalSummary').innerHTML = summary;
+            detailed += `<br><strong>🏠 SOCIAL HISTORY</strong><br>${social}<br><br>`;
+            detailed += `<strong>👨‍👩‍👧 FAMILY HISTORY</strong><br>${familyHistory}<br><br>`;
+            detailed += `<em>Based on Hutchison's Clinical Methods, 25th Edition | Generated by EaseMed Clinical Clerk System</em>`;
+
+            // ---- 3. Combine both: concise paragraph first, then detailed ----
+            const finalHTML = `
+                <div class="case-presentation" style="background: #d4fc79; padding: 15px; border-radius: 16px; margin-bottom: 20px;">
+                    <h4 style="color: #1e3c72;">📌 Concise Case Presentation</h4>
+                    <p style="font-size: 1rem; line-height: 1.5;">${opening}</p>
+                </div>
+                <div class="clinical-summary">
+                    ${detailed}
+                </div>
+            `;
+
+            document.getElementById('clinicalSummary').innerHTML = finalHTML;
             document.getElementById('summarySection').style.display = 'block';
             document.getElementById('summarySection').scrollIntoView({ behavior: 'smooth' });
             updateProgress();
