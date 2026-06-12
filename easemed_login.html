@@ -4,15 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EaseMed - Medical Professional Login & Signup</title>
-
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e3c72">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="EaseMed">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="description" content="EaseMed Clinical Clerk System — medical history taking guide based on Hutchison's Clinical Methods">
     <style>
         * {
             margin: 0;
@@ -494,7 +485,7 @@
                     <label>🔒 Password</label>
                     <input type="password" id="loginPassword" placeholder="••••••••">
                 </div>
-                <button class="login-btn" onclick="handleLogin()">Login to EaseMed</button>
+                <button id="loginBtn" class="login-btn" onclick="handleLogin()">Login to EaseMed</button>
 
                 <div class="divider">
                     <span>OR CONTINUE WITH</span>
@@ -597,7 +588,7 @@
                     <input type="text" id="signupLocation" placeholder="e.g., Mulago National Referral Hospital">
                 </div>
 
-                <button class="signup-btn" onclick="handleSignup()">Create Account</button>
+                <button id="signupBtn" class="signup-btn" onclick="handleSignup()">Create Account</button>
 
                 <div class="divider">
                     <span>OR SIGN UP WITH</span>
@@ -622,251 +613,506 @@
         </div>
     </div>
 
+    <!-- ── SUPABASE SDK ─────────────────────────────────────── -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
-        // Create floating particles
-        function createParticles() {
-            const container = document.getElementById('particles');
-            for (let i = 0; i < 30; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                const size = Math.random() * 4 + 2;
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDuration = Math.random() * 8 + 4 + 's';
-                particle.style.animationDelay = Math.random() * 5 + 's';
-                container.appendChild(particle);
-            }
+    // ================================================================
+    //  EASEMED — SUPABASE INTEGRATION
+    //  Replace the two values below with your actual Supabase project
+    //  credentials. Find them in: Supabase Dashboard → Settings → API
+    // ================================================================
+    const SUPABASE_URL    = 'YOUR_SUPABASE_URL_HERE';
+    const SUPABASE_ANON   = 'YOUR_SUPABASE_ANON_KEY_HERE';
+
+    // Initialise the Supabase client
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    // ── Demo account credentials (keep these for easy testing) ──────
+    const DEMO_ACCOUNTS = [
+        { email: 'student@easemed.com', password: 'student123', name: 'Demo Student' },
+        { email: 'doctor@easemed.com',  password: 'doctor123',  name: 'Demo Doctor'  },
+    ];
+
+    // ================================================================
+    //  UTILITY FUNCTIONS
+    // ================================================================
+
+    // Show alert message inside the form
+    function showAlert(message, type) {
+        const alertDiv = document.getElementById('alertMsg');
+        alertDiv.textContent = message;
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.style.display = 'block';
+        setTimeout(() => { alertDiv.style.display = 'none'; }, 4000);
+    }
+
+    // Show/hide loading state on a button
+    function setLoading(btnId, loading, originalText) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.disabled  = loading;
+        btn.textContent = loading ? '⏳ Please wait...' : originalText;
+    }
+
+    // Switch between Login and Sign Up tabs
+    function switchTab(tab) {
+        const loginForm  = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const tabs       = document.querySelectorAll('.tab');
+        if (tab === 'login') {
+            loginForm.classList.add('active');
+            signupForm.classList.remove('active');
+            tabs[0].classList.add('active');
+            tabs[1].classList.remove('active');
+        } else {
+            loginForm.classList.remove('active');
+            signupForm.classList.add('active');
+            tabs[0].classList.remove('active');
+            tabs[1].classList.add('active');
         }
-        createParticles();
+    }
 
-        // Store users in localStorage
-        let users = JSON.parse(localStorage.getItem('easemed_users')) || [];
+    // Fill demo credentials into login form
+    function fillDemo(email, password) {
+        document.getElementById('loginEmail').value    = email;
+        document.getElementById('loginPassword').value = password;
+        showAlert('Demo credentials filled! Click Login to continue.', 'success');
+    }
 
-        function showAlert(message, type) {
-            const alertDiv = document.getElementById('alertMsg');
-            alertDiv.textContent = message;
-            alertDiv.className = `alert alert-${type}`;
-            alertDiv.style.display = 'block';
+    // ================================================================
+    //  DEVICE DETECTION — captured for session tracking
+    // ================================================================
+    function getDeviceType() {
+        const ua = navigator.userAgent;
+        if (/Mobi|Android/i.test(ua)) return 'mobile';
+        if (/Tablet|iPad/i.test(ua))  return 'tablet';
+        return 'desktop';
+    }
+
+    function getBrowserName() {
+        const ua = navigator.userAgent;
+        if (ua.includes('Chrome'))  return 'Chrome';
+        if (ua.includes('Firefox')) return 'Firefox';
+        if (ua.includes('Safari'))  return 'Safari';
+        if (ua.includes('Edge'))    return 'Edge';
+        return 'Unknown';
+    }
+
+    // ================================================================
+    //  SESSION MANAGEMENT
+    //  Creates a session row in Supabase on login, closes it on logout
+    // ================================================================
+    async function createSession(userId) {
+        try {
+            const { data, error } = await db
+                .from('sessions')
+                .insert({
+                    user_id    : userId,
+                    device_type: getDeviceType(),
+                    browser    : getBrowserName(),
+                    user_agent : navigator.userAgent,
+                    country    : 'Uganda',
+                })
+                .select('id')
+                .single();
+
+            if (error) throw error;
+
+            // Store session ID in localStorage so we can close it on logout
+            localStorage.setItem('easemed_session_id', data.id);
+            return data.id;
+        } catch (err) {
+            console.warn('Session creation warning:', err.message);
+            return null;
+        }
+    }
+
+    async function closeSession() {
+        const sessionId = localStorage.getItem('easemed_session_id');
+        if (!sessionId) return;
+        try {
+            await db
+                .from('sessions')
+                .update({ logged_out_at: new Date().toISOString() })
+                .eq('id', sessionId);
+            localStorage.removeItem('easemed_session_id');
+        } catch (err) {
+            console.warn('Session close warning:', err.message);
+        }
+    }
+
+    // ================================================================
+    //  ACTIVITY LOGGING
+    //  Logs every significant action to the activity_logs table
+    // ================================================================
+    async function logActivity(userId, action, metadata = {}) {
+        try {
+            const sessionId = localStorage.getItem('easemed_session_id');
+            await db.from('activity_logs').insert({
+                user_id   : userId,
+                session_id: sessionId || null,
+                action    : action,
+                severity  : 'info',
+                metadata  : metadata,
+                user_agent: navigator.userAgent,
+            });
+        } catch (err) {
+            // Non-blocking — never let logging crash the app
+            console.warn('Activity log warning:', err.message);
+        }
+    }
+
+    // ================================================================
+    //  LOGIN HANDLER
+    //  1. Check if demo account → bypass Supabase, use localStorage
+    //  2. Otherwise → authenticate with Supabase Auth
+    // ================================================================
+    async function handleLogin() {
+        const email    = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        if (!email || !password) {
+            showAlert('Please enter both email and password.', 'error');
+            return;
+        }
+
+        // ── Demo account shortcut ─────────────────────────────────
+        const demoAccount = DEMO_ACCOUNTS.find(
+            d => d.email === email && d.password === password
+        );
+        if (demoAccount) {
+            showAlert(`Welcome, ${demoAccount.name}! Redirecting...`, 'success');
+            localStorage.setItem('easemed_logged_in', 'true');
+            localStorage.setItem('easemed_user', email);
+            localStorage.setItem('easemed_user_name', demoAccount.name);
+            localStorage.setItem('easemed_is_demo', 'true');
             setTimeout(() => {
-                alertDiv.style.display = 'none';
-            }, 3000);
+                window.location.href = 'easemed_dashboard__2_.html';
+            }, 1200);
+            return;
         }
 
-        function switchTab(tab) {
-            const loginForm = document.getElementById('loginForm');
-            const signupForm = document.getElementById('signupForm');
-            const tabs = document.querySelectorAll('.tab');
-            
-            if (tab === 'login') {
-                loginForm.classList.add('active');
-                signupForm.classList.remove('active');
-                tabs[0].classList.add('active');
-                tabs[1].classList.remove('active');
-            } else {
-                loginForm.classList.remove('active');
-                signupForm.classList.add('active');
-                tabs[0].classList.remove('active');
-                tabs[1].classList.add('active');
+        // ── Real Supabase login ───────────────────────────────────
+        setLoading('loginBtn', true, 'Login to EaseMed');
+
+        try {
+            const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                // Supabase returns specific error messages
+                if (error.message.includes('Invalid login')) {
+                    showAlert('Incorrect email or password. Please try again.', 'error');
+                } else if (error.message.includes('Email not confirmed')) {
+                    showAlert('Please verify your email before logging in. Check your inbox.', 'error');
+                } else {
+                    showAlert(error.message, 'error');
+                }
+                setLoading('loginBtn', false, 'Login to EaseMed');
+                return;
             }
+
+            const user = data.user;
+
+            // Fetch the user's profile to get their name and check status
+            const { data: profile, error: profileError } = await db
+                .from('profiles')
+                .select('full_name, status, role, plan')
+                .eq('id', user.id)
+                .single();
+
+            if (profile && profile.status === 'suspended') {
+                showAlert('Your account has been suspended. Contact support.', 'error');
+                await db.auth.signOut();
+                setLoading('loginBtn', false, 'Login to EaseMed');
+                return;
+            }
+
+            if (profile && profile.status === 'banned') {
+                showAlert('Your account has been permanently banned.', 'error');
+                await db.auth.signOut();
+                setLoading('loginBtn', false, 'Login to EaseMed');
+                return;
+            }
+
+            // Create a session record in Supabase
+            const sessionId = await createSession(user.id);
+
+            // Log the login activity
+            await logActivity(user.id, 'login', {
+                email      : email,
+                device_type: getDeviceType(),
+                browser    : getBrowserName(),
+            });
+
+            // Update login count and last_seen in profiles
+            await db
+                .from('profiles')
+                .update({
+                    total_logins: (profile?.total_logins || 0) + 1,
+                    last_seen_at: new Date().toISOString(),
+                })
+                .eq('id', user.id);
+
+            // Store user info in localStorage for the dashboard to use
+            localStorage.setItem('easemed_logged_in',  'true');
+            localStorage.setItem('easemed_user',        email);
+            localStorage.setItem('easemed_user_id',     user.id);
+            localStorage.setItem('easemed_user_name',   profile?.full_name || email);
+            localStorage.setItem('easemed_user_role',   profile?.role || 'student');
+            localStorage.setItem('easemed_user_plan',   profile?.plan || 'free');
+            localStorage.setItem('easemed_is_demo',     'false');
+
+            const name = profile?.full_name || 'User';
+            showAlert(`Welcome back, ${name}! Redirecting...`, 'success');
+
+            setTimeout(() => {
+                // Redirect admins to admin dashboard, others to main dashboard
+                if (profile?.role === 'admin' || profile?.role === 'superadmin') {
+                    window.location.href = 'easemed_admin.html';
+                } else {
+                    window.location.href = 'easemed_dashboard__2_.html';
+                }
+            }, 1200);
+
+        } catch (err) {
+            showAlert('Connection error. Please check your internet and try again.', 'error');
+            console.error('Login error:', err);
+            setLoading('loginBtn', false, 'Login to EaseMed');
+        }
+    }
+
+    // ================================================================
+    //  SIGNUP HANDLER
+    //  1. Validates all fields client-side
+    //  2. Creates Supabase Auth user
+    //  3. Profile is auto-created by the database trigger (handle_new_user)
+    //  4. Logs the signup activity
+    // ================================================================
+    async function handleSignup() {
+        const name            = document.getElementById('signupName').value.trim();
+        const email           = document.getElementById('signupEmail').value.trim();
+        const phone           = document.getElementById('signupPhone').value.trim();
+        const password        = document.getElementById('signupPassword').value;
+        const confirmPassword = document.getElementById('signupConfirmPassword').value;
+        const role            = document.getElementById('signupRole').value;
+        const university      = document.getElementById('signupUniversity').value.trim();
+        const yearOfStudy     = document.getElementById('signupYear').value;
+        const license         = document.getElementById('signupLicense').value.trim();
+        const location        = document.getElementById('signupLocation').value.trim();
+
+        // ── Client-side validation ────────────────────────────────
+        if (!name || !email || !password || !role || !university || !yearOfStudy) {
+            showAlert('Please fill in all required fields (*).', 'error');
+            return;
         }
 
-        function fillDemo(email, password) {
-            document.getElementById('loginEmail').value = email;
-            document.getElementById('loginPassword').value = password;
-            showAlert('Demo credentials filled! Click Login to continue.', 'success');
+        if (password !== confirmPassword) {
+            showAlert('Passwords do not match.', 'error');
+            return;
         }
 
-        function handleLogin() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            
-            if (!email || !password) {
-                showAlert('Please enter both email and password', 'error');
-                return;
-            }
-            
-            // Demo accounts
-            if ((email === 'student@easemed.com' && password === 'student123') ||
-                (email === 'doctor@easemed.com' && password === 'doctor123')) {
-                showAlert('Login successful! Redirecting to dashboard...', 'success');
-                setTimeout(() => {
-                    localStorage.setItem('easemed_logged_in', 'true');
-                    localStorage.setItem('easemed_user', email);
-                    window.location.href = 'easemed_dashboard.html';
-                }, 1500);
-                return;
-            }
-            
-            // Check registered users
-            const user = users.find(u => u.email === email && u.password === password);
-            if (user) {
-                showAlert(`Welcome back ${user.name}! Redirecting...`, 'success');
-                setTimeout(() => {
-                    localStorage.setItem('easemed_logged_in', 'true');
-                    localStorage.setItem('easemed_user', email);
-                    window.location.href = 'easemed_dashboard.html';
-                }, 1500);
-            } else {
-                showAlert('Invalid credentials. Use student@easemed.com / student123', 'error');
-            }
+        if (password.length < 6) {
+            showAlert('Password must be at least 6 characters.', 'error');
+            return;
         }
 
-        function handleSignup() {
-            const name = document.getElementById('signupName').value.trim();
-            const email = document.getElementById('signupEmail').value.trim();
-            const phone = document.getElementById('signupPhone').value.trim();
-            const password = document.getElementById('signupPassword').value;
-            const confirmPassword = document.getElementById('signupConfirmPassword').value;
-            const role = document.getElementById('signupRole').value;
-            const university = document.getElementById('signupUniversity').value.trim();
-            const yearOfStudy = document.getElementById('signupYear').value;
-            const license = document.getElementById('signupLicense').value.trim();
-            const location = document.getElementById('signupLocation').value.trim();
-            
-            if (!name || !email || !password || !role || !university || !yearOfStudy) {
-                showAlert('Please fill in all required fields (*)', 'error');
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                showAlert('Passwords do not match', 'error');
-                return;
-            }
-            
-            if (password.length < 6) {
-                showAlert('Password must be at least 6 characters', 'error');
-                return;
-            }
-            
-            if (users.find(u => u.email === email)) {
-                showAlert('Email already registered. Please login.', 'error');
-                return;
-            }
-            
-            const newUser = {
-                id: users.length + 1,
-                name: name,
-                email: email,
-                phone: phone,
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showAlert('Please enter a valid email address.', 'error');
+            return;
+        }
+
+        setLoading('signupBtn', true, 'Create Account');
+
+        try {
+            // ── Create user in Supabase Auth ──────────────────────
+            // We pass extra metadata that the handle_new_user trigger
+            // will use to populate the profiles table automatically
+            const { data, error } = await db.auth.signUp({
+                email   : email,
                 password: password,
-                role: role,
-                university: university,
-                yearOfStudy: yearOfStudy,
-                license: license,
-                location: location,
-                registeredAt: new Date().toISOString()
-            };
-            
-            users.push(newUser);
-            localStorage.setItem('easemed_users', JSON.stringify(users));
-            
-            showAlert(`Account created successfully! Welcome ${name}!`, 'success');
-            
+                options : {
+                    data: {
+                        full_name      : name,
+                        phone          : phone,
+                        role           : 'student',   // Everyone starts as student
+                        university     : university,
+                        year_of_study  : yearOfStudy,
+                        license_number : license,
+                        hospital       : location,
+                    }
+                }
+            });
+
+            if (error) {
+                if (error.message.includes('already registered')) {
+                    showAlert('This email is already registered. Please login.', 'error');
+                } else {
+                    showAlert(error.message, 'error');
+                }
+                setLoading('signupBtn', false, 'Create Account');
+                return;
+            }
+
+            // ── Update additional profile fields not in auth metadata ──
+            // The trigger creates the basic profile — now we add the rest
+            if (data.user) {
+                await db.from('profiles').update({
+                    phone          : phone || null,
+                    university     : university,
+                    license_number : license  || null,
+                    hospital       : location || null,
+                }).eq('id', data.user.id);
+            }
+
+            // ── Success ───────────────────────────────────────────
+            showAlert(
+                `Account created! Welcome to EaseMed, ${name}. ` +
+                `Please check your email to verify your account.`,
+                'success'
+            );
+
+            // Switch to login tab and pre-fill email
             setTimeout(() => {
                 switchTab('login');
-                document.getElementById('loginEmail').value = email;
+                document.getElementById('loginEmail').value    = email;
                 document.getElementById('loginPassword').value = '';
-            }, 1500);
-        }
+                setLoading('signupBtn', false, 'Create Account');
+            }, 2000);
 
-        function socialLogin(provider) {
+        } catch (err) {
+            showAlert('Connection error. Please try again.', 'error');
+            console.error('Signup error:', err);
+            setLoading('signupBtn', false, 'Create Account');
+        }
+    }
+
+    // ================================================================
+    //  SOCIAL LOGIN (Google & Facebook)
+    //  Uses Supabase OAuth — no passwords needed
+    // ================================================================
+    async function socialLogin(provider) {
+        try {
             showAlert(`Connecting with ${provider}...`, 'success');
-            setTimeout(() => {
+            const { error } = await db.auth.signInWithOAuth({
+                provider: provider.toLowerCase(),
+                options : {
+                    // After OAuth completes, redirect back to dashboard
+                    redirectTo: window.location.origin + '/easemed_dashboard__2_.html'
+                }
+            });
+            if (error) showAlert(error.message, 'error');
+        } catch (err) {
+            showAlert('Social login failed. Please try email login.', 'error');
+        }
+    }
+
+    async function socialSignup(provider) {
+        // Same flow as social login — Supabase handles new vs existing accounts
+        await socialLogin(provider);
+    }
+
+    // ================================================================
+    //  FAILED LOGIN TRACKING
+    //  Detects brute force attempts and logs them to security_flags
+    // ================================================================
+    let failedAttempts = parseInt(localStorage.getItem('easemed_failed_attempts') || '0');
+
+    async function trackFailedLogin(email) {
+        failedAttempts++;
+        localStorage.setItem('easemed_failed_attempts', failedAttempts.toString());
+
+        // After 5 failed attempts — log a security flag
+        if (failedAttempts >= 5) {
+            try {
+                // Look up user ID by email
+                const { data: profile } = await db
+                    .from('profiles')
+                    .select('id')
+                    .eq('email', email)
+                    .single();
+
+                if (profile) {
+                    await db.from('security_flags').insert({
+                        user_id    : profile.id,
+                        flag_type  : 'multiple_failed_logins',
+                        severity   : 'high',
+                        description: `${failedAttempts} failed login attempts for ${email}`,
+                        evidence   : { failed_attempts: failedAttempts, email },
+                        user_agent : navigator.userAgent,
+                    });
+                }
+            } catch (err) {
+                console.warn('Security flag warning:', err.message);
+            }
+        }
+    }
+
+    // ================================================================
+    //  AUTH STATE LISTENER
+    //  Fires whenever the auth state changes — catches OAuth callbacks
+    //  and auto-redirects logged-in users away from login page
+    // ================================================================
+    db.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            // Reset failed attempt counter on successful login
+            localStorage.removeItem('easemed_failed_attempts');
+
+            // If arriving from OAuth redirect
+            if (window.location.search.includes('access_token') ||
+                window.location.hash.includes('access_token')) {
+
+                const user = session.user;
+                await createSession(user.id);
+                await logActivity(user.id, 'login', { method: 'oauth' });
+
                 localStorage.setItem('easemed_logged_in', 'true');
-                localStorage.setItem('easemed_user', `${provider}_user@easemed.com`);
-                window.location.href = 'easemed_dashboard.html';
-            }, 1000);
+                localStorage.setItem('easemed_user',      user.email);
+                localStorage.setItem('easemed_user_id',   user.id);
+                localStorage.setItem('easemed_is_demo',   'false');
+
+                window.location.href = 'easemed_dashboard__2_.html';
+            }
         }
 
-        function socialSignup(provider) {
-            showAlert(`Signing up with ${provider}...`, 'success');
-            setTimeout(() => {
-                localStorage.setItem('easemed_logged_in', 'true');
-                localStorage.setItem('easemed_user', `${provider}_user@easemed.com`);
-                window.location.href = 'easemed_dashboard.html';
-            }, 1000);
+        // If user is already logged in and visits login page → redirect
+        if (event === 'INITIAL_SESSION' && session) {
+            const isDemo = localStorage.getItem('easemed_is_demo') === 'true';
+            if (!isDemo) {
+                window.location.href = 'easemed_dashboard__2_.html';
+            }
         }
+    });
 
-        // Enter key support
-        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') handleLogin();
-        });
-        
-        document.getElementById('signupConfirmPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') handleSignup();
-        });
-
-        // ── SERVICE WORKER REGISTRATION ──────────────────────────
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('[EaseMed] SW registered:', reg.scope))
-                    .catch(err => console.warn('[EaseMed] SW registration failed:', err));
-            });
+    // ================================================================
+    //  CREATE FLOATING PARTICLES (original UI code — unchanged)
+    // ================================================================
+    function createParticles() {
+        const container = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            const size = Math.random() * 4 + 2;
+            particle.style.width            = size + 'px';
+            particle.style.height           = size + 'px';
+            particle.style.left             = Math.random() * 100 + '%';
+            particle.style.animationDuration= Math.random() * 8 + 4 + 's';
+            particle.style.animationDelay   = Math.random() * 5 + 's';
+            container.appendChild(particle);
         }
+    }
+    createParticles();
 
-        // ── PWA INSTALL PROMPT ────────────────────────────────────
-        // Catches the browser's beforeinstallprompt event and shows
-        // a custom "Add to Home Screen" banner at the bottom of the page.
-        let deferredPrompt;
-        const installBanner = document.createElement('div');
-        installBanner.id = 'installBanner';
-        installBanner.innerHTML = `
-            <div style="
-                position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-                background: linear-gradient(135deg, #1e3c72, #2a5298);
-                color: white; padding: 14px 24px; border-radius: 16px;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-                display: flex; align-items: center; gap: 14px;
-                font-family: 'Segoe UI', sans-serif; font-size: 0.9rem;
-                z-index: 99999; min-width: 300px; max-width: 90vw;
-                animation: slideUp 0.4s ease;">
-                <span style="font-size:1.6rem;">🩺</span>
-                <div>
-                    <div style="font-weight:700; margin-bottom:2px;">Install EaseMed</div>
-                    <div style="opacity:0.85; font-size:0.8rem;">Add to home screen for offline access</div>
-                </div>
-                <div style="display:flex; gap:8px; margin-left:auto;">
-                    <button id="installBtn" style="
-                        background: white; color: #1e3c72; border: none;
-                        padding: 8px 16px; border-radius: 10px; font-weight: 700;
-                        cursor: pointer; font-size: 0.85rem;">Install</button>
-                    <button id="dismissBtn" style="
-                        background: rgba(255,255,255,0.15); color: white; border: none;
-                        padding: 8px 12px; border-radius: 10px; cursor: pointer;
-                        font-size: 0.85rem;">✕</button>
-                </div>
-            </div>`;
+    // ── Enter key support ──────────────────────────────────────────
+    document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') handleLogin();
+    });
+    document.getElementById('signupConfirmPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') handleSignup();
+    });
 
-        window.addEventListener('beforeinstallprompt', e => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.body.appendChild(installBanner);
-
-            document.getElementById('installBtn').addEventListener('click', async () => {
-                installBanner.remove();
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log('[EaseMed] Install outcome:', outcome);
-                deferredPrompt = null;
-            });
-
-            document.getElementById('dismissBtn').addEventListener('click', () => {
-                installBanner.remove();
-            });
-        });
-
-        window.addEventListener('appinstalled', () => {
-            console.log('[EaseMed] App installed successfully');
-            installBanner.remove();
-        });
     </script>
-    <style>
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-    </style>
 </body>
 </html>
