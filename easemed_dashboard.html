@@ -1,1987 +1,1788 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EaseMed - Clinical Clerk System</title>
-
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e3c72">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="EaseMed">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="description" content="EaseMed Clinical Clerk System — comprehensive patient history taking guide">
-
-    <!-- Supabase JS SDK — loaded early so auth check runs immediately -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.03)" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x bottom;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 0.9fr;
-            gap: 25px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .clerking-panel, .guidance-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .clerking-panel:hover, .guidance-panel:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
-        }
-
-        .panel-header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            padding: 25px 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .panel-header::before {
-            content: '📚';
-            position: absolute;
-            right: -20px;
-            top: -20px;
-            font-size: 120px;
-            opacity: 0.1;
-            pointer-events: none;
-        }
-
-        .panel-header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .panel-header p {
-            opacity: 0.9;
-            font-size: 0.95rem;
-        }
-
-        .form-section {
-            padding: 25px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-            transition: background 0.3s ease;
-        }
-
-        .form-section:hover {
-            background: rgba(30, 60, 114, 0.03);
-        }
-
-        .form-section h3 {
-            color: #2d3748;
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #1e3c72;
-            display: inline-block;
-        }
-
-        .demographics-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 18px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #4a5568;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 14px;
-            transition: all 0.3s;
-            background: white;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #1e3c72;
-            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
-            transform: scale(1.01);
-        }
-
-        .symptom-buttons {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-            max-height: 250px;
-            overflow-y: auto;
-            padding: 5px;
-        }
-
-        .symptom-btn {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border: none;
-            padding: 12px 22px;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 14px;
-            font-weight: 600;
-            color: #2d3748;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .symptom-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(30, 60, 114, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .symptom-btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .symptom-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(30, 60, 114, 0.3);
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-        }
-
-        .symptom-btn.active {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            box-shadow: 0 10px 20px rgba(30, 60, 114, 0.4);
-            transform: scale(1.05);
-        }
-
-        .guidance-panel {
-            position: sticky;
-            top: 20px;
-            height: fit-content;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .guidance-header {
-            background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
-            color: white;
-            padding: 25px 30px;
-        }
-
-        .guidance-card {
-            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-            border-left: 5px solid #1e3c72;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 16px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .guidance-card:hover {
-            transform: translateX(8px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .alert {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
-            border-left: 5px solid #ffc107;
-            padding: 18px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
-            50% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
-        }
-
-        .alert.warning {
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-            border-left-color: #dc3545;
-        }
-
-        .btn-generate {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            width: 100%;
-            margin-top: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-generate:hover {
-            transform: scale(1.02);
-            box-shadow: 0 10px 25px rgba(30, 60, 114, 0.4);
-        }
-
-        .clinical-summary {
-            background: linear-gradient(135deg, #e8f4f8 0%, #d1e8f0 100%);
-            padding: 20px;
-            border-radius: 16px;
-            margin-top: 15px;
-            font-size: 14px;
-            line-height: 1.8;
-            animation: slideUp 0.5s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .ros-category {
-            background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%);
-            border-radius: 16px;
-            padding: 18px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(30, 60, 114, 0.2);
-            transition: all 0.3s;
-        }
-
-        .ros-category:hover {
-            background: linear-gradient(135deg, #e8f0fe 0%, #dce8fc 100%);
-            transform: scale(1.01);
-        }
-
-        .ros-category h4 {
-            color: #1e3c72;
-            margin-bottom: 10px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            font-size: 1rem;
-        }
-
-        .ros-questions {
-            display: none;
-            margin-top: 15px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .ros-questions.active {
-            display: block;
-        }
-
-        .ros-question {
-            margin-bottom: 15px;
-            padding: 12px;
-            background: white;
-            border-radius: 12px;
-        }
-
-        .ros-hint {
-            font-size: 12px;
-            color: #1e3c72;
-            margin-top: 6px;
-            font-style: italic;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .ros-hint::before {
-            content: '📖';
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            border-radius: 20px;
-            font-size: 11px;
-            margin-left: 10px;
-            vertical-align: middle;
-        }
-
-        .progress-bar {
-            height: 3px;
-            background: linear-gradient(90deg, #1e3c72, #2a5298, #c0392b);
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 0%;
-            z-index: 1000;
-            transition: width 0.3s;
-        }
-
-        .floating-tip {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 50px;
-            font-size: 14px;
-            cursor: pointer;
-            z-index: 100;
-            animation: bounce 2s infinite;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .stat-card {
-            display: inline-block;
-            background: rgba(30, 60, 114, 0.1);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-
-        .expand-hiv {
-            background: linear-gradient(135deg, #fef5e7 0%, #fdebd0 100%);
-            border-left: 4px solid #e74c3c;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .expand-hiv:hover {
-            background: linear-gradient(135deg, #fdebd0 0%, #fadbd8 100%);
-        }
-
-        .hiv-details {
-            display: none;
-            margin-top: 15px;
-            padding: 15px;
-            background: white;
-            border-radius: 12px;
-        }
-
-        .hiv-details.active {
-            display: block;
-        }
-
-        @media (max-width: 1024px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-            .demographics-grid {
-                grid-template-columns: 1fr;
-            }
-            .guidance-panel {
-                position: static;
-                margin-top: 20px;
-            }
-        }
-
-        /* Records panel styles (unchanged) */
-        .records-panel {
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            overflow: hidden;
-            margin-top: 25px;
-            grid-column: 1 / -1;
-        }
-
-        .records-header {
-            background: linear-gradient(135deg, #1a5276, #2471a3);
-            color: white;
-            padding: 20px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .records-header h2 {
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 0;
-        }
-
-        .records-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn-record {
-            padding: 9px 18px;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s, transform 0.15s;
-        }
-
-        .btn-record:hover { opacity: 0.88; transform: translateY(-1px); }
-
-        .btn-save   { background: #27ae60; color: white; }
-        .btn-new    { background: #e67e22; color: white; }
-        .btn-export { background: #8e44ad; color: white; }
-        .btn-import { background: #2980b9; color: white; }
-
-        .records-body { padding: 20px 28px; }
-
-        .records-search {
-            width: 100%;
-            padding: 11px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            margin-bottom: 16px;
-            outline: none;
-            transition: border 0.2s;
-        }
-        .records-search:focus { border-color: #2471a3; }
-
-        .records-empty {
-            text-align: center;
-            color: #a0aec0;
-            padding: 30px;
-            font-size: 0.95rem;
-        }
-
-        .patient-card {
-            background: #f8fafc;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 14px 18px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            transition: border 0.2s, box-shadow 0.2s;
-            flex-wrap: wrap;
-        }
-
-        .patient-card:hover {
-            border-color: #2471a3;
-            box-shadow: 0 4px 12px rgba(36,113,163,0.1);
-        }
-
-        .patient-card-info { flex: 1; min-width: 0; }
-
-        .patient-card-name {
-            font-weight: 700;
-            color: #1e3c72;
-            font-size: 1rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .patient-card-meta {
-            font-size: 0.78rem;
-            color: #718096;
-            margin-top: 3px;
-        }
-
-        .patient-card-btns {
-            display: flex;
-            gap: 7px;
-        }
-
-        .btn-card {
-            padding: 6px 13px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .btn-card:hover { opacity: 0.8; }
-        .btn-load   { background: #ebf5fb; color: #2471a3; }
-        .btn-delete { background: #fdf2f2; color: #e53e3e; }
-
-        .save-toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            background: #27ae60;
-            color: white;
-            padding: 12px 28px;
-            border-radius: 14px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            z-index: 99999;
-            transition: transform 0.35s cubic-bezier(.175,.885,.32,1.275);
-            pointer-events: none;
-        }
-        .save-toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-       /* ==================== NEW CLEAN ROS DESIGN ==================== */
-        .ros-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 18px;
-        }
-
-        .ros-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            overflow: hidden;
-            transition: all 0.3s ease;
-            border: 1px solid #e2e8f0;
-        }
-
-        .ros-card:hover {
-            box-shadow: 0 10px 25px rgba(30, 60, 114, 0.12);
-            transform: translateY(-3px);
-        }
-
-        .ros-card-header {
-            padding: 16px 20px;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-        }
-
-        .ros-icon {
-            font-size: 28px;
-            width: 45px;
-        }
-
-        .ros-title {
-            flex: 1;
-        }
-
-        .ros-title small {
-            opacity: 0.85;
-            font-size: 0.8rem;
-        }
-
-        .ros-chevron {
-            transition: transform 0.3s;
-        }
-
-        .ros-card.expanded .ros-chevron {
-            transform: rotate(180deg);
-        }
-
-        .ros-content {
-            display: none;
-            padding: 20px;
-            background: #f8fafc;
-        }
-
-        .ros-content.active {
-            display: block;
-        }
-
-        .no-findings-btn {
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .no-findings-btn:hover {
-            background: #219653;
-        }
-
-        .checklist-group {
-            margin-bottom: 16px;
-        }
-
-        .checklist-title {
-            font-weight: 600;
-            color: #1e3c72;
-            margin-bottom: 10px;
-            font-size: 0.95rem;
-        }
-
-        .checklist {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-            gap: 8px;
-        }
-
-        .check-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: white;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            font-size: 0.92rem;
-            transition: 0.2s;
-        }
-
-        .check-item:hover {
-            border-color: #1e3c72;
-            background: #f0f7ff;
-        }
-
-        .check-item input[type="checkbox"] {
-            accent-color: #1e3c72;
-            transform: scale(1.1);
-        }
-
-        .ros-narrative {
-            width: 100%;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px;
-            font-size: 14px;
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .ros-narrative:focus {
-            border-color: #1e3c72;
-            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
-        }
-
-        /* ==================== POLISHED INTERACTIVE ROS SECTION ==================== */
-        .ros-guide-panel {
-            color: #2c3e50;
-            margin-bottom: 18px;
-            font-size: 14px;
-            background: linear-gradient(135deg, #eef7f8 0%, #f8fbfd 100%);
-            padding: 14px 16px;
-            border-radius: 14px;
-            border: 1px solid rgba(30, 60, 114, 0.12);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
-        }
-
-        .ros-grid {
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 14px;
-        }
-
-        .ros-card {
-            border-radius: 14px;
-            border: 1px solid #dbe7ef;
-            box-shadow: 0 8px 20px rgba(15, 32, 39, 0.07);
-            position: relative;
-        }
-
-        .ros-card::before {
-            content: '';
-            position: absolute;
-            inset: 0 0 auto 0;
-            height: 4px;
-            background: linear-gradient(90deg, #1e3c72, #2a9d8f, #c0392b);
-            opacity: 0.72;
-        }
-
-        .ros-card:hover {
-            border-color: #b7d1df;
-            box-shadow: 0 14px 28px rgba(30, 60, 114, 0.13);
-            transform: translateY(-2px);
-        }
-
-        .ros-card.expanded {
-            border-color: rgba(42, 157, 143, 0.55);
-            box-shadow: 0 18px 36px rgba(30, 60, 114, 0.16);
-        }
-
-        .ros-card.documented .ros-card-header {
-            background: linear-gradient(135deg, #f6fffc 0%, #eef8f4 100%);
-        }
-
-        .ros-card-header {
-            padding: 16px;
-            background: linear-gradient(135deg, #ffffff 0%, #f7fbfd 100%);
-            color: #1e3c72;
-            gap: 12px;
-            border: 0;
-            min-height: 92px;
-        }
-
-        .ros-icon {
-            width: 46px;
-            height: 46px;
-            border-radius: 12px;
-            display: grid;
-            place-items: center;
-            flex: 0 0 46px;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            font-size: 0.82rem;
-            font-weight: 800;
-            letter-spacing: 0;
-            box-shadow: 0 8px 16px rgba(30, 60, 114, 0.22);
-        }
-
-        .ros-title strong {
-            display: block;
-            color: #203a43;
-            font-size: 0.98rem;
-            line-height: 1.25;
-        }
-
-        .ros-title small {
-            display: inline-flex;
-            margin-top: 6px;
-            padding: 3px 8px;
-            border-radius: 999px;
-            background: #e8f4f8;
-            color: #1e3c72;
-            opacity: 1;
-            font-weight: 700;
-        }
-
-        .ros-card-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        .ros-status {
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: #62748a;
-            background: #f0f4f8;
-            border: 1px solid #e2e8f0;
-            border-radius: 999px;
-            padding: 4px 8px;
-        }
-
-        .ros-card.documented .ros-status {
-            color: #1e7d5a;
-            background: #e8f7ef;
-            border-color: #bde7cf;
-        }
-
-        .ros-chevron {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            display: grid;
-            place-items: center;
-            color: #1e3c72;
-            background: #edf5f8;
-            font-size: 0.95rem;
-            font-weight: 900;
-            flex: 0 0 34px;
-        }
-
-        .ros-content {
-            padding: 0 16px 16px;
-            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-        }
-
-        .ros-content.active {
-            display: block;
-            animation: fadeIn 0.22s ease;
-        }
-
-        .no-findings-btn {
-            background: #ecf8f1;
-            color: #1e7d5a;
-            border: 1px solid #bde7cf;
-            border-radius: 10px;
-            padding: 10px 12px;
-            margin: 2px 0 14px;
-            text-align: left;
-        }
-
-        .no-findings-btn:hover {
-            background: #dff3e8;
-        }
-
-        .checklist-title {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            color: #203a43;
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        .checklist {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        }
-
-        .check-item {
-            border-radius: 999px;
-            padding: 8px 11px;
-            border: 1px solid #dbe7ef;
-            color: #2d3748;
-            cursor: pointer;
-            min-height: 38px;
-        }
-
-        .check-item input[type="checkbox"] {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .check-item:has(input[type="checkbox"]:checked) {
-            background: #e8f4f8;
-            border-color: #2a9d8f;
-            color: #1e3c72;
-            box-shadow: inset 0 0 0 1px rgba(42, 157, 143, 0.18);
-        }
-
-        .check-item span::before {
-            content: '+';
-            display: inline-grid;
-            place-items: center;
-            width: 18px;
-            height: 18px;
-            margin-right: 7px;
-            border-radius: 50%;
-            background: #eef4f7;
-            color: #1e3c72;
-            font-weight: 900;
-            font-size: 0.78rem;
-        }
-
-        .check-item:has(input[type="checkbox"]:checked) span::before {
-            content: '';
-            background: #2a9d8f;
-            color: white;
-        }
-
-        .ros-narrative {
-            min-height: 92px;
-            border-radius: 12px;
-            border-color: #dbe7ef;
-            box-shadow: inset 0 1px 2px rgba(15, 32, 39, 0.04);
-        }
-
-        .ros-hint {
-            color: #496173;
-            background: #f1f7fa;
-            border-radius: 10px;
-            padding: 9px 10px;
-            margin-top: 10px;
-            font-style: normal;
-        }
-
-        @media (max-width: 560px) {
-            .ros-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .ros-card-header {
-                align-items: flex-start;
-            }
-
-            .checklist {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* ==================== SUMMARY AND WARD ROUND OUTPUTS ==================== */
-        .summary-actions {
-            padding: 0 25px 25px 25px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-        }
-
-        .summary-tabs {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 18px;
-            margin-top: 8px;
-        }
-
-        .summary-document {
-            background: #ffffff;
-            border: 1px solid #dbe7ef;
-            border-radius: 16px;
-            padding: 18px;
-            box-shadow: 0 10px 24px rgba(15, 32, 39, 0.08);
-        }
-
-        .summary-document h4 {
-            color: #1e3c72;
-            font-size: 1rem;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #e8f4f8;
-        }
-
-        .summary-banner {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 14px;
-        }
-
-        .summary-banner strong {
-            display: block;
-            font-size: 1.05rem;
-            margin-bottom: 4px;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .summary-field {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 10px 12px;
-        }
-
-        .summary-field span {
-            display: block;
-            color: #718096;
-            font-size: 0.72rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            margin-bottom: 4px;
-        }
-
-        .summary-section-block {
-            margin-top: 12px;
-            padding: 14px;
-            border-radius: 14px;
-            background: #fbfdfe;
-            border: 1px solid #e2e8f0;
-        }
-
-        .summary-section-block h5 {
-            color: #203a43;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        .summary-list {
-            margin: 0;
-            padding-left: 18px;
-            line-height: 1.7;
-        }
-
-        .ward-round-card {
-            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-            border-left: 5px solid #2a9d8f;
-        }
-
-        .summary-document .clinical-summary {
-            background: transparent;
-            padding: 0;
-            margin-top: 0;
-            border-radius: 0;
-            animation: none;
-        }
-
-        /* ==================== LIVELY DASHBOARD FINISH ==================== */
-        body {
-            background:
-                radial-gradient(circle at 12% 12%, rgba(42, 157, 143, 0.20), transparent 28%),
-                radial-gradient(circle at 88% 18%, rgba(231, 76, 60, 0.15), transparent 24%),
-                linear-gradient(135deg, #0f2027 0%, #203a43 48%, #2c5364 100%);
-        }
-
-        .clerking-panel, .guidance-panel, .records-panel {
-            border: 1px solid rgba(255,255,255,0.52);
-            box-shadow: 0 22px 55px rgba(15, 32, 39, 0.30), inset 0 1px 0 rgba(255,255,255,0.72);
-        }
-
-        .panel-header {
-            background:
-                linear-gradient(135deg, rgba(30,60,114,0.98) 0%, rgba(42,82,152,0.96) 48%, rgba(42,157,143,0.94) 100%);
-        }
-
-        .panel-header::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 5px;
-            background: linear-gradient(90deg, #2a9d8f, #f4d35e, #e74c3c);
-        }
-
-        .form-section {
-            position: relative;
-        }
-
-        .form-section h3 {
-            border-bottom: 0;
-            padding-bottom: 0;
-            background: linear-gradient(90deg, rgba(232,244,248,0.95), rgba(255,255,255,0));
-            padding: 9px 12px;
-            border-radius: 12px;
-        }
-
-        input:hover, textarea:hover, select:hover {
-            border-color: #b7d1df;
-            box-shadow: 0 6px 16px rgba(30, 60, 114, 0.08);
-        }
-
-        .btn-generate, .btn-record {
-            box-shadow: 0 8px 18px rgba(30, 60, 114, 0.18);
-        }
-
-        .btn-generate:hover, .btn-record:hover {
-            filter: saturate(1.12);
-        }
-
-        .guidance-card, .patient-card, .summary-document, .ros-card {
-            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-        }
-
-        .summary-document:hover, .ros-card:hover, .patient-card:hover {
-            transform: translateY(-3px);
-        }
-
- 
-        
-    </style>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EaseMed - Clinical Clerk System</title>
+  <meta name="theme-color" content="#123047" />
+  <meta name="description" content="EaseMed Clinical Clerk System with offline records and optional Supabase sync." />
+
+  <!-- Optional online sync. The app keeps working if this CDN is unavailable. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #eef4f6;
+      --panel: #ffffff;
+      --panel-soft: #f7fafb;
+      --ink: #17212b;
+      --muted: #687985;
+      --line: #dce6eb;
+      --blue: #245c9c;
+      --navy: #123047;
+      --teal: #23877c;
+      --green: #247a53;
+      --gold: #b87905;
+      --red: #c9493d;
+      --shadow: 0 18px 42px rgba(31, 48, 64, 0.12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.68)),
+        radial-gradient(circle at top left, rgba(35,135,124,0.18), transparent 32%),
+        radial-gradient(circle at top right, rgba(36,92,156,0.18), transparent 30%),
+        var(--bg);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      width: min(1520px, calc(100% - 32px));
+      margin: 16px auto 28px;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .sidebar,
+    .panel,
+    .summary-box,
+    .modal-card {
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(220,230,235,0.95);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 16px;
+      height: calc(100vh - 32px);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--blue), var(--teal));
+      color: white;
+      font-weight: 900;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .nav {
+      display: grid;
+      gap: 6px;
+    }
+
+    .nav button {
+      border: 0;
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      text-align: left;
+      background: transparent;
+      color: #405260;
+      font-weight: 750;
+      transition: 0.2s ease;
+    }
+
+    .nav button:hover,
+    .nav button.active {
+      color: var(--blue);
+      background: #eaf3f7;
+    }
+
+    .side-note {
+      margin-top: auto;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-soft);
+      color: #485b67;
+      font-size: 0.86rem;
+      line-height: 1.5;
+    }
+
+    .main {
+      display: grid;
+      gap: 16px;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 15px;
+      color: white;
+      background: var(--navy);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .status-left,
+    .status-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .connection-pill,
+    .sync-pill {
+      background: rgba(255,255,255,0.11);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .offline .dot {
+      background: var(--gold);
+    }
+
+    .btn {
+      border: 0;
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      color: white;
+      background: linear-gradient(135deg, var(--blue), var(--teal));
+      font-weight: 800;
+      transition: 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(36,92,156,0.18);
+    }
+
+    .btn.secondary {
+      color: #263b4a;
+      background: #eef4f6;
+      border: 1px solid var(--line);
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #d8584d, #b83931);
+    }
+
+    .hero {
+      padding: 24px;
+      color: white;
+      background:
+        linear-gradient(135deg, rgba(18,48,71,0.94), rgba(35,135,124,0.88)),
+        linear-gradient(90deg, var(--blue), var(--teal));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .hero h2 {
+      margin: 0 0 8px;
+      font-size: clamp(1.45rem, 3vw, 2.05rem);
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 800px;
+      color: rgba(255,255,255,0.86);
+      line-height: 1.55;
+    }
+
+    .progress-shell {
+      min-width: 210px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .progress-track {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.22);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: #ffffff;
+      transition: width 0.25s ease;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1.16fr) minmax(360px, 0.84fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfdfe;
+    }
+
+    .panel-head h3 {
+      margin: 0;
+      font-size: 1.02rem;
+    }
+
+    .panel-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .section {
+      border-bottom: 1px solid #edf2f5;
+      padding-bottom: 18px;
+      margin-bottom: 18px;
+    }
+
+    .section:last-child {
+      border-bottom: 0;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .section-title h4 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 1rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: #3f5260;
+      font-size: 0.83rem;
+      font-weight: 800;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px 11px;
+      color: var(--ink);
+      background: white;
+      outline: none;
+      transition: 0.18s ease;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 96px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(35,135,124,0.14);
+    }
+
+    .symptom-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 12px;
+      background: white;
+      color: #314757;
+      font-weight: 800;
+      transition: 0.18s ease;
+    }
+
+    .chip:hover,
+    .chip.active {
+      color: white;
+      border-color: var(--blue);
+      background: linear-gradient(135deg, var(--blue), var(--teal));
+      transform: translateY(-1px);
+    }
+
+    .guide-card {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--teal);
+      border-radius: var(--radius);
+      padding: 14px;
+      background: #fbfdfe;
+      margin-bottom: 12px;
+    }
+
+    .guide-card h4 {
+      margin: 0 0 8px;
+      color: var(--navy);
+    }
+
+    .guide-card ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #4d616e;
+      line-height: 1.55;
+    }
+
+    .warning {
+      border-left-color: var(--red);
+      background: #fff7f6;
+    }
+
+    .ros-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .ros-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: white;
+    }
+
+    .ros-head {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border: 0;
+      padding: 12px;
+      color: white;
+      background: linear-gradient(135deg, var(--blue), var(--teal));
+      text-align: left;
+      font-weight: 900;
+    }
+
+    .ros-content {
+      display: none;
+      padding: 12px;
+      background: #f8fbfc;
+    }
+
+    .ros-card.open .ros-content {
+      display: grid;
+      gap: 10px;
+    }
+
+    .checks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 7px;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: white;
+      font-size: 0.88rem;
+      font-weight: 650;
+    }
+
+    .check input {
+      width: auto;
+      accent-color: var(--teal);
+    }
+
+    .summary-actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .summary-box {
+      padding: 16px;
+      margin-top: 12px;
+      box-shadow: none;
+      background: #fbfdfe;
+    }
+
+    .summary-box h4 {
+      margin: 0 0 10px;
+      color: var(--navy);
+    }
+
+    .summary-banner {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 11px 12px;
+      margin-bottom: 12px;
+      border-radius: var(--radius);
+      color: white;
+      background: linear-gradient(135deg, var(--navy), var(--teal));
+      font-weight: 850;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+
+    .summary-field {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: white;
+    }
+
+    .summary-field span {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .summary-section-block {
+      margin-top: 11px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: white;
+      line-height: 1.55;
+    }
+
+    .summary-section-block h5 {
+      margin: 0 0 7px;
+      color: var(--blue);
+      font-size: 0.95rem;
+    }
+
+    .summary-list {
+      margin: 0;
+      padding-left: 20px;
+      line-height: 1.6;
+    }
+
+    .records-list {
+      display: grid;
+      gap: 10px;
+      max-height: 480px;
+      overflow: auto;
+    }
+
+    .record-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfdfe;
+    }
+
+    .record-card strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--navy);
+    }
+
+    .record-card span {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .record-actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .auth-panel {
+      display: none;
+      border-top: 1px solid var(--line);
+      padding: 14px 16px;
+      background: #f8fbfc;
+    }
+
+    .auth-panel.open {
+      display: block;
+    }
+
+    .auth-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      background: #fbfdfe;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 40;
+      display: none;
+      max-width: 360px;
+      padding: 13px 14px;
+      color: white;
+      background: var(--navy);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      line-height: 1.4;
+    }
+
+    .toast.show {
+      display: block;
+      animation: fadeUp 0.22s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    @media (max-width: 1160px) {
+      .app,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+
+      .side-note {
+        margin-top: 0;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        width: min(100% - 24px, 1520px);
+        margin: 12px auto 24px;
+      }
+
+      .status-bar,
+      .hero-row,
+      .panel-head,
+      .record-card {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .status-actions,
+      .panel-tools,
+      .record-actions {
+        justify-content: flex-start;
+      }
+
+      .form-grid,
+      .ros-grid,
+      .summary-grid,
+      .summary-actions,
+      .auth-row {
+        grid-template-columns: 1fr;
+      }
+
+      .progress-shell {
+        min-width: 0;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="progress-bar" id="progressBar"></div>
-
-    <!-- Auth Top Bar -->
-    <div id="authBar" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(15,32,39,0.92); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.4); font-family: 'Segoe UI', sans-serif;">
-        <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:22px;">🩺</span><span style="color:#fff; font-weight:700; font-size:1rem;">EaseMed</span></div>
-        <div style="display:flex; align-items:center; gap:14px;"><span id="userGreeting" style="color:#90cdf4; font-size:0.88rem; font-weight:500;"></span><button onclick="handleLogout()" style="background: linear-gradient(135deg, #e53e3e, #c53030); color: white; border: none; border-radius: 8px; padding: 7px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">🚪 Logout</button></div>
-    </div>
-    <div style="height: 52px;"></div>
-
-    <div class="container">
-        <div class="clerking-panel">
-            <div class="panel-header">
-                <h1><span>📚</span> EaseMed - Clinical Clerk System <span class="badge">Hutchison's Clinical Methods 25th Ed.</span></h1>
-                <p>Comprehensive history taking & physical examination guide | Based on Hutchison's Clinical Methods</p>
-            </div>
-
-            <!-- Demographics Section -->
-            <div class="form-section">
-                <h3>📋 Patient Demographics</h3>
-                <div class="demographics-grid">
-                    <div><label>Full Name:</label><input type="text" id="fullName" placeholder="Surname, First name"></div>
-                    <div><label>Age:</label><input type="number" id="age" placeholder="Years"></div>
-                    <div><label>Sex:</label><select id="gender"><option>Male</option><option>Female</option><option>Other</option></select></div>
-                    <div><label>Marital Status:</label><select id="maritalStatus"><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option><option>Separated</option></select></div>
-                    <div><label>Occupation:</label><input type="text" id="occupation" placeholder="Current job/profession"></div>
-                    <div><label>Religion:</label><input type="text" id="religion" placeholder="Religious affiliation"></div>
-                    <div><label>Tribe/Ethnicity:</label><input type="text" id="tribe" placeholder="Tribe or ethnic group"></div>
-                    <div><label>Referral Status:</label>
-                        <select id="referralStatus" onchange="toggleReferralDetails()">
-                            <option value="Self-referred">Self-referred</option>
-                            <option value="Referred from health center">Referred from health center</option>
-                            <option value="Referred from hospital">Referred from hospital</option>
-                            <option value="Emergency/Ambulance">Emergency/Ambulance</option>
-                        </select>
-                    </div>
-                </div>
-                <!-- Referral details (initially hidden) -->
-                <div id="referralDetails" style="display: none; margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 12px;">
-                    <div class="demographics-grid">
-                        <div><label>Referred from (Health Centre/Hospital):</label><input type="text" id="referralFrom" placeholder="Name of referring facility"></div>
-                        <div><label>Reason for Referral:</label><input type="text" id="referralReason" placeholder="Reason for referral"></div>
-                    </div>
-                </div>
-                <div style="margin-top: 12px;"><label>Physical Address:</label><input type="text" id="address" placeholder="Full residential address"></div>
-                <div style="margin-top: 12px;"><label>Next of Kin:</label><input type="text" id="nextOfKin" placeholder="Name, relationship, contact number"></div>
-                <div style="margin-top: 12px;"><label>Nearest Health Centre:</label><input type="text" id="nearestHealthCentre" placeholder="Clinic/health centre name"></div>
-            </div>
-
-            <!-- Presenting Complaint -->
-            <div class="form-section">
-                <h3>🩺 Presenting Complaint <span class="stat-card">SOCRATES only for Pain | System-specific guides for others</span></h3>
-                <label>Select or type the main symptom:</label>
-                <div class="symptom-buttons" id="symptomButtons">
-                    <button class="symptom-btn" onclick="setSymptom('fever')">🌡️ Fever</button>
-                    <button class="symptom-btn" onclick="setSymptom('pain')">🩺 Pain (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('chest pain')">💔 Chest Pain (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('shortness of breath')">💨 SOB</button>
-                    <button class="symptom-btn" onclick="setSymptom('cough')">🤧 Cough</button>
-                    <button class="symptom-btn" onclick="setSymptom('headache')">🤕 Headache (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('dizziness')">🌀 Dizziness/Vertigo</button>
-                    <button class="symptom-btn" onclick="setSymptom('nausea')">🤢 Nausea/Vomiting</button>
-                    <button class="symptom-btn" onclick="setSymptom('diarrhea')">💩 Diarrhea</button>
-                    <button class="symptom-btn" onclick="setSymptom('constipation')">🚫 Constipation</button>
-                    <button class="symptom-btn" onclick="setSymptom('swelling')">💧 Swelling/Edema</button>
-                    <button class="symptom-btn" onclick="setSymptom('palpitations')">💓 Palpitations</button>
-                    <button class="symptom-btn" onclick="setSymptom('fatigue')">😴 Fatigue</button>
-                    <button class="symptom-btn" onclick="setSymptom('weight loss')">⚖️ Weight Loss</button>
-                    <button class="symptom-btn" onclick="setSymptom('joint pain')">🦴 Joint Pain (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('rash')">🔴 Skin Rash</button>
-                </div>
-                <label style="margin-top: 15px;">Or type your own symptom:</label>
-                <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
-                <div id="dynamicQuestions" style="margin-top: 15px;"></div>
-            </div>
-
-            <!-- History of Presenting Complaint (HPC) -->
-            <div class="form-section">
-                <h3>📝 History of Presenting Complaint (HPC)</h3>
-                <textarea id="hpc" rows="4" placeholder="Provide a chronological narrative of the presenting complaint including onset, progression, associated symptoms, any treatments tried, and impact on daily activities. Include relevant negatives and positives..."></textarea>
-            </div>
-
-            <!-- Past Medical History with integrated HIV section (unchanged) -->
-            <div class="form-section">
-                <h3>📜 Past Medical History</h3>
-                <textarea id="pmh" placeholder="Previous illnesses: Hypertension, Diabetes, Asthma, TB, Malaria, Hepatitis, Heart disease, Stroke, Cancer, Surgeries, Hospitalizations, Blood transfusions..."></textarea>
-                <label style="margin-top: 12px;">Current Medications:</label>
-                <textarea id="medications" placeholder="All current medications with doses and frequency..."></textarea>
-                <label style="margin-top: 12px;">Allergies:</label>
-                <textarea id="allergies" placeholder="Drug allergies, food allergies, reactions..."></textarea>
-                
-                <div class="expand-hiv" onclick="toggleHIVDetails()"><span style="font-weight: 600;">🩸 HIV History <span style="color: #e74c3c;">(Click to expand/collapse)</span></span><span style="float: right;">▼</span></div>
-                <div id="hivDetails" class="hiv-details">
-                    <!-- HIV details content unchanged -->
-                    <div class="demographics-grid">
-                        <div><label>HIV Status:</label><select id="hivStatus"><option value="">Select status</option><option value="positive">HIV Positive</option><option value="negative">HIV Negative</option><option value="unknown">Unknown/Not Tested</option></select></div>
-                        <div><label>Date of HIV Diagnosis:</label><input type="text" id="hivDiagnosisDate" placeholder="DD/MM/YYYY"></div>
-                        <div><label>How was HIV Diagnosed?</label><select id="hivDiagnosisMethod"><option value="">Select method</option><option>Rapid Test (HIV 1/2)</option><option>Determine + Stat-Pak + UniGold</option><option>DNA PCR (for <18 months)</option><option>Western Blot</option></select></div>
-                        <div><label>WHO Clinical Stage at Diagnosis:</label><select id="hivWhoStage"><option value="">Select stage</option><option>Stage 1 - Asymptomatic</option><option>Stage 2 - Mild symptoms</option><option>Stage 3 - Advanced symptoms</option><option>Stage 4 - AIDS defining illness</option></select></div>
-                    </div>
-                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">💊 Antiretroviral Therapy (ART)</h4>
-                    <div class="demographics-grid">
-                        <div><label>On ART?</label><select id="hivOnArt" onchange="toggleARTDetails()"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
-                        <div><label>ART Start Date:</label><input type="text" id="hivArtStartDate" placeholder="DD/MM/YYYY"></div>
-                    </div>
-                    <div id="artDetails" style="display: none;">
-                        <div class="demographics-grid">
-                            <div><label>Current ART Regimen:</label><select id="hivArtRegimen"><option value="">Select regimen</option><option>TDF/3TC/DTG (Tenofovir + Lamivudine + Dolutegravir)</option><option>TDF/3TC/EFV (Tenofovir + Lamivudine + Efavirenz)</option><option>ABC/3TC/DTG (Abacavir + Lamivudine + Dolutegravir)</option><option>AZT/3TC/DTG (Zidovudine + Lamivudine + Dolutegravir)</option><option>Second-line: ATV/r + TDF/3TC</option></select></div>
-                            <div><label>ART Adherence (Last 30 days):</label><select id="hivAdherence"><option value="">Select adherence level</option><option>Excellent (>95% - Missed 0-1 dose)</option><option>Good (85-94% - Missed 2-5 doses)</option><option>Fair (75-84% - Missed 6-8 doses)</option><option>Poor (<75% - Missed >9 doses)</option></select></div>
-                            <div><label>Missed Doses Last Month:</label><input type="number" id="hivMissedDoses" placeholder="Number of missed doses"></div>
-                            <div><label>Barriers to Adherence:</label><input type="text" id="hivAdherenceBarriers" placeholder="Forgetfulness, side effects, lack of food, stigma"></div>
-                        </div>
-                    </div>
-                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">📊 Laboratory Monitoring</h4>
-                    <div class="demographics-grid">
-                        <div><label>Most Recent CD4 Count:</label><input type="text" id="hivCd4" placeholder="cells/µL (e.g., 450)"></div>
-                        <div><label>Date of CD4:</label><input type="text" id="hivCd4Date" placeholder="DD/MM/YYYY"></div>
-                        <div><label>Most Recent Viral Load:</label><input type="text" id="hivViralLoad" placeholder="copies/mL (e.g., <20 or 5000)"></div>
-                        <div><label>Date of Viral Load:</label><input type="text" id="hivVlDate" placeholder="DD/MM/YYYY"></div>
-                    </div>
-                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">🩺 Opportunistic Infections</h4>
-                    <div><div style="display: flex; flex-wrap: wrap; gap: 10px;"><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="TB"> TB</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="Cryptococcal Meningitis"> Cryptococcal Meningitis</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="PCP"> PCP Pneumonia</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="Esophageal Candidiasis"> Esophageal Candidiasis</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="KS"> Kaposi's Sarcoma</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="CMV"> CMV Retinitis</label></div><div style="margin-top: 10px;"><label>IPT (Isoniazid Preventive Therapy):</label><select id="hivIpt"><option value="">Select status</option><option>Completed 6 months</option><option>Currently on IPT</option><option>Not started</option></select></div><div style="margin-top: 10px;"><label>Cotrimoxazole Preventive Therapy (CPT):</label><select id="hivCpt"><option value="">Select status</option><option>Currently on CPT</option><option>Not on CPT</option><option>Allergic/Contraindicated</option></select></div><div style="margin-top: 10px;"><label>Partner/Family HIV Status:</label><input type="text" id="hivPartnerStatus" placeholder="Partner HIV status, children's status, disclosure"></div></div>
-                </div>
-            </div>
-
-            <!-- Guided Review of Systems - ENHANCED with free-text areas for student to fill -->
-            <div class="form-section">
-                <h3>🔄 Review of Systems <span class="stat-card">Hutchison's Ch. 3-5 & system-specific chapters</span></h3>
-                <p class="ros-guide-panel">
-                    💡 <strong>Student Guide:</strong> The Review of Systems (ROS) is a systematic inventory of symptoms across all body systems. 
-                    It helps identify potential diagnoses and ensures no important symptom is missed. Based on <strong>Hutchison's Clinical Methods, 25th Edition</strong>, 
-                    write a narrative summary of findings for each system below. Click on any system to expand and document your findings.
-                </p>
-                <div id="rosContainer"></div>
-            </div>
-
-            <div class="form-section"><h3>🏠 Social History</h3><textarea id="social" placeholder="Smoking, alcohol, drugs, living conditions, occupation, diet, travel..."></textarea></div>
-            <div class="form-section"><h3>👨‍👩‍👧 Family History</h3><textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders..."></textarea></div>
-            <div class="summary-actions"><button class="btn-generate" onclick="generateClinicalSummary()">Generate Clinical Summary + Ward Round Format</button><button class="btn-generate" onclick="savePatient()" style="background: linear-gradient(135deg, #27ae60, #1e8449);">Save Patient Record</button></div>
-            <div class="form-section" id="summarySection" style="display:none;">
-                <h3>Clinical Summary & Ward Round Presentation</h3>
-                <div class="summary-tabs">
-                    <div class="summary-document">
-                        <h4>Complete Clinical Summary</h4>
-                        <div class="clinical-summary" id="clinicalSummary"></div>
-                        <button class="btn-generate" onclick="copyToClipboard('clinicalSummary')" style="background: linear-gradient(135deg, #3498db, #2980b9); margin-top: 10px;">Copy Clinical Summary</button>
-                    </div>
-                    <div class="summary-document ward-round-card">
-                        <h4>Five-Line Ward Round Diagnostic Summary</h4>
-                        <div class="clinical-summary" id="wardRoundSummary"></div>
-                        <button class="btn-generate" onclick="copyToClipboard('wardRoundSummary')" style="background: linear-gradient(135deg, #2a9d8f, #1e7d5a); margin-top: 10px;">Copy Ward Round Summary</button>
-                    </div>
-                </div>
-            </div>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">EM</div>
+        <div>
+          <h1>EaseMed</h1>
+          <span>Clinical clerk system</span>
         </div>
+      </div>
 
-        <!-- Right Panel: Guidance -->
-        <div class="guidance-panel"><div class="guidance-header"><h2>📖 Hutchison's Clinical Guidance</h2><p>Reference: Hutchison's Clinical Methods, 25th Edition</p></div><div class="guidance-content" id="guidanceContent" style="padding: 20px;"><div class="guidance-card"><h4>📚 Welcome to EaseMed</h4><p>This system guides you through systematic history taking. Select a symptom for specific questions.</p></div><div class="guidance-card"><h4>💡 Key principle</h4><p>SOCRATES is reserved for PAIN complaints. For other symptoms, specific clinical questions are provided.</p></div></div></div>
-    </div>
+      <nav class="nav" aria-label="Sections">
+        <button class="active" data-target="clerking">Patient Clerking</button>
+        <button data-target="guidance">Clinical Guidance</button>
+        <button data-target="summaryPanel">Summary</button>
+        <button data-target="records">Saved Records</button>
+        <button data-target="syncPanel">Sync & Backup</button>
+      </nav>
 
-    <!-- Patient Records Panel -->
-    <div style="max-width:1600px; margin: 25px auto; padding: 0 20px;"><div class="records-panel"><div class="records-header"><h2>🗂️ Saved Patient Records</h2><div class="records-actions"><button class="btn-record btn-new" onclick="newPatient()">➕ New Patient</button><button class="btn-record btn-save" onclick="savePatient()">💾 Save Current</button><button class="btn-record btn-export" onclick="exportRecords()">⬇️ Download Backup</button><label class="btn-record btn-import" style="margin:0; display:inline-block;">📂 Restore Backup<input type="file" accept=".json" onchange="importRecords(event)" style="display:none;"></label></div></div><div class="records-body"><input class="records-search" type="text" id="recordSearch" placeholder="🔍 Search by patient name, complaint, or date..." oninput="renderRecords()"><div id="recordsList"></div></div></div></div>
+      <div class="side-note">
+        Records save to this device first. When Supabase is configured and the connection returns, unsynced records upload automatically.
+      </div>
+    </aside>
 
-    <div class="save-toast" id="saveToast">✅ Patient record saved!</div>
-    <div class="floating-tip" onclick="showTip()">💡 Tip: Use SOCRATES only for pain!</div>
+    <main class="main">
+      <section class="status-bar" id="syncPanel">
+        <div class="status-left">
+          <span class="pill connection-pill" id="connectionPill">
+            <span class="dot"></span>
+            <span id="connectionText">Checking connection</span>
+          </span>
+          <span class="pill sync-pill" id="syncText">Local records ready</span>
+        </div>
+        <div class="status-actions">
+          <button class="btn secondary" id="authToggleBtn">Online sign in</button>
+          <button class="btn secondary" id="syncNowBtn">Sync now</button>
+          <button class="btn secondary" id="exportBtn">Export backup</button>
+          <button class="btn secondary" id="importBtn">Import backup</button>
+          <input class="file-input" id="importFile" type="file" accept="application/json" />
+        </div>
+      </section>
 
-    <script>
-        // Global state
-        const STORAGE_KEY = 'easemed_patients';
-        let currentSymptom = '';
-        let symptomDetails = {};
-        let rosData = {};
+      <section class="panel auth-panel" id="authPanel">
+        <strong>Optional Supabase authentication</strong>
+        <p style="margin:6px 0 0;color:var(--muted);line-height:1.5;">
+          EaseMed stays usable without login. Sign in only if your Supabase project requires authenticated inserts or user-specific records.
+        </p>
+        <div class="auth-row">
+          <input id="authEmail" type="email" placeholder="admin@example.com" />
+          <button class="btn" id="magicLinkBtn">Send magic link</button>
+        </div>
+      </section>
 
-        // Helper functions
-        function toggleHIVDetails() { document.getElementById('hivDetails').classList.toggle('active'); }
-        function toggleARTDetails() { document.getElementById('artDetails').style.display = document.getElementById('hivOnArt').value === 'yes' ? 'block' : 'none'; updateProgress(); }
-        function updateProgress() { let total = document.querySelectorAll('input, textarea, select').length, filled = 0; document.querySelectorAll('input, textarea, select').forEach(f => { if (f.value && f.value.trim() !== '') filled++; }); document.getElementById('progressBar').style.width = ((filled / total) * 100) + '%'; }
-        document.addEventListener('input', updateProgress); document.addEventListener('change', updateProgress);
-        function showTip() { alert('📖 Hutchison\'s Tip:\n\n• SOCRATES is for PAIN only (site, onset, character, radiation, associations, timing, exacerbating, severity).\n• For non‑pain complaints, use the specific structured questions provided.'); }
-
-        // Referral details toggle
-        function toggleReferralDetails() {
-            const referralStatus = document.getElementById('referralStatus').value;
-            const detailsDiv = document.getElementById('referralDetails');
-            if (referralStatus !== 'Self-referred') {
-                detailsDiv.style.display = 'block';
-            } else {
-                detailsDiv.style.display = 'none';
-                document.getElementById('referralFrom').value = '';
-                document.getElementById('referralReason').value = '';
-            }
-            updateProgress();
-        }
-
-// ============================================================
-// NEW CLEAN ROS DESIGN
-// ============================================================
-const reviewOfSystems = {
-    general: { name: "General (Systemic)", icon: "🌡️", chapter: "Ch. 3 & 10", hint: "Weight, fever, fatigue, appetite, night sweats", common: ["Weight loss/gain", "Fever/chills", "Night sweats", "Fatigue", "Poor appetite", "Sleep issues"] },
-    cardiovascular: { name: "Cardiovascular", icon: "❤️", chapter: "Ch. 13", hint: "Chest pain, palpitations, SOB, swelling", common: ["Chest pain", "Palpitations", "Shortness of breath", "Ankle swelling", "Orthopnoea", "Syncope"] },
-    respiratory: { name: "Respiratory", icon: "💨", chapter: "Ch. 12", hint: "Cough, sputum, wheeze, haemoptysis", common: ["Cough", "Sputum", "Haemoptysis", "Wheeze", "Pleuritic pain"] },
-    gastrointestinal: { name: "Gastrointestinal", icon: "🍽️", chapter: "Ch. 15", hint: "Abdominal pain, nausea, bowel changes", common: ["Abdominal pain", "Nausea/vomiting", "Diarrhoea", "Constipation", "Jaundice"] },
-    genitourinary: { name: "Genitourinary", icon: "💧", chapter: "Ch. 17", hint: "Dysuria, frequency, haematuria", common: ["Dysuria", "Frequency/Nocturia", "Haematuria", "Incontinence"] },
-    neurological: { name: "Neurological", icon: "🧠", chapter: "Ch. 19", hint: "Headache, weakness, seizures", common: ["Headache", "Dizziness", "Weakness", "Seizures", "Visual changes"] },
-    musculoskeletal: { name: "Musculoskeletal", icon: "🦴", chapter: "Ch. 20", hint: "Joint/back pain, stiffness", common: ["Joint pain", "Back pain", "Morning stiffness", "Muscle weakness"] },
-    endocrine: { name: "Endocrine", icon: "🦋", chapter: "Ch. 16", hint: "Thirst, sweating, heat intolerance", common: ["Polyuria/polydipsia", "Heat/cold intolerance", "Tremor"] },
-    psychiatric: { name: "Psychiatric", icon: "🧠", chapter: "Ch. 5", hint: "Mood, anxiety, sleep", common: ["Low mood", "Anxiety", "Insomnia", "Suicidal thoughts"] },
-    dermatological: { name: "Dermatological", icon: "🩹", chapter: "Ch. 21", hint: "Rash, itching, lesions", common: ["Rash", "Itching", "Hair loss", "Easy bruising"] }
-};
-
-function buildROS() {
-    const container = document.getElementById('rosContainer');
-    let html = '<div class="ros-grid">';
-    
-    for (const [key, system] of Object.entries(reviewOfSystems)) {
-        html += `
-            <div class="ros-card" data-system="${key}">
-                <div class="ros-card-header" onclick="toggleROS('${key}')">
-                    <div class="ros-icon">${system.icon}</div>
-                    <div class="ros-title">
-                        <strong>${system.name}</strong>
-                        <small>${system.chapter}</small>
-                    </div>
-                    <span class="ros-chevron">▼</span>
-                </div>
-                
-                <div class="ros-content" id="ros-content-${key}">
-                    <button onclick="markNoFindings('${key}'); event.stopImmediatePropagation()" class="no-findings-btn">
-                        ✅ No Significant Findings
-                    </button>
-                    
-                    <div class="checklist-group">
-                        <p class="checklist-title">Common Symptoms</p>
-                        <div class="checklist" id="checklist-${key}"></div>
-                    </div>
-                    
-                    <textarea id="ros_${key}" rows="3" class="ros-narrative"
-                        placeholder="Additional findings, duration, severity, relevant negatives..." 
-                        onchange="saveROS('${key}', this.value)"></textarea>
-                    
-                    <div class="ros-hint">${system.hint}</div>
-                </div>
+      <section class="hero">
+        <div class="hero-row">
+          <div>
+            <h2>Clinical Clerk System</h2>
+            <p>
+              Clerk patients, structure presenting complaints, complete review of systems, generate ward-round summaries, and keep records available offline.
+            </p>
+          </div>
+          <div class="progress-shell">
+            <div class="progress-label">
+              <span>Form progress</span>
+              <span id="progressText">0%</span>
             </div>
-        `;
-    }
-    html += '</div>';
-    container.innerHTML = html;
-
-    // Populate checklists
-    setTimeout(() => {
-        for (const [key, system] of Object.entries(reviewOfSystems)) {
-            const div = document.getElementById(`checklist-${key}`);
-            system.common.forEach((text, i) => {
-                const label = document.createElement('label');
-                label.className = 'check-item';
-                label.innerHTML = `
-                    <input type="checkbox" onchange="updateROS('${key}')">
-                    <span>${text}</span>
-                `;
-                div.appendChild(label);
-            });
-        }
-    }, 100);
-}
-
-function toggleROS(key) {
-    const content = document.getElementById(`ros-content-${key}`);
-    const card = content.parentElement;
-    content.classList.toggle('active');
-    card.classList.toggle('expanded');
-}
-
-function markNoFindings(key) {
-    document.getElementById(`ros_${key}`).value = "No significant findings.";
-    document.querySelectorAll(`#checklist-${key} input[type="checkbox"]`).forEach(chk => chk.checked = false);
-    saveROS(key, "No significant findings.");
-}
-
-function updateROS(key) {
-    saveROS(key, document.getElementById(`ros_${key}`).value);
-}
-
-function saveROS(key, value) {
-    rosData[key] = value || '';
-    updateProgress();
-}
-
-const rosIconLabels = {
-    general: "GEN",
-    cardiovascular: "CV",
-    respiratory: "RESP",
-    gastrointestinal: "GI",
-    genitourinary: "GU",
-    neurological: "NEU",
-    musculoskeletal: "MSK",
-    endocrine: "ENDO",
-    psychiatric: "PSY",
-    dermatological: "DERM"
-};
-
-delete reviewOfSystems.haematological;
-
-function buildROS() {
-    const container = document.getElementById('rosContainer');
-    let html = '<div class="ros-grid">';
-
-    for (const [key, system] of Object.entries(reviewOfSystems)) {
-        const iconLabel = rosIconLabels[key] || system.icon;
-        html += `
-            <div class="ros-card" data-system="${key}">
-                <div class="ros-card-header" onclick="toggleROS('${key}')" role="button" tabindex="0" aria-expanded="false">
-                    <div class="ros-icon" aria-hidden="true">${iconLabel}</div>
-                    <div class="ros-title">
-                        <strong>${system.name}</strong>
-                        <small>${system.chapter}</small>
-                        <div class="ros-card-meta">
-                            <span class="ros-status" id="ros-status-${key}">Not documented</span>
-                        </div>
-                    </div>
-                    <span class="ros-chevron">v</span>
-                </div>
-
-                <div class="ros-content" id="ros-content-${key}">
-                    <button onclick="markNoFindings('${key}'); event.stopImmediatePropagation()" class="no-findings-btn">
-                        No Significant Findings
-                    </button>
-
-                    <div class="checklist-group">
-                        <p class="checklist-title">
-                            <span>Common Symptoms</span>
-                            <span id="ros-count-${key}">0 selected</span>
-                        </p>
-                        <div class="checklist" id="checklist-${key}"></div>
-                    </div>
-
-                    <textarea id="ros_${key}" rows="3" class="ros-narrative"
-                        placeholder="Additional findings, duration, severity, relevant negatives..."
-                        oninput="saveROS('${key}', this.value)"></textarea>
-
-                    <div class="ros-hint">${system.hint}</div>
-                </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progressFill"></div>
             </div>
-        `;
+          </div>
+        </div>
+      </section>
+
+      <section class="grid-2">
+        <section class="panel" id="clerking">
+          <div class="panel-head">
+            <h3>Patient Clerking Form</h3>
+            <div class="panel-tools">
+              <button class="btn secondary" id="newPatientBtn">New patient</button>
+              <button class="btn" id="saveRecordBtn">Save record</button>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="section">
+              <div class="section-title">
+                <h4>Demographics</h4>
+              </div>
+              <div class="form-grid">
+                <label>Full name or initials<input id="fullName" data-progress placeholder="M. Chanda" /></label>
+                <label>Age<input id="age" data-progress type="number" min="0" placeholder="45" /></label>
+                <label>Sex<select id="gender" data-progress><option value="">Select</option><option>Female</option><option>Male</option><option>Other</option></select></label>
+                <label>Marital status<input id="maritalStatus" placeholder="Married" /></label>
+                <label>Occupation<input id="occupation" placeholder="Farmer" /></label>
+                <label>Religion<input id="religion" placeholder="Christian" /></label>
+                <label>Tribe/Ethnicity<input id="tribe" placeholder="Bemba" /></label>
+                <label>Address<input id="address" placeholder="Lusaka" /></label>
+                <label>Next of kin<input id="nextOfKin" placeholder="Name and phone" /></label>
+                <label>Nearest health centre<input id="nearestHealthCentre" placeholder="Clinic name" /></label>
+                <label>
+                  Referral status
+                  <select id="referralStatus">
+                    <option>Self-referred</option>
+                    <option>Referred from clinic</option>
+                    <option>Referred from hospital</option>
+                    <option>Emergency referral</option>
+                  </select>
+                </label>
+                <label>Referral source<input id="referralFrom" placeholder="Facility or clinician" /></label>
+                <label class="full">Referral reason<textarea id="referralReason" rows="2" placeholder="Reason for referral"></textarea></label>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">
+                <h4>Presenting Complaint</h4>
+                <span class="pill" style="background:#eef4f6;color:#405260;" id="selectedSymptomLabel">No symptom selected</span>
+              </div>
+              <div class="symptom-grid" id="symptomGrid"></div>
+              <div style="margin-top:12px;" class="form-grid">
+                <label class="full">Other symptom<input id="customSymptom" placeholder="Type another presenting complaint" /></label>
+              </div>
+              <div id="complaintQuestions" style="margin-top:12px;"></div>
+              <label style="margin-top:12px;">History of presenting complaint<textarea id="hpc" data-progress placeholder="Onset, duration, progression, associated symptoms, aggravating and relieving factors"></textarea></label>
+            </div>
+
+            <div class="section">
+              <div class="section-title">
+                <h4>Past History, Drugs, Allergies</h4>
+              </div>
+              <div class="form-grid">
+                <label class="full">Past medical and surgical history<textarea id="pmh" placeholder="Known diagnoses, admissions, operations, transfusions"></textarea></label>
+                <label class="full">Current medications<textarea id="medications" placeholder="Drug name, dose, frequency, adherence"></textarea></label>
+                <label class="full">Allergies<textarea id="allergies" placeholder="Drug/food allergy and reaction"></textarea></label>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">
+                <h4>HIV History</h4>
+              </div>
+              <div class="form-grid">
+                <label>HIV status<select id="hivStatus"><option value="">Not documented</option><option>Negative</option><option>Positive</option><option>Unknown</option></select></label>
+                <label>Diagnosis date<input id="hivDiagnosisDate" placeholder="Month/year" /></label>
+                <label>Diagnosis method<input id="hivDiagnosisMethod" placeholder="VCT, PITC, antenatal, etc." /></label>
+                <label>WHO stage<input id="hivWhoStage" placeholder="I, II, III, IV" /></label>
+                <label>On ART?<select id="hivOnArt"><option value="">Not documented</option><option>Yes</option><option>No</option></select></label>
+                <label>ART start date<input id="hivArtStartDate" placeholder="Month/year" /></label>
+                <label>Current regimen<input id="hivArtRegimen" placeholder="TDF/3TC/DTG" /></label>
+                <label>Adherence<input id="hivAdherence" placeholder="Good, fair, poor" /></label>
+                <label>Missed doses last month<input id="hivMissedDoses" placeholder="Number or description" /></label>
+                <label>Adherence barriers<input id="hivAdherenceBarriers" placeholder="Side effects, travel, stigma" /></label>
+                <label>CD4 and date<input id="hivCd4" placeholder="350 cells/mm3, Jan 2026" /></label>
+                <label>Viral load and date<input id="hivViralLoad" placeholder="Suppressed, Jan 2026" /></label>
+                <label>IPT/TPT<input id="hivIpt" placeholder="Completed, ongoing, not started" /></label>
+                <label>Cotrimoxazole<input id="hivCpt" placeholder="Yes/No" /></label>
+                <label class="full">Opportunistic infections<textarea id="hivOi" placeholder="TB, cryptococcal meningitis, chronic diarrhoea, oral candidiasis"></textarea></label>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">
+                <h4>Review of Systems</h4>
+                <button class="btn secondary" id="markRosNormalBtn" type="button">Mark all no findings</button>
+              </div>
+              <div class="ros-grid" id="rosGrid"></div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">
+                <h4>Social and Family History</h4>
+              </div>
+              <div class="form-grid">
+                <label class="full">Social history<textarea id="social" placeholder="Smoking, alcohol, living situation, occupation exposure, diet, support"></textarea></label>
+                <label class="full">Family history<textarea id="familyHistory" placeholder="Similar illness, inherited conditions, TB/HIV exposure, chronic disease"></textarea></label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel" id="guidance">
+          <div class="panel-head">
+            <h3>Clinical Guidance</h3>
+            <button class="btn secondary" id="refreshGuidanceBtn">Refresh</button>
+          </div>
+          <div class="panel-body" id="guidanceBody"></div>
+        </aside>
+      </section>
+
+      <section class="panel" id="summaryPanel">
+        <div class="panel-head">
+          <h3>Clinical Summary</h3>
+          <div class="panel-tools">
+            <button class="btn" id="generateSummaryBtn">Generate summary</button>
+            <button class="btn secondary" id="copySummaryBtn">Copy clinical</button>
+            <button class="btn secondary" id="copyWardBtn">Copy ward round</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="summary-actions">
+            <button class="btn secondary" id="saveAfterSummaryBtn">Save record</button>
+            <button class="btn secondary" id="printBtn">Print</button>
+            <button class="btn secondary" id="downloadTextBtn">Download text</button>
+            <button class="btn secondary" id="scrollRecordsBtn">Open records</button>
+          </div>
+          <div class="summary-box" id="clinicalSummary">
+            <h4>Clinical summary</h4>
+            <p style="color:var(--muted);margin:0;">Generate a summary after completing the form.</p>
+          </div>
+          <div class="summary-box" id="wardRoundSummary">
+            <h4>Five-line ward-round summary</h4>
+            <p style="color:var(--muted);margin:0;">A concise presentation will appear here.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="records">
+        <div class="panel-head">
+          <h3>Saved Patient Records</h3>
+          <div class="panel-tools">
+            <input id="recordSearch" placeholder="Search records" />
+            <button class="btn secondary" id="clearRecordsBtn">Clear local</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="records-list" id="recordsList"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const CONFIG = {
+      // Optional: add your project values to enable Supabase sync.
+      // The app remains fully usable when these are blank or unavailable.
+      supabaseUrl: "",
+      supabaseAnonKey: "",
+      recordsTable: "patient_records"
+    };
+
+    const RECORDS_KEY = "easemed_patient_records_v3";
+    const QUEUE_KEY = "easemed_patient_sync_queue_v3";
+    const USER_KEY = "easemed_user";
+    const USER_NAME_KEY = "easemed_user_name";
+
+    const symptoms = {
+      "Chest pain": {
+        prompts: ["Site and radiation", "Character", "Severity", "Duration", "Exertional relation", "Associated breathlessness, sweating, nausea"],
+        redFlags: ["Crushing central pain", "Syncope", "Hypotension", "New neurological deficit"],
+        differentials: ["Acute coronary syndrome", "Pulmonary embolism", "Pneumonia", "Reflux or peptic disease", "Musculoskeletal pain"]
+      },
+      "Shortness of breath": {
+        prompts: ["Onset and progression", "Exercise tolerance", "Orthopnoea or PND", "Cough or wheeze", "Leg swelling", "Fever or chest pain"],
+        redFlags: ["Cyanosis", "Silent chest", "Confusion", "Severe respiratory distress"],
+        differentials: ["Heart failure", "Asthma/COPD", "Pneumonia", "Pulmonary embolism", "Anaemia"]
+      },
+      "Abdominal pain": {
+        prompts: ["Site", "Onset", "Radiation", "Character", "Vomiting", "Bowel habit", "Urinary symptoms", "LMP/pregnancy possibility"],
+        redFlags: ["Peritonism", "Persistent vomiting", "GI bleeding", "Shock", "Pregnancy with pain"],
+        differentials: ["Gastroenteritis", "Appendicitis", "Peptic ulcer disease", "Hepatobiliary disease", "UTI"]
+      },
+      "Fever": {
+        prompts: ["Duration and pattern", "Chills or rigors", "Localizing symptoms", "Travel", "Sick contacts", "HIV/TB exposure", "Medication use"],
+        redFlags: ["Neck stiffness", "Confusion", "Sepsis signs", "Petechial rash", "Immunosuppression"],
+        differentials: ["Malaria", "Pneumonia", "UTI", "TB", "Viral illness", "Sepsis"]
+      },
+      "Headache": {
+        prompts: ["Onset speed", "Location", "Severity", "Visual symptoms", "Vomiting", "Photophobia", "Focal weakness", "Blood pressure history"],
+        redFlags: ["Thunderclap onset", "Neck stiffness", "Focal deficit", "New headache in pregnancy", "Altered consciousness"],
+        differentials: ["Migraine", "Meningitis", "Hypertension emergency", "Subarachnoid haemorrhage", "Sinusitis"]
+      }
+    };
+
+    const rosSystems = {
+      general: {
+        name: "General",
+        items: ["Weight loss", "Night sweats", "Fatigue", "Loss of appetite", "Fever"]
+      },
+      respiratory: {
+        name: "Respiratory",
+        items: ["Cough", "Sputum", "Haemoptysis", "Wheeze", "Chest pain", "Shortness of breath"]
+      },
+      cardiovascular: {
+        name: "Cardiovascular",
+        items: ["Palpitations", "Orthopnoea", "PND", "Leg swelling", "Syncope", "Exercise intolerance"]
+      },
+      gastrointestinal: {
+        name: "Gastrointestinal",
+        items: ["Nausea", "Vomiting", "Diarrhoea", "Constipation", "Jaundice", "GI bleeding"]
+      },
+      genitourinary: {
+        name: "Genitourinary",
+        items: ["Dysuria", "Frequency", "Haematuria", "Flank pain", "Discharge", "LMP concern"]
+      },
+      neurological: {
+        name: "Neurological",
+        items: ["Headache", "Seizures", "Weakness", "Numbness", "Confusion", "Dizziness"]
+      },
+      musculoskeletal: {
+        name: "Musculoskeletal",
+        items: ["Joint pain", "Joint swelling", "Back pain", "Muscle weakness", "Morning stiffness"]
+      },
+      endocrine: {
+        name: "Endocrine",
+        items: ["Polyuria", "Polydipsia", "Heat intolerance", "Cold intolerance", "Tremor", "Weight change"]
+      }
+    };
+
+    let records = loadRecords();
+    let syncQueue = loadQueue();
+    let currentSymptom = "";
+    let supabaseClient = null;
+    let currentUser = localStorage.getItem(USER_KEY) || "local-user";
+
+    const els = {
+      connectionPill: document.getElementById("connectionPill"),
+      connectionText: document.getElementById("connectionText"),
+      syncText: document.getElementById("syncText"),
+      symptomGrid: document.getElementById("symptomGrid"),
+      selectedSymptomLabel: document.getElementById("selectedSymptomLabel"),
+      complaintQuestions: document.getElementById("complaintQuestions"),
+      guidanceBody: document.getElementById("guidanceBody"),
+      rosGrid: document.getElementById("rosGrid"),
+      recordsList: document.getElementById("recordsList"),
+      toast: document.getElementById("toast"),
+      importFile: document.getElementById("importFile"),
+      authPanel: document.getElementById("authPanel")
+    };
+
+    init();
+
+    function init() {
+      setupSupabase();
+      buildSymptoms();
+      buildROS();
+      bindEvents();
+      renderGuidance();
+      renderRecords();
+      updateProgress();
+      updateConnectionStatus();
+      tryAuthSession();
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", updateConnectionStatus);
     }
 
-    html += '</div>';
-    container.innerHTML = html;
-
-    for (const [key, system] of Object.entries(reviewOfSystems)) {
-        const div = document.getElementById(`checklist-${key}`);
-        system.common.forEach((text) => {
-            const label = document.createElement('label');
-            label.className = 'check-item';
-            label.innerHTML = `
-                <input type="checkbox" onchange="updateROS('${key}')">
-                <span>${text}</span>
-            `;
-            div.appendChild(label);
+    function bindEvents() {
+      document.querySelectorAll(".nav button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".nav button").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          document.getElementById(button.dataset.target).scrollIntoView({ behavior: "smooth", block: "start" });
         });
-        refreshROSCardState(key);
+      });
+
+      document.querySelectorAll("input, textarea, select").forEach((field) => {
+        field.addEventListener("input", updateProgress);
+        field.addEventListener("change", updateProgress);
+      });
+
+      document.getElementById("newPatientBtn").addEventListener("click", newPatient);
+      document.getElementById("saveRecordBtn").addEventListener("click", saveRecord);
+      document.getElementById("saveAfterSummaryBtn").addEventListener("click", saveRecord);
+      document.getElementById("generateSummaryBtn").addEventListener("click", generateSummary);
+      document.getElementById("copySummaryBtn").addEventListener("click", () => copySection("clinicalSummary"));
+      document.getElementById("copyWardBtn").addEventListener("click", () => copySection("wardRoundSummary"));
+      document.getElementById("printBtn").addEventListener("click", () => window.print());
+      document.getElementById("downloadTextBtn").addEventListener("click", downloadSummaryText);
+      document.getElementById("scrollRecordsBtn").addEventListener("click", () => document.getElementById("records").scrollIntoView({ behavior: "smooth" }));
+      document.getElementById("refreshGuidanceBtn").addEventListener("click", renderGuidance);
+      document.getElementById("markRosNormalBtn").addEventListener("click", markRosNormal);
+      document.getElementById("recordSearch").addEventListener("input", renderRecords);
+      document.getElementById("clearRecordsBtn").addEventListener("click", clearLocalRecords);
+      document.getElementById("exportBtn").addEventListener("click", exportRecords);
+      document.getElementById("importBtn").addEventListener("click", () => els.importFile.click());
+      els.importFile.addEventListener("change", importRecords);
+      document.getElementById("syncNowBtn").addEventListener("click", syncNow);
+      document.getElementById("authToggleBtn").addEventListener("click", () => els.authPanel.classList.toggle("open"));
+      document.getElementById("magicLinkBtn").addEventListener("click", sendMagicLink);
     }
-}
 
-function toggleROS(key) {
-    const content = document.getElementById(`ros-content-${key}`);
-    const card = content.parentElement;
-    const header = card.querySelector('.ros-card-header');
-    const isOpen = content.classList.toggle('active');
-    card.classList.toggle('expanded', isOpen);
-    header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-}
+    function setupSupabase() {
+      try {
+        if (!CONFIG.supabaseUrl || !CONFIG.supabaseAnonKey) {
+          setSyncText("Local-only mode. Add Supabase keys to enable online sync.");
+          return;
+        }
+        if (!window.supabase?.createClient) {
+          setSyncText("Supabase library unavailable. Offline mode is active.");
+          return;
+        }
+        supabaseClient = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+        setSyncText("Supabase ready.");
+      } catch (error) {
+        supabaseClient = null;
+        setSyncText("Supabase unavailable. Offline mode is active.");
+      }
+    }
 
-function markNoFindings(key) {
-    document.getElementById(`ros_${key}`).value = "No significant findings.";
-    document.querySelectorAll(`#checklist-${key} input[type="checkbox"]`).forEach(chk => chk.checked = false);
-    saveROS(key, "No significant findings.");
-}
+    async function tryAuthSession() {
+      if (!supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        if (data.session?.user) {
+          const user = data.session.user;
+          currentUser = user.email || user.id;
+          localStorage.setItem(USER_KEY, currentUser);
+          localStorage.setItem(USER_NAME_KEY, user.user_metadata?.full_name || user.email || "Online user");
+        }
+        if (navigator.onLine) await syncNow();
+      } catch (error) {
+        setSyncText("Auth check skipped. Local mode remains available.");
+      }
+    }
 
-function updateROS(key) {
-    saveROS(key, document.getElementById(`ros_${key}`).value);
-}
+    async function sendMagicLink() {
+      if (!supabaseClient) {
+        toast("Supabase is not configured. You can continue offline.");
+        return;
+      }
+      const email = document.getElementById("authEmail").value.trim();
+      if (!email) {
+        toast("Enter an email address first.");
+        return;
+      }
+      try {
+        const { error } = await supabaseClient.auth.signInWithOtp({ email });
+        if (error) throw error;
+        toast("Magic link sent. Check your email.");
+      } catch (error) {
+        toast("Could not send magic link. Local mode is still available.");
+      }
+    }
 
-function saveROS(key, value) {
-    rosData[key] = value || '';
-    refreshROSCardState(key);
-    updateProgress();
-}
+    function buildSymptoms() {
+      els.symptomGrid.innerHTML = Object.keys(symptoms).map((name) => (
+        `<button class="chip" type="button" data-symptom="${escapeAttr(name)}">${escapeHTML(name)}</button>`
+      )).join("");
 
-function refreshROSCardState(key) {
-    const card = document.querySelector(`.ros-card[data-system="${key}"]`);
-    const status = document.getElementById(`ros-status-${key}`);
-    const count = document.getElementById(`ros-count-${key}`);
-    const narrative = document.getElementById(`ros_${key}`)?.value.trim() || '';
-    const selected = document.querySelectorAll(`#checklist-${key} input[type="checkbox"]:checked`).length;
-    const documented = selected > 0 || narrative.length > 0;
+      els.symptomGrid.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => selectSymptom(button.dataset.symptom));
+      });
+    }
 
-    if (card) card.classList.toggle('documented', documented);
-    if (status) status.textContent = documented ? "Documented" : "Not documented";
-    if (count) count.textContent = `${selected} selected`;
-}
-      
-        // Symptom guides (SOCRATES for pain, specific for others) – same as before, kept unchanged
-        const symptomGuides = {
-            pain: { title: "🩺 Pain (SOCRATES)", chapter: "Hutchison's Ch. 8", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity (0-10)?", hint: "" } ], redFlags: ["🚨 Sudden worst pain ever"] },
-            "chest pain": { title: "💔 Chest Pain (SOCRATES)", chapter: "Hutchison's Ch. 13", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity?", hint: "" } ], redFlags: ["🚨 Crushing pain + radiation"] },
-            headache: { title: "🤕 Headache (SOCRATES)", chapter: "Hutchison's Ch. 19", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity?", hint: "" } ], redFlags: ["🚨 Thunderclap onset"] },
-            "joint pain": { title: "🦴 Joint Pain (SOCRATES)", chapter: "Hutchison's Ch. 20", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity?", hint: "" } ], redFlags: ["🚨 Acute monoarthritis"] },
-            fever: { title: "🌡️ Fever", chapter: "Hutchison's Ch. 10", questions: [ { q: "Duration?", hint: "" }, { q: "Pattern?", hint: "" }, { q: "Maximum temp?", hint: "" }, { q: "Chills/rigors?", hint: "" }, { q: "Associated cough, dysuria, diarrhoea?", hint: "" } ], redFlags: ["🚨 Temp >40°C", "🚨 Altered mental status"] },
-            nausea: { title: "🤢 Nausea/Vomiting", chapter: "Hutchison's Ch. 15", questions: [ { q: "Onset & duration?", hint: "" }, { q: "Frequency?", hint: "" }, { q: "Vomit content (food, bile, blood)?", hint: "" }, { q: "Associated abdominal pain, diarrhoea, fever?", hint: "" }, { q: "Triggers (eating, smell)?", hint: "" }, { q: "Signs of dehydration?", hint: "" } ], redFlags: ["🚨 Haematemesis", "🚨 Severe abdominal pain"] },
-            diarrhea: { title: "💩 Diarrhoea", chapter: "Hutchison's Ch. 15", questions: [ { q: "Duration (acute/chronic)?", hint: "" }, { q: "Frequency & consistency?", hint: "" }, { q: "Blood or mucus?", hint: "" }, { q: "Associated fever, pain, tenesmus?", hint: "" }, { q: "Travel or sick contacts?", hint: "" }, { q: "Recent antibiotics?", hint: "" } ], redFlags: ["🚨 Bloody diarrhoea", "🚨 Severe dehydration"] },
-            constipation: { title: "🚫 Constipation", chapter: "Hutchison's Ch. 15", questions: [ { q: "Duration?", hint: "" }, { q: "Bowel frequency per week?", hint: "" }, { q: "Stool consistency (hard, lumpy)?", hint: "" }, { q: "Straining or incomplete evacuation?", hint: "" }, { q: "Abdominal bloating or pain?", hint: "" }, { q: "Laxative use?", hint: "" }, { q: "Dietary fibre and fluid intake?", hint: "" } ], redFlags: ["🚨 New-onset in >50 years", "🚨 Blood in stool"] },
-            "shortness of breath": { title: "💨 Dyspnoea", chapter: "Hutchison's Ch. 12/13", questions: [ { q: "Onset (sudden/gradual)?", hint: "" }, { q: "Severity (stairs)?", hint: "" }, { q: "Worse lying flat (orthopnoea)?", hint: "" }, { q: "PND?", hint: "" }, { q: "Associated chest pain, cough, leg swelling?", hint: "" }, { q: "Triggers?", hint: "" } ], redFlags: ["🚨 Acute onset + chest pain", "🚨 Cyanosis"] },
-            cough: { title: "🤧 Cough", chapter: "Hutchison's Ch. 12", questions: [ { q: "Duration (acute/chronic)?", hint: "" }, { q: "Productive? Sputum colour?", hint: "" }, { q: "Timing (night, morning, after meals)?", hint: "" }, { q: "Triggers?", hint: "" }, { q: "Associated haemoptysis, fever, weight loss?", hint: "" } ], redFlags: ["🚨 Haemoptysis", "🚨 Unexplained weight loss"] },
-            swelling: { title: "💧 Oedema", chapter: "Hutchison's Ch. 13/14", questions: [ { q: "Site (face, feet, abdomen)?", hint: "" }, { q: "Onset (sudden/gradual)?", hint: "" }, { q: "Pitting oedema?", hint: "" }, { q: "Associated SOB, reduced urine, pain?", hint: "" }, { q: "Diurnal variation?", hint: "" } ], redFlags: ["🚨 Unilateral leg + pain (DVT)", "🚨 Swelling + SOB"] },
-            palpitations: { title: "💓 Palpitations", chapter: "Hutchison's Ch. 13", questions: [ { q: "Onset & duration?", hint: "" }, { q: "Rate & regularity?", hint: "" }, { q: "Triggers (exercise, caffeine)?", hint: "" }, { q: "Associated chest pain, SOB, syncope?", hint: "" }, { q: "Termination (vagal manoeuvres)?", hint: "" } ], redFlags: ["🚨 Palpitations + syncope"] },
-            fatigue: { title: "😴 Fatigue", chapter: "Hutchison's Ch. 3", questions: [ { q: "Duration?", hint: "" }, { q: "Impact on daily activities?", hint: "" }, { q: "Associated fever, weight loss, pain, sleep disturbance?", hint: "" }, { q: "Sleep quality?", hint: "" }, { q: "Mood (low mood, anxiety)?", hint: "" } ], redFlags: ["🚨 Unexplained weight loss", "🚨 Night sweats"] },
-            "weight loss": { title: "⚖️ Unintentional Weight Loss", chapter: "Hutchison's Ch. 3", questions: [ { q: "Amount & timeframe?", hint: "" }, { q: "Appetite (increased/decreased/normal)?", hint: "" }, { q: "Dysphagia or early satiety?", hint: "" }, { q: "Associated fever, night sweats, diarrhoea?", hint: "" }, { q: "Drugs (metformin, antidepressants)?", hint: "" } ], redFlags: ["🚨 >5% loss in 6 months", "🚨 Dysphagia"] },
-            rash: { title: "🔴 Skin Rash", chapter: "Hutchison's Ch. 21", questions: [ { q: "Appearance (macules, vesicles, pustules)?", hint: "" }, { q: "Distribution and spread?", hint: "" }, { q: "Onset and time course?", hint: "" }, { q: "Itching present?", hint: "" }, { q: "Associated systemic symptoms (fever, joint pain)?", hint: "" }, { q: "Triggers (new soap, drug, infection)?", hint: "" } ], redFlags: ["🚨 Petechial/purpuric rash", "🚨 Mucosal involvement"] },
-            dizziness: { title: "🌀 Dizziness/Vertigo", chapter: "Hutchison's Ch. 19", questions: [ { q: "Type: true vertigo or lightheadedness?", hint: "" }, { q: "Onset & duration (seconds, minutes, hours)?", hint: "" }, { q: "Triggers (head movement, standing)?", hint: "" }, { q: "Associated hearing loss, tinnitus?", hint: "" }, { q: "Associated palpitations, chest pain?", hint: "" }, { q: "Neurological symptoms (diplopia, dysarthria)?", hint: "" } ], redFlags: ["🚨 Acute vertigo + neurological deficit", "🚨 Syncope"] }
+    function selectSymptom(name) {
+      currentSymptom = name;
+      document.querySelectorAll(".chip").forEach((button) => button.classList.toggle("active", button.dataset.symptom === name));
+      els.selectedSymptomLabel.textContent = name;
+      const guide = symptoms[name];
+      els.complaintQuestions.innerHTML = guide.prompts.map((prompt, index) => `
+        <label style="margin-bottom:10px;">${escapeHTML(prompt)}
+          <input id="pc_${index}" placeholder="Document ${escapeAttr(prompt.toLowerCase())}" />
+        </label>
+      `).join("");
+      els.complaintQuestions.querySelectorAll("input").forEach((field) => field.addEventListener("input", updateProgress));
+      renderGuidance();
+      updateProgress();
+    }
+
+    function renderGuidance() {
+      const symptomName = currentSymptom || document.getElementById("customSymptom").value.trim();
+      const guide = currentSymptom ? symptoms[currentSymptom] : null;
+      if (!guide) {
+        els.guidanceBody.innerHTML = `
+          <div class="guide-card">
+            <h4>Choose a presenting complaint</h4>
+            <ul>
+              <li>Select a symptom to reveal focused questions, red flags, and likely differentials.</li>
+              <li>Complete demographics, HPC, HIV history where relevant, and review of systems.</li>
+              <li>Save records locally first, then sync when Supabase is available.</li>
+            </ul>
+          </div>
+        `;
+        return;
+      }
+
+      els.guidanceBody.innerHTML = `
+        <div class="guide-card">
+          <h4>${escapeHTML(symptomName)} questions</h4>
+          <ul>${guide.prompts.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul>
+        </div>
+        <div class="guide-card warning">
+          <h4>Red flags</h4>
+          <ul>${guide.redFlags.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul>
+        </div>
+        <div class="guide-card">
+          <h4>Consider differentials</h4>
+          <ul>${guide.differentials.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul>
+        </div>
+      `;
+    }
+
+    function buildROS() {
+      els.rosGrid.innerHTML = Object.entries(rosSystems).map(([key, system]) => `
+        <article class="ros-card" data-ros="${key}">
+          <button class="ros-head" type="button">
+            <span>${escapeHTML(system.name)}</span>
+            <span>Open</span>
+          </button>
+          <div class="ros-content">
+            <div class="checks">
+              ${system.items.map((item) => `
+                <label class="check">
+                  <input type="checkbox" id="ros_${key}_${slug(item)}" value="${escapeAttr(item)}" />
+                  ${escapeHTML(item)}
+                </label>
+              `).join("")}
+            </div>
+            <label>Additional notes<textarea id="ros_note_${key}" rows="2" placeholder="Other ${escapeAttr(system.name.toLowerCase())} findings"></textarea></label>
+          </div>
+        </article>
+      `).join("");
+
+      els.rosGrid.querySelectorAll(".ros-head").forEach((button) => {
+        button.addEventListener("click", () => button.closest(".ros-card").classList.toggle("open"));
+      });
+
+      els.rosGrid.querySelectorAll("input, textarea").forEach((field) => {
+        field.addEventListener("input", updateProgress);
+        field.addEventListener("change", updateProgress);
+      });
+    }
+
+    function markRosNormal() {
+      Object.keys(rosSystems).forEach((key) => {
+        const note = document.getElementById(`ros_note_${key}`);
+        if (note && !note.value.trim()) note.value = "No significant findings reported.";
+      });
+      toast("Review of systems marked as no significant findings.");
+      updateProgress();
+    }
+
+    function collectFormData() {
+      const data = {};
+      document.querySelectorAll("input[id], textarea[id], select[id]").forEach((field) => {
+        if (field.type === "file") return;
+        data[field.id] = field.type === "checkbox" ? field.checked : field.value;
+      });
+      data._currentSymptom = currentSymptom;
+      return data;
+    }
+
+    function restoreFormData(data) {
+      Object.entries(data || {}).forEach(([id, value]) => {
+        if (id.startsWith("_")) return;
+        const field = document.getElementById(id);
+        if (!field) return;
+        if (field.type === "checkbox") field.checked = Boolean(value);
+        else field.value = value || "";
+      });
+      if (data?._currentSymptom) selectSymptom(data._currentSymptom);
+      updateProgress();
+    }
+
+    function collectSummaryData() {
+      const complaintResponses = Array.from(document.querySelectorAll("#complaintQuestions input"))
+        .map((input) => input.value.trim())
+        .filter(Boolean);
+
+      const ros = Object.entries(rosSystems).map(([key, system]) => {
+        const positives = system.items.filter((item) => document.getElementById(`ros_${key}_${slug(item)}`)?.checked);
+        const note = document.getElementById(`ros_note_${key}`)?.value.trim();
+        return {
+          name: system.name,
+          findings: [...positives, note].filter(Boolean).join("; ") || "No findings documented"
         };
+      });
 
-        function displayQuestions(symptom) {
-            const guide = symptomGuides[symptom];
-            const container = document.getElementById('dynamicQuestions');
-            if (guide) {
-                let html = `<div style="background: #f0f7ff; padding: 20px; border-radius: 16px;"><h4 style="color:#1e3c72;">${guide.title}</h4><small>${guide.chapter}</small>`;
-                guide.questions.forEach((item, idx) => {
-                    html += `<div style="margin-bottom:15px;"><label style="font-weight:600;">${item.q}</label><input type="text" id="pc_q${idx}" placeholder="Patient response..." onchange="savePCResponse(${idx}, this.value)" style="margin-top:5px;"><div class="ros-hint">${item.hint}</div></div>`;
-                });
-                if (guide.redFlags) html += `<div class="alert warning"><strong>⚠️ RED FLAGS:</strong><br>${guide.redFlags.join('<br>')}</div>`;
-                html += `</div>`;
-                container.innerHTML = html;
-            } else { displayGenericQuestions(symptom); }
+      return {
+        generatedAt: new Date().toLocaleString(),
+        fullName: fieldValue("fullName"),
+        age: fieldValue("age"),
+        gender: fieldValue("gender"),
+        maritalStatus: fieldValue("maritalStatus"),
+        occupation: fieldValue("occupation"),
+        religion: fieldValue("religion"),
+        tribe: fieldValue("tribe"),
+        address: fieldValue("address"),
+        nextOfKin: fieldValue("nextOfKin"),
+        nearestHealthCentre: fieldValue("nearestHealthCentre"),
+        referral: buildReferralText(),
+        mainSymptom: currentSymptom || fieldValue("customSymptom"),
+        complaintResponses,
+        hpc: fieldValue("hpc", "Not documented"),
+        pmh: fieldValue("pmh", "None documented"),
+        medications: fieldValue("medications", "None documented"),
+        allergies: fieldValue("allergies", "None documented"),
+        hiv: buildHivItems(),
+        ros,
+        social: fieldValue("social", "Not documented"),
+        familyHistory: fieldValue("familyHistory", "Not documented")
+      };
+    }
+
+    function generateSummary() {
+      const data = collectSummaryData();
+      document.getElementById("clinicalSummary").innerHTML = buildClinicalSummary(data);
+      document.getElementById("wardRoundSummary").innerHTML = buildWardRoundSummary(data);
+      document.getElementById("summaryPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+      updateProgress();
+    }
+
+    function buildClinicalSummary(data) {
+      return `
+        <div class="summary-banner">
+          <span>EaseMed Clinical Summary</span>
+          <span>${escapeHTML(data.generatedAt)}</span>
+        </div>
+        <div class="summary-grid">
+          ${summaryField("Name", data.fullName)}
+          ${summaryField("Age", data.age)}
+          ${summaryField("Sex", data.gender)}
+          ${summaryField("Marital status", data.maritalStatus)}
+          ${summaryField("Occupation", data.occupation)}
+          ${summaryField("Religion", data.religion)}
+          ${summaryField("Tribe/Ethnicity", data.tribe)}
+          ${summaryField("Address", data.address)}
+          ${summaryField("Next of kin", data.nextOfKin)}
+          ${summaryField("Nearest health centre", data.nearestHealthCentre)}
+          ${summaryField("Referral", data.referral)}
+          ${summaryField("Main symptom", data.mainSymptom)}
+        </div>
+        ${summaryBlock("Presenting complaint details", data.complaintResponses.length ? list(data.complaintResponses) : "No structured responses documented")}
+        ${summaryBlock("History of presenting complaint", paragraphs(data.hpc))}
+        ${summaryBlock("Past medical and surgical history", paragraphs(data.pmh))}
+        ${summaryBlock("Medications and allergies", `<strong>Medications:</strong><br>${paragraphs(data.medications)}<br><br><strong>Allergies:</strong><br>${paragraphs(data.allergies)}`)}
+        ${summaryBlock("HIV history", list(data.hiv))}
+        ${summaryBlock("Review of systems", list(data.ros.map((item) => `${item.name}: ${item.findings}`)))}
+        ${summaryBlock("Social history", paragraphs(data.social))}
+        ${summaryBlock("Family history", paragraphs(data.familyHistory))}
+      `;
+    }
+
+    function buildWardRoundSummary(data) {
+      const positiveRos = data.ros.filter((item) => item.findings !== "No findings documented").map((item) => `${item.name}: ${item.findings}`);
+      const negativeRos = data.ros.filter((item) => item.findings === "No findings documented").slice(0, 4).map((item) => item.name);
+      const lines = [
+        `Patient: ${data.fullName}, ${data.age}-year-old ${data.gender}, ${data.occupation}, ${data.maritalStatus}; ${data.referral}.`,
+        `Presenting problem: ${data.mainSymptom}; key HPI: ${stripHTML(paragraphs(data.hpc))}.`,
+        `Major positives: ${positiveRos.length ? positiveRos.join("; ") : "No additional positive ROS findings documented"}.`,
+        `Important negatives: ${negativeRos.length ? negativeRos.join(", ") + " without documented symptoms" : "No key negative ROS findings documented"}; allergies: ${data.allergies}.`,
+        `Working impression: refine using examination, bedside tests, investigations, and supervisor review.`
+      ];
+
+      return `
+        <div class="summary-banner">
+          <span>Five-Line Ward-Round Summary</span>
+          <span>${escapeHTML(data.generatedAt)}</span>
+        </div>
+        <ol class="summary-list">${lines.map((line) => `<li>${escapeHTML(line)}</li>`).join("")}</ol>
+      `;
+    }
+
+    function saveRecord() {
+      const name = fieldValue("fullName", "").trim();
+      if (!name) {
+        toast("Enter the patient name or initials before saving.");
+        return;
+      }
+
+      if (!document.getElementById("clinicalSummary").innerText.includes(name)) {
+        generateSummary();
+      }
+
+      const formData = collectFormData();
+      const existingIndex = records.findIndex((record) => record.name.toLowerCase() === name.toLowerCase() && record.user === currentUser);
+      const record = {
+        id: existingIndex >= 0 ? records[existingIndex].id : cryptoId(),
+        user: currentUser,
+        name,
+        age: fieldValue("age", ""),
+        gender: fieldValue("gender", ""),
+        complaint: currentSymptom || fieldValue("customSymptom", ""),
+        savedAt: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        summary: document.getElementById("clinicalSummary").innerHTML,
+        wardRound: document.getElementById("wardRoundSummary").innerHTML,
+        formData
+      };
+
+      if (existingIndex >= 0) records[existingIndex] = record;
+      else records.unshift(record);
+
+      saveRecords();
+      queueRecord(record);
+      renderRecords();
+      updateConnectionStatus();
+      toast("Record saved locally.");
+    }
+
+    function loadRecord(id) {
+      const record = records.find((item) => item.id === id);
+      if (!record) return;
+      if (!confirm(`Load ${record.name}? Unsaved form changes will be replaced.`)) return;
+      restoreFormData(record.formData);
+      document.getElementById("clinicalSummary").innerHTML = record.summary || "";
+      document.getElementById("wardRoundSummary").innerHTML = record.wardRound || "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      toast(`Loaded ${record.name}.`);
+    }
+
+    function deleteRecord(id) {
+      const record = records.find((item) => item.id === id);
+      if (!record || !confirm(`Delete ${record.name} from this device?`)) return;
+      records = records.filter((item) => item.id !== id);
+      saveRecords();
+      renderRecords();
+      toast("Record deleted locally.");
+    }
+
+    function renderRecords() {
+      const query = document.getElementById("recordSearch").value.trim().toLowerCase();
+      const filtered = records.filter((record) => {
+        const haystack = `${record.name} ${record.age} ${record.gender} ${record.complaint}`.toLowerCase();
+        return !query || haystack.includes(query);
+      });
+
+      els.recordsList.innerHTML = filtered.length ? filtered.map((record) => `
+        <article class="record-card">
+          <div>
+            <strong>${escapeHTML(record.name)}</strong>
+            <span>${escapeHTML(record.age || "Age not set")} · ${escapeHTML(record.gender || "Sex not set")} · ${escapeHTML(record.complaint || "Complaint not set")} · ${formatDate(record.savedAt)}</span>
+          </div>
+          <div class="record-actions">
+            <button class="btn secondary" onclick="loadRecord('${escapeAttr(record.id)}')">Load</button>
+            <button class="btn danger" onclick="deleteRecord('${escapeAttr(record.id)}')">Delete</button>
+          </div>
+        </article>
+      `).join("") : `<div class="empty">No saved records found.</div>`;
+    }
+
+    function newPatient() {
+      if (!confirm("Clear the current form?")) return;
+      document.querySelectorAll("input[id], textarea[id], select[id]").forEach((field) => {
+        if (field.type === "file") return;
+        if (field.type === "checkbox") field.checked = false;
+        else if (field.tagName === "SELECT") field.selectedIndex = 0;
+        else field.value = "";
+      });
+      currentSymptom = "";
+      document.querySelectorAll(".chip").forEach((button) => button.classList.remove("active"));
+      els.selectedSymptomLabel.textContent = "No symptom selected";
+      els.complaintQuestions.innerHTML = "";
+      document.getElementById("clinicalSummary").innerHTML = `<h4>Clinical summary</h4><p style="color:var(--muted);margin:0;">Generate a summary after completing the form.</p>`;
+      document.getElementById("wardRoundSummary").innerHTML = `<h4>Five-line ward-round summary</h4><p style="color:var(--muted);margin:0;">A concise presentation will appear here.</p>`;
+      updateProgress();
+      toast("New patient form ready.");
+    }
+
+    function loadRecords() {
+      try {
+        return JSON.parse(localStorage.getItem(RECORDS_KEY)) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveRecords() {
+      localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
+    }
+
+    function loadQueue() {
+      try {
+        return JSON.parse(localStorage.getItem(QUEUE_KEY)) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveQueue() {
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(syncQueue));
+    }
+
+    function queueRecord(record) {
+      syncQueue = syncQueue.filter((item) => item.record.id !== record.id);
+      syncQueue.push({ id: cryptoId(), record, queuedAt: new Date().toISOString() });
+      saveQueue();
+      if (navigator.onLine) syncNow();
+    }
+
+    async function syncNow() {
+      updateConnectionStatus();
+
+      if (!navigator.onLine) {
+        toast("Offline right now. Sync will retry when the connection returns.");
+        return;
+      }
+
+      if (!supabaseClient) {
+        toast("Supabase is not configured. Records remain safely stored locally.");
+        return;
+      }
+
+      if (!syncQueue.length) {
+        toast("No local records waiting to sync.");
+        return;
+      }
+
+      setSyncText("Syncing records...");
+      const remaining = [];
+
+      for (const item of syncQueue) {
+        try {
+          const payload = {
+            id: item.record.id,
+            user_email: item.record.user,
+            patient_name: item.record.name,
+            age: item.record.age,
+            gender: item.record.gender,
+            complaint: item.record.complaint,
+            saved_at: item.record.savedAt,
+            updated_at: item.record.updated_at,
+            summary_html: item.record.summary,
+            ward_round_html: item.record.wardRound,
+            form_data: item.record.formData
+          };
+
+          const { error } = await supabaseClient
+            .from(CONFIG.recordsTable)
+            .upsert(payload, { onConflict: "id" });
+
+          if (error) throw error;
+        } catch (error) {
+          remaining.push(item);
         }
-        function displayGenericQuestions(symptom) { 
-            const container = document.getElementById('dynamicQuestions');
-            container.innerHTML = `<div class="alert"><strong>Systematic approach for "${symptom}"</strong><br>Use the 8 key features: Site, Onset, Character, Radiation, Associations, Timing, Exacerbating/Relieving, Severity.</div>`; 
+      }
+
+      syncQueue = remaining;
+      saveQueue();
+      updateConnectionStatus();
+
+      if (syncQueue.length) {
+        toast("Some records could not sync yet. They remain queued.");
+      } else {
+        toast("All queued records synced.");
+      }
+    }
+
+    async function handleOnline() {
+      updateConnectionStatus();
+      await syncNow();
+    }
+
+    function updateConnectionStatus() {
+      const online = navigator.onLine;
+      els.connectionPill.classList.toggle("offline", !online);
+      els.connectionText.textContent = online ? "Online" : "Offline";
+
+      if (!supabaseClient) {
+        setSyncText(`${syncQueue.length} queued · Local-only mode`);
+      } else if (!online) {
+        setSyncText(`${syncQueue.length} queued · Waiting for connection`);
+      } else if (syncQueue.length) {
+        setSyncText(`${syncQueue.length} queued · Ready to sync`);
+      } else {
+        setSyncText("All local changes synced");
+      }
+    }
+
+    function setSyncText(text) {
+      els.syncText.textContent = text;
+    }
+
+    function exportRecords() {
+      const backup = {
+        app: "EaseMed Clinical Clerk System",
+        version: 3,
+        exportedAt: new Date().toISOString(),
+        records,
+        syncQueue
+      };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `easemed_records_${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast("Backup downloaded.");
+    }
+
+    function importRecords(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const backup = JSON.parse(reader.result);
+          const importedRecords = Array.isArray(backup) ? backup : backup.records;
+          if (!Array.isArray(importedRecords)) throw new Error("Invalid backup");
+
+          const map = new Map(records.map((record) => [record.id, record]));
+          importedRecords.forEach((record) => map.set(record.id || cryptoId(), record));
+          records = Array.from(map.values()).sort((a, b) => new Date(b.savedAt || 0) - new Date(a.savedAt || 0));
+          syncQueue = Array.isArray(backup.syncQueue) ? backup.syncQueue : syncQueue;
+          saveRecords();
+          saveQueue();
+          renderRecords();
+          updateConnectionStatus();
+          toast("Backup imported.");
+        } catch (error) {
+          toast("Could not import that backup file.");
+        } finally {
+          event.target.value = "";
         }
-        function savePCResponse(idx, value) { if (!symptomDetails[currentSymptom]) symptomDetails[currentSymptom] = []; symptomDetails[currentSymptom][idx] = value; updateProgress(); }
-        function setSymptom(symptom) { currentSymptom = symptom; document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active')); event.target.classList.add('active'); document.getElementById('customSymptom').value = ''; displayQuestions(symptom); updateGuidancePanel(symptom); }
-        function setCustomSymptom() { const custom = document.getElementById('customSymptom').value.toLowerCase(); if (custom) { currentSymptom = custom; document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active')); displayGenericQuestions(custom); updateGenericGuidance(custom); } }
-        function updateGuidancePanel(symptom) { const guide = symptomGuides[symptom]; const container = document.getElementById('guidanceContent'); if (guide) { container.innerHTML = `<div class="guidance-card"><h4>📖 ${guide.title}</h4><p>${guide.chapter}</p></div><div class="guidance-card"><h4>🎯 Key questions</h4><ul>${guide.questions.map(q => `<li>${q.q}</li>`).join('')}</ul></div>${guide.redFlags ? `<div class="alert warning"><strong>⚠️ RED FLAGS</strong><br>${guide.redFlags.join('<br>')}</div>` : ''}`; } }
-        function updateGenericGuidance(symptom) { /* generic */ }
+      };
+      reader.readAsText(file);
+    }
 
-        // Clinical summary generation (includes HPC and referral details and new ROS narrative)
-        function generateClinicalSummary() {
-            const fullName = document.getElementById('fullName').value || 'Not provided';
-            const age = document.getElementById('age').value || 'Not provided';
-            const gender = document.getElementById('gender').value || 'Not provided';
-            const maritalStatus = document.getElementById('maritalStatus').value || 'Not provided';
-            const occupation = document.getElementById('occupation').value || 'Not provided';
-            const religion = document.getElementById('religion').value || 'Not provided';
-            const tribe = document.getElementById('tribe').value || 'Not provided';
-            const address = document.getElementById('address').value || 'Not provided';
-            const nextOfKin = document.getElementById('nextOfKin').value || 'Not provided';
-            const nearestHealthCentre = document.getElementById('nearestHealthCentre').value || 'Not provided';
-            const referralStatus = document.getElementById('referralStatus').value || 'Not provided';
-            const referralFrom = document.getElementById('referralFrom').value || '';
-            const referralReason = document.getElementById('referralReason').value || '';
-            const hpc = document.getElementById('hpc').value || 'Not documented';
-            const pmh = document.getElementById('pmh').value || 'None reported';
-            const medications = document.getElementById('medications').value || 'None';
-            const allergies = document.getElementById('allergies').value || 'None';
-            const social = document.getElementById('social').value || 'Not documented';
-            const familyHistory = document.getElementById('familyHistory').value || 'Not documented';
+    function clearLocalRecords() {
+      if (!records.length) {
+        toast("No local records to clear.");
+        return;
+      }
+      if (!confirm("Clear all records from this device? Export a backup first if needed.")) return;
+      records = [];
+      syncQueue = [];
+      saveRecords();
+      saveQueue();
+      renderRecords();
+      updateConnectionStatus();
+      toast("Local records cleared.");
+    }
 
-            // HIV data (simplified)
-            let hivSummary = '';
-            if (document.getElementById('hivStatus').value === 'positive') {
-                hivSummary = `<br><strong>🩸 HIV History:</strong><br>• Positive, diagnosed ${document.getElementById('hivDiagnosisDate').value || '?'}<br>• WHO Stage: ${document.getElementById('hivWhoStage').value || '?'}<br>• On ART: ${document.getElementById('hivOnArt').value}<br>• CD4: ${document.getElementById('hivCd4').value || '?'}<br>• Viral load: ${document.getElementById('hivViralLoad').value || '?'}<br>`;
-            }
+    function updateProgress() {
+      const fields = Array.from(document.querySelectorAll("[data-progress], #hpc, #pmh, #medications, #allergies, #social, #familyHistory"));
+      const filled = fields.filter((field) => String(field.value || "").trim()).length + (currentSymptom ? 1 : 0);
+      const total = fields.length + 1;
+      const percent = Math.round((filled / total) * 100);
+      document.getElementById("progressText").textContent = `${percent}%`;
+      document.getElementById("progressFill").style.width = `${percent}%`;
+    }
 
-            let referralText = referralStatus;
-            if (referralStatus !== 'Self-referred' && (referralFrom || referralReason)) {
-                referralText += ` (From: ${referralFrom || 'N/A'}, Reason: ${referralReason || 'N/A'})`;
-            }
+    function buildReferralText() {
+      const status = fieldValue("referralStatus");
+      const from = fieldValue("referralFrom", "");
+      const reason = fieldValue("referralReason", "");
+      if (status === "Self-referred") return status;
+      return `${status}; from ${from || "not specified"}; reason: ${reason || "not specified"}`;
+    }
 
-            let summary = `<strong>📚 EaseMed CLINICAL SUMMARY - ${new Date().toLocaleString()}</strong><br><br>
-                <strong>📋 PATIENT DEMOGRAPHICS</strong><br>
-                • Name: ${fullName} | Age: ${age} | Sex: ${gender}<br>
-                • Marital Status: ${maritalStatus} | Occupation: ${occupation}<br>
-                • Religion: ${religion} | Tribe: ${tribe}<br>
-                • Address: ${address}<br>
-                • Next of Kin: ${nextOfKin}<br>
-                • Nearest Health Centre: ${nearestHealthCentre}<br>
-                • Referral Status: ${referralText}<br>
-                ${hivSummary}
-                <br><strong>🩺 PRESENTING COMPLAINT</strong><br>
-                • Main Symptom: ${currentSymptom || 'Not specified'}<br>
-                <br><strong>📝 HISTORY OF PRESENTING COMPLAINT</strong><br>${hpc.replace(/\n/g, '<br>')}<br>
-                <br><strong>📜 PAST MEDICAL HISTORY</strong><br>${pmh}<br>
-                <strong>💊 MEDICATIONS & ALLERGIES</strong><br>Current Meds: ${medications}<br>Allergies: ${allergies}<br>
-                <br><strong>🔄 REVIEW OF SYSTEMS</strong><br>`;
-            for (const [sys, data] of Object.entries(reviewOfSystems)) {
-                const findings = rosData[sys] ? rosData[sys].trim() : '';
-                summary += `<strong>${data.icon} ${data.name}:</strong> ${findings || 'No findings documented'}<br>`;
-            }
-            summary += `<br><strong>🏠 SOCIAL HISTORY</strong><br>${social}<br><br><strong>👨‍👩‍👧 FAMILY HISTORY</strong><br>${familyHistory}<br><br><em>Based on Hutchison's Clinical Methods, 25th Edition</em>`;
-            document.getElementById('clinicalSummary').innerHTML = summary;
-            document.getElementById('summarySection').style.display = 'block';
-            document.getElementById('summarySection').scrollIntoView({ behavior: 'smooth' });
-            updateProgress();
-        }
+    function buildHivItems() {
+      return [
+        `Status: ${fieldValue("hivStatus")}`,
+        `Diagnosis date: ${fieldValue("hivDiagnosisDate")}`,
+        `Diagnosis method: ${fieldValue("hivDiagnosisMethod")}`,
+        `WHO stage: ${fieldValue("hivWhoStage")}`,
+        `On ART: ${fieldValue("hivOnArt")}`,
+        `ART start date: ${fieldValue("hivArtStartDate")}`,
+        `Current regimen: ${fieldValue("hivArtRegimen")}`,
+        `Adherence: ${fieldValue("hivAdherence")}`,
+        `Missed doses last month: ${fieldValue("hivMissedDoses")}`,
+        `Adherence barriers: ${fieldValue("hivAdherenceBarriers")}`,
+        `CD4: ${fieldValue("hivCd4")}`,
+        `Viral load: ${fieldValue("hivViralLoad")}`,
+        `IPT/TPT: ${fieldValue("hivIpt")}`,
+        `Cotrimoxazole: ${fieldValue("hivCpt")}`,
+        `Opportunistic infections: ${fieldValue("hivOi")}`
+      ];
+    }
 
-        function copyToClipboard() { navigator.clipboard.writeText(document.getElementById('clinicalSummary').innerText); alert('✅ Summary copied!'); }
+    async function copySection(id) {
+      const text = document.getElementById(id).innerText.trim();
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        toast("Copied to clipboard.");
+      } catch (error) {
+        toast("Could not copy. Select and copy manually.");
+      }
+    }
 
-        // Patient records functions (unchanged)
-        function getRecords() { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-        function saveRecords(records) { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
-        function captureFormData() { const data = {}; document.querySelectorAll('input[id], textarea[id], select[id]').forEach(el => { data[el.id] = el.type === 'checkbox' ? el.checked : el.value; }); return data; }
-        function restoreFormData(data) { Object.entries(data).forEach(([id, val]) => { let el = document.getElementById(id); if (el) { if (el.type === 'checkbox') el.checked = val; else el.value = val; } }); toggleReferralDetails(); if (data.referralStatus && data.referralStatus !== 'Self-referred') document.getElementById('referralDetails').style.display = 'block'; }
-        function savePatient() { const name = (document.getElementById('fullName').value || '').trim(); if (!name) { showToast('⚠️ Enter patient name', '#e67e22'); return; } const records = getRecords(); const user = localStorage.getItem('easemed_user') || 'unknown'; const existingIdx = records.findIndex(r => r.name.toLowerCase() === name.toLowerCase() && r.user === user); const record = { id: existingIdx >= 0 ? records[existingIdx].id : Date.now(), savedAt: new Date().toISOString(), user, name, age: document.getElementById('age').value, gender: document.getElementById('gender').value, complaint: currentSymptom, summary: document.getElementById('clinicalSummary').innerHTML, formData: captureFormData() }; if (existingIdx >= 0) records[existingIdx] = record; else records.unshift(record); saveRecords(records); renderRecords(); showToast('✅ Record saved!', '#27ae60'); }
-        function newPatient() { if (!confirm('Clear form?')) return; document.querySelectorAll('input[id], textarea[id]').forEach(el => { if (el.type === 'checkbox') el.checked = false; else el.value = ''; }); document.querySelectorAll('select[id]').forEach(el => el.selectedIndex = 0); document.getElementById('clinicalSummary').innerHTML = ''; document.getElementById('summarySection').style.display = 'none'; toggleReferralDetails(); updateProgress(); showToast('➕ New patient', '#2471a3'); }
-        function loadPatient(id) { const record = getRecords().find(r => r.id === id); if (!record) return; if (!confirm(`Load ${record.name}?`)) return; restoreFormData(record.formData); if (record.summary) { document.getElementById('clinicalSummary').innerHTML = record.summary; document.getElementById('summarySection').style.display = 'block'; } updateProgress(); window.scrollTo(0, 0); showToast(`📂 Loaded ${record.name}`, '#2471a3'); }
-        function deletePatient(id) { if (!confirm('Delete record?')) return; saveRecords(getRecords().filter(r => r.id !== id)); renderRecords(); showToast('🗑️ Deleted', '#e53e3e'); }
-        function exportRecords() { const records = getRecords(); if (!records.length) { showToast('No records', '#e67e22'); return; } const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `easemed_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href); showToast('⬇️ Exported', '#8e44ad'); }
-        function importRecords(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = e => { try { const imported = JSON.parse(e.target.result); if (!Array.isArray(imported)) throw new Error(); const existing = getRecords(); const merged = [...existing]; let added = 0; imported.forEach(r => { if (!existing.some(e => e.id === r.id)) { merged.push(r); added++; } }); merged.sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt)); saveRecords(merged); renderRecords(); showToast(`📂 Backup restored: ${added} records added`, '#27ae60'); } catch(err) { showToast('❌ Could not read backup file', '#e53e3e'); } }; reader.readAsText(file); event.target.value = ''; }
-        function renderRecords() { const records = getRecords(); const query = (document.getElementById('recordSearch')?.value || '').toLowerCase(); const user = localStorage.getItem('easemed_user') || ''; const filtered = records.filter(r => r.user === user && (!query || r.name.toLowerCase().includes(query) || (r.complaint || '').toLowerCase().includes(query))); const container = document.getElementById('recordsList'); if (!filtered.length) { container.innerHTML = `<div class="records-empty">${records.length ? '🔍 No match' : '📭 No saved records'}</div>`; return; } container.innerHTML = filtered.map(r => `<div class="patient-card"><div class="patient-card-info"><div class="patient-card-name">👤 ${r.name}</div><div class="patient-card-meta">${r.age ? r.age+' yrs' : ''} · ${r.gender || ''} · ${new Date(r.savedAt).toLocaleString()}</div></div><div class="patient-card-btns"><button class="btn-card btn-load" onclick="loadPatient(${r.id})">📂 Load</button><button class="btn-card btn-delete" onclick="deletePatient(${r.id})">🗑️ Delete</button></div></div>`).join(''); }
-        function showToast(msg, color) { const toast = document.getElementById('saveToast'); toast.textContent = msg; toast.style.background = color; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2500); }
+    function downloadSummaryText() {
+      const text = [
+        document.getElementById("clinicalSummary").innerText,
+        "",
+        document.getElementById("wardRoundSummary").innerText
+      ].join("\n");
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `easemed_summary_${Date.now()}.txt`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
 
-        // Polished clinical summary and ward-round presentation output.
-        function fieldValue(id, fallback = 'Not provided') {
-            const el = document.getElementById(id);
-            const value = el ? String(el.value || '').trim() : '';
-            return value || fallback;
-        }
+    function summaryField(label, value) {
+      return `<div class="summary-field"><span>${escapeHTML(label)}</span>${escapeHTML(value || "Not provided")}</div>`;
+    }
 
-        function escapeHTML(value) {
-            return String(value || '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
+    function summaryBlock(title, body) {
+      return `<div class="summary-section-block"><h5>${escapeHTML(title)}</h5>${body}</div>`;
+    }
 
-        function formatParagraph(value) {
-            return escapeHTML(value || 'Not documented').replace(/\n/g, '<br>');
-        }
+    function list(items) {
+      return `<ul class="summary-list">${items.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul>`;
+    }
 
-        function summaryField(label, value) {
-            return `<div class="summary-field"><span>${label}</span>${escapeHTML(value)}</div>`;
-        }
+    function paragraphs(value) {
+      return escapeHTML(value || "Not documented").replace(/\n/g, "<br>");
+    }
 
-        function summaryBlock(title, body) {
-            return `<div class="summary-section-block"><h5>${title}</h5>${body}</div>`;
-        }
+    function fieldValue(id, fallback = "Not provided") {
+      const field = document.getElementById(id);
+      const value = field ? String(field.value || "").trim() : "";
+      return value || fallback;
+    }
 
-        function getSelectedChecklistText(key) {
-            return Array.from(document.querySelectorAll(`#checklist-${key} input[type="checkbox"]:checked`))
-                .map(input => input.nextElementSibling ? input.nextElementSibling.textContent.trim() : '')
-                .filter(Boolean);
-        }
+    function formatDate(value) {
+      try {
+        return new Intl.DateTimeFormat(undefined, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        }).format(new Date(value));
+      } catch (error) {
+        return "recently";
+      }
+    }
 
-        function getROSFindings() {
-            return Object.entries(reviewOfSystems).map(([key, data]) => {
-                const selected = getSelectedChecklistText(key);
-                const narrative = fieldValue(`ros_${key}`, '').trim();
-                const findings = [...selected, narrative].filter(Boolean).join('; ') || 'No findings documented';
-                return { key, name: data.name, chapter: data.chapter, hint: data.hint, findings };
-            });
-        }
+    function slug(value) {
+      return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+    }
 
-        function getPresentingComplaintResponses() {
-            const guide = symptomGuides[currentSymptom];
-            if (!guide || !guide.questions) return [];
-            return guide.questions.map((item, index) => {
-                const response = fieldValue(`pc_q${index}`, '');
-                return response ? `${item.q} ${response}` : '';
-            }).filter(Boolean);
-        }
+    function cryptoId() {
+      if (window.crypto?.randomUUID) return crypto.randomUUID();
+      return `id_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    }
 
-        function getHIVSummaryItems() {
-            const status = fieldValue('hivStatus', '');
-            if (!status) return ['HIV status not documented'];
+    function escapeHTML(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
-            const items = [
-                `Status: ${fieldValue('hivStatus')}`,
-                `Diagnosis date: ${fieldValue('hivDiagnosisDate')}`,
-                `Diagnosis method: ${fieldValue('hivDiagnosisMethod')}`,
-                `WHO stage: ${fieldValue('hivWhoStage')}`,
-                `On ART: ${fieldValue('hivOnArt')}`,
-                `ART start date: ${fieldValue('hivArtStartDate')}`,
-                `Current regimen: ${fieldValue('hivArtRegimen')}`,
-                `Adherence: ${fieldValue('hivAdherence')}`,
-                `Missed doses last month: ${fieldValue('hivMissedDoses')}`,
-                `Adherence barriers: ${fieldValue('hivAdherenceBarriers')}`,
-                `CD4: ${fieldValue('hivCd4')} (${fieldValue('hivCd4Date')})`,
-                `Viral load: ${fieldValue('hivViralLoad')} (${fieldValue('hivVlDate')})`,
-                `IPT: ${fieldValue('hivIpt')}`,
-                `CPT: ${fieldValue('hivCpt')}`,
-                `Partner/family HIV status: ${fieldValue('hivPartnerStatus')}`
-            ];
+    function escapeAttr(value) {
+      return escapeHTML(value).replace(/`/g, "&#096;");
+    }
 
-            const opportunisticInfections = Array.from(document.querySelectorAll('#hivDetails input[type="checkbox"]:checked'))
-                .map(input => input.value)
-                .filter(Boolean);
-            items.push(`Opportunistic infections: ${opportunisticInfections.length ? opportunisticInfections.join(', ') : 'None selected'}`);
-            return items;
-        }
+    function stripHTML(value) {
+      const div = document.createElement("div");
+      div.innerHTML = value;
+      return div.textContent || div.innerText || "";
+    }
 
-        function collectPatientSummaryData() {
-            const referralStatus = fieldValue('referralStatus');
-            const referralFrom = fieldValue('referralFrom', '');
-            const referralReason = fieldValue('referralReason', '');
-            const referralText = referralStatus !== 'Self-referred' && (referralFrom || referralReason)
-                ? `${referralStatus}; from ${referralFrom || 'not specified'}; reason: ${referralReason || 'not specified'}`
-                : referralStatus;
+    function toast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add("show");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => els.toast.classList.remove("show"), 3000);
+    }
 
-            return {
-                generatedAt: new Date().toLocaleString(),
-                fullName: fieldValue('fullName'),
-                age: fieldValue('age'),
-                gender: fieldValue('gender'),
-                maritalStatus: fieldValue('maritalStatus'),
-                occupation: fieldValue('occupation'),
-                religion: fieldValue('religion'),
-                tribe: fieldValue('tribe'),
-                address: fieldValue('address'),
-                nextOfKin: fieldValue('nextOfKin'),
-                nearestHealthCentre: fieldValue('nearestHealthCentre'),
-                referralText,
-                mainSymptom: currentSymptom || fieldValue('customSymptom', 'Not specified'),
-                complaintResponses: getPresentingComplaintResponses(),
-                hpc: fieldValue('hpc', 'Not documented'),
-                pmh: fieldValue('pmh', 'None reported'),
-                medications: fieldValue('medications', 'None documented'),
-                allergies: fieldValue('allergies', 'None documented'),
-                hivItems: getHIVSummaryItems(),
-                ros: getROSFindings(),
-                social: fieldValue('social', 'Not documented'),
-                familyHistory: fieldValue('familyHistory', 'Not documented')
-            };
-        }
-
-        function buildClinicalSummaryHTML(data) {
-            const complaintDetails = data.complaintResponses.length
-                ? `<ul class="summary-list">${data.complaintResponses.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>`
-                : 'No structured presenting-complaint responses documented';
-            const rosList = `<ul class="summary-list">${data.ros.map(item => `<li><strong>${escapeHTML(item.name)}:</strong> ${escapeHTML(item.findings)}</li>`).join('')}</ul>`;
-            const hivList = `<ul class="summary-list">${data.hivItems.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>`;
-
-            return `
-                <div class="summary-banner">
-                    <strong>EaseMed Clinical Summary</strong>
-                    Generated ${escapeHTML(data.generatedAt)}
-                </div>
-                <div class="summary-grid">
-                    ${summaryField('Name', data.fullName)}
-                    ${summaryField('Age', data.age)}
-                    ${summaryField('Sex', data.gender)}
-                    ${summaryField('Marital Status', data.maritalStatus)}
-                    ${summaryField('Occupation', data.occupation)}
-                    ${summaryField('Religion', data.religion)}
-                    ${summaryField('Tribe/Ethnicity', data.tribe)}
-                    ${summaryField('Address', data.address)}
-                    ${summaryField('Next of Kin', data.nextOfKin)}
-                    ${summaryField('Nearest Health Centre', data.nearestHealthCentre)}
-                    ${summaryField('Referral', data.referralText)}
-                    ${summaryField('Main Symptom', data.mainSymptom)}
-                </div>
-                ${summaryBlock('Presenting Complaint Details', complaintDetails)}
-                ${summaryBlock('History of Presenting Complaint', formatParagraph(data.hpc))}
-                ${summaryBlock('Past Medical History', formatParagraph(data.pmh))}
-                ${summaryBlock('Medications and Allergies', `<strong>Current medications:</strong><br>${formatParagraph(data.medications)}<br><br><strong>Allergies:</strong><br>${formatParagraph(data.allergies)}`)}
-                ${summaryBlock('HIV History', hivList)}
-                ${summaryBlock('Review of Systems', rosList)}
-                ${summaryBlock('Social History', formatParagraph(data.social))}
-                ${summaryBlock('Family History', formatParagraph(data.familyHistory))}
-                <div style="margin-top:12px; color:#718096; font-style:italic;">Based on Hutchison's Clinical Methods, 25th Edition.</div>
-            `;
-        }
-
-        function buildWardRoundHTML(data) {
-            const keyRos = data.ros
-                .filter(item => item.findings !== 'No findings documented')
-                .map(item => `${item.name}: ${item.findings}`);
-            const negativeRos = data.ros
-                .filter(item => item.findings === 'No findings documented')
-                .slice(0, 4)
-                .map(item => item.name);
-            const hpcText = escapeHTML(data.hpc);
-            const pmhText = escapeHTML(data.pmh);
-            const medsText = escapeHTML(data.medications);
-            const allergyText = escapeHTML(data.allergies);
-            const hivHighlights = data.hivItems
-                .filter(item => !/not documented/i.test(item))
-                .slice(0, 4)
-                .map(item => escapeHTML(item))
-                .join('; ') || 'HIV history not contributory/not documented';
-            const wardItems = [
-                `<strong>Patient:</strong> ${escapeHTML(data.fullName)}, ${escapeHTML(data.age)}-year-old ${escapeHTML(data.gender)}, ${escapeHTML(data.occupation)}, ${escapeHTML(data.maritalStatus)}, ${escapeHTML(data.referralText)}.`,
-                `<strong>Presenting problem:</strong> ${escapeHTML(data.mainSymptom)} with HPI features: ${hpcText}.`,
-                `<strong>Major positives:</strong> ${keyRos.length ? escapeHTML(keyRos.join('; ')) : 'No additional positive ROS findings documented'}; relevant background: ${pmhText}; HIV: ${hivHighlights}.`,
-                `<strong>Important negatives:</strong> ${negativeRos.length ? escapeHTML(negativeRos.join(', ')) + ' without documented symptoms' : 'No key negative ROS findings documented'}; allergies: ${allergyText}.`,
-                `<strong>Diagnostic impression:</strong> Overall pattern points toward the clinician's working diagnosis based on the presenting complaint, major positives, important negatives, PMH, medications (${medsText}), and bedside assessment.`
-            ];
-
-            return `
-                <div class="summary-banner">
-                    <strong>Five-Line Ward Round Diagnostic Summary</strong>
-                    Prepared ${escapeHTML(data.generatedAt)}
-                </div>
-                <ol class="summary-list">${wardItems.map(item => `<li>${item}</li>`).join('')}</ol>
-            `;
-        }
-
-        function generateClinicalSummary() {
-            const data = collectPatientSummaryData();
-            document.getElementById('clinicalSummary').innerHTML = buildClinicalSummaryHTML(data);
-            document.getElementById('wardRoundSummary').innerHTML = buildWardRoundHTML(data);
-            document.getElementById('summarySection').style.display = 'block';
-            document.getElementById('summarySection').scrollIntoView({ behavior: 'smooth' });
-            updateProgress();
-        }
-
-        function copyToClipboard(sectionId = 'clinicalSummary') {
-            const target = document.getElementById(sectionId);
-            if (!target) return;
-            navigator.clipboard.writeText(target.innerText);
-            showToast('Copied to clipboard', '#3498db');
-        }
-
-        function captureFormData() {
-            const data = {};
-            document.querySelectorAll('input[id], textarea[id], select[id]').forEach(el => {
-                data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
-            });
-            data._currentSymptom = currentSymptom || '';
-            data._rosData = rosData || {};
-            return data;
-        }
-
-        function restoreFormData(data) {
-            Object.entries(data || {}).forEach(([id, val]) => {
-                if (id.startsWith('_')) return;
-                const el = document.getElementById(id);
-                if (el) {
-                    if (el.type === 'checkbox') el.checked = val;
-                    else el.value = val;
-                }
-            });
-            currentSymptom = data?._currentSymptom || currentSymptom || '';
-            rosData = data?._rosData || rosData || {};
-            toggleReferralDetails();
-            if (typeof toggleARTDetails === 'function') toggleARTDetails();
-            Object.keys(reviewOfSystems).forEach(key => refreshROSCardState(key));
-            if (data?.referralStatus && data.referralStatus !== 'Self-referred') document.getElementById('referralDetails').style.display = 'block';
-        }
-
-        function savePatient() {
-            const name = (document.getElementById('fullName').value || '').trim();
-            if (!name) { showToast('Enter patient name', '#e67e22'); return; }
-            if (!document.getElementById('clinicalSummary').innerHTML.trim()) generateClinicalSummary();
-            const records = getRecords();
-            const user = localStorage.getItem('easemed_user') || 'unknown';
-            const existingIdx = records.findIndex(r => r.name.toLowerCase() === name.toLowerCase() && r.user === user);
-            const record = {
-                id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
-                savedAt: new Date().toISOString(),
-                user,
-                name,
-                age: document.getElementById('age').value,
-                gender: document.getElementById('gender').value,
-                complaint: currentSymptom,
-                summary: document.getElementById('clinicalSummary').innerHTML,
-                wardRound: document.getElementById('wardRoundSummary').innerHTML,
-                formData: captureFormData()
-            };
-            if (existingIdx >= 0) records[existingIdx] = record; else records.unshift(record);
-            saveRecords(records);
-            renderRecords();
-            showToast('Record saved', '#27ae60');
-        }
-
-        function newPatient() {
-            if (!confirm('Clear form?')) return;
-            document.querySelectorAll('input[id], textarea[id]').forEach(el => { if (el.type === 'checkbox') el.checked = false; else el.value = ''; });
-            document.querySelectorAll('select[id]').forEach(el => el.selectedIndex = 0);
-            document.getElementById('clinicalSummary').innerHTML = '';
-            document.getElementById('wardRoundSummary').innerHTML = '';
-            document.getElementById('summarySection').style.display = 'none';
-            toggleReferralDetails();
-            updateProgress();
-            showToast('New patient form ready', '#2471a3');
-        }
-
-        function loadPatient(id) {
-            const record = getRecords().find(r => r.id === id);
-            if (!record) return;
-            if (!confirm(`Load ${record.name}?`)) return;
-            restoreFormData(record.formData);
-            if (record.summary) {
-                document.getElementById('clinicalSummary').innerHTML = record.summary;
-                document.getElementById('wardRoundSummary').innerHTML = record.wardRound || '';
-                document.getElementById('summarySection').style.display = 'block';
-            }
-            updateProgress();
-            window.scrollTo(0, 0);
-            showToast(`Loaded ${record.name}`, '#2471a3');
-        }
-
-        function exportRecords() {
-            const records = getRecords();
-            if (!records.length) { showToast('No records to download', '#e67e22'); return; }
-            const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `easemed_backup_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            URL.revokeObjectURL(a.href);
-            showToast('Backup downloaded', '#8e44ad');
-        }
-
-        function importRecords(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (!Array.isArray(imported)) throw new Error();
-                    const existing = getRecords();
-                    const merged = [...existing];
-                    let added = 0;
-                    imported.forEach(r => {
-                        if (!existing.some(e => e.id === r.id)) { merged.push(r); added++; }
-                    });
-                    merged.sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt));
-                    saveRecords(merged);
-                    renderRecords();
-                    showToast(`Backup restored: ${added} records added`, '#27ae60');
-                } catch(err) {
-                    showToast('Could not read backup file', '#e53e3e');
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        }
-
-        // Supabase auth (unchanged)
-        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
-        (async function authCheck() { try { const { createClient } = supabase; const sb = createClient(SUPABASE_URL, SUPABASE_ANON); const { data: { session } } = await sb.auth.getSession(); if (!session) { window.location.href = 'easemed_login.html'; return; } const user = session.user; const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email; document.getElementById('userGreeting').textContent = '👤 ' + displayName; localStorage.setItem('easemed_user', user.email); localStorage.setItem('easemed_user_name', displayName); renderRecords(); window._sb = sb; } catch(err) { window.location.href = 'easemed_login.html'; } })();
-        async function handleLogout() { if (window._sb) await window._sb.auth.signOut(); localStorage.removeItem('easemed_user'); localStorage.removeItem('easemed_user_name'); window.location.href = 'easemed_login.html'; }
-
-        // Initialize
-        buildROS();
-        updateProgress();
-        toggleReferralDetails();
-    </script>
+    window.loadRecord = loadRecord;
+    window.deleteRecord = deleteRecord;
+  </script>
 </body>
 </html>
