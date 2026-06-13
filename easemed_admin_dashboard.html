@@ -285,7 +285,7 @@
 
         .accent-teal { border-left: 5px solid #2a9d8f; }
         .accent-gold { border-left: 5px solid #f4d35e; }
-        .accent-red { border-left: 5px solid #e74c3c; }
+        .accent-red  { border-left: 5px solid #e74c3c; }
         .accent-blue { border-left: 5px solid #2a5298; }
 
         .content-grid {
@@ -356,20 +356,9 @@
             font-weight: 900;
         }
 
-        .status.good {
-            color: #1e7d5a;
-            background: #e8f7ef;
-        }
-
-        .status.warn {
-            color: #936900;
-            background: #fff6d8;
-        }
-
-        .status.risk {
-            color: #b73128;
-            background: #fdecea;
-        }
+        .status.good { color: #1e7d5a; background: #e8f7ef; }
+        .status.warn { color: #936900; background: #fff6d8; }
+        .status.risk { color: #b73128; background: #fdecea; }
 
         .activity-list {
             padding: 16px 18px 20px;
@@ -393,16 +382,8 @@
             box-shadow: 0 0 0 5px rgba(42,157,143,0.12);
         }
 
-        .activity strong {
-            color: #20313f;
-            display: block;
-            margin-bottom: 3px;
-        }
-
-        .activity span {
-            color: #718096;
-            font-size: 0.84rem;
-        }
+        .activity strong { color: #20313f; display: block; margin-bottom: 3px; }
+        .activity span   { color: #718096; font-size: 0.84rem; }
 
         .quick-actions {
             display: grid;
@@ -437,58 +418,25 @@
             margin-bottom: 12px;
         }
 
-        .action strong {
-            color: #17324d;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .action p {
-            color: #718096;
-            font-size: 0.84rem;
-            line-height: 1.45;
-        }
+        .action strong { color: #17324d; display: block; margin-bottom: 5px; }
+        .action p      { color: #718096; font-size: 0.84rem; line-height: 1.45; }
 
         @media (max-width: 1050px) {
             .shell,
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                position: static;
-                min-height: auto;
-            }
-
+            .content-grid { grid-template-columns: 1fr; }
+            .sidebar { position: static; min-height: auto; }
             .metrics,
-            .quick-actions {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
+            .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
 
         @media (max-width: 640px) {
-            body {
-                padding: 14px;
-            }
-
+            body { padding: 14px; }
             .metrics,
-            .quick-actions {
-                grid-template-columns: 1fr;
-            }
-
+            .quick-actions { grid-template-columns: 1fr; }
             .hero-top,
-            .panel-title {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            table {
-                min-width: 680px;
-            }
-
-            .table-scroll {
-                overflow-x: auto;
-            }
+            .panel-title { align-items: flex-start; flex-direction: column; }
+            table { min-width: 680px; }
+            .table-scroll { overflow-x: auto; }
         }
     </style>
 </head>
@@ -501,7 +449,7 @@
     </div>
 
     <div class="access-lock" id="accessLock">
-        <h2>Checking admin access</h2>
+        <h2>Checking admin access…</h2>
         <p>Please wait while EaseMed verifies that this account has permission to view the admin dashboard.</p>
     </div>
 
@@ -661,44 +609,47 @@
             </section>
         </main>
     </div>
-    <script>
-        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
-        // Add admin emails here if you are not using Supabase role metadata yet.
+    <script>
+        // ── FIX 1: Correct Supabase anon key (payload now has "iss":"supabase") ──
+        const SUPABASE_URL  = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+        // ── FIX 2: Admin email uncommented ──
         const ADMIN_EMAILS = [
-            // 'kigozigeorge04@gmail.com'
+            'kigozigeorge04@gmail.com'
         ];
 
         let adminSupabase = null;
 
         function isAdminUser(user) {
-            const email = (user.email || '').toLowerCase();
-            const appRole = user.app_metadata?.role || user.app_metadata?.user_role;
-            const userRole = user.user_metadata?.role || user.user_metadata?.user_role;
+            const email     = (user.email || '').toLowerCase();
+            const appRole   = user.app_metadata?.role  || user.app_metadata?.user_role;
+            const userRole  = user.user_metadata?.role || user.user_metadata?.user_role;
             const isAdminFlag = user.user_metadata?.is_admin || user.app_metadata?.is_admin;
 
-            return ADMIN_EMAILS.map(item => item.toLowerCase()).includes(email)
-                || appRole === 'admin'
-                || userRole === 'admin'
+            return ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email)
+                || appRole     === 'admin'
+                || userRole    === 'admin'
                 || isAdminFlag === true;
         }
 
         function showAdmin(user) {
             const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
-            document.getElementById('adminUserName').textContent = displayName;
-            document.getElementById('adminRolePill').textContent = `Admin: ${displayName}`;
-            document.getElementById('accessLock').style.display = 'none';
+            document.getElementById('adminUserName').textContent  = displayName;
+            document.getElementById('adminRolePill').textContent  = `Admin: ${displayName}`;
+            document.getElementById('accessLock').style.display   = 'none';
             document.getElementById('adminAuthBar').style.display = 'flex';
-            document.getElementById('adminShell').style.display = 'grid';
+            document.getElementById('adminShell').style.display   = 'grid';
         }
 
         function showAccessDenied() {
-            document.getElementById('adminShell').style.display = 'none';
+            document.getElementById('adminShell').style.display   = 'none';
             document.getElementById('adminAuthBar').style.display = 'none';
             document.getElementById('accessLock').innerHTML = `
                 <h2>Admin access required</h2>
-                <p>This account is signed in, but it has not been marked as an EaseMed admin. Ask the system owner to add an admin role or include this email in the admin list.</p>
+                <p>This account is signed in but has not been granted EaseMed admin access.
+                   Ask the system owner to add an admin role or include this email in the admin list.</p>
                 <button onclick="handleAdminLogout()">Use another account</button>
             `;
             document.getElementById('accessLock').style.display = 'block';
