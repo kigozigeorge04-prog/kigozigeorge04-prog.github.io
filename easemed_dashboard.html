@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EaseMed - Clinical Clerk System with Examination</title>
+    <title>EaseMed - Clinical Clerk System</title>
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -12,9 +12,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="description" content="EaseMed Clinical Clerk System — comprehensive patient history taking & physical examination guide">
+    <meta name="description" content="EaseMed Clinical Clerk System — comprehensive patient history taking guide">
+
+    <!-- Supabase JS SDK — loaded in <head> so authCheck() runs immediately on DOMContentLoaded -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
-        /* ==================== EXISTING STYLES (KEPT) ==================== */
         * {
             margin: 0;
             padding: 0;
@@ -236,54 +239,6 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
-        /* Examination Card Styles */
-        .exam-category {
-            background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%);
-            border-radius: 16px;
-            padding: 18px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(30, 60, 114, 0.2);
-            transition: all 0.3s;
-        }
-
-        .exam-category:hover {
-            background: linear-gradient(135deg, #e8f0fe 0%, #dce8fc 100%);
-            transform: scale(1.01);
-        }
-
-        .exam-category h4 {
-            color: #1e3c72;
-            margin-bottom: 10px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            font-size: 1rem;
-        }
-
-        .exam-steps {
-            display: none;
-            margin-top: 15px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .exam-steps.active {
-            display: block;
-        }
-
-        .exam-step {
-            margin-bottom: 15px;
-            padding: 12px;
-            background: white;
-            border-radius: 12px;
-        }
-
-        .exam-hint {
-            font-size: 12px;
-            color: #1e3c72;
-            margin-top: 6px;
-            font-style: italic;
-        }
-
         .alert {
             background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
             border-left: 5px solid #ffc107;
@@ -479,36 +434,6 @@
             display: block;
         }
 
-        /* Tabs for History/Examination */
-        .clinical-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
-            background: #f1f5f9;
-            padding: 5px;
-            border-radius: 60px;
-        }
-
-        .clinical-tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            border: none;
-            background: transparent;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 50px;
-            transition: all 0.3s;
-            color: #64748b;
-        }
-
-        .clinical-tab.active {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            box-shadow: 0 5px 15px rgba(44, 82, 130, 0.3);
-        }
-
         @media (max-width: 1024px) {
             .container {
                 grid-template-columns: 1fr;
@@ -522,7 +447,7 @@
             }
         }
 
-        /* Patient Records Panel */
+        /* ── Patient Records Panel ─────────────────────────────── */
         .records-panel {
             background: rgba(255,255,255,0.95);
             backdrop-filter: blur(10px);
@@ -530,7 +455,7 @@
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             overflow: hidden;
             margin-top: 25px;
-            grid-column: 1 / -1;
+            grid-column: 1 / -1;   /* full width below both panels */
         }
 
         .records-header {
@@ -674,7 +599,7 @@
 <body>
     <div class="progress-bar" id="progressBar"></div>
 
-    <!-- Auth Top Bar -->
+    <!-- ── Auth Top Bar ── -->
     <div id="authBar" style="
         position: fixed; top: 0; left: 0; width: 100%; z-index: 9999;
         background: rgba(15,32,39,0.92); backdrop-filter: blur(8px);
@@ -698,6 +623,7 @@
             </button>
         </div>
     </div>
+    <!-- push content below the fixed bar -->
     <div style="height: 52px;"></div>
 
     <div class="container">
@@ -729,123 +655,205 @@
                 <div style="margin-top: 12px;"><label>Nearest Health Centre:</label><input type="text" id="nearestHealthCentre" placeholder="Clinic/health centre name"></div>
             </div>
 
-            <!-- Clinical Tabs: History vs Examination -->
+            <!-- Presenting Complaint -->
             <div class="form-section">
-                <div class="clinical-tabs">
-                    <button class="clinical-tab active" onclick="switchClinicalTab('history')">📋 History Taking</button>
-                    <button class="clinical-tab" onclick="switchClinicalTab('examination')">🩺 Physical Examination</button>
+                <h3>🩺 Presenting Complaint <span class="stat-card">Based on Hutchison's Ch. 2-5</span></h3>
+                <label>Select or type the main symptom:</label>
+                <div class="symptom-buttons" id="symptomButtons">
+                    <button class="symptom-btn" onclick="setSymptom('fever')">🌡️ Fever</button>
+                    <button class="symptom-btn" onclick="setSymptom('pain')">🩺 Pain</button>
+                    <button class="symptom-btn" onclick="setSymptom('chest pain')">💔 Chest Pain</button>
+                    <button class="symptom-btn" onclick="setSymptom('shortness of breath')">💨 SOB</button>
+                    <button class="symptom-btn" onclick="setSymptom('cough')">🤧 Cough</button>
+                    <button class="symptom-btn" onclick="setSymptom('headache')">🤕 Headache</button>
+                    <button class="symptom-btn" onclick="setSymptom('dizziness')">🌀 Dizziness</button>
+                    <button class="symptom-btn" onclick="setSymptom('nausea')">🤢 Nausea/Vomiting</button>
+                    <button class="symptom-btn" onclick="setSymptom('diarrhea')">💩 Diarrhea</button>
+                    <button class="symptom-btn" onclick="setSymptom('constipation')">🚫 Constipation</button>
+                    <button class="symptom-btn" onclick="setSymptom('swelling')">💧 Swelling/Edema</button>
+                    <button class="symptom-btn" onclick="setSymptom('palpitations')">💓 Palpitations</button>
+                    <button class="symptom-btn" onclick="setSymptom('fatigue')">😴 Fatigue</button>
+                    <button class="symptom-btn" onclick="setSymptom('weight loss')">⚖️ Weight Loss</button>
+                    <button class="symptom-btn" onclick="setSymptom('joint pain')">🦴 Joint Pain</button>
+                    <button class="symptom-btn" onclick="setSymptom('rash')">🔴 Skin Rash</button>
+                </div>
+                <label style="margin-top: 15px;">Or type your own symptom:</label>
+                <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
+                <div id="dynamicQuestions" style="margin-top: 15px;"></div>
+            </div>
+
+            <!-- Past Medical History with integrated HIV section -->
+            <div class="form-section">
+                <h3>📜 Past Medical History</h3>
+                <textarea id="pmh" placeholder="Previous illnesses: Hypertension, Diabetes, Asthma, TB, Malaria, Hepatitis, Heart disease, Stroke, Cancer, Surgeries, Hospitalizations, Blood transfusions..."></textarea>
+                <label style="margin-top: 12px;">Current Medications:</label>
+                <textarea id="medications" placeholder="All current medications with doses and frequency..."></textarea>
+                <label style="margin-top: 12px;">Allergies:</label>
+                <textarea id="allergies" placeholder="Drug allergies, food allergies, reactions..."></textarea>
+                
+                <!-- Integrated HIV Section (expandable) -->
+                <div class="expand-hiv" onclick="toggleHIVDetails()">
+                    <span style="font-weight: 600;">🩸 HIV History <span style="color: #e74c3c;">(Click to expand/collapse)</span></span>
+                    <span style="float: right;">▼</span>
+                </div>
+                <div id="hivDetails" class="hiv-details">
+                    <div class="demographics-grid">
+                        <div>
+                            <label>HIV Status:</label>
+                            <select id="hivStatus">
+                                <option value="">Select status</option>
+                                <option value="positive">HIV Positive</option>
+                                <option value="negative">HIV Negative</option>
+                                <option value="unknown">Unknown/Not Tested</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Date of HIV Diagnosis:</label>
+                            <input type="text" id="hivDiagnosisDate" placeholder="DD/MM/YYYY">
+                        </div>
+                        <div>
+                            <label>How was HIV Diagnosed?</label>
+                            <select id="hivDiagnosisMethod">
+                                <option value="">Select method</option>
+                                <option>Rapid Test (HIV 1/2)</option>
+                                <option>Determine + Stat-Pak + UniGold</option>
+                                <option>DNA PCR (for <18 months)</option>
+                                <option>Western Blot</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>WHO Clinical Stage at Diagnosis:</label>
+                            <select id="hivWhoStage">
+                                <option value="">Select stage</option>
+                                <option>Stage 1 - Asymptomatic</option>
+                                <option>Stage 2 - Mild symptoms</option>
+                                <option>Stage 3 - Advanced symptoms</option>
+                                <option>Stage 4 - AIDS defining illness</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">💊 Antiretroviral Therapy (ART)</h4>
+                    <div class="demographics-grid">
+                        <div>
+                            <label>On ART?</label>
+                            <select id="hivOnArt" onchange="toggleARTDetails()">
+                                <option value="">Select</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>ART Start Date:</label>
+                            <input type="text" id="hivArtStartDate" placeholder="DD/MM/YYYY">
+                        </div>
+                    </div>
+
+                    <div id="artDetails" style="display: none;">
+                        <div class="demographics-grid">
+                            <div>
+                                <label>Current ART Regimen:</label>
+                                <select id="hivArtRegimen">
+                                    <option value="">Select regimen</option>
+                                    <option>TDF/3TC/DTG (Tenofovir + Lamivudine + Dolutegravir)</option>
+                                    <option>TDF/3TC/EFV (Tenofovir + Lamivudine + Efavirenz)</option>
+                                    <option>ABC/3TC/DTG (Abacavir + Lamivudine + Dolutegravir)</option>
+                                    <option>AZT/3TC/DTG (Zidovudine + Lamivudine + Dolutegravir)</option>
+                                    <option>Second-line: ATV/r + TDF/3TC</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>ART Adherence (Last 30 days):</label>
+                                <select id="hivAdherence">
+                                    <option value="">Select adherence level</option>
+                                    <option>Excellent (>95% - Missed 0-1 dose)</option>
+                                    <option>Good (85-94% - Missed 2-5 doses)</option>
+                                    <option>Fair (75-84% - Missed 6-8 doses)</option>
+                                    <option>Poor (<75% - Missed >9 doses)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Missed Doses Last Month:</label>
+                                <input type="number" id="hivMissedDoses" placeholder="Number of missed doses">
+                            </div>
+                            <div>
+                                <label>Barriers to Adherence:</label>
+                                <input type="text" id="hivAdherenceBarriers" placeholder="Forgetfulness, side effects, lack of food, stigma">
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">📊 Laboratory Monitoring</h4>
+                    <div class="demographics-grid">
+                        <div>
+                            <label>Most Recent CD4 Count:</label>
+                            <input type="text" id="hivCd4" placeholder="cells/µL (e.g., 450)">
+                        </div>
+                        <div>
+                            <label>Date of CD4:</label>
+                            <input type="text" id="hivCd4Date" placeholder="DD/MM/YYYY">
+                        </div>
+                        <div>
+                            <label>Most Recent Viral Load:</label>
+                            <input type="text" id="hivViralLoad" placeholder="copies/mL (e.g., <20 or 5000)">
+                        </div>
+                        <div>
+                            <label>Date of Viral Load:</label>
+                            <input type="text" id="hivVlDate" placeholder="DD/MM/YYYY">
+                        </div>
+                    </div>
+
+                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">🩺 Opportunistic Infections</h4>
+                    <div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="TB"> TB</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="Cryptococcal Meningitis"> Cryptococcal Meningitis</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="PCP"> PCP Pneumonia</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="Esophageal Candidiasis"> Esophageal Candidiasis</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="KS"> Kaposi's Sarcoma</label>
+                            <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="CMV"> CMV Retinitis</label>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <label>IPT (Isoniazid Preventive Therapy):</label>
+                            <select id="hivIpt">
+                                <option value="">Select status</option>
+                                <option>Completed 6 months</option>
+                                <option>Currently on IPT</option>
+                                <option>Not started</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <label>Cotrimoxazole Preventive Therapy (CPT):</label>
+                            <select id="hivCpt">
+                                <option value="">Select status</option>
+                                <option>Currently on CPT</option>
+                                <option>Not on CPT</option>
+                                <option>Allergic/Contraindicated</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <label>Partner/Family HIV Status:</label>
+                            <input type="text" id="hivPartnerStatus" placeholder="Partner HIV status, children's status, disclosure">
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- HISTORY SECTION -->
-            <div id="historySection">
-                <!-- Presenting Complaint -->
-                <div class="form-section">
-                    <h3>🩺 Presenting Complaint <span class="stat-card">Based on Hutchison's Ch. 2-5</span></h3>
-                    <label>Select or type the main symptom:</label>
-                    <div class="symptom-buttons" id="symptomButtons">
-                        <button class="symptom-btn" onclick="setSymptom('fever')">🌡️ Fever</button>
-                        <button class="symptom-btn" onclick="setSymptom('headache')">🤕 Headache</button>
-                        <button class="symptom-btn" onclick="setSymptom('seizures')">⚡ Seizures/Fits</button>
-                        <button class="symptom-btn" onclick="setSymptom('jaundice')">🟡 Jaundice</button>
-                        <button class="symptom-btn" onclick="setSymptom('swelling')">💧 Swelling/Oedema</button>
-                        <button class="symptom-btn" onclick="setSymptom('vomiting')">🤮 Vomiting</button>
-                        <button class="symptom-btn" onclick="setSymptom('diarrhoea')">💩 Diarrhoea</button>
-                        <button class="symptom-btn" onclick="setSymptom('cough')">🤧 Cough</button>
-                        <button class="symptom-btn" onclick="setSymptom('dyspnoea')">💨 Shortness of breath</button>
-                        <button class="symptom-btn" onclick="setSymptom('dizziness')">🌀 Dizziness</button>
-                        <button class="symptom-btn" onclick="setSymptom('fatigue')">😴 Fatigue</button>
-                        <button class="symptom-btn" onclick="setSymptom('weight loss')">⚖️ Weight loss</button>
-                        <button class="symptom-btn" onclick="setSymptom('palpitations')">💓 Palpitations</button>
-                        <button class="symptom-btn" onclick="setSymptom('rash')">🔴 Rash</button>
-                        <button class="symptom-btn" onclick="setSymptom('pain')">🩺 Pain (SOCRATES)</button>
-                        <button class="symptom-btn" onclick="setSymptom('chest pain')">💔 Chest pain</button>
-                        <button class="symptom-btn" onclick="setSymptom('abdominal pain')">🫃 Abdominal pain</button>
-                        <button class="symptom-btn" onclick="setSymptom('joint pain')">🦴 Joint pain</button>
-                    </div>
-                    <label style="margin-top: 15px;">Or type your own symptom:</label>
-                    <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
-                    <div id="dynamicQuestions" style="margin-top: 15px;"></div>
-                </div>
-
-                <!-- Past Medical History with HIV -->
-                <div class="form-section">
-                    <h3>📜 Past Medical History</h3>
-                    <textarea id="pmh" placeholder="Previous illnesses: Hypertension, Diabetes, Asthma, TB, Malaria, Hepatitis, Heart disease, Stroke, Cancer, Surgeries, Hospitalizations, Blood transfusions..."></textarea>
-                    <label style="margin-top: 12px;">Current Medications:</label>
-                    <textarea id="medications" placeholder="All current medications with doses and frequency..."></textarea>
-                    <label style="margin-top: 12px;">Allergies:</label>
-                    <textarea id="allergies" placeholder="Drug allergies, food allergies, reactions..."></textarea>
-                    
-                    <div class="expand-hiv" onclick="toggleHIVDetails()">
-                        <span style="font-weight: 600;">🩸 HIV History <span style="color: #e74c3c;">(Click to expand/collapse)</span></span>
-                        <span style="float: right;">▼</span>
-                    </div>
-                    <div id="hivDetails" class="hiv-details">
-                        <div class="demographics-grid">
-                            <div><label>HIV Status:</label><select id="hivStatus"><option>Positive</option><option>Negative</option><option>Unknown</option></select></div>
-                            <div><label>Date of Diagnosis:</label><input type="text" id="hivDiagnosisDate" placeholder="DD/MM/YYYY"></div>
-                            <div><label>WHO Stage:</label><select id="hivWhoStage"><option>Stage 1</option><option>Stage 2</option><option>Stage 3</option><option>Stage 4</option></select></div>
-                            <div><label>On ART?</label><select id="hivOnArt"><option>Yes</option><option>No</option></select></div>
-                        </div>
-                        <div class="demographics-grid">
-                            <div><label>ART Regimen:</label><input type="text" id="hivArtRegimen" placeholder="TLD"></div>
-                            <div><label>ART Adherence:</label><select id="hivAdherence"><option>Excellent</option><option>Good</option><option>Fair</option><option>Poor</option></select></div>
-                            <div><label>Most Recent CD4:</label><input type="text" id="hivCd4" placeholder="cells/µL"></div>
-                            <div><label>Most Recent Viral Load:</label><input type="text" id="hivViralLoad" placeholder="copies/mL"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Review of Systems -->
-                <div class="form-section">
-                    <h3>🔄 Review of Systems <span class="stat-card">Hutchison's Ch. 3-5</span></h3>
-                    <p style="color: #666; margin-bottom: 15px; font-size: 14px;">💡 Click on each system to expand. Based on Hutchison's Clinical Methods, Chapter 3-5:</p>
-                    <div id="rosContainer"></div>
-                </div>
-
-                <div class="form-section">
-                    <h3>🏠 Social History</h3>
-                    <textarea id="social" placeholder="Smoking (type, duration, quantity), Alcohol (type, frequency, quantity), Recreational drugs, Living conditions, Housing, Occupation and exposures, Diet, Exercise, Family support, Travel history..."></textarea>
-                </div>
-
-                <div class="form-section">
-                    <h3>👨‍👩‍👧 Family History</h3>
-                    <textarea id="familyHistory" placeholder="Family history of: Hypertension, Diabetes, Heart disease, Stroke, Cancer, Tuberculosis, Asthma, Epilepsy, Kidney disease, Thyroid disease, Mental illness, Genetic disorders..."></textarea>
-                </div>
+            <!-- Guided Review of Systems - COMPREHENSIVE HUTCHISON'S -->
+            <div class="form-section">
+                <h3>🔄 Review of Systems <span class="stat-card">Hutchison's Ch. 3-5</span></h3>
+                <p style="color: #666; margin-bottom: 15px; font-size: 14px;">💡 Click on each system to expand. Based on Hutchison's Clinical Methods, Chapter 3-5:</p>
+                <div id="rosContainer"></div>
             </div>
 
-            <!-- EXAMINATION SECTION (NEW - Based on Hutchison's) -->
-            <div id="examinationSection" style="display: none;">
-                <div class="form-section">
-                    <h3>🩺 General Examination <span class="stat-card">Hutchison's Ch. 3</span></h3>
-                    <div id="generalExamContainer"></div>
-                </div>
+            <div class="form-section">
+                <h3>🏠 Social History</h3>
+                <textarea id="social" placeholder="Smoking (type, duration, quantity), Alcohol (type, frequency, quantity), Recreational drugs, Living conditions, Housing, Occupation and exposures, Diet, Exercise, Family support, Travel history..."></textarea>
+            </div>
 
-                <div class="form-section">
-                    <h3>💓 Cardiovascular Examination <span class="stat-card">Hutchison's Ch. 13</span></h3>
-                    <div id="cardioExamContainer"></div>
-                </div>
-
-                <div class="form-section">
-                    <h3>💨 Respiratory Examination <span class="stat-card">Hutchison's Ch. 12</span></h3>
-                    <div id="respExamContainer"></div>
-                </div>
-
-                <div class="form-section">
-                    <h3>🍽️ Abdominal Examination <span class="stat-card">Hutchison's Ch. 15</span></h3>
-                    <div id="abdoExamContainer"></div>
-                </div>
-
-                <div class="form-section">
-                    <h3>🧠 Neurological Examination <span class="stat-card">Hutchison's Ch. 19</span></h3>
-                    <div id="neuroExamContainer"></div>
-                </div>
-
-                <div class="form-section">
-                    <h3>🦴 Musculoskeletal Examination <span class="stat-card">Hutchison's Ch. 20</span></h3>
-                    <div id="mskExamContainer"></div>
-                </div>
+            <div class="form-section">
+                <h3>👨‍👩‍👧 Family History</h3>
+                <textarea id="familyHistory" placeholder="Family history of: Hypertension, Diabetes, Heart disease, Stroke, Cancer, Tuberculosis, Asthma, Epilepsy, Kidney disease, Thyroid disease, Mental illness, Genetic disorders..."></textarea>
             </div>
 
             <div style="padding: 0 25px 25px 25px; display:flex; gap:12px; flex-wrap:wrap;">
@@ -869,35 +877,44 @@
             <div class="guidance-content" id="guidanceContent" style="padding: 20px;">
                 <div class="guidance-card">
                     <h4>📚 Welcome to EaseMed</h4>
-                    <p>This system guides you through systematic history taking AND physical examination based on Hutchison's Clinical Methods.</p>
-                </div>
-                <div class="guidance-card">
-                    <h4>🩺 Examination Tips</h4>
-                    <p>• Always follow a systematic approach: Inspection → Palpation → Percussion → Auscultation<br>
-                    • Compare left and right sides<br>
-                    • Document normal and abnormal findings<br>
-                    • RED FLAGS should be immediately escalated</p>
+                    <p>This system guides you through systematic history taking based on Hutchison's Clinical Methods. Select a symptom or expand the Review of Systems below.</p>
                 </div>
                 <div class="guidance-card">
                     <h4>💡 The 8 Key Features of Any Symptom</h4>
-                    <p>1. Site<br>2. Onset<br>3. Character<br>4. Radiation<br>5. Associated features<br>6. Timing<br>7. Exacerbating/Relieving factors<br>8. Severity</p>
+                    <p>When taking a history, always characterize the symptom using:<br>
+                    1. Site - Where exactly?<br>
+                    2. Onset - When did it start? Sudden or gradual?<br>
+                    3. Character - What does it feel like?<br>
+                    4. Radiation - Does it spread anywhere?<br>
+                    5. Associated features - What else occurs with it?<br>
+                    6. Timing - How long does it last? How often?<br>
+                    7. Exacerbating/Relieving factors - What makes it better or worse?<br>
+                    8. Severity - How bad is it? (0-10 scale)</p>
                 </div>
                 <div class="guidance-card">
                     <h4>🎯 SOCRATES for Pain</h4>
                     <p>S - Site<br>O - Onset<br>C - Character<br>R - Radiation<br>A - Associations<br>T - Timing<br>E - Exacerbating factors<br>S - Severity</p>
                 </div>
+                <div class="guidance-card">
+                    <h4>🩸 HIV Clinical Pearls</h4>
+                    <p>• Always ask about ART adherence (missed doses in last 30 days)<br>
+                    • Check latest viral load - suppression is <50 copies/mL<br>
+                    • Screen for TB with chronic cough >2 weeks<br>
+                    • WHO staging helps assess immunosuppression<br>
+                    • Ask about disclosure and partner testing</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Patient Records Panel -->
+    <!-- ── Patient Records Panel ───────────────────────────────── -->
     <div style="max-width:1600px; margin: 25px auto; padding: 0 20px;">
         <div class="records-panel">
             <div class="records-header">
                 <h2>🗂️ Saved Patient Records</h2>
                 <div class="records-actions">
-                    <button class="btn-record btn-new" onclick="newPatient()">➕ New Patient</button>
-                    <button class="btn-record btn-save" onclick="savePatient()">💾 Save Current</button>
+                    <button class="btn-record btn-new"    onclick="newPatient()">➕ New Patient</button>
+                    <button class="btn-record btn-save"   onclick="savePatient()">💾 Save Current</button>
                     <button class="btn-record btn-export" onclick="exportRecords()">⬇️ Export JSON</button>
                     <label class="btn-record btn-import" style="margin:0; display:inline-block;">
                         📂 Import JSON
@@ -906,194 +923,33 @@
                 </div>
             </div>
             <div class="records-body">
-                <input class="records-search" type="text" id="recordSearch" placeholder="🔍 Search by patient name, complaint, or date..." oninput="renderRecords()">
+                <input class="records-search" type="text" id="recordSearch"
+                       placeholder="🔍 Search by patient name, complaint, or date..."
+                       oninput="renderRecords()">
                 <div id="recordsList"></div>
             </div>
         </div>
     </div>
 
+    <!-- Save toast notification -->
     <div class="save-toast" id="saveToast">✅ Patient record saved!</div>
-    <div class="floating-tip" onclick="showTip()">💡 Tip: Use SOCRATES for pain assessment!</div>
+
+    <div class="floating-tip" onclick="showTip()">
+        💡 Tip: Use SOCRATES for pain assessment!
+    </div>
 
     <script>
+        // ── Global state ─────────────────────────────────────────
+        const STORAGE_KEY  = 'easemed_patients';   // patient records key
         let currentSymptom = '';
         let symptomDetails = {};
-        let rosData = {};
-        let examData = {};
+        let rosData        = {};
 
-        // ========== TAB SWITCHING ==========
-        function switchClinicalTab(tab) {
-            const historySection = document.getElementById('historySection');
-            const examSection = document.getElementById('examinationSection');
-            const tabs = document.querySelectorAll('.clinical-tab');
-            
-            tabs.forEach(t => t.classList.remove('active'));
-            
-            if (tab === 'history') {
-                historySection.style.display = 'block';
-                examSection.style.display = 'none';
-                tabs[0].classList.add('active');
-            } else {
-                historySection.style.display = 'none';
-                examSection.style.display = 'block';
-                tabs[1].classList.add('active');
-                buildExaminationSections();
-            }
-        }
-
-        // ========== EXAMINATION SECTIONS (Based on Hutchison's) ==========
-        const examinationGuides = {
-            general: {
-                name: "General Examination",
-                icon: "🩺",
-                chapter: "Hutchison's Ch. 3",
-                steps: [
-                    { step: "1. General Inspection", hint: "Observe the patient from the end of the bed. Note: level of consciousness, distress, body habitus, nutritional status, jaundice, pallor, cyanosis, clubbing, oedema." },
-                    { step: "2. Hands", hint: "Inspect for: clubbing, cyanosis, palmar erythema, Dupuytren's contracture, nicotine staining, tremors, wasting." },
-                    { step: "3. Pulse", hint: "Rate, rhythm, volume, character (collapsing, slow-rising, bisferiens). Check radial, brachial, carotid, femoral." },
-                    { step: "4. Blood Pressure", hint: "Measure in both arms. Check for postural drop if indicated." },
-                    { step: "5. Face", hint: "Inspect eyes (anaemia, jaundice, xanthelasma), mouth (cyanosis, hydration, thrush), tongue (smooth, furred)." },
-                    { step: "6. Neck", hint: "Check JVP (raised in heart failure), carotid bruits, lymph nodes, thyroid gland." },
-                    { step: "7. Temperature", hint: "Measure with thermometer. Note fever (>37.5°C) or hypothermia (<35°C)." },
-                    { step: "8. Hydration Status", hint: "Check: skin turgor, mucous membranes, capillary refill time (<2 seconds normal)." }
-                ]
-            },
-            cardiovascular: {
-                name: "Cardiovascular Examination",
-                icon: "❤️",
-                chapter: "Hutchison's Ch. 13",
-                steps: [
-                    { step: "1. Inspection", hint: "Look for scars (sternotomy, pacemaker), visible pulsations, chest deformity, JVP." },
-                    { step: "2. Palpation", hint: "Feel for apex beat (location, character, thrusting or tapping). Palpate for thrills or heaves." },
-                    { step: "3. Auscultation - Mitral Area", hint: "Listen at apex (5th intercostal space, mid-clavicular line). Identify S1, S2, murmurs." },
-                    { step: "4. Auscultation - Tricuspid Area", hint: "Listen at left lower sternal edge. Note opening snap, murmurs." },
-                    { step: "5. Auscultation - Pulmonary Area", hint: "Listen at 2nd left intercostal space. Note splitting of S2." },
-                    { step: "6. Auscultation - Aortic Area", hint: "Listen at 2nd right intercostal space. Note ejection click, murmurs." },
-                    { step: "7. Additional Auscultation", hint: "Listen in the left axilla (mitral regurgitation), carotid arteries (bruits)." },
-                    { step: "8. Peripheral Pulses", hint: "Check radial, brachial, femoral, popliteal, dorsalis pedis, posterior tibial." },
-                    { step: "9. Signs of Heart Failure", hint: "Check for: pedal oedema, sacral oedema, pulmonary crackles, hepatomegaly." }
-                ]
-            },
-            respiratory: {
-                name: "Respiratory Examination",
-                icon: "💨",
-                chapter: "Hutchison's Ch. 12",
-                steps: [
-                    { step: "1. Inspection", hint: "Look for: respiratory rate (12-20/min), use of accessory muscles, chest shape (barrel, pectus), scars, tracheal position." },
-                    { step: "2. Palpation", hint: "Feel for: tracheal deviation, chest expansion (symmetrical?), tactile vocal fremitus." },
-                    { step: "3. Percussion", hint: "Percuss anterior, lateral, and posterior chest. Note: resonant (normal), dull (fluid/solid), hyper-resonant (air)." },
-                    { step: "4. Auscultation - Breath Sounds", hint: "Listen for: vesicular (normal), bronchial (over consolidation), reduced or absent." },
-                    { step: "5. Auscultation - Added Sounds", hint: "Identify: crackles (fine vs coarse), wheeze (polyphonic vs monophonic), rub (pleural)." },
-                    { step: "6. Vocal Resonance", hint: "Ask patient to say '99'. Increased (consolidation), decreased (effusion, pneumothorax)." }
-                ]
-            },
-            abdominal: {
-                name: "Abdominal Examination",
-                icon: "🍽️",
-                chapter: "Hutchison's Ch. 15",
-                steps: [
-                    { step: "1. Inspection", hint: "Look for: scars, distension, visible peristalsis, caput medusae, hernias, masses." },
-                    { step: "2. Auscultation (First!)", hint: "Listen for bowel sounds (normal 5-10/min), bruits (renal, aortic)." },
-                    { step: "3. Light Palpation", hint: "Gentle palpation in all 9 quadrants. Note: tenderness, guarding, superficial masses." },
-                    { step: "4. Deep Palpation", hint: "Firm palpation to feel for: liver edge, spleen tip, kidneys, aortic pulsation." },
-                    { step: "5. Liver Palpation", hint: "Start in right iliac fossa, move upwards. Note: size, consistency, tenderness, surface." },
-                    { step: "6. Spleen Palpation", hint: "Start in right iliac fossa, move to left upper quadrant. Percuss for Traube's space." },
-                    { step: "7. Percussion", hint: "Percuss liver span (6-12cm), spleen, shifting dullness (ascites)." },
-                    { step: "8. Special Signs", hint: "Check: Murphy's sign (cholecystitis), rebound tenderness (peritonism), Rovsing's sign (appendicitis)." }
-                ]
-            },
-            neurological: {
-                name: "Neurological Examination",
-                icon: "🧠",
-                chapter: "Hutchison's Ch. 19",
-                steps: [
-                    { step: "1. Mental State", hint: "Assess: alertness, orientation (time, place, person), speech, memory, cognition." },
-                    { step: "2. Cranial Nerve I - Olfactory", hint: "Test smell with familiar non-irritant substances (coffee, orange)." },
-                    { step: "3. Cranial Nerve II - Optic", hint: "Test: visual acuity (Snellen chart), visual fields (confrontation), fundoscopy." },
-                    { step: "4. Cranial Nerves III, IV, VI", hint: "Test: pupils (size, reaction to light and accommodation), eye movements (H-test)." },
-                    { step: "5. Cranial Nerve V - Trigeminal", hint: "Test: facial sensation (cotton wool), jaw jerk, masseter strength." },
-                    { step: "6. Cranial Nerve VII - Facial", hint: "Test: raise eyebrows, close eyes tight, smile, show teeth, puff cheeks." },
-                    { step: "7. Cranial Nerve VIII - Vestibulocochlear", hint: "Test: hearing (whisper test, Rinne, Weber), nystagmus." },
-                    { step: "8. Cranial Nerves IX, X", hint: "Test: say 'Ah' (palate elevation), gag reflex, voice quality." },
-                    { step: "9. Cranial Nerve XI - Accessory", hint: "Test: shoulder shrug (trapezius), head turning (sternocleidomastoid)." },
-                    { step: "10. Cranial Nerve XII - Hypoglossal", hint: "Test: tongue protrusion (deviation, fasciculations)." },
-                    { step: "11. Motor System", hint: "Assess: tone (spasticity, rigidity, flaccidity), power (MRC scale 0-5), coordination (finger-nose, heel-shin)." },
-                    { step: "12. Sensory System", hint: "Test: light touch, pinprick, temperature, vibration (tuning fork), proprioception." },
-                    { step: "13. Reflexes", hint: "Check: biceps, triceps, supinator, knee, ankle, plantar (Babinski)." },
-                    { step: "14. Gait", hint: "Observe walking: normal, ataxic, Parkinsonian, hemiplegic, magnetic (hydrocephalus)." }
-                ]
-            },
-            musculoskeletal: {
-                name: "Musculoskeletal Examination",
-                icon: "🦴",
-                chapter: "Hutchison's Ch. 20",
-                steps: [
-                    { step: "1. General Inspection", hint: "Observe posture, gait, any deformities, muscle wasting, swelling." },
-                    { step: "2. Hands", hint: "Look for: Heberden's nodes (DIP), Bouchard's nodes (PIP), Swan-neck, Boutonnière deformities." },
-                    { step: "3. Wrists", hint: "Check for swelling, tenderness, range of motion (flexion, extension, ulnar/radial deviation)." },
-                    { step: "4. Elbows", hint: "Check for: rheumatoid nodules, swelling, range of motion, subcutaneous nodules." },
-                    { step: "5. Shoulders", hint: "Check: symmetry, swelling, range of motion (abduction, adduction, rotation)." },
-                    { step: "6. Spine", hint: "Inspect for scoliosis, kyphosis, lordosis. Check range of motion (flexion, extension, lateral flexion, rotation)." },
-                    { step: "7. Hips", hint: "Check: Trendelenburg sign, range of motion (flexion, extension, abduction, rotation)." },
-                    { step: "8. Knees", hint: "Look for: effusion (bulge sign), crepitus, range of motion, ligament stability (anterior/posterior drawer)." },
-                    { step: "9. Ankles & Feet", hint: "Check for: swelling, hallux valgus, gouty tophi, range of motion, pulses (dorsalis pedis)." },
-                    { step: "10. Gait Assessment", hint: "Observe walking: antalgic (pain), Trendelenburg (hip weakness), high-stepping (foot drop)." }
-                ]
-            }
-        };
-
-        function buildExaminationSections() {
-            // Build General Examination
-            buildExamSection('generalExamContainer', examinationGuides.general);
-            buildExamSection('cardioExamContainer', examinationGuides.cardiovascular);
-            buildExamSection('respExamContainer', examinationGuides.respiratory);
-            buildExamSection('abdoExamContainer', examinationGuides.abdominal);
-            buildExamSection('neuroExamContainer', examinationGuides.neurological);
-            buildExamSection('mskExamContainer', examinationGuides.musculoskeletal);
-        }
-
-        function buildExamSection(containerId, examGuide) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            
-            let html = `
-                <div class="exam-category" onclick="toggleExam('${containerId}')">
-                    <h4>${examGuide.icon} ${examGuide.name} <span style="font-size: 12px;">▼</span></h4>
-                    <small style="display: block; color: #666; margin-bottom: 10px;">${examGuide.chapter}</small>
-                    <div class="exam-steps" id="exam-${containerId}">
-            `;
-            
-            examGuide.steps.forEach((step, idx) => {
-                html += `
-                    <div class="exam-step">
-                        <label style="font-weight: 600;">${step.step}</label>
-                        <textarea id="${containerId}_${idx}" rows="2" placeholder="Enter findings..." onchange="saveExamFindings('${containerId}', ${idx}, this.value)"></textarea>
-                        <div class="exam-hint">💡 ${step.hint}</div>
-                    </div>
-                `;
-            });
-            
-            html += `</div></div>`;
-            container.innerHTML = html;
-        }
-
-        function toggleExam(containerId) {
-            const element = document.getElementById(`exam-${containerId}`);
-            element.classList.toggle('active');
-        }
-
-        function saveExamFindings(section, index, value) {
-            if (!examData[section]) examData[section] = [];
-            examData[section][index] = value;
-            updateProgress();
-        }
-
-        // ========== HIV helpers ==========
         function toggleHIVDetails() {
             const details = document.getElementById('hivDetails');
             details.classList.toggle('active');
         }
-        
+
         function toggleARTDetails() {
             const onArt = document.getElementById('hivOnArt').value;
             const artDetails = document.getElementById('artDetails');
@@ -1101,7 +957,6 @@
             updateProgress();
         }
 
-        // ========== Progress & Tip ==========
         function updateProgress() {
             const totalFields = document.querySelectorAll('input, textarea, select').length;
             let filledFields = 0;
@@ -1111,61 +966,252 @@
             const percent = (totalFields > 0) ? (filledFields / totalFields) * 100 : 0;
             document.getElementById('progressBar').style.width = percent + '%';
         }
-        
+
         document.addEventListener('input', updateProgress);
         document.addEventListener('change', updateProgress);
 
         function showTip() {
-            alert('📖 Hutchison\'s Clinical Tip:\n\n1. Always start with open-ended questions\n2. Use SOCRATES for pain\n3. For examination: Inspection → Palpation → Percussion → Auscultation\n4. Always compare left and right sides\n5. Document both normal and abnormal findings');
+            alert('📖 Hutchison\'s Clinical Tip:\n\n1. Always start with open-ended questions\n2. Use SOCRATES for pain\n3. Ask about all 8 key features of any symptom\n4. Take a thorough drug history including allergies\n5. Don\'t forget the social history\n6. Review all systems systematically');
         }
 
-        // ========== REVIEW OF SYSTEMS (compressed for space - full version exists in original) ==========
+        // ============================================================
+        // COMPREHENSIVE REVIEW OF SYSTEMS - Based on Hutchison's Ch. 3-5
+        // ============================================================
         const reviewOfSystems = {
             general: {
                 name: "General (Systemic)",
                 icon: "🌡️",
-                chapter: "Hutchison's Ch. 3",
+                chapter: "Hutchison's Ch. 3 - General Examination",
                 questions: [
-                    { q: "Any recent unintentional weight loss or weight gain?", hint: ">5% loss in 1 month is significant" },
-                    { q: "Any fever, chills, or night sweats?", hint: "Night sweats suggest TB, lymphoma, HIV" }
+                    { q: "Any recent unintentional weight loss or weight gain?", hint: "Ask: 'Have your clothes been fitting looser or tighter?' >5% loss in 1 month is significant" },
+                    { q: "Any fever, chills, or night sweats?", hint: "Ask: 'Have you felt hot or feverish? Do you wake up drenched in sweat?'" },
+                    { q: "Any fatigue, malaise, or weakness?", hint: "Ask: 'Do you tire more easily than before? Can you do your usual activities?'" },
+                    { q: "Any changes in appetite?", hint: "Ask: 'Has your eating increased or decreased compared to usual?'" },
+                    { q: "Any sleep disturbances or insomnia?", hint: "Ask: 'Difficulty falling asleep, staying asleep, or waking early?'" },
+                    { q: "Any generalized itching (pruritus)?", hint: "Ask: 'Do you have itching anywhere on your body without a rash?'" }
                 ]
             },
             cardiovascular: {
-                name: "Cardiovascular",
+                name: "Cardiovascular System",
                 icon: "❤️",
-                chapter: "Hutchison's Ch. 13",
+                chapter: "Hutchison's Ch. 13 - The Cardiovascular System",
                 questions: [
-                    { q: "Any chest pain?", hint: "Use SOCRATES" },
-                    { q: "Any palpitations?", hint: "Irregular, racing" },
-                    { q: "Any ankle swelling?", hint: "Heart failure" }
+                    { q: "Any chest pain, pressure, tightness, or discomfort?", hint: "Ask: 'Any pain, heaviness, or tightness in your chest? Use SOCRATES framework'" },
+                    { q: "Any palpitations (feeling of racing, irregular, or forceful heartbeat)?", hint: "Ask: 'Do you feel your heart pounding, fluttering, or skipping beats?'" },
+                    { q: "Any shortness of breath (dyspnoea)?", hint: "Ask: 'Do you get breathless walking up stairs? On exertion? At rest? Lying flat?'" },
+                    { q: "Any orthopnoea (breathless when lying flat)?", hint: "Ask: 'How many pillows do you need to sleep comfortably?'" },
+                    { q: "Any paroxysmal nocturnal dyspnoea (waking at night gasping)?", hint: "Ask: 'Do you ever wake up suddenly at night feeling breathless?'" },
+                    { q: "Any ankle, feet, or leg swelling (oedema)?", hint: "Ask: 'Do your shoes feel tight at the end of the day? Does pressing leave a dent?'" },
+                    { q: "Any dizziness, syncope (fainting), or pre-syncope?", hint: "Ask: 'Have you ever felt like you might pass out or actually fainted?'" },
+                    { q: "Any intermittent claudication (leg pain on walking)?", hint: "Ask: 'Do your legs hurt when you walk a certain distance? Does it go away with rest?'" }
                 ]
             },
             respiratory: {
-                name: "Respiratory",
+                name: "Respiratory System",
                 icon: "💨",
-                chapter: "Hutchison's Ch. 12",
+                chapter: "Hutchison's Ch. 12 - The Respiratory System",
                 questions: [
-                    { q: "Any cough?", hint: "Dry or productive" },
-                    { q: "Any haemoptysis?", hint: "RED FLAG" }
+                    { q: "Any cough?", hint: "Ask: 'Do you cough? Is it dry or productive? If productive, what color and amount of phlegm?'" },
+                    { q: "Any haemoptysis (coughing up blood)?", hint: "Ask: 'Have you seen any blood in your sputum?' - RED FLAG" },
+                    { q: "Any shortness of breath (dyspnoea)?", hint: "Ask: 'At rest or with activity? How many stairs can you climb?'" },
+                    { q: "Any wheeze or noisy breathing?", hint: "Ask: 'Do you hear a whistling sound when you breathe?'" },
+                    { q: "Any chest pain on breathing (pleuritic pain)?", hint: "Ask: 'Does your chest hurt when you take a deep breath?'" },
+                    { q: "Any sputum production?", hint: "Ask: 'Do you bring up phlegm? What color, consistency, and amount? Any blood?'" },
+                    { q: "Any TB contact or history of TB treatment?", hint: "Ask: 'Have you been in contact with anyone with TB? Ever been treated for TB?'" }
                 ]
             },
             gastrointestinal: {
-                name: "Gastrointestinal",
+                name: "Gastrointestinal System",
                 icon: "🍽️",
-                chapter: "Hutchison's Ch. 15",
+                chapter: "Hutchison's Ch. 15 - The Gastrointestinal System",
                 questions: [
-                    { q: "Any abdominal pain?", hint: "Use SOCRATES" },
-                    { q: "Any change in bowel habits?", hint: "Diarrhoea, constipation" }
+                    { q: "Any abdominal pain?", hint: "Ask: 'Where is the pain? Use SOCRATES. Does it wake you at night?'" },
+                    { q: "Any nausea or vomiting?", hint: "Ask: 'Do you feel sick? What provokes vomiting? What does the vomit look like? Any blood or coffee-ground material?'" },
+                    { q: "Any change in bowel habits?", hint: "Ask: 'Constipation or diarrhea? How often? Any blood, mucus, or fat in the stool?'" },
+                    { q: "Any dysphagia (difficulty swallowing)?", hint: "Ask: 'Do you have trouble swallowing? To solids or liquids first?' - RED FLAG" },
+                    { q: "Any heartburn (pyrosis) or acid regurgitation?", hint: "Ask: 'Burning sensation in chest after meals? Worse lying down?'" },
+                    { q: "Any haematemesis (vomiting blood) or melaena (black tarry stool)?", hint: "Ask: 'Have you vomited blood or had black, sticky stools?' - RED FLAG" },
+                    { q: "Any jaundice (yellow discoloration of skin/eyes)?", hint: "Ask: 'Have you noticed yellowing of your eyes or dark urine?'" }
+                ]
+            },
+            genitourinary: {
+                name: "Genitourinary System",
+                icon: "💧",
+                chapter: "Hutchison's Ch. 17 - The Genitourinary System",
+                questions: [
+                    { q: "Any dysuria (pain or burning on urination)?", hint: "Ask: 'Does it hurt when you pass urine?'" },
+                    { q: "Any frequency, urgency, or nocturia?", hint: "Ask: 'How often do you urinate during the day? Do you wake at night to pass urine?'" },
+                    { q: "Any haematuria (blood in urine)?", hint: "Ask: 'Have you noticed pink, red, or dark urine?' - RED FLAG" },
+                    { q: "Any hesitancy, poor stream, terminal dribbling?", hint: "Ask: 'Do you have difficulty starting urination? Is your stream weak?' (Men)" },
+                    { q: "Any incontinence (urine leakage)?", hint: "Ask: 'Do you ever leak urine when you cough, sneeze, or laugh?'" },
+                    { q: "Any flank pain or loin pain?", hint: "Ask: 'Pain in your sides or lower back?' (Consider renal stones/pyelonephritis)" },
+                    { q: "For women: Any vaginal discharge, bleeding, or pruritus?", hint: "Ask: 'Any abnormal discharge, bleeding between periods, or after menopause?'" },
+                    { q: "For men: Any testicular pain, swelling, or lumps?", hint: "Ask: 'Any pain or swelling in your testicles?'" }
                 ]
             },
             neurological: {
-                name: "Neurological",
+                name: "Nervous System",
                 icon: "🧠",
-                chapter: "Hutchison's Ch. 19",
+                chapter: "Hutchison's Ch. 19 - The Nervous System",
                 questions: [
-                    { q: "Any headaches?", hint: "Character, severity" },
-                    { q: "Any weakness or numbness?", hint: "Stroke red flag" }
+                    { q: "Any headaches?", hint: "Ask: 'Location, character (throbbing/pressure), severity, timing, aura, nausea, photophobia?'" },
+                    { q: "Any dizziness or vertigo?", hint: "Ask: 'Room spinning sensation (vertigo) or feeling lightheaded?'" },
+                    { q: "Any weakness or paralysis?", hint: "Ask: 'Sudden or gradual? Which limbs? Face, arm, or leg?' - RED FLAG for stroke" },
+                    { q: "Any sensory changes (numbness, tingling, paraesthesia)?", hint: "Ask: 'Any pins and needles, numbness, or altered sensation?'" },
+                    { q: "Any seizures, fits, or blackouts?", hint: "Ask: 'Ever had a seizure? What happens? Bitten tongue? Lost bladder control?'" },
+                    { q: "Any tremor or involuntary movements?", hint: "Ask: 'Any shaking? At rest or with action?'" },
+                    { q: "Any visual disturbances?", hint: "Ask: 'Blurred, double, or loss of vision? Sudden or gradual?'" },
+                    { q: "Any hearing loss or tinnitus?", hint: "Ask: 'Any difficulty hearing? Ringing in the ears?'" },
+                    { q: "Any speech or swallowing difficulties?", hint: "Ask: 'Slurred speech? Difficulty swallowing (dysphagia)?'" }
                 ]
+            },
+            musculoskeletal: {
+                name: "Musculoskeletal System",
+                icon: "🦴",
+                chapter: "Hutchison's Ch. 20 - The Musculoskeletal System",
+                questions: [
+                    { q: "Any joint pain (arthralgia) or joint swelling (arthritis)?", hint: "Ask: 'Which joints? Symmetrical? Morning stiffness >30 minutes?'" },
+                    { q: "Any back or neck pain?", hint: "Ask: 'Does it radiate down legs/arms? Any numbness or weakness?'" },
+                    { q: "Any muscle pain (myalgia) or muscle weakness?", hint: "Ask: 'Difficulty getting up from chair? Combing hair? Climbing stairs?'" },
+                    { q: "Any joint stiffness, especially in the morning?", hint: "Ask: 'How long does the morning stiffness last? Minutes or hours?'" },
+                    { q: "Any limitation of movement?", hint: "Ask: 'Can you fully move all your joints? Any difficulty with daily activities?'" },
+                    { q: "Any history of fractures or trauma?", hint: "Ask: 'Ever broken a bone? From minor injury?' (Consider osteoporosis)" }
+                ]
+            },
+            endocrine: {
+                name: "Endocrine System",
+                icon: "🦋",
+                chapter: "Hutchison's Ch. 16 - The Endocrine System",
+                questions: [
+                    { q: "Any polydipsia (excessive thirst) or polyuria (excessive urination)?", hint: "Ask: 'Drinking more water than usual? Waking at night to pass urine?' (Diabetes)" },
+                    { q: "Any heat or cold intolerance?", hint: "Ask: 'Always feeling hot when others are cold? Or always cold?' (Thyroid dysfunction)" },
+                    { q: "Any change in skin or hair texture?", hint: "Ask: 'Dry skin? Hair thinning? Excessive sweating? Hirsutism?'" },
+                    { q: "Any goitre (neck swelling) or thyroid symptoms?", hint: "Ask: 'Any swelling in the front of your neck? Hoarseness?'" },
+                    { q: "Any weight changes despite normal appetite?", hint: "Ask: 'Gaining or losing weight without trying?'" }
+                ]
+            },
+            psychiatric: {
+                name: "Psychiatric History",
+                icon: "🧠",
+                chapter: "Hutchison's Ch. 5 - Psychiatric History",
+                questions: [
+                    { q: "Any low mood, depression, or anhedonia?", hint: "Ask: 'Feeling sad, empty, or hopeless? Lost interest in activities you used to enjoy?'" },
+                    { q: "Any anxiety, panic attacks, or excessive worry?", hint: "Ask: 'Feeling nervous, anxious, or on edge? Racing heart, sweating, fear of losing control?'" },
+                    { q: "Any sleep disturbances?", hint: "Ask: 'Difficulty falling asleep? Waking early? Sleeping too much?'" },
+                    { q: "Any changes in appetite or weight?", hint: "Ask: 'Eating much less or more than usual? Significant weight change?'" },
+                    { q: "Any thoughts of harming self or others?", hint: "Ask: 'Have you ever felt life wasn't worth living? Any thoughts of suicide?' - SAFETY FIRST" },
+                    { q: "Any hallucinations or delusions?", hint: "Ask: 'Do you see or hear things that others don't? Have beliefs that others find unusual?'" }
+                ]
+            },
+            dermatological: {
+                name: "Skin System",
+                icon: "🩹",
+                chapter: "Hutchison's Ch. 21 - The Skin",
+                questions: [
+                    { q: "Any skin rashes or lesions?", hint: "Ask: 'Where? When did it start? How long? Any itching? What does it look like?'" },
+                    { q: "Any change in moles or pigmented lesions?", hint: "Ask: 'Any mole that has changed size, shape, or color? Bleeding or itching?' (ABCDE of melanoma)" },
+                    { q: "Any excessive itching (pruritus) without rash?", hint: "Ask: 'Widespread itching without skin changes? (Consider liver disease, renal failure, lymphoma)'" },
+                    { q: "Any hair loss (alopecia) or nail changes?", hint: "Ask: 'Thinning hair? Brittle nails? Pitting or discoloration of nails?'" },
+                    { q: "Any easy bruising or bleeding?", hint: "Ask: 'Bruising from minor bumps? Prolonged bleeding from cuts?' (Coagulation disorder)" }
+                ]
+            },
+            haematological: {
+                name: "Haematological System",
+                icon: "🩸",
+                chapter: "Hutchison's Ch. 18 - The Haematological System",
+                questions: [
+                    { q: "Any fatigue, weakness, or shortness of breath?", hint: "Ask: 'Do you feel unusually tired? Pale skin?' (Anemia)" },
+                    { q: "Any easy bruising or bleeding?", hint: "Ask: 'Bruise easily? Prolonged bleeding from cuts? Gum bleeding?' (Platelet disorder)" },
+                    { q: "Any recurrent infections?", hint: "Ask: 'Do you get frequent or severe infections?' (Immunodeficiency)" },
+                    { q: "Any lymph node swelling?", hint: "Ask: 'Any lumps in your neck, armpits, or groin?' (Lymphadenopathy)" },
+                    { q: "Any history of anaemia, bleeding disorder, or blood clot?", hint: "Ask: 'Ever been told you have low blood count or clotting problem?'" }
+                ]
+            }
+        };
+
+        // Symptom guides for presenting complaints
+        const symptomGuides = {
+            fever: {
+                title: "🌡️ Fever Assessment (Hutchison's Ch. 10)",
+                chapter: "Hutchison's Clinical Methods - Chapter 10: Fever",
+                questions: [
+                    { q: "Duration: How long have you had the fever?", hint: "Acute (<7 days), Subacute (7-21 days), Chronic (>21 days)" },
+                    { q: "Pattern: Is the fever constant, intermittent, or remittent?", hint: "Intermittent suggests malaria, Pel-Ebstein pattern in lymphoma" },
+                    { q: "Maximum temperature recorded?", hint: ">40°C (104°F) suggests serious bacterial infection" },
+                    { q: "Associated: Chills, rigors, or night sweats?", hint: "Rigors suggest bacteremia, night sweats suggest TB or lymphoma" },
+                    { q: "Respiratory: Any cough, sputum, or SOB?", hint: "Consider pneumonia, TB, COVID-19" },
+                    { q: "Urinary: Any dysuria, frequency, or haematuria?", hint: "UTI, pyelonephritis" },
+                    { q: "GI: Any nausea, vomiting, diarrhoea, or abdominal pain?", hint: "Gastroenteritis, appendicitis, hepatitis" }
+                ],
+                redFlags: ["🚨 Temp >40°C (104°F)", "🚨 Altered mental status/confusion", "🚨 Neck stiffness (meningism)", "🚨 Petechial rash (meningococcemia)"]
+            },
+            pain: {
+                title: "🩺 Pain Assessment - SOCRATES Framework (Hutchison's Ch. 8)",
+                chapter: "Hutchison's Clinical Methods - Chapter 8: Pain Assessment",
+                questions: [
+                    { q: "S - Site: Where exactly is the pain? Can you point with one finger?", hint: "Localized vs diffuse, radiation patterns" },
+                    { q: "O - Onset: When did it start? Sudden or gradual?", hint: "Sudden suggests vascular, perforation, stone. Gradual suggests inflammatory" },
+                    { q: "C - Character: Describe the pain (sharp, dull, crushing, stabbing, burning)", hint: "Crushing suggests cardiac. Tearing suggests aortic dissection" },
+                    { q: "R - Radiation: Does it spread anywhere?", hint: "Cardiac: jaw/arm. Gallbladder: right shoulder. Renal: groin" },
+                    { q: "A - Associations: What other symptoms occur with the pain?", hint: "Nausea, sweating, shortness of breath" },
+                    { q: "T - Timing: How long does it last? Constant or intermittent?", hint: "Angina: <15 min. Biliary: 1-6 hours" },
+                    { q: "E - Exacerbating factors: What makes it worse?", hint: "Movement, eating, breathing, lying flat" },
+                    { q: "S - Severity: On a scale of 0-10, how bad is the pain?", hint: "0=no pain, 10=worst pain ever" }
+                ],
+                redFlags: ["🚨 Sudden onset 'worst pain ever' (AAA rupture, aortic dissection)", "🚨 Pain with haemodynamic instability", "🚨 Pain with fever and peritoneal signs"]
+            },
+            "chest pain": {
+                title: "💔 Chest Pain Assessment (Hutchison's Ch. 13)",
+                chapter: "Hutchison's Clinical Methods - Chapter 13: Cardiovascular System",
+                questions: [
+                    { q: "Site: Where is the chest pain located?", hint: "Substernal, left-sided, central, or epigastric?" },
+                    { q: "Onset: Sudden or gradual?", hint: "Sudden suggests MI, dissection, or PE. Gradual suggests angina or GERD" },
+                    { q: "Character: Crushing, squeezing, stabbing, or burning?", hint: "Crushing/squeezing = cardiac. Burning = GERD. Stabbing = pericarditis" },
+                    { q: "Radiation: Does it spread to jaw, neck, arm, or back?", hint: "Left arm/jaw = cardiac. Back = dissection" },
+                    { q: "Associations: SOB, sweating, nausea, palpitations?", hint: "Associated symptoms strongly suggest cardiac cause" },
+                    { q: "Timing: How long does it last? Exertion or at rest?", hint: "Angina <15 min, MI >30 min, GERD after meals" },
+                    { q: "Exacerbating factors: What makes it worse? Exercise, stress, lying flat?", hint: "Exertion = angina. Lying flat = pericarditis" },
+                    { q: "Severity: Rate 0-10", hint: "Severe >7 suggests MI" }
+                ],
+                redFlags: ["🚨 Crushing chest pain with radiation to jaw/arm", "🚨 Pain with SOB, sweating, nausea (MI suspect)", "🚨 Tearing pain radiating to back (aortic dissection)"]
+            },
+            "shortness of breath": {
+                title: "💨 Dyspnoea Assessment (Hutchison's Ch. 12 & 13)",
+                chapter: "Hutchison's Clinical Methods - Chapter 12: Respiratory & Chapter 13: Cardiovascular",
+                questions: [
+                    { q: "Onset: Sudden or gradual?", hint: "Sudden: PE, pneumothorax, pulmonary oedema. Gradual: COPD, heart failure" },
+                    { q: "Severity: How many stairs/flights can you climb?", hint: "NYHA/MRC dyspnoea scale 1-5" },
+                    { q: "Positional: Do you feel more breathless lying flat?", hint: "Orthopnoea suggests heart failure" },
+                    { q: "Paroxysmal: Do you wake at night gasping for air?", hint: "PND suggests pulmonary oedema" },
+                    { q: "Associated: Chest pain, cough, wheeze, leg swelling?", hint: "Cough/wheeze = respiratory. Oedema = cardiac" },
+                    { q: "Triggers: Does cold air, exercise, allergens, or lying flat trigger it?", hint: "Asthma triggers, cardiac causes" }
+                ],
+                redFlags: ["🚨 Acute onset with chest pain (PE, pneumothorax, MI)", "🚨 Haemoptysis", "🚨 Stridor (upper airway obstruction)", "🚨 Cyanosis", "🚨 Unable to speak full sentences"]
+            },
+            cough: {
+                title: "🤧 Cough Assessment (Hutchison's Ch. 12)",
+                chapter: "Hutchison's Clinical Methods - Chapter 12: Respiratory System",
+                questions: [
+                    { q: "Duration: Acute (<3 weeks), subacute (3-8 weeks), or chronic (>8 weeks)?", hint: "Acute: viral. Subacute: post-viral, pertussis. Chronic: asthma, COPD, GERD" },
+                    { q: "Productive: Do you bring up phlegm? What colour and amount?", hint: "Clear = viral. Yellow/green = bacterial. Pink frothy = pulmonary oedema" },
+                    { q: "Timing: Is it worse at night, morning, or after meals?", hint: "Night = asthma, GERD. Morning = chronic bronchitis" },
+                    { q: "Triggers: What makes you cough? (Cold air, exercise, talking)", hint: "Suggests reactive airway disease or cough hypersensitivity" },
+                    { q: "Associated: Fever, wheeze, haemoptysis, weight loss?", hint: "Haemoptysis = TB, cancer, bronchiectasis. Weight loss = malignancy, TB" }
+                ],
+                redFlags: ["🚨 Haemoptysis (coughing blood)", "🚨 Unexplained weight loss", "🚨 Hoarseness", "🚨 Dysphagia", "🚨 Smoker >50 with new cough"]
+            },
+            swelling: {
+                title: "💧 Oedema/Swelling Assessment (Hutchison's Ch. 13 & 14)",
+                chapter: "Hutchison's Clinical Methods - Chapter 13: Cardiovascular & Chapter 14: Renal",
+                questions: [
+                    { q: "Site: Where is the swelling located?", hint: "Face, hands, feet, abdomen, generalized" },
+                    { q: "Onset: Sudden or gradual?", hint: "Sudden: DVT, angioedema. Gradual: heart failure, renal disease" },
+                    { q: "Duration: Constant or intermittent?", hint: "Intermittent suggests venous/lymphatic issues" },
+                    { q: "Pitting: Does the skin leave a dent when pressed?", hint: "Pitting = fluid overload (cardiac, renal, hepatic)" },
+                    { q: "Associated: SOB, reduced urine, pain, redness?", hint: "SOB = cardiac/pulmonary. Reduced urine = renal. Pain = DVT/cellulitis" },
+                    { q: "Diurnal variation: Worse morning or evening?", hint: "Morning = renal/periorbital. Evening = cardiac/venous" }
+                ],
+                redFlags: ["🚨 Unilateral leg swelling + pain (DVT)", "🚨 Swelling with SOB (pulmonary oedema)", "🚨 Periorbital swelling + frothy urine (nephrotic syndrome)"]
             }
         };
 
@@ -1184,7 +1230,7 @@
                         <div class="ros-question">
                             <label>${q.q}</label>
                             <input type="text" id="ros_${key}_${idx}" placeholder="Patient's response..." onchange="saveROS('${key}', ${idx}, this.value)">
-                            <div class="ros-hint">💡 ${q.hint}</div>
+                            <div class="ros-hint">${q.hint}</div>
                         </div>
                     `;
                 });
@@ -1204,98 +1250,148 @@
             updateProgress();
         }
 
-        // ========== COMPLAINT GUIDES (compressed) ==========
-        const complaintGuides = {
-            fever: {
-                title: "🌡️ Fever Assessment",
-                questions: [
-                    { q: "Duration: How long have you had the fever?", hint: "Acute (<7 days), Subacute, Chronic" },
-                    { q: "Pattern: Constant, intermittent, or remittent?", hint: "Intermittent suggests malaria" },
-                    { q: "Maximum temperature recorded?", hint: ">40°C suggests serious infection" }
-                ],
-                redFlags: ["🚨 Temp >40°C", "🚨 Altered mental status", "🚨 Neck stiffness"]
-            },
-            pain: {
-                title: "🩺 Pain Assessment - SOCRATES",
-                questions: [
-                    { q: "S - Site: Where exactly is the pain?", hint: "Can you point with one finger?" },
-                    { q: "O - Onset: When did it start?", hint: "Sudden or gradual?" },
-                    { q: "C - Character: Describe the pain", hint: "Sharp, dull, crushing" },
-                    { q: "R - Radiation: Does it spread?", hint: "Cardiac: jaw/arm" },
-                    { q: "A - Associations: Other symptoms?", hint: "Nausea, sweating" },
-                    { q: "T - Timing: How long does it last?", hint: "Constant or intermittent?" },
-                    { q: "E - Exacerbating factors", hint: "What makes it worse?" },
-                    { q: "S - Severity: Rate 0-10", hint: "0=no pain, 10=worst ever" }
-                ],
-                redFlags: ["🚨 Sudden 'worst pain ever'"]
-            }
-        };
-
-        const socratesFramework = complaintGuides.pain;
-
-        function isPainRelated(symptom) {
-            if (!symptom) return false;
-            const lower = symptom.toLowerCase();
-            return ['pain', 'ache', 'cramp', 'chest pain', 'joint pain', 'abdominal pain'].some(k => lower.includes(k));
-        }
-
-        function getQuestionSet(symptom) {
-            if (complaintGuides[symptom]) return complaintGuides[symptom];
-            if (isPainRelated(symptom)) return socratesFramework;
-            return null;
-        }
-
         function setSymptom(symptom) {
             currentSymptom = symptom;
             document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
-            if (event && event.target) event.target.classList.add('active');
+            event.target.classList.add('active');
             document.getElementById('customSymptom').value = '';
-            const guide = getQuestionSet(symptom);
+            displayQuestions(symptom);
+            updateGuidancePanel(symptom);
+        }
+
+        function setCustomSymptom() {
+            const custom = document.getElementById('customSymptom').value.toLowerCase();
+            if (custom) {
+                currentSymptom = custom;
+                document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
+                displayGenericQuestions(custom);
+                updateGenericGuidance(custom);
+            }
+        }
+
+        function displayQuestions(symptom) {
+            const guide = symptomGuides[symptom];
+            const container = document.getElementById('dynamicQuestions');
             if (guide) {
-                displayCustomQuestions(guide);
-                updateGuidancePanel(guide);
+                let html = `<div style="background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%); padding: 20px; border-radius: 16px;">
+                    <h4 style="color: #1e3c72; margin-bottom: 5px;">${guide.title}</h4>
+                    <small style="display: block; color: #666; margin-bottom: 15px;">${guide.chapter}</small>`;
+                guide.questions.forEach((item, idx) => {
+                    html += `
+                        <div style="margin-bottom: 15px;">
+                            <label style="font-weight: 600;">${item.q}</label>
+                            <input type="text" id="pc_q${idx}" placeholder="Patient's response..." onchange="savePCResponse(${idx}, this.value)" style="margin-top: 5px;">
+                            <div class="ros-hint">${item.hint}</div>
+                        </div>
+                    `;
+                });
+                if (guide.redFlags) {
+                    html += `<div class="alert warning" style="margin-top: 15px;">
+                        <strong>⚠️ RED FLAGS (Hutchison's Warning Signs):</strong><br>
+                        ${guide.redFlags.join('<br>')}
+                    </div>`;
+                }
+                html += `</div>`;
+                container.innerHTML = html;
             } else {
                 displayGenericQuestions(symptom);
             }
         }
 
-        function displayCustomQuestions(guide) {
-            const container = document.getElementById('dynamicQuestions');
-            let html = `<div style="background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%); padding: 20px; border-radius: 16px;">
-                <h4 style="color: #1e3c72;">${guide.title}</h4>`;
-            guide.questions.forEach((item, idx) => {
-                html += `<div style="margin-bottom: 15px;">
-                    <label style="font-weight: 600;">${item.q}</label>
-                    <input type="text" id="pc_q${idx}" placeholder="Patient's response..." onchange="savePCResponse(${idx}, this.value)" style="margin-top: 5px;">
-                    <div class="ros-hint">💡 ${item.hint}</div>
-                </div>`;
-            });
-            if (guide.redFlags) {
-                html += `<div class="alert warning" style="margin-top: 15px;"><strong>⚠️ RED FLAGS:</strong><br>${guide.redFlags.join('<br>')}</div>`;
-            }
-            html += `</div>`;
-            container.innerHTML = html;
-            symptomDetails[currentSymptom] = [];
-        }
-
         function displayGenericQuestions(symptom) {
             const container = document.getElementById('dynamicQuestions');
             container.innerHTML = `
-                <div class="alert"><strong>📝 History taking for "${symptom}"</strong><br>Use the 8 key features: Site, Onset, Character, Radiation, Associated, Timing, Exacerbating/Relieving, Severity.</div>
-                <div><label>Site:</label><input type="text" id="genericSite"></div>
-                <div><label>Onset:</label><input type="text" id="genericOnset"></div>
-                <div><label>Character:</label><input type="text" id="genericCharacter"></div>
-                <div><label>Severity:</label><input type="text" id="genericSeverity"></div>
+                <div class="alert">
+                    <strong>📝 Systematic History Taking for "${symptom}"</strong><br>
+                    Based on Hutchison's Clinical Methods, use the 8 key features:
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label>Site: Where exactly is the symptom?</label>
+                    <input type="text" id="genericSite" placeholder="Location...">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label>Onset: When did it start? Sudden or gradual?</label>
+                    <input type="text" id="genericOnset" placeholder="Onset and duration...">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label>Character: What does it feel like?</label>
+                    <input type="text" id="genericCharacter" placeholder="Describe the sensation...">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label>Radiation: Does it spread anywhere?</label>
+                    <input type="text" id="genericRadiation" placeholder="Where does it go?">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label>Associated features: What other symptoms occur with it?</label>
+                    <input type="text" id="genericAssociated" placeholder="Other symptoms...">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label>Timing: How long does it last? How often?</label>
+                    <input type="text" id="genericTiming" placeholder="Duration and frequency...">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label>Exacerbating/Relieving factors: What makes it better or worse?</label>
+                    <input type="text" id="genericFactors" placeholder="Aggravating and relieving factors...">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label>Severity: On a scale of 0-10, how bad is it?</label>
+                    <input type="text" id="genericSeverity" placeholder="0-10 scale...">
+                </div>
             `;
         }
 
-        function updateGuidancePanel(guide) {
+        function updateGuidancePanel(symptom) {
+            const guide = symptomGuides[symptom];
+            const container = document.getElementById('guidanceContent');
+            if (guide) {
+                container.innerHTML = `
+                    <div class="guidance-card">
+                        <h4>📖 From Hutchison's Clinical Methods</h4>
+                        <p>${guide.title}</p>
+                        <p style="margin-top: 8px; font-size: 12px;">${guide.chapter}</p>
+                    </div>
+                    <div class="guidance-card">
+                        <h4>🎯 Key Questions to Ask</h4>
+                        <ul style="margin-left: 20px;">
+                            ${guide.questions.map(q => `<li>${q.q}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="alert warning">
+                        <strong>⚠️ RED FLAGS to Watch For:</strong><br>
+                        ${guide.redFlags ? guide.redFlags.join('<br>') : 'Always assess for warning signs'}
+                    </div>
+                    <div class="guidance-card">
+                        <h4>🩸 HIV Note</h4>
+                        <p>In HIV-endemic settings, always consider TB, cryptococcal disease, and other OIs in differential diagnosis.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function updateGenericGuidance(symptom) {
             const container = document.getElementById('guidanceContent');
             container.innerHTML = `
-                <div class="guidance-card"><h4>📖 ${guide.title}</h4></div>
-                <div class="guidance-card"><h4>🎯 Key Questions</h4><ul>${guide.questions.map(q => `<li>${q.q}</li>`).join('')}</ul></div>
-                <div class="alert warning"><strong>⚠️ RED FLAGS</strong><br>${guide.redFlags ? guide.redFlags.join('<br>') : 'Always assess for warning signs'}</div>
-                <div class="guidance-card"><h4>🩺 Examination Tip</h4><p>Always correlate physical findings with history. Switch to the Examination tab for guided physical examination.</p></div>
+                <div class="guidance-card">
+                    <h4>📖 Systematic Approach to "${symptom}"</h4>
+                    <p>From Hutchison's Clinical Methods - Chapter 3: History Taking</p>
+                </div>
+                <div class="guidance-card">
+                    <h4>🔍 The 8 Key Features of Any Symptom:</h4>
+                    <ol style="margin-left: 20px;">
+                        <li><strong>Site:</strong> Where exactly?</li>
+                        <li><strong>Onset:</strong> When did it start? Sudden or gradual?</li>
+                        <li><strong>Character:</strong> What does it feel like?</li>
+                        <li><strong>Radiation:</strong> Does it spread anywhere?</li>
+                        <li><strong>Associated features:</strong> What other symptoms occur with it?</li>
+                        <li><strong>Timing:</strong> How long does it last? How often?</li>
+                        <li><strong>Exacerbating/Relieving factors:</strong> What makes it better or worse?</li>
+                        <li><strong>Severity:</strong> How bad is it? (0-10 scale)</li>
+                    </ol>
+                </div>
+                <div class="guidance-card">
+                    <h4>💡 Pro Tip</h4>
+                    <p>Always ask about constitutional symptoms: fever, weight loss, night sweats, fatigue. These are crucial for differential diagnosis.</p>
+                </div>
             `;
         }
 
@@ -1305,32 +1401,124 @@
             updateProgress();
         }
 
-        function setCustomSymptom() {
-            const custom = document.getElementById('customSymptom').value.toLowerCase().trim();
-            if (custom) {
-                currentSymptom = custom;
-                document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
-                const guide = getQuestionSet(custom);
+        function generateClinicalSummary() {
+            const fullName = document.getElementById('fullName').value || 'Not provided';
+            const age = document.getElementById('age').value || 'Not provided';
+            const gender = document.getElementById('gender').value || 'Not provided';
+            const maritalStatus = document.getElementById('maritalStatus').value || 'Not provided';
+            const occupation = document.getElementById('occupation').value || 'Not provided';
+            const religion = document.getElementById('religion').value || 'Not provided';
+            const tribe = document.getElementById('tribe').value || 'Not provided';
+            const address = document.getElementById('address').value || 'Not provided';
+            const nextOfKin = document.getElementById('nextOfKin').value || 'Not provided';
+            const nearestHealthCentre = document.getElementById('nearestHealthCentre').value || 'Not provided';
+            const referralStatus = document.getElementById('referralStatus').value || 'Not provided';
+            const pmh = document.getElementById('pmh').value || 'None reported';
+            const medications = document.getElementById('medications').value || 'None';
+            const allergies = document.getElementById('allergies').value || 'None';
+            const social = document.getElementById('social').value || 'Not documented';
+            const familyHistory = document.getElementById('familyHistory').value || 'Not documented';
+
+            // HIV Data
+            const hivStatus = document.getElementById('hivStatus').value || 'Not documented';
+            let hivSummary = '';
+            
+            if (hivStatus === 'positive') {
+                const diagnosisDate = document.getElementById('hivDiagnosisDate').value || 'Not documented';
+                const whoStage = document.getElementById('hivWhoStage').value || 'Not documented';
+                const onArt = document.getElementById('hivOnArt').value || 'Not documented';
+                const artRegimen = document.getElementById('hivArtRegimen').value || 'Not documented';
+                const adherence = document.getElementById('hivAdherence').value || 'Not documented';
+                const cd4 = document.getElementById('hivCd4').value || 'Not documented';
+                const viralLoad = document.getElementById('hivViralLoad').value || 'Not documented';
+                
+                const ois = [];
+                document.querySelectorAll('#hivDetails input[type="checkbox"]:checked').forEach(cb => {
+                    if (cb.value !== 'Other') ois.push(cb.value);
+                });
+                
+                hivSummary = `
+                    <br><strong>🩸 HIV History:</strong><br>
+                    • HIV Positive, diagnosed ${diagnosisDate}<br>
+                    • WHO Stage: ${whoStage}<br>
+                    • On ART: ${onArt} ${onArt === 'yes' ? `(Regimen: ${artRegimen})` : ''}<br>
+                    ${onArt === 'yes' ? `• ART Adherence: ${adherence}<br>` : ''}
+                    • Most Recent CD4: ${cd4} cells/µL<br>
+                    • Most Recent Viral Load: ${viralLoad} copies/mL<br>
+                    ${ois.length ? `• History of OIs: ${ois.join(', ')}<br>` : ''}
+                `;
+            }
+
+            let summary = `
+                <strong>📚 EaseMed CLINICAL SUMMARY - ${new Date().toLocaleString()}</strong><br><br>
+                <strong>📋 PATIENT DEMOGRAPHICS</strong><br>
+                • Name: ${fullName} | Age: ${age} | Sex: ${gender}<br>
+                • Marital Status: ${maritalStatus} | Occupation: ${occupation}<br>
+                • Religion: ${religion} | Tribe/Ethnicity: ${tribe}<br>
+                • Address: ${address}<br>
+                • Next of Kin: ${nextOfKin}<br>
+                • Nearest Health Centre: ${nearestHealthCentre}<br>
+                • Referral Status: ${referralStatus}<br>
+                ${hivSummary}
+                <br><strong>🩺 PRESENTING COMPLAINT</strong><br>
+                • Main Symptom: ${currentSymptom || 'Not specified'}<br>
+            `;
+
+            if (currentSymptom && symptomDetails[currentSymptom]) {
+                summary += `<br><strong>📝 History of Presenting Complaint:</strong><br>`;
+                const guide = symptomGuides[currentSymptom];
                 if (guide) {
-                    displayCustomQuestions(guide);
-                    updateGuidancePanel(guide);
+                    guide.questions.forEach((item, idx) => {
+                        if (symptomDetails[currentSymptom][idx]) {
+                            summary += `• ${item.q}: ${symptomDetails[currentSymptom][idx]}<br>`;
+                        }
+                    });
                 } else {
-                    displayGenericQuestions(custom);
+                    const site = document.getElementById('genericSite')?.value;
+                    const onset = document.getElementById('genericOnset')?.value;
+                    const character = document.getElementById('genericCharacter')?.value;
+                    const radiation = document.getElementById('genericRadiation')?.value;
+                    const associated = document.getElementById('genericAssociated')?.value;
+                    const timing = document.getElementById('genericTiming')?.value;
+                    const factors = document.getElementById('genericFactors')?.value;
+                    const severity = document.getElementById('genericSeverity')?.value;
+                    if (site) summary += `• Site: ${site}<br>`;
+                    if (onset) summary += `• Onset: ${onset}<br>`;
+                    if (character) summary += `• Character: ${character}<br>`;
+                    if (radiation) summary += `• Radiation: ${radiation}<br>`;
+                    if (associated) summary += `• Associated features: ${associated}<br>`;
+                    if (timing) summary += `• Timing: ${timing}<br>`;
+                    if (factors) summary += `• Exacerbating/Relieving factors: ${factors}<br>`;
+                    if (severity) summary += `• Severity: ${severity}/10<br>`;
                 }
             }
-        }
 
-        function generateClinicalSummary() {
-            // Simplified summary generation
-            const age = document.getElementById('age').value || '[age]';
-            const gender = document.getElementById('gender').value || '[sex]';
-            const name = document.getElementById('fullName').value || '[name]';
+            summary += `<br><strong>📜 PAST MEDICAL HISTORY</strong><br>${pmh}<br><br>`;
+            summary += `<strong>💊 MEDICATIONS & ALLERGIES</strong><br>Current Medications: ${medications}<br>Allergies: ${allergies}<br><br>`;
             
-            let summary = `<div class="case-presentation" style="background: #d4fc79; padding: 15px; border-radius: 16px; margin-bottom: 20px;">
-                <h4 style="color: #1e3c72;">📌 Case Presentation Summary</h4>
-                <p>This is a ${age}-year-old ${gender.toLowerCase()} ${name !== '[name]' ? `named ${name}` : ''} who presented with ${currentSymptom || 'a medical complaint'}.</p>
-                <p><em>Full clinical summary includes history, review of systems, and examination findings.</em></p>
-            </div>`;
+            // Review of Systems
+            summary += `<strong>🔄 REVIEW OF SYSTEMS</strong><br>`;
+            for (const [system, data] of Object.entries(reviewOfSystems)) {
+                let hasFindings = false;
+                let findings = [];
+                if (rosData[system]) {
+                    data.questions.forEach((q, idx) => {
+                        if (rosData[system][idx] && rosData[system][idx].trim()) {
+                            hasFindings = true;
+                            findings.push(`${q.q.split('?')[0]}: ${rosData[system][idx]}`);
+                        }
+                    });
+                }
+                if (hasFindings) {
+                    summary += `<strong>${data.icon} ${data.name}:</strong> ${findings.join('; ')}<br>`;
+                } else {
+                    summary += `<strong>${data.icon} ${data.name}:</strong> No significant findings reported<br>`;
+                }
+            }
+            
+            summary += `<br><strong>🏠 SOCIAL HISTORY</strong><br>${social}<br><br>`;
+            summary += `<strong>👨‍👩‍👧 FAMILY HISTORY</strong><br>${familyHistory}<br><br>`;
+            summary += `<em>Based on Hutchison's Clinical Methods, 25th Edition | Generated by EaseMed Clinical Clerk System</em>`;
             
             document.getElementById('clinicalSummary').innerHTML = summary;
             document.getElementById('summarySection').style.display = 'block';
@@ -1341,63 +1529,114 @@
         function copyToClipboard() {
             const summary = document.getElementById('clinicalSummary').innerText;
             navigator.clipboard.writeText(summary);
-            alert('✅ Summary copied to clipboard!');
+            alert('✅ Clinical summary copied to clipboard!');
         }
 
-        // ========== PATIENT RECORDS ==========
-        const STORAGE_KEY = 'easemed_patients';
+        // ── SERVICE WORKER REGISTRATION ──────────────────────────
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('[EaseMed] SW registered:', reg.scope))
+                    .catch(err => console.warn('[EaseMed] SW registration failed:', err));
+            });
+        }
 
-        function getRecords() { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-        function saveRecords(records) { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+        // ── Initialize UI (non-auth parts run immediately) ───────────
+        buildROS();
+        updateProgress();
 
+        // ── PATIENT RECORDS — localStorage + Export/Import ──────────
+        //
+        // Storage key: 'easemed_patients'
+        // Each record is a plain object:
+        //   { id, savedAt, user, name, age, gender, complaint, summary, formData }
+        //
+        // formData captures every input/textarea/select value by element ID
+        // so the entire form can be fully restored when a record is loaded.
+        // ─────────────────────────────────────────────────────────────
+
+        function getRecords() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        }
+
+        function saveRecords(records) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        }
+
+        // Collect every form field value by ID into a plain object
         function captureFormData() {
             const data = {};
             document.querySelectorAll('input[id], textarea[id], select[id]').forEach(el => {
-                if (el.type === 'checkbox') data[el.id] = el.checked;
-                else data[el.id] = el.value;
+                if (el.type === 'checkbox') {
+                    data[el.id] = el.checked;
+                } else {
+                    data[el.id] = el.value;
+                }
             });
             return data;
         }
 
+        // Restore a previously saved form state
         function restoreFormData(data) {
             if (!data) return;
             Object.entries(data).forEach(([id, value]) => {
                 const el = document.getElementById(id);
-                if (el) {
-                    if (el.type === 'checkbox') el.checked = value;
-                    else el.value = value;
+                if (!el) return;
+                if (el.type === 'checkbox') {
+                    el.checked = value;
+                } else {
+                    el.value = value;
                 }
             });
         }
 
+        // Save the current patient form to localStorage
         function savePatient() {
-            const name = document.getElementById('fullName')?.value?.trim();
+            const name      = (document.getElementById('fullName')?.value || '').trim();
+            const age       = document.getElementById('age')?.value || '';
+            const gender    = document.getElementById('gender')?.value || '';
+            const complaint = (document.getElementById('presentingComplaint')?.value || '').trim();
+            const summary   = document.getElementById('clinicalSummary')?.innerHTML || '';
+            const user      = localStorage.getItem('easemed_user') || 'unknown';
+
             if (!name) {
-                showToast('⚠️ Please enter patient name', '#e67e22');
+                showToast('⚠️ Please enter the patient\'s full name before saving.', '#e67e22');
                 return;
             }
+
             const records = getRecords();
-            const user = localStorage.getItem('easemed_user') || 'unknown';
-            const existingIdx = records.findIndex(r => r.name.toLowerCase() === name.toLowerCase() && r.user === user);
+
+            // Update existing record if same name + same user, else create new
+            const existingIdx = records.findIndex(
+                r => r.name.toLowerCase() === name.toLowerCase() && r.user === user
+            );
+
             const record = {
-                id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
-                savedAt: new Date().toISOString(),
-                user: user,
-                name: name,
-                age: document.getElementById('age')?.value || '',
-                gender: document.getElementById('gender')?.value || '',
-                complaint: currentSymptom,
+                id:       existingIdx >= 0 ? records[existingIdx].id : Date.now(),
+                savedAt:  new Date().toISOString(),
+                user:     user,
+                name:     name,
+                age:      age,
+                gender:   gender,
+                complaint: complaint,
+                summary:  summary,
                 formData: captureFormData(),
             };
-            if (existingIdx >= 0) records[existingIdx] = record;
-            else records.unshift(record);
+
+            if (existingIdx >= 0) {
+                records[existingIdx] = record;
+            } else {
+                records.unshift(record);   // newest first
+            }
+
             saveRecords(records);
             renderRecords();
             showToast('✅ Patient record saved!', '#27ae60');
         }
 
+        // Clear the form for a new patient
         function newPatient() {
-            if (!confirm('Clear form? Unsaved data will be lost.')) return;
+            if (!confirm('Clear the form for a new patient? Unsaved data will be lost.')) return;
             document.querySelectorAll('input[id], textarea[id]').forEach(el => {
                 if (el.type === 'checkbox') el.checked = false;
                 else el.value = '';
@@ -1409,115 +1648,251 @@
             showToast('➕ Ready for new patient', '#2471a3');
         }
 
+        // Load a saved record back into the form
         function loadPatient(id) {
-            const record = getRecords().find(r => r.id === id);
+            const records = getRecords();
+            const record  = records.find(r => r.id === id);
             if (!record) return;
-            if (!confirm(`Load ${record.name}'s record? Current data will be replaced.`)) return;
+
+            if (!confirm(`Load ${record.name}'s record? Current form data will be replaced.`)) return;
+
             restoreFormData(record.formData);
-            if (record.complaint && typeof setSymptom === 'function') setSymptom(record.complaint);
+
+            if (record.summary) {
+                document.getElementById('clinicalSummary').innerHTML = record.summary;
+                document.getElementById('summarySection').style.display = 'block';
+            }
+
             updateProgress();
-            showToast(`📂 Loaded ${record.name}`, '#2471a3');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showToast(`📂 Loaded: ${record.name}`, '#2471a3');
         }
 
+        // Delete a record
         function deletePatient(id) {
-            const record = getRecords().find(r => r.id === id);
+            const records = getRecords();
+            const record  = records.find(r => r.id === id);
             if (!record) return;
             if (!confirm(`Delete ${record.name}'s record? This cannot be undone.`)) return;
-            saveRecords(getRecords().filter(r => r.id !== id));
+
+            saveRecords(records.filter(r => r.id !== id));
             renderRecords();
             showToast('🗑️ Record deleted', '#e53e3e');
         }
 
+        // Export all records as a downloadable JSON file
         function exportRecords() {
             const records = getRecords();
-            if (records.length === 0) { showToast('⚠️ No records', '#e67e22'); return; }
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' }));
-            a.download = `easemed_patients_${new Date().toISOString().slice(0,10)}.json`;
+            if (records.length === 0) {
+                showToast('⚠️ No records to export', '#e67e22');
+                return;
+            }
+
+            const blob     = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
+            const url      = URL.createObjectURL(blob);
+            const a        = document.createElement('a');
+            const dateStr  = new Date().toISOString().slice(0, 10);
+            a.href         = url;
+            a.download     = `easemed_patients_${dateStr}.json`;
             a.click();
-            showToast(`⬇️ Exported ${records.length} records`, '#8e44ad');
+            URL.revokeObjectURL(url);
+            showToast(`⬇️ Exported ${records.length} record(s)`, '#8e44ad');
         }
 
+        // Import records from a JSON file
         function importRecords(event) {
             const file = event.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const imported = JSON.parse(e.target.result);
-                    if (!Array.isArray(imported)) throw new Error();
+                    if (!Array.isArray(imported)) throw new Error('Invalid format');
+
                     const existing = getRecords();
                     const existingIds = new Set(existing.map(r => r.id));
+
+                    // Merge — skip duplicates by ID
+                    const merged = [...existing];
                     let added = 0;
                     imported.forEach(r => {
-                        if (!existingIds.has(r.id)) { existing.push(r); added++; }
+                        if (!existingIds.has(r.id)) {
+                            merged.push(r);
+                            added++;
+                        }
                     });
-                    existing.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
-                    saveRecords(existing);
+
+                    // Sort newest first
+                    merged.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+                    saveRecords(merged);
                     renderRecords();
-                    showToast(`📂 Imported ${added} records`, '#27ae60');
-                } catch (err) { showToast('❌ Invalid JSON', '#e53e3e'); }
+                    showToast(`📂 Imported ${added} new record(s)`, '#27ae60');
+                } catch (err) {
+                    showToast('❌ Invalid JSON file', '#e53e3e');
+                }
             };
             reader.readAsText(file);
-            event.target.value = '';
+            event.target.value = '';  // reset file input
         }
 
+        // Render the records list with optional search filter
         function renderRecords() {
-            const records = getRecords();
-            const query = document.getElementById('recordSearch')?.value?.toLowerCase() || '';
+            const records   = getRecords();
+            const query     = (document.getElementById('recordSearch')?.value || '').toLowerCase();
             const container = document.getElementById('recordsList');
             if (!container) return;
+
             const userEmail = localStorage.getItem('easemed_user') || '';
-            const filtered = records.filter(r => r.user === userEmail && (!query || r.name.toLowerCase().includes(query)));
+
+            // Filter by current user and search query
+            const filtered = records.filter(r => {
+                const matchUser  = r.user === userEmail;
+                const matchQuery = !query ||
+                    r.name.toLowerCase().includes(query) ||
+                    (r.complaint || '').toLowerCase().includes(query) ||
+                    (r.savedAt || '').includes(query);
+                return matchUser && matchQuery;
+            });
+
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="records-empty">📭 No saved records yet.</div>';
+                container.innerHTML = `<div class="records-empty">
+                    ${records.length === 0
+                        ? '📭 No saved records yet. Fill in a patient form and click <b>Save Patient Record</b>.'
+                        : '🔍 No records match your search.'}
+                </div>`;
                 return;
             }
-            container.innerHTML = filtered.map(r => `
+
+            container.innerHTML = filtered.map(r => {
+                const date = new Date(r.savedAt).toLocaleDateString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                const complaint = r.complaint ? ` · ${r.complaint.slice(0, 50)}${r.complaint.length > 50 ? '…' : ''}` : '';
+                return `
                 <div class="patient-card">
                     <div class="patient-card-info">
                         <div class="patient-card-name">👤 ${r.name}</div>
-                        <div class="patient-card-meta">${r.age ? r.age + ' yrs' : ''} ${r.gender ? '· ' + r.gender : ''}<br>🕐 ${new Date(r.savedAt).toLocaleString()}</div>
+                        <div class="patient-card-meta">
+                            ${r.age ? r.age + ' yrs' : ''}${r.gender ? ' · ' + r.gender : ''}${complaint}
+                            <br>🕐 Saved: ${date}
+                        </div>
                     </div>
                     <div class="patient-card-btns">
-                        <button class="btn-card btn-load" onclick="loadPatient(${r.id})">📂 Load</button>
+                        <button class="btn-card btn-load"   onclick="loadPatient(${r.id})">📂 Load</button>
                         <button class="btn-card btn-delete" onclick="deletePatient(${r.id})">🗑️ Delete</button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
-        function showToast(message, color) {
+        // Toast notification helper
+        function showToast(message, color = '#27ae60') {
             const toast = document.getElementById('saveToast');
+            if (!toast) return;
             toast.textContent = message;
             toast.style.background = color;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2800);
         }
 
-        // ========== AUTH ==========
-        (function authGuard() {
-            const loggedIn = localStorage.getItem('easemed_logged_in');
-            if (loggedIn !== 'true') {
+        // ── AUTH GUARD (Supabase) ───────────────────────────────────
+        // SDK is already in <head> so it's available immediately.
+        // We show a branded loading overlay right away so the user
+        // never sees a frozen or partially-rendered page.
+        // localStorage is set BEFORE renderRecords() so record
+        // filtering works correctly from the first call.
+        // ────────────────────────────────────────────────────────────
+        const SUPABASE_URL  = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+        (async function authCheck() {
+
+            // ── Step 1: Show branded loading overlay immediately ──────
+            const overlay = document.createElement('div');
+            overlay.id = 'authOverlay';
+            overlay.style.cssText = `
+                position:fixed; inset:0; z-index:99999;
+                background:rgba(15,32,39,0.97);
+                display:flex; flex-direction:column;
+                align-items:center; justify-content:center;
+                font-family:'Segoe UI',sans-serif; color:white;
+                transition: opacity 0.3s ease;
+            `;
+            overlay.innerHTML = `
+                <div style="font-size:3.5rem; margin-bottom:18px; animation:hb 1.5s ease-in-out infinite; display:inline-block;">🩺</div>
+                <div style="font-size:1.3rem; font-weight:700; letter-spacing:1px; margin-bottom:6px;">EaseMed</div>
+                <div style="font-size:0.82rem; opacity:0.55; margin-bottom:28px;">Clinical Clerk System</div>
+                <div style="
+                    width:42px; height:42px;
+                    border:3px solid rgba(255,255,255,0.15);
+                    border-top-color:#90cdf4;
+                    border-radius:50%;
+                    animation:spin 0.75s linear infinite;">
+                </div>
+                <div style="margin-top:20px; font-size:0.78rem; opacity:0.4;">Verifying your session...</div>
+                <style>
+                    @keyframes spin { to { transform: rotate(360deg); } }
+                    @keyframes hb   { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.15); } }
+                </style>
+            `;
+            document.body.appendChild(overlay);
+
+            // ── Step 2: Check Supabase session ────────────────────────
+            try {
+                const { createClient } = supabase;
+                const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+                const { data: { session } } = await sb.auth.getSession();
+
+                if (!session) {
+                    // No valid session — go back to login
+                    window.location.href = 'easemed_login.html';
+                    return;
+                }
+
+                // ── Step 3: Session confirmed — populate UI ───────────
+                const user = session.user;
+                const displayName =
+                    user.user_metadata?.full_name ||
+                    user.user_metadata?.name      ||
+                    localStorage.getItem('easemed_user_name') ||
+                    user.email;
+
+                // CRITICAL: set localStorage BEFORE calling renderRecords()
+                // so the user-email filter inside renderRecords() works correctly
+                localStorage.setItem('easemed_user',      user.email);
+                localStorage.setItem('easemed_user_name', displayName);
+
+                // Show greeting in the top bar
+                const greeting = document.getElementById('userGreeting');
+                if (greeting) greeting.textContent = '👤 ' + displayName;
+
+                // Now safe to render records with the correct user email
+                renderRecords();
+
+                // Expose sb so the logout button can sign out properly
+                window._sb = sb;
+
+                // ── Step 4: Fade out overlay smoothly ─────────────────
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 320);
+
+            } catch (err) {
+                console.error('[EaseMed] Auth check error:', err);
                 window.location.href = 'easemed_login.html';
-                return;
             }
-            const userEmail = localStorage.getItem('easemed_user') || '';
-            const displayName = localStorage.getItem('easemed_user_name') || userEmail;
-            document.getElementById('userGreeting').textContent = '👤 ' + displayName;
         })();
 
-        function handleLogout() {
-            if (!confirm('Logout?')) return;
-            localStorage.removeItem('easemed_logged_in');
+        // ── LOGOUT ──────────────────────────────────────────────────
+        async function handleLogout() {
+            if (!confirm('Are you sure you want to log out?')) return;
+            if (window._sb) await window._sb.auth.signOut();
             localStorage.removeItem('easemed_user');
+            localStorage.removeItem('easemed_user_name');
             window.location.href = 'easemed_login.html';
         }
-
-        // Initialize
-        buildROS();
-        updateProgress();
-        renderRecords();
     </script>
 </body>
 </html>
