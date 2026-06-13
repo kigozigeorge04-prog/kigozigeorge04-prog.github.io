@@ -1066,6 +1066,67 @@
             border-radius: 0;
             animation: none;
         }
+
+        /* ==================== LIVELY DASHBOARD FINISH ==================== */
+        body {
+            background:
+                radial-gradient(circle at 12% 12%, rgba(42, 157, 143, 0.20), transparent 28%),
+                radial-gradient(circle at 88% 18%, rgba(231, 76, 60, 0.15), transparent 24%),
+                linear-gradient(135deg, #0f2027 0%, #203a43 48%, #2c5364 100%);
+        }
+
+        .clerking-panel, .guidance-panel, .records-panel {
+            border: 1px solid rgba(255,255,255,0.52);
+            box-shadow: 0 22px 55px rgba(15, 32, 39, 0.30), inset 0 1px 0 rgba(255,255,255,0.72);
+        }
+
+        .panel-header {
+            background:
+                linear-gradient(135deg, rgba(30,60,114,0.98) 0%, rgba(42,82,152,0.96) 48%, rgba(42,157,143,0.94) 100%);
+        }
+
+        .panel-header::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #2a9d8f, #f4d35e, #e74c3c);
+        }
+
+        .form-section {
+            position: relative;
+        }
+
+        .form-section h3 {
+            border-bottom: 0;
+            padding-bottom: 0;
+            background: linear-gradient(90deg, rgba(232,244,248,0.95), rgba(255,255,255,0));
+            padding: 9px 12px;
+            border-radius: 12px;
+        }
+
+        input:hover, textarea:hover, select:hover {
+            border-color: #b7d1df;
+            box-shadow: 0 6px 16px rgba(30, 60, 114, 0.08);
+        }
+
+        .btn-generate, .btn-record {
+            box-shadow: 0 8px 18px rgba(30, 60, 114, 0.18);
+        }
+
+        .btn-generate:hover, .btn-record:hover {
+            filter: saturate(1.12);
+        }
+
+        .guidance-card, .patient-card, .summary-document, .ros-card {
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        .summary-document:hover, .ros-card:hover, .patient-card:hover {
+            transform: translateY(-3px);
+        }
  
         
     </style>
@@ -1220,9 +1281,9 @@
                         <button class="btn-generate" onclick="copyToClipboard('clinicalSummary')" style="background: linear-gradient(135deg, #3498db, #2980b9); margin-top: 10px;">Copy Clinical Summary</button>
                     </div>
                     <div class="summary-document ward-round-card">
-                        <h4>Ward Round Case Presentation</h4>
+                        <h4>Five-Line Ward Round Diagnostic Summary</h4>
                         <div class="clinical-summary" id="wardRoundSummary"></div>
-                        <button class="btn-generate" onclick="copyToClipboard('wardRoundSummary')" style="background: linear-gradient(135deg, #2a9d8f, #1e7d5a); margin-top: 10px;">Copy Ward Round Format</button>
+                        <button class="btn-generate" onclick="copyToClipboard('wardRoundSummary')" style="background: linear-gradient(135deg, #2a9d8f, #1e7d5a); margin-top: 10px;">Copy Ward Round Summary</button>
                     </div>
                 </div>
             </div>
@@ -1279,8 +1340,7 @@ const reviewOfSystems = {
     musculoskeletal: { name: "Musculoskeletal", icon: "🦴", chapter: "Ch. 20", hint: "Joint/back pain, stiffness", common: ["Joint pain", "Back pain", "Morning stiffness", "Muscle weakness"] },
     endocrine: { name: "Endocrine", icon: "🦋", chapter: "Ch. 16", hint: "Thirst, sweating, heat intolerance", common: ["Polyuria/polydipsia", "Heat/cold intolerance", "Tremor"] },
     psychiatric: { name: "Psychiatric", icon: "🧠", chapter: "Ch. 5", hint: "Mood, anxiety, sleep", common: ["Low mood", "Anxiety", "Insomnia", "Suicidal thoughts"] },
-    dermatological: { name: "Dermatological", icon: "🩹", chapter: "Ch. 21", hint: "Rash, itching, lesions", common: ["Rash", "Itching", "Hair loss", "Easy bruising"] },
-    haematological: { name: "Haematological", icon: "🩸", chapter: "Ch. 18", hint: "Bleeding, bruising, infections", common: ["Easy bruising", "Bleeding tendency", "Recurrent infections"] }
+    dermatological: { name: "Dermatological", icon: "🩹", chapter: "Ch. 21", hint: "Rash, itching, lesions", common: ["Rash", "Itching", "Hair loss", "Easy bruising"] }
 };
 
 function buildROS() {
@@ -1370,9 +1430,10 @@ const rosIconLabels = {
     musculoskeletal: "MSK",
     endocrine: "ENDO",
     psychiatric: "PSY",
-    dermatological: "DERM",
-    haematological: "HEME"
+    dermatological: "DERM"
 };
+
+delete reviewOfSystems.haematological;
 
 function buildROS() {
     const container = document.getElementById('rosContainer');
@@ -1749,23 +1810,30 @@ function refreshROSCardState(key) {
             const keyRos = data.ros
                 .filter(item => item.findings !== 'No findings documented')
                 .map(item => `${item.name}: ${item.findings}`);
+            const negativeRos = data.ros
+                .filter(item => item.findings === 'No findings documented')
+                .slice(0, 4)
+                .map(item => item.name);
+            const hpcText = escapeHTML(data.hpc);
+            const pmhText = escapeHTML(data.pmh);
+            const medsText = escapeHTML(data.medications);
+            const allergyText = escapeHTML(data.allergies);
+            const hivHighlights = data.hivItems
+                .filter(item => !/not documented/i.test(item))
+                .slice(0, 4)
+                .map(item => escapeHTML(item))
+                .join('; ') || 'HIV history not contributory/not documented';
             const wardItems = [
-                `<strong>Opening:</strong> ${escapeHTML(data.fullName)}, a ${escapeHTML(data.age)}-year-old ${escapeHTML(data.gender)}, ${escapeHTML(data.maritalStatus)}, ${escapeHTML(data.occupation)}, from ${escapeHTML(data.address)}.`,
-                `<strong>Admission/referral:</strong> ${escapeHTML(data.referralText)}. Nearest health centre: ${escapeHTML(data.nearestHealthCentre)}.`,
-                `<strong>Presenting complaint:</strong> ${escapeHTML(data.mainSymptom)}.`,
-                `<strong>History of presenting complaint:</strong><br>${formatParagraph(data.hpc)}`,
-                `<strong>Relevant past history:</strong><br>${formatParagraph(data.pmh)}`,
-                `<strong>Current medication/allergies:</strong><br>Medications: ${formatParagraph(data.medications)}<br>Allergies: ${formatParagraph(data.allergies)}`,
-                `<strong>HIV history:</strong><br><ul class="summary-list">${data.hivItems.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>`,
-                `<strong>Review of systems:</strong><br>${keyRos.length ? `<ul class="summary-list">${keyRos.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>` : 'No significant ROS findings documented.'}`,
-                `<strong>Social/family history:</strong><br>Social: ${formatParagraph(data.social)}<br>Family: ${formatParagraph(data.familyHistory)}`,
-                `<strong>Assessment / working diagnosis:</strong> To be completed by clinician.`,
-                `<strong>Ward round plan:</strong> To be completed by clinician.`
+                `<strong>Patient:</strong> ${escapeHTML(data.fullName)}, ${escapeHTML(data.age)}-year-old ${escapeHTML(data.gender)}, ${escapeHTML(data.occupation)}, ${escapeHTML(data.maritalStatus)}, ${escapeHTML(data.referralText)}.`,
+                `<strong>Presenting problem:</strong> ${escapeHTML(data.mainSymptom)} with HPI features: ${hpcText}.`,
+                `<strong>Major positives:</strong> ${keyRos.length ? escapeHTML(keyRos.join('; ')) : 'No additional positive ROS findings documented'}; relevant background: ${pmhText}; HIV: ${hivHighlights}.`,
+                `<strong>Important negatives:</strong> ${negativeRos.length ? escapeHTML(negativeRos.join(', ')) + ' without documented symptoms' : 'No key negative ROS findings documented'}; allergies: ${allergyText}.`,
+                `<strong>Diagnostic impression:</strong> Overall pattern points toward the clinician's working diagnosis based on the presenting complaint, major positives, important negatives, PMH, medications (${medsText}), and bedside assessment.`
             ];
 
             return `
                 <div class="summary-banner">
-                    <strong>Ward Round Case Presentation</strong>
+                    <strong>Five-Line Ward Round Diagnostic Summary</strong>
                     Prepared ${escapeHTML(data.generatedAt)}
                 </div>
                 <ol class="summary-list">${wardItems.map(item => `<li>${item}</li>`).join('')}</ol>
