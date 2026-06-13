@@ -1128,7 +1128,10 @@
             }
         };
 
-        // Symptom guides for presenting complaints
+        // ============================================================
+        // SYMPTOM GUIDES (non‑SOCRATES for vomiting, diarrhoea, constipation etc)
+        // SOCRATES remains for pain. Added specific guides for GI and other complaints.
+        // ============================================================
         const symptomGuides = {
             fever: {
                 title: "🌡️ Fever Assessment (Hutchison's Ch. 10)",
@@ -1211,6 +1214,51 @@
                     { q: "Diurnal variation: Worse morning or evening?", hint: "Morning = renal/periorbital. Evening = cardiac/venous" }
                 ],
                 redFlags: ["🚨 Unilateral leg swelling + pain (DVT)", "🚨 Swelling with SOB (pulmonary oedema)", "🚨 Periorbital swelling + frothy urine (nephrotic syndrome)"]
+            },
+            // === NEW GUIDES FOR NON-SOCRATES COMPLAINTS (vomiting, diarrhoea, constipation) ===
+            nausea: {
+                title: "🤢 Nausea & Vomiting Assessment",
+                chapter: "Hutchison's Clinical Methods - Chapter 15: Gastrointestinal System",
+                questions: [
+                    { q: "Onset & Duration: When did the nausea/vomiting start? Sudden or gradual?", hint: "Acute (<48h) suggests gastroenteritis; chronic suggests pregnancy, gastroparesis, raised ICP" },
+                    { q: "Frequency: How many times have you vomited in the past 24 hours?", hint: "Profuse vomiting can lead to dehydration and electrolyte imbalance" },
+                    { q: "Content of vomit: Food, bile, blood (red or coffee-ground)?", hint: "Coffee-ground suggests upper GI bleed. Bile indicates intestinal obstruction" },
+                    { q: "Associated symptoms: Abdominal pain, diarrhoea, fever, headache, vertigo?", hint: "Pain + vomiting → appendicitis/cholecystitis. Vertigo → vestibular cause" },
+                    { q: "Triggers: Does eating, smell, movement, or medication trigger it?", hint: "Postprandial → gastritis/ulcer. Morning + pregnancy → hyperemesis" },
+                    { q: "Relieving factors: Does stopping food, antiemetics, or lying still help?", hint: "Motion sickness improves with stillness" },
+                    { q: "Severity: Are you able to keep any fluids down? Any signs of dehydration?", hint: "Unable to keep fluids, dry mouth, reduced urine output → urgent IV fluids" }
+                ],
+                redFlags: ["🚨 Haematemesis (blood in vomit)", "🚨 Severe abdominal pain + vomiting (surgical abdomen)", "🚨 Headache + vomiting + papilloedema (raised ICP)", "🚨 Signs of dehydration: low urine output, sunken eyes, poor skin turgor"]
+            },
+            diarrhea: {
+                title: "💩 Diarrhoea Assessment",
+                chapter: "Hutchison's Clinical Methods - Chapter 15: Gastrointestinal System",
+                questions: [
+                    { q: "Duration: Acute (<14 days), persistent (14-28 days), or chronic (>4 weeks)?", hint: "Acute usually infective; chronic suggests IBS, IBD, malabsorption" },
+                    { q: "Stool frequency & consistency: How many times per day? Watery, loose, or semi-formed?", hint: "Watery → secretory/ osmotic; bloody → invasive infection/IBD" },
+                    { q: "Blood, mucus, or pus in stool?", hint: "Blood + mucus → Shigella, Campylobacter, UC. Frank blood → malignancy or severe infection" },
+                    { q: "Associated features: Abdominal cramps, fever, nausea, vomiting, tenesmus?", hint: "Fever suggests infective aetiology; tenesmus → colitis" },
+                    { q: "Travel history & sick contacts: Recent travel, camping, or contact with similar illness?", hint: "Traveller's diarrhoea → ETEC, Giardia, Shigella" },
+                    { q: "Recent antibiotics or hospitalisation?", hint: "Antibiotic-associated diarrhoea → C. difficile risk" },
+                    { q: "Dietary triggers: Certain foods, lactose, artificial sweeteners?", hint: "Lactose intolerance, fructose malabsorption" },
+                    { q: "Dehydration assessment: Thirst, reduced urine output, dizziness?", hint: "Severe dehydration requires IV fluids, especially in elderly/young" }
+                ],
+                redFlags: ["🚨 Bloody diarrhoea", "🚨 High fever (>38.5°C) + severe abdominal pain", "🚨 Profuse watery diarrhoea (Cholera suspect)", "🚨 Signs of severe dehydration: anuria, lethargy, hypotension"]
+            },
+            constipation: {
+                title: "🚫 Constipation Assessment",
+                chapter: "Hutchison's Clinical Methods - Chapter 15: Gastrointestinal System",
+                questions: [
+                    { q: "Duration: How long have you been constipated? (Days, weeks, months, lifelong)", hint: "Recent change in bowel habit in older adults requires investigation for malignancy" },
+                    { q: "Stool frequency: How many bowel movements per week? (Normal >3)", hint: "Less than 3 per week defines constipation, but varies between individuals" },
+                    { q: "Stool consistency: Hard, lumpy, or pellet-like (Bristol type 1 or 2)?", hint: "Type 1-2 indicates severe constipation and slow transit" },
+                    { q: "Straining & sensation: Do you need to strain? Incomplete evacuation?", hint: "Suggests functional defecation disorder or obstructed defecation" },
+                    { q: "Abdominal symptoms: Bloating, distension, pain or nausea?", hint: "Pain relieved by defecation suggests IBS-C" },
+                    { q: "Laxative/enema use: Have you used any laxatives, suppositories, or enemas?", hint: "Overuse of stimulant laxatives can worsen constipation" },
+                    { q: "Diet & lifestyle: Fibre intake? Fluids per day? Physical activity?", hint: "Low fibre (<25g/day) and low fluids (<1.5L) contribute to constipation" },
+                    { q: "Red flag symptoms: Blood in stool, unexplained weight loss, family history of colon cancer?", hint: "Requires colonoscopy to exclude malignancy" }
+                ],
+                redFlags: ["🚨 New-onset constipation in patient >50 years", "🚨 Blood in stool (haematochezia) or iron deficiency anaemia", "🚨 Unintentional weight loss + constipation", "🚨 Family history of colorectal cancer or IBD"]
             }
         };
 
