@@ -963,7 +963,111 @@
             }
         }
 
-       
+        /* ==================== SUMMARY AND WARD ROUND OUTPUTS ==================== */
+        .summary-actions {
+            padding: 0 25px 25px 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .summary-tabs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin-top: 8px;
+        }
+
+        .summary-document {
+            background: #ffffff;
+            border: 1px solid #dbe7ef;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 10px 24px rgba(15, 32, 39, 0.08);
+        }
+
+        .summary-document h4 {
+            color: #1e3c72;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e8f4f8;
+        }
+
+        .summary-banner {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .summary-banner strong {
+            display: block;
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .summary-field {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+
+        .summary-field span {
+            display: block;
+            color: #718096;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 4px;
+        }
+
+        .summary-section-block {
+            margin-top: 12px;
+            padding: 14px;
+            border-radius: 14px;
+            background: #fbfdfe;
+            border: 1px solid #e2e8f0;
+        }
+
+        .summary-section-block h5 {
+            color: #203a43;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .summary-list {
+            margin: 0;
+            padding-left: 18px;
+            line-height: 1.7;
+        }
+
+        .ward-round-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-left: 5px solid #2a9d8f;
+        }
+
+        .summary-document .clinical-summary {
+            background: transparent;
+            padding: 0;
+            margin-top: 0;
+            border-radius: 0;
+            animation: none;
+        }
+ 
+        
     </style>
 </head>
     </style>
@@ -1106,8 +1210,22 @@
 
             <div class="form-section"><h3>🏠 Social History</h3><textarea id="social" placeholder="Smoking, alcohol, drugs, living conditions, occupation, diet, travel..."></textarea></div>
             <div class="form-section"><h3>👨‍👩‍👧 Family History</h3><textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders..."></textarea></div>
-            <div style="padding: 0 25px 25px 25px; display:flex; gap:12px; flex-wrap:wrap;"><button class="btn-generate" onclick="generateClinicalSummary()">📋 Generate Complete Clinical Summary</button><button class="btn-generate" onclick="savePatient()" style="background: linear-gradient(135deg, #27ae60, #1e8449);">💾 Save Patient Record</button></div>
-            <div class="form-section" id="summarySection" style="display:none;"><h3>📄 Clinical Summary</h3><div class="clinical-summary" id="clinicalSummary"></div><button class="btn-generate" onclick="copyToClipboard()" style="background: linear-gradient(135deg, #3498db, #2980b9); margin-top: 10px;">📋 Copy to Clipboard</button></div>
+            <div class="summary-actions"><button class="btn-generate" onclick="generateClinicalSummary()">Generate Clinical Summary + Ward Round Format</button><button class="btn-generate" onclick="savePatient()" style="background: linear-gradient(135deg, #27ae60, #1e8449);">Save Patient Record</button></div>
+            <div class="form-section" id="summarySection" style="display:none;">
+                <h3>Clinical Summary & Ward Round Presentation</h3>
+                <div class="summary-tabs">
+                    <div class="summary-document">
+                        <h4>Complete Clinical Summary</h4>
+                        <div class="clinical-summary" id="clinicalSummary"></div>
+                        <button class="btn-generate" onclick="copyToClipboard('clinicalSummary')" style="background: linear-gradient(135deg, #3498db, #2980b9); margin-top: 10px;">Copy Clinical Summary</button>
+                    </div>
+                    <div class="summary-document ward-round-card">
+                        <h4>Ward Round Case Presentation</h4>
+                        <div class="clinical-summary" id="wardRoundSummary"></div>
+                        <button class="btn-generate" onclick="copyToClipboard('wardRoundSummary')" style="background: linear-gradient(135deg, #2a9d8f, #1e7d5a); margin-top: 10px;">Copy Ward Round Format</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Right Panel: Guidance -->
@@ -1115,7 +1233,7 @@
     </div>
 
     <!-- Patient Records Panel -->
-    <div style="max-width:1600px; margin: 25px auto; padding: 0 20px;"><div class="records-panel"><div class="records-header"><h2>🗂️ Saved Patient Records</h2><div class="records-actions"><button class="btn-record btn-new" onclick="newPatient()">➕ New Patient</button><button class="btn-record btn-save" onclick="savePatient()">💾 Save Current</button><button class="btn-record btn-export" onclick="exportRecords()">⬇️ Export JSON</button><label class="btn-record btn-import" style="margin:0; display:inline-block;">📂 Import JSON<input type="file" accept=".json" onchange="importRecords(event)" style="display:none;"></label></div></div><div class="records-body"><input class="records-search" type="text" id="recordSearch" placeholder="🔍 Search by patient name, complaint, or date..." oninput="renderRecords()"><div id="recordsList"></div></div></div></div>
+    <div style="max-width:1600px; margin: 25px auto; padding: 0 20px;"><div class="records-panel"><div class="records-header"><h2>🗂️ Saved Patient Records</h2><div class="records-actions"><button class="btn-record btn-new" onclick="newPatient()">➕ New Patient</button><button class="btn-record btn-save" onclick="savePatient()">💾 Save Current</button><button class="btn-record btn-export" onclick="exportRecords()">⬇️ Download Backup</button><label class="btn-record btn-import" style="margin:0; display:inline-block;">📂 Restore Backup<input type="file" accept=".json" onchange="importRecords(event)" style="display:none;"></label></div></div><div class="records-body"><input class="records-search" type="text" id="recordSearch" placeholder="🔍 Search by patient name, complaint, or date..." oninput="renderRecords()"><div id="recordsList"></div></div></div></div>
 
     <div class="save-toast" id="saveToast">✅ Patient record saved!</div>
     <div class="floating-tip" onclick="showTip()">💡 Tip: Use SOCRATES only for pain!</div>
@@ -1470,9 +1588,322 @@ function refreshROSCardState(key) {
         function loadPatient(id) { const record = getRecords().find(r => r.id === id); if (!record) return; if (!confirm(`Load ${record.name}?`)) return; restoreFormData(record.formData); if (record.summary) { document.getElementById('clinicalSummary').innerHTML = record.summary; document.getElementById('summarySection').style.display = 'block'; } updateProgress(); window.scrollTo(0, 0); showToast(`📂 Loaded ${record.name}`, '#2471a3'); }
         function deletePatient(id) { if (!confirm('Delete record?')) return; saveRecords(getRecords().filter(r => r.id !== id)); renderRecords(); showToast('🗑️ Deleted', '#e53e3e'); }
         function exportRecords() { const records = getRecords(); if (!records.length) { showToast('No records', '#e67e22'); return; } const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `easemed_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href); showToast('⬇️ Exported', '#8e44ad'); }
-        function importRecords(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = e => { try { const imported = JSON.parse(e.target.result); if (!Array.isArray(imported)) throw new Error(); const existing = getRecords(); const merged = [...existing]; let added = 0; imported.forEach(r => { if (!existing.some(e => e.id === r.id)) { merged.push(r); added++; } }); merged.sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt)); saveRecords(merged); renderRecords(); showToast(`📂 Imported ${added} records`, '#27ae60'); } catch(err) { showToast('❌ Invalid JSON', '#e53e3e'); } }; reader.readAsText(file); event.target.value = ''; }
+        function importRecords(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = e => { try { const imported = JSON.parse(e.target.result); if (!Array.isArray(imported)) throw new Error(); const existing = getRecords(); const merged = [...existing]; let added = 0; imported.forEach(r => { if (!existing.some(e => e.id === r.id)) { merged.push(r); added++; } }); merged.sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt)); saveRecords(merged); renderRecords(); showToast(`📂 Backup restored: ${added} records added`, '#27ae60'); } catch(err) { showToast('❌ Could not read backup file', '#e53e3e'); } }; reader.readAsText(file); event.target.value = ''; }
         function renderRecords() { const records = getRecords(); const query = (document.getElementById('recordSearch')?.value || '').toLowerCase(); const user = localStorage.getItem('easemed_user') || ''; const filtered = records.filter(r => r.user === user && (!query || r.name.toLowerCase().includes(query) || (r.complaint || '').toLowerCase().includes(query))); const container = document.getElementById('recordsList'); if (!filtered.length) { container.innerHTML = `<div class="records-empty">${records.length ? '🔍 No match' : '📭 No saved records'}</div>`; return; } container.innerHTML = filtered.map(r => `<div class="patient-card"><div class="patient-card-info"><div class="patient-card-name">👤 ${r.name}</div><div class="patient-card-meta">${r.age ? r.age+' yrs' : ''} · ${r.gender || ''} · ${new Date(r.savedAt).toLocaleString()}</div></div><div class="patient-card-btns"><button class="btn-card btn-load" onclick="loadPatient(${r.id})">📂 Load</button><button class="btn-card btn-delete" onclick="deletePatient(${r.id})">🗑️ Delete</button></div></div>`).join(''); }
         function showToast(msg, color) { const toast = document.getElementById('saveToast'); toast.textContent = msg; toast.style.background = color; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2500); }
+
+        // Polished clinical summary and ward-round presentation output.
+        function fieldValue(id, fallback = 'Not provided') {
+            const el = document.getElementById(id);
+            const value = el ? String(el.value || '').trim() : '';
+            return value || fallback;
+        }
+
+        function escapeHTML(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function formatParagraph(value) {
+            return escapeHTML(value || 'Not documented').replace(/\n/g, '<br>');
+        }
+
+        function summaryField(label, value) {
+            return `<div class="summary-field"><span>${label}</span>${escapeHTML(value)}</div>`;
+        }
+
+        function summaryBlock(title, body) {
+            return `<div class="summary-section-block"><h5>${title}</h5>${body}</div>`;
+        }
+
+        function getSelectedChecklistText(key) {
+            return Array.from(document.querySelectorAll(`#checklist-${key} input[type="checkbox"]:checked`))
+                .map(input => input.nextElementSibling ? input.nextElementSibling.textContent.trim() : '')
+                .filter(Boolean);
+        }
+
+        function getROSFindings() {
+            return Object.entries(reviewOfSystems).map(([key, data]) => {
+                const selected = getSelectedChecklistText(key);
+                const narrative = fieldValue(`ros_${key}`, '').trim();
+                const findings = [...selected, narrative].filter(Boolean).join('; ') || 'No findings documented';
+                return { key, name: data.name, chapter: data.chapter, hint: data.hint, findings };
+            });
+        }
+
+        function getPresentingComplaintResponses() {
+            const guide = symptomGuides[currentSymptom];
+            if (!guide || !guide.questions) return [];
+            return guide.questions.map((item, index) => {
+                const response = fieldValue(`pc_q${index}`, '');
+                return response ? `${item.q} ${response}` : '';
+            }).filter(Boolean);
+        }
+
+        function getHIVSummaryItems() {
+            const status = fieldValue('hivStatus', '');
+            if (!status) return ['HIV status not documented'];
+
+            const items = [
+                `Status: ${fieldValue('hivStatus')}`,
+                `Diagnosis date: ${fieldValue('hivDiagnosisDate')}`,
+                `Diagnosis method: ${fieldValue('hivDiagnosisMethod')}`,
+                `WHO stage: ${fieldValue('hivWhoStage')}`,
+                `On ART: ${fieldValue('hivOnArt')}`,
+                `ART start date: ${fieldValue('hivArtStartDate')}`,
+                `Current regimen: ${fieldValue('hivArtRegimen')}`,
+                `Adherence: ${fieldValue('hivAdherence')}`,
+                `Missed doses last month: ${fieldValue('hivMissedDoses')}`,
+                `Adherence barriers: ${fieldValue('hivAdherenceBarriers')}`,
+                `CD4: ${fieldValue('hivCd4')} (${fieldValue('hivCd4Date')})`,
+                `Viral load: ${fieldValue('hivViralLoad')} (${fieldValue('hivVlDate')})`,
+                `IPT: ${fieldValue('hivIpt')}`,
+                `CPT: ${fieldValue('hivCpt')}`,
+                `Partner/family HIV status: ${fieldValue('hivPartnerStatus')}`
+            ];
+
+            const opportunisticInfections = Array.from(document.querySelectorAll('#hivDetails input[type="checkbox"]:checked'))
+                .map(input => input.value)
+                .filter(Boolean);
+            items.push(`Opportunistic infections: ${opportunisticInfections.length ? opportunisticInfections.join(', ') : 'None selected'}`);
+            return items;
+        }
+
+        function collectPatientSummaryData() {
+            const referralStatus = fieldValue('referralStatus');
+            const referralFrom = fieldValue('referralFrom', '');
+            const referralReason = fieldValue('referralReason', '');
+            const referralText = referralStatus !== 'Self-referred' && (referralFrom || referralReason)
+                ? `${referralStatus}; from ${referralFrom || 'not specified'}; reason: ${referralReason || 'not specified'}`
+                : referralStatus;
+
+            return {
+                generatedAt: new Date().toLocaleString(),
+                fullName: fieldValue('fullName'),
+                age: fieldValue('age'),
+                gender: fieldValue('gender'),
+                maritalStatus: fieldValue('maritalStatus'),
+                occupation: fieldValue('occupation'),
+                religion: fieldValue('religion'),
+                tribe: fieldValue('tribe'),
+                address: fieldValue('address'),
+                nextOfKin: fieldValue('nextOfKin'),
+                nearestHealthCentre: fieldValue('nearestHealthCentre'),
+                referralText,
+                mainSymptom: currentSymptom || fieldValue('customSymptom', 'Not specified'),
+                complaintResponses: getPresentingComplaintResponses(),
+                hpc: fieldValue('hpc', 'Not documented'),
+                pmh: fieldValue('pmh', 'None reported'),
+                medications: fieldValue('medications', 'None documented'),
+                allergies: fieldValue('allergies', 'None documented'),
+                hivItems: getHIVSummaryItems(),
+                ros: getROSFindings(),
+                social: fieldValue('social', 'Not documented'),
+                familyHistory: fieldValue('familyHistory', 'Not documented')
+            };
+        }
+
+        function buildClinicalSummaryHTML(data) {
+            const complaintDetails = data.complaintResponses.length
+                ? `<ul class="summary-list">${data.complaintResponses.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>`
+                : 'No structured presenting-complaint responses documented';
+            const rosList = `<ul class="summary-list">${data.ros.map(item => `<li><strong>${escapeHTML(item.name)}:</strong> ${escapeHTML(item.findings)}</li>`).join('')}</ul>`;
+            const hivList = `<ul class="summary-list">${data.hivItems.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>`;
+
+            return `
+                <div class="summary-banner">
+                    <strong>EaseMed Clinical Summary</strong>
+                    Generated ${escapeHTML(data.generatedAt)}
+                </div>
+                <div class="summary-grid">
+                    ${summaryField('Name', data.fullName)}
+                    ${summaryField('Age', data.age)}
+                    ${summaryField('Sex', data.gender)}
+                    ${summaryField('Marital Status', data.maritalStatus)}
+                    ${summaryField('Occupation', data.occupation)}
+                    ${summaryField('Religion', data.religion)}
+                    ${summaryField('Tribe/Ethnicity', data.tribe)}
+                    ${summaryField('Address', data.address)}
+                    ${summaryField('Next of Kin', data.nextOfKin)}
+                    ${summaryField('Nearest Health Centre', data.nearestHealthCentre)}
+                    ${summaryField('Referral', data.referralText)}
+                    ${summaryField('Main Symptom', data.mainSymptom)}
+                </div>
+                ${summaryBlock('Presenting Complaint Details', complaintDetails)}
+                ${summaryBlock('History of Presenting Complaint', formatParagraph(data.hpc))}
+                ${summaryBlock('Past Medical History', formatParagraph(data.pmh))}
+                ${summaryBlock('Medications and Allergies', `<strong>Current medications:</strong><br>${formatParagraph(data.medications)}<br><br><strong>Allergies:</strong><br>${formatParagraph(data.allergies)}`)}
+                ${summaryBlock('HIV History', hivList)}
+                ${summaryBlock('Review of Systems', rosList)}
+                ${summaryBlock('Social History', formatParagraph(data.social))}
+                ${summaryBlock('Family History', formatParagraph(data.familyHistory))}
+                <div style="margin-top:12px; color:#718096; font-style:italic;">Based on Hutchison's Clinical Methods, 25th Edition.</div>
+            `;
+        }
+
+        function buildWardRoundHTML(data) {
+            const keyRos = data.ros
+                .filter(item => item.findings !== 'No findings documented')
+                .map(item => `${item.name}: ${item.findings}`);
+            const wardItems = [
+                `<strong>Opening:</strong> ${escapeHTML(data.fullName)}, a ${escapeHTML(data.age)}-year-old ${escapeHTML(data.gender)}, ${escapeHTML(data.maritalStatus)}, ${escapeHTML(data.occupation)}, from ${escapeHTML(data.address)}.`,
+                `<strong>Admission/referral:</strong> ${escapeHTML(data.referralText)}. Nearest health centre: ${escapeHTML(data.nearestHealthCentre)}.`,
+                `<strong>Presenting complaint:</strong> ${escapeHTML(data.mainSymptom)}.`,
+                `<strong>History of presenting complaint:</strong><br>${formatParagraph(data.hpc)}`,
+                `<strong>Relevant past history:</strong><br>${formatParagraph(data.pmh)}`,
+                `<strong>Current medication/allergies:</strong><br>Medications: ${formatParagraph(data.medications)}<br>Allergies: ${formatParagraph(data.allergies)}`,
+                `<strong>HIV history:</strong><br><ul class="summary-list">${data.hivItems.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>`,
+                `<strong>Review of systems:</strong><br>${keyRos.length ? `<ul class="summary-list">${keyRos.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>` : 'No significant ROS findings documented.'}`,
+                `<strong>Social/family history:</strong><br>Social: ${formatParagraph(data.social)}<br>Family: ${formatParagraph(data.familyHistory)}`,
+                `<strong>Assessment / working diagnosis:</strong> To be completed by clinician.`,
+                `<strong>Ward round plan:</strong> To be completed by clinician.`
+            ];
+
+            return `
+                <div class="summary-banner">
+                    <strong>Ward Round Case Presentation</strong>
+                    Prepared ${escapeHTML(data.generatedAt)}
+                </div>
+                <ol class="summary-list">${wardItems.map(item => `<li>${item}</li>`).join('')}</ol>
+            `;
+        }
+
+        function generateClinicalSummary() {
+            const data = collectPatientSummaryData();
+            document.getElementById('clinicalSummary').innerHTML = buildClinicalSummaryHTML(data);
+            document.getElementById('wardRoundSummary').innerHTML = buildWardRoundHTML(data);
+            document.getElementById('summarySection').style.display = 'block';
+            document.getElementById('summarySection').scrollIntoView({ behavior: 'smooth' });
+            updateProgress();
+        }
+
+        function copyToClipboard(sectionId = 'clinicalSummary') {
+            const target = document.getElementById(sectionId);
+            if (!target) return;
+            navigator.clipboard.writeText(target.innerText);
+            showToast('Copied to clipboard', '#3498db');
+        }
+
+        function captureFormData() {
+            const data = {};
+            document.querySelectorAll('input[id], textarea[id], select[id]').forEach(el => {
+                data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+            });
+            data._currentSymptom = currentSymptom || '';
+            data._rosData = rosData || {};
+            return data;
+        }
+
+        function restoreFormData(data) {
+            Object.entries(data || {}).forEach(([id, val]) => {
+                if (id.startsWith('_')) return;
+                const el = document.getElementById(id);
+                if (el) {
+                    if (el.type === 'checkbox') el.checked = val;
+                    else el.value = val;
+                }
+            });
+            currentSymptom = data?._currentSymptom || currentSymptom || '';
+            rosData = data?._rosData || rosData || {};
+            toggleReferralDetails();
+            if (typeof toggleARTDetails === 'function') toggleARTDetails();
+            Object.keys(reviewOfSystems).forEach(key => refreshROSCardState(key));
+            if (data?.referralStatus && data.referralStatus !== 'Self-referred') document.getElementById('referralDetails').style.display = 'block';
+        }
+
+        function savePatient() {
+            const name = (document.getElementById('fullName').value || '').trim();
+            if (!name) { showToast('Enter patient name', '#e67e22'); return; }
+            if (!document.getElementById('clinicalSummary').innerHTML.trim()) generateClinicalSummary();
+            const records = getRecords();
+            const user = localStorage.getItem('easemed_user') || 'unknown';
+            const existingIdx = records.findIndex(r => r.name.toLowerCase() === name.toLowerCase() && r.user === user);
+            const record = {
+                id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
+                savedAt: new Date().toISOString(),
+                user,
+                name,
+                age: document.getElementById('age').value,
+                gender: document.getElementById('gender').value,
+                complaint: currentSymptom,
+                summary: document.getElementById('clinicalSummary').innerHTML,
+                wardRound: document.getElementById('wardRoundSummary').innerHTML,
+                formData: captureFormData()
+            };
+            if (existingIdx >= 0) records[existingIdx] = record; else records.unshift(record);
+            saveRecords(records);
+            renderRecords();
+            showToast('Record saved', '#27ae60');
+        }
+
+        function newPatient() {
+            if (!confirm('Clear form?')) return;
+            document.querySelectorAll('input[id], textarea[id]').forEach(el => { if (el.type === 'checkbox') el.checked = false; else el.value = ''; });
+            document.querySelectorAll('select[id]').forEach(el => el.selectedIndex = 0);
+            document.getElementById('clinicalSummary').innerHTML = '';
+            document.getElementById('wardRoundSummary').innerHTML = '';
+            document.getElementById('summarySection').style.display = 'none';
+            toggleReferralDetails();
+            updateProgress();
+            showToast('New patient form ready', '#2471a3');
+        }
+
+        function loadPatient(id) {
+            const record = getRecords().find(r => r.id === id);
+            if (!record) return;
+            if (!confirm(`Load ${record.name}?`)) return;
+            restoreFormData(record.formData);
+            if (record.summary) {
+                document.getElementById('clinicalSummary').innerHTML = record.summary;
+                document.getElementById('wardRoundSummary').innerHTML = record.wardRound || '';
+                document.getElementById('summarySection').style.display = 'block';
+            }
+            updateProgress();
+            window.scrollTo(0, 0);
+            showToast(`Loaded ${record.name}`, '#2471a3');
+        }
+
+        function exportRecords() {
+            const records = getRecords();
+            if (!records.length) { showToast('No records to download', '#e67e22'); return; }
+            const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `easemed_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showToast('Backup downloaded', '#8e44ad');
+        }
+
+        function importRecords(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (!Array.isArray(imported)) throw new Error();
+                    const existing = getRecords();
+                    const merged = [...existing];
+                    let added = 0;
+                    imported.forEach(r => {
+                        if (!existing.some(e => e.id === r.id)) { merged.push(r); added++; }
+                    });
+                    merged.sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt));
+                    saveRecords(merged);
+                    renderRecords();
+                    showToast(`Backup restored: ${added} records added`, '#27ae60');
+                } catch(err) {
+                    showToast('Could not read backup file', '#e53e3e');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
 
         // Supabase auth (unchanged)
         const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
