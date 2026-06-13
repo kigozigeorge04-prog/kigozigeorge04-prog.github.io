@@ -14,9 +14,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="EaseMed Clinical Clerk System — comprehensive patient history taking guide">
 
-    <!-- Supabase JS SDK — loaded in <head> so authCheck() runs immediately on DOMContentLoaded -->
+    <!-- Supabase JS SDK — loaded early so auth check runs immediately -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
         * {
             margin: 0;
@@ -1541,7 +1540,7 @@
             });
         }
 
-        // ── Initialize UI (non-auth parts run immediately) ───────────
+        // Initialize
         buildROS();
         updateProgress();
 
@@ -1797,49 +1796,13 @@
             setTimeout(() => toast.classList.remove('show'), 2800);
         }
 
-        // ── AUTH GUARD (Supabase) ───────────────────────────────────
-        // SDK is already in <head> so it's available immediately.
-        // We show a branded loading overlay right away so the user
-        // never sees a frozen or partially-rendered page.
-        // localStorage is set BEFORE renderRecords() so record
-        // filtering works correctly from the first call.
-        // ────────────────────────────────────────────────────────────
+        // ── AUTH GUARD (Supabase) ───────────────────────────────
+        // SDK is already loaded in <head>, so we can run this immediately.
+        // If there is no valid session, the user is sent back to login.
         const SUPABASE_URL  = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
         (async function authCheck() {
-
-            // ── Step 1: Show branded loading overlay immediately ──────
-            const overlay = document.createElement('div');
-            overlay.id = 'authOverlay';
-            overlay.style.cssText = `
-                position:fixed; inset:0; z-index:99999;
-                background:rgba(15,32,39,0.97);
-                display:flex; flex-direction:column;
-                align-items:center; justify-content:center;
-                font-family:'Segoe UI',sans-serif; color:white;
-                transition: opacity 0.3s ease;
-            `;
-            overlay.innerHTML = `
-                <div style="font-size:3.5rem; margin-bottom:18px; animation:hb 1.5s ease-in-out infinite; display:inline-block;">🩺</div>
-                <div style="font-size:1.3rem; font-weight:700; letter-spacing:1px; margin-bottom:6px;">EaseMed</div>
-                <div style="font-size:0.82rem; opacity:0.55; margin-bottom:28px;">Clinical Clerk System</div>
-                <div style="
-                    width:42px; height:42px;
-                    border:3px solid rgba(255,255,255,0.15);
-                    border-top-color:#90cdf4;
-                    border-radius:50%;
-                    animation:spin 0.75s linear infinite;">
-                </div>
-                <div style="margin-top:20px; font-size:0.78rem; opacity:0.4;">Verifying your session...</div>
-                <style>
-                    @keyframes spin { to { transform: rotate(360deg); } }
-                    @keyframes hb   { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.15); } }
-                </style>
-            `;
-            document.body.appendChild(overlay);
-
-            // ── Step 2: Check Supabase session ────────────────────────
             try {
                 const { createClient } = supabase;
                 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -1847,12 +1810,12 @@
                 const { data: { session } } = await sb.auth.getSession();
 
                 if (!session) {
-                    // No valid session — go back to login
+                    // No valid session — send back to login immediately
                     window.location.href = 'easemed_login.html';
                     return;
                 }
 
-                // ── Step 3: Session confirmed — populate UI ───────────
+                // ✅ Session valid — populate the top bar greeting
                 const user = session.user;
                 const displayName =
                     user.user_metadata?.full_name ||
@@ -1860,35 +1823,31 @@
                     localStorage.getItem('easemed_user_name') ||
                     user.email;
 
-                // CRITICAL: set localStorage BEFORE calling renderRecords()
-                // so the user-email filter inside renderRecords() works correctly
-                localStorage.setItem('easemed_user',      user.email);
-                localStorage.setItem('easemed_user_name', displayName);
-
-                // Show greeting in the top bar
                 const greeting = document.getElementById('userGreeting');
                 if (greeting) greeting.textContent = '👤 ' + displayName;
 
-                // Now safe to render records with the correct user email
+                // Keep localStorage in sync for records filtering
+                localStorage.setItem('easemed_user',      user.email);
+                localStorage.setItem('easemed_user_name', displayName);
+
+                // Safe to render records now that we know the user
                 renderRecords();
 
-                // Expose sb so the logout button can sign out properly
+                // Expose sb for the logout button
                 window._sb = sb;
 
-                // ── Step 4: Fade out overlay smoothly ─────────────────
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.remove(), 320);
-
             } catch (err) {
-                console.error('[EaseMed] Auth check error:', err);
+                console.error('[EaseMed] Auth check failed:', err);
                 window.location.href = 'easemed_login.html';
             }
         })();
 
-        // ── LOGOUT ──────────────────────────────────────────────────
+        // ── LOGOUT (Supabase) ───────────────────────────────────
         async function handleLogout() {
             if (!confirm('Are you sure you want to log out?')) return;
-            if (window._sb) await window._sb.auth.signOut();
+            if (window._sb) {
+                await window._sb.auth.signOut();
+            }
             localStorage.removeItem('easemed_user');
             localStorage.removeItem('easemed_user_name');
             window.location.href = 'easemed_login.html';
