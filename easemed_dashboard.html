@@ -720,13 +720,13 @@
                 </div>
             </div>
 
-            <!-- Guided Review of Systems - ENHANCED with Hutchison's references and detailed guidance -->
+            <!-- Guided Review of Systems - ENHANCED with free-text areas for student to fill -->
             <div class="form-section">
                 <h3>🔄 Review of Systems <span class="stat-card">Hutchison's Ch. 3-5 & system-specific chapters</span></h3>
                 <p style="color: #2c3e50; margin-bottom: 15px; font-size: 14px; background: #e8f4f8; padding: 10px; border-radius: 12px;">
                     💡 <strong>Student Guide:</strong> The Review of Systems (ROS) is a systematic inventory of symptoms across all body systems. 
                     It helps identify potential diagnoses and ensures no important symptom is missed. Based on <strong>Hutchison's Clinical Methods, 25th Edition</strong>, 
-                    each system below includes key questions and clinical hints. Click on any system to expand and document findings.
+                    write a narrative summary of findings for each system below. Click on any system to expand and document your findings.
                 </p>
                 <div id="rosContainer"></div>
             </div>
@@ -776,161 +776,79 @@
         }
 
         // ============================================================
-        // ENHANCED REVIEW OF SYSTEMS with Hutchison's references and detailed guidance
+        // REVIEW OF SYSTEMS - Each system now has a single free-text area
+        // The student writes a narrative summary of findings for that system
         // ============================================================
         const reviewOfSystems = {
             general: {
                 name: "General (Systemic)",
                 icon: "🌡️",
                 chapter: "Hutchison's Ch. 3 (General Examination) & Ch. 10 (Fever)",
-                questions: [
-                    { q: "Any recent unintentional weight loss or weight gain?", hint: "Ask: 'Have your clothes been fitting looser or tighter?' >5% loss in 1 month is significant. Consider malignancy, chronic infection, endocrine disorder." },
-                    { q: "Any fever, chills, or night sweats?", hint: "Ask: 'Do you feel hot or feverish? Do you wake up drenched in sweat?' Night sweats suggest TB, lymphoma, or HIV. Rigors suggest bacteraemia." },
-                    { q: "Any fatigue, malaise, or weakness?", hint: "Ask: 'Do you tire more easily than before? Can you do your usual activities?' Anaemia, chronic disease, depression, or occult infection." },
-                    { q: "Any changes in appetite?", hint: "Ask: 'Has your eating increased or decreased compared to usual?' Anorexia → malignancy, depression. Polyphagia → diabetes, hyperthyroidism." },
-                    { q: "Any sleep disturbances or insomnia?", hint: "Ask: 'Difficulty falling asleep, staying asleep, or waking early?' Stress, depression, pain, respiratory disorders, or nocturia." },
-                    { q: "Any generalized itching (pruritus) without rash?", hint: "Ask: 'Do you have itching anywhere on your body without a skin change?' Liver disease, renal failure, lymphoma, or drug reaction." }
-                ]
+                hint: "Document any weight change, fever/chills/night sweats, fatigue, appetite change, sleep disturbance, or generalized itching."
             },
             cardiovascular: {
                 name: "Cardiovascular System",
                 icon: "❤️",
                 chapter: "Hutchison's Ch. 13 (The Cardiovascular System)",
-                questions: [
-                    { q: "Any chest pain, pressure, tightness, or discomfort?", hint: "Ask: 'Any pain, heaviness, or tightness in your chest?' Use SOCRATES. Differentiate angina (exertional, <15min) from MI (>30min, at rest)." },
-                    { q: "Any palpitations (feeling of racing, irregular, or forceful heartbeat)?", hint: "Ask: 'Do you feel your heart pounding, fluttering, or skipping beats?' Irregular → AF. Sudden onset/offset → SVT. Associated syncope → serious arrhythmia." },
-                    { q: "Any shortness of breath (dyspnoea)?", hint: "Ask: 'Do you get breathless walking up stairs? On exertion? At rest? Lying flat?' NYHA/MRC scale. Orthopnoea → heart failure." },
-                    { q: "Any orthopnoea (breathless when lying flat)?", hint: "Ask: 'How many pillows do you need to sleep comfortably?' >2 pillows suggests significant heart failure." },
-                    { q: "Any paroxysmal nocturnal dyspnoea (waking at night gasping)?", hint: "Ask: 'Do you ever wake up suddenly at night feeling breathless?' Classic for pulmonary oedema due to heart failure." },
-                    { q: "Any ankle, feet, or leg swelling (oedema)?", hint: "Ask: 'Do your shoes feel tight at the end of the day? Does pressing leave a dent?' Pitting oedema → heart failure, renal, hepatic, venous insufficiency." },
-                    { q: "Any dizziness, syncope (fainting), or pre-syncope?", hint: "Ask: 'Have you ever felt like you might pass out or actually fainted?' Consider arrhythmia, valvular disease (aortic stenosis), vasovagal, or orthostatic hypotension." },
-                    { q: "Any intermittent claudication (leg pain on walking)?", hint: "Ask: 'Do your legs hurt when you walk a certain distance? Does it go away with rest?' Peripheral arterial disease. Note the distance (e.g., 100m)." }
-                ]
+                hint: "Document chest pain/discomfort (use SOCRATES if present), palpitations, dyspnoea, orthopnoea, PND, ankle swelling, dizziness/syncope, claudication."
             },
             respiratory: {
                 name: "Respiratory System",
                 icon: "💨",
                 chapter: "Hutchison's Ch. 12 (The Respiratory System)",
-                questions: [
-                    { q: "Any cough?", hint: "Ask: 'Do you cough? Is it dry or productive? If productive, what colour and amount of phlegm?' Acute (<3w) → viral. Chronic (>8w) → asthma, COPD, GERD." },
-                    { q: "Any haemoptysis (coughing up blood)?", hint: "Ask: 'Have you seen any blood in your sputum?' RED FLAG. Causes: TB, bronchiectasis, cancer, PE, or mitral stenosis." },
-                    { q: "Any shortness of breath (dyspnoea)?", hint: "Ask: 'At rest or with activity? How many stairs can you climb?' MRC dyspnoea scale. Differentiate cardiac vs respiratory." },
-                    { q: "Any wheeze or noisy breathing?", hint: "Ask: 'Do you hear a whistling sound when you breathe?' Asthma, COPD, anaphylaxis. Fixed stridor → upper airway obstruction." },
-                    { q: "Any chest pain on breathing (pleuritic pain)?", hint: "Ask: 'Does your chest hurt when you take a deep breath?' Pneumonia, PE, pneumothorax, pericarditis." },
-                    { q: "Any sputum production?", hint: "Ask: 'Do you bring up phlegm? What color, consistency, and amount? Any blood?' Purulent → infection. Copious → bronchiectasis." },
-                    { q: "Any TB contact or history of TB treatment?", hint: "Ask: 'Have you been in contact with anyone with TB? Ever been treated for TB?' Important in endemic areas or immunocompromised." }
-                ]
+                hint: "Document cough (duration, productive/non-productive, sputum colour/amount), haemoptysis, dyspnoea (severity, MRC grade), wheeze, pleuritic chest pain, TB contact."
             },
             gastrointestinal: {
                 name: "Gastrointestinal System",
                 icon: "🍽️",
                 chapter: "Hutchison's Ch. 15 (The Gastrointestinal System)",
-                questions: [
-                    { q: "Any abdominal pain?", hint: "Ask: 'Where is the pain? Use SOCRATES. Does it wake you at night?' Surgical abdomen pain is constant and progressive." },
-                    { q: "Any nausea or vomiting?", hint: "Ask: 'Do you feel sick? What provokes vomiting? What does the vomit look like? Any blood or coffee-ground material?' Haematemesis → upper GI bleed." },
-                    { q: "Any change in bowel habits?", hint: "Ask: 'Constipation or diarrhoea? How often? Any blood, mucus, or fat in the stool?' Blood + mucus → IBD or infection. Steatorrhoea → malabsorption." },
-                    { q: "Any dysphagia (difficulty swallowing)?", hint: "Ask: 'Do you have trouble swallowing? To solids or liquids first?' RED FLAG. Solids first → mechanical obstruction. Both → neuromuscular (achalasia)." },
-                    { q: "Any heartburn (pyrosis) or acid regurgitation?", hint: "Ask: 'Burning sensation in chest after meals? Worse lying down?' GERD. Alarm features: dysphagia, weight loss, haematemesis." },
-                    { q: "Any haematemesis (vomiting blood) or melaena (black tarry stool)?", hint: "Ask: 'Have you vomited blood or had black, sticky stools?' RED FLAG. Upper GI bleeding. Melaena = blood digested, from above ligament of Treitz." },
-                    { q: "Any jaundice (yellow discoloration of skin/eyes)?", hint: "Ask: 'Have you noticed yellowing of your eyes or dark urine?' Hepatocellular, obstructive, or haemolytic cause. Ask about risk factors (alcohol, drugs, travel)." }
-                ]
+                hint: "Document abdominal pain (SOCRATES), nausea/vomiting (content, haematemesis), change in bowel habits (diarrhoea/constipation, blood/mucus), dysphagia, heartburn, jaundice."
             },
             genitourinary: {
                 name: "Genitourinary System",
                 icon: "💧",
                 chapter: "Hutchison's Ch. 17 (The Genitourinary System)",
-                questions: [
-                    { q: "Any dysuria (pain or burning on urination)?", hint: "Ask: 'Does it hurt when you pass urine?' UTI, urethritis, or interstitial cystitis." },
-                    { q: "Any frequency, urgency, or nocturia?", hint: "Ask: 'How often do you urinate during the day? Do you wake at night to pass urine?' Frequency + dysuria → UTI. Nocturia → BPH, diabetes, heart failure." },
-                    { q: "Any haematuria (blood in urine)?", hint: "Ask: 'Have you noticed pink, red, or dark urine?' RED FLAG. Glomerular disease, infection, stones, or malignancy." },
-                    { q: "Any hesitancy, poor stream, terminal dribbling?", hint: "Ask: 'Do you have difficulty starting urination? Is your stream weak?' (Men) Prostate enlargement or urethral stricture." },
-                    { q: "Any incontinence (urine leakage)?", hint: "Ask: 'Do you ever leak urine when you cough, sneeze, or laugh?' Stress incontinence (women) or urge incontinence." },
-                    { q: "Any flank pain or loin pain?", hint: "Ask: 'Pain in your sides or lower back?' Consider renal stones (severe colic), pyelonephritis (fever, dysuria)." },
-                    { q: "For women: Any vaginal discharge, bleeding, or pruritus?", hint: "Ask: 'Any abnormal discharge, bleeding between periods, or after menopause?' STI, candidiasis, malignancy." },
-                    { q: "For men: Any testicular pain, swelling, or lumps?", hint: "Ask: 'Any pain or swelling in your testicles?' Torsion (acute surgical emergency), epididymitis, tumour." }
-                ]
+                hint: "Document dysuria, frequency/urgency/nocturia, haematuria, hesitancy/poor stream (men), incontinence, flank pain, and for women: vaginal discharge/bleeding, for men: testicular pain/swelling."
             },
             neurological: {
                 name: "Nervous System",
                 icon: "🧠",
                 chapter: "Hutchison's Ch. 19 (The Nervous System)",
-                questions: [
-                    { q: "Any headaches?", hint: "Ask: 'Location, character (throbbing/pressure), severity, timing, aura, nausea, photophobia?' Tension, migraine, cluster, or sinister causes (SAH, meningitis)." },
-                    { q: "Any dizziness or vertigo?", hint: "Ask: 'Room spinning sensation (vertigo) or feeling lightheaded?' Vertigo → vestibular. Lightheadedness → cardiac or orthostatic." },
-                    { q: "Any weakness or paralysis?", hint: "Ask: 'Sudden or gradual? Which limbs? Face, arm, or leg?' RED FLAG for stroke. Hemiparesis, facial droop, dysarthria." },
-                    { q: "Any sensory changes (numbness, tingling, paraesthesia)?", hint: "Ask: 'Any pins and needles, numbness, or altered sensation?' Peripheral neuropathy (diabetes, B12 deficiency) or spinal cord lesion." },
-                    { q: "Any seizures, fits, or blackouts?", hint: "Ask: 'Ever had a seizure? What happens? Bitten tongue? Lost bladder control?' Epilepsy, syncope, psychogenic. Post-ictal confusion suggests seizure." },
-                    { q: "Any tremor or involuntary movements?", hint: "Ask: 'Any shaking? At rest or with action?' Rest tremor → Parkinson's. Intention tremor → cerebellar." },
-                    { q: "Any visual disturbances?", hint: "Ask: 'Blurred, double, or loss of vision? Sudden or gradual?' Amaurosis fugax (TIA), diabetic retinopathy, glaucoma, optic neuritis." },
-                    { q: "Any hearing loss or tinnitus?", hint: "Ask: 'Any difficulty hearing? Ringing in the ears?' Conductive vs sensorineural. Tinnitus + vertigo → Meniere's." },
-                    { q: "Any speech or swallowing difficulties?", hint: "Ask: 'Slurred speech? Difficulty swallowing (dysphagia)?' Dysarthria (motor) vs aphasia (language). Dysphagia + regurgitation → neurological cause." }
-                ]
+                hint: "Document headaches (SOCRATES), dizziness/vertigo, weakness/paralysis, sensory changes, seizures, tremor, visual disturbances, hearing loss/tinnitus, speech/swallowing difficulties."
             },
             musculoskeletal: {
                 name: "Musculoskeletal System",
                 icon: "🦴",
                 chapter: "Hutchison's Ch. 20 (The Musculoskeletal System)",
-                questions: [
-                    { q: "Any joint pain (arthralgia) or joint swelling (arthritis)?", hint: "Ask: 'Which joints? Symmetrical? Morning stiffness >30 minutes?' Inflammatory (RA, psoriasis) vs mechanical (OA)." },
-                    { q: "Any back or neck pain?", hint: "Ask: 'Does it radiate down legs/arms? Any numbness or weakness?' Radicular pain suggests disc herniation. Cauda equina: urinary retention, saddle anaesthesia." },
-                    { q: "Any muscle pain (myalgia) or muscle weakness?", hint: "Ask: 'Difficulty getting up from chair? Combing hair? Climbing stairs?' Proximal weakness → myopathy, steroid use, polymyositis." },
-                    { q: "Any joint stiffness, especially in the morning?", hint: "Ask: 'How long does the morning stiffness last? Minutes or hours?' Prolonged >30 min → inflammatory arthritis." },
-                    { q: "Any limitation of movement?", hint: "Ask: 'Can you fully move all your joints? Any difficulty with daily activities?' Frozen shoulder, contractures, neurological." },
-                    { q: "Any history of fractures or trauma?", hint: "Ask: 'Ever broken a bone? From minor injury?' (Consider osteoporosis, myeloma, metastatic cancer)." }
-                ]
+                hint: "Document joint pain/swelling (which joints, symmetry, morning stiffness), back/neck pain (radiation, numbness), muscle pain/weakness, limitation of movement, history of fractures."
             },
             endocrine: {
                 name: "Endocrine System",
                 icon: "🦋",
                 chapter: "Hutchison's Ch. 16 (The Endocrine System)",
-                questions: [
-                    { q: "Any polydipsia (excessive thirst) or polyuria (excessive urination)?", hint: "Ask: 'Drinking more water than usual? Waking at night to pass urine?' (Diabetes mellitus or insipidus)." },
-                    { q: "Any heat or cold intolerance?", hint: "Ask: 'Always feeling hot when others are cold? Or always cold?' (Thyroid dysfunction: heat → hyperthyroidism, cold → hypothyroidism)." },
-                    { q: "Any change in skin or hair texture?", hint: "Ask: 'Dry skin? Hair thinning? Excessive sweating? Hirsutism?' Hypothyroidism (dry skin, hair loss), hyperthyroidism (sweating), Cushing's (hirsutism)." },
-                    { q: "Any goitre (neck swelling) or thyroid symptoms?", hint: "Ask: 'Any swelling in the front of your neck? Hoarseness?' Goitre, thyroid nodule, or malignancy." },
-                    { q: "Any weight changes despite normal appetite?", hint: "Ask: 'Gaining or losing weight without trying?' Unexplained weight loss → hyperthyroidism, diabetes, malignancy." }
-                ]
+                hint: "Document polydipsia/polyuria, heat/cold intolerance, skin/hair changes, goitre/neck swelling, unexplained weight changes."
             },
             psychiatric: {
                 name: "Psychiatric History",
                 icon: "🧠",
                 chapter: "Hutchison's Ch. 5 (Psychiatric History)",
-                questions: [
-                    { q: "Any low mood, depression, or anhedonia?", hint: "Ask: 'Feeling sad, empty, or hopeless? Lost interest in activities you used to enjoy?' Core symptoms of major depression." },
-                    { q: "Any anxiety, panic attacks, or excessive worry?", hint: "Ask: 'Feeling nervous, anxious, or on edge? Racing heart, sweating, fear of losing control?' Generalised anxiety, panic disorder." },
-                    { q: "Any sleep disturbances?", hint: "Ask: 'Difficulty falling asleep? Waking early? Sleeping too much?' Insomnia (depression, anxiety) or hypersomnia (atypical depression)." },
-                    { q: "Any changes in appetite or weight?", hint: "Ask: 'Eating much less or more than usual? Significant weight change?' Decreased appetite → depression; increased → atypical depression or binge eating." },
-                    { q: "Any thoughts of harming self or others?", hint: "Ask: 'Have you ever felt life wasn't worth living? Any thoughts of suicide?' SAFETY FIRST. Ask directly and non-judgementally." },
-                    { q: "Any hallucinations or delusions?", hint: "Ask: 'Do you see or hear things that others don't? Have beliefs that others find unusual?' Psychosis (schizophrenia, bipolar, organic)." }
-                ]
+                hint: "Document low mood/anhedonia, anxiety/panic, sleep disturbance, appetite/weight changes, thoughts of self-harm, hallucinations/delusions."
             },
             dermatological: {
                 name: "Skin System",
                 icon: "🩹",
                 chapter: "Hutchison's Ch. 21 (The Skin)",
-                questions: [
-                    { q: "Any skin rashes or lesions?", hint: "Ask: 'Where? When did it start? How long? Any itching? What does it look like?' Morphology (macule, papule, vesicle, pustule, plaque) guides diagnosis." },
-                    { q: "Any change in moles or pigmented lesions?", hint: "Ask: 'Any mole that has changed size, shape, or color? Bleeding or itching?' ABCDE of melanoma: Asymmetry, Border, Colour, Diameter, Evolution." },
-                    { q: "Any excessive itching (pruritus) without rash?", hint: "Ask: 'Widespread itching without skin changes?' (Consider liver disease, renal failure, lymphoma, thyroid disease, or drugs)." },
-                    { q: "Any hair loss (alopecia) or nail changes?", hint: "Ask: 'Thinning hair? Brittle nails? Pitting or discoloration of nails?' Alopecia areata, telogen effluvium, fungal infection, psoriasis." },
-                    { q: "Any easy bruising or bleeding?", hint: "Ask: 'Bruising from minor bumps? Prolonged bleeding from cuts?' (Coagulation disorder, platelet dysfunction, steroids, anticoagulants)." }
-                ]
+                hint: "Document skin rashes/lesions (morphology, distribution, itching), change in moles (ABCDE), pruritus without rash, hair loss/nail changes, easy bruising/bleeding."
             },
             haematological: {
                 name: "Haematological System",
                 icon: "🩸",
                 chapter: "Hutchison's Ch. 18 (The Haematological System)",
-                questions: [
-                    { q: "Any fatigue, weakness, or shortness of breath?", hint: "Ask: 'Do you feel unusually tired? Pale skin?' (Anaemia). Fatigue with pica suggests iron deficiency." },
-                    { q: "Any easy bruising or bleeding?", hint: "Ask: 'Bruise easily? Prolonged bleeding from cuts? Gum bleeding?' (Platelet disorder, coagulation factor deficiency, leukaemia)." },
-                    { q: "Any recurrent infections?", hint: "Ask: 'Do you get frequent or severe infections?' (Immunodeficiency, leukaemia, myeloma, HIV)." },
-                    { q: "Any lymph node swelling?", hint: "Ask: 'Any lumps in your neck, armpits, or groin?' (Lymphadenopathy: infection, lymphoma, leukaemia, metastases)." },
-                    { q: "Any history of anaemia, bleeding disorder, or blood clot?", hint: "Ask: 'Ever been told you have low blood count or clotting problem? Ever had a DVT or PE?' (Thrombophilia, previous clots)." }
-                ]
+                hint: "Document fatigue/weakness/SOB (anaemia), easy bruising/bleeding, recurrent infections, lymph node swelling, history of anaemia/clotting disorder/DVT/PE."
             }
         };
 
-        // Build ROS container with enhanced display
+        // Build ROS container with a single textarea per system
         function buildROS() {
             const container = document.getElementById('rosContainer');
             let html = '';
@@ -940,23 +858,27 @@
                         <h4>${system.icon} ${system.name} <span style="font-size: 12px;">▼</span></h4>
                         <small style="display: block; color: #2c3e50; margin-bottom: 10px; font-weight:500;">${system.chapter}</small>
                         <div class="ros-questions" id="ros-${key}">
-                `;
-                system.questions.forEach((q, idx) => {
-                    html += `
-                        <div class="ros-question">
-                            <label style="font-weight:700;">${q.q}</label>
-                            <input type="text" id="ros_${key}_${idx}" placeholder="Patient's response..." onchange="saveROS('${key}', ${idx}, this.value)" style="margin-top: 8px;">
-                            <div class="ros-hint">${q.hint}</div>
+                            <div class="ros-question">
+                                <label style="font-weight:700;">Findings / Narrative:</label>
+                                <textarea id="ros_${key}" rows="3" placeholder="Write a summary of findings for the ${system.name}... Include relevant positive and negative findings based on the clinical hints." onchange="saveROS('${key}', this.value)"></textarea>
+                                <div class="ros-hint">${system.hint}</div>
+                            </div>
                         </div>
-                    `;
-                });
-                html += `</div></div>`;
+                    </div>
+                `;
             }
             container.innerHTML = html;
         }
 
-        function toggleROS(system) { document.getElementById(`ros-${system}`).classList.toggle('active'); }
-        function saveROS(system, index, value) { if (!rosData[system]) rosData[system] = []; rosData[system][index] = value; updateProgress(); }
+        function toggleROS(system) { 
+            const element = document.getElementById(`ros-${system}`);
+            if (element) element.classList.toggle('active');
+        }
+        
+        function saveROS(system, value) {
+            rosData[system] = value;
+            updateProgress();
+        }
 
         // Symptom guides (SOCRATES for pain, specific for others) – same as before, kept unchanged
         const symptomGuides = {
@@ -1001,7 +923,7 @@
         function updateGuidancePanel(symptom) { const guide = symptomGuides[symptom]; const container = document.getElementById('guidanceContent'); if (guide) { container.innerHTML = `<div class="guidance-card"><h4>📖 ${guide.title}</h4><p>${guide.chapter}</p></div><div class="guidance-card"><h4>🎯 Key questions</h4><ul>${guide.questions.map(q => `<li>${q.q}</li>`).join('')}</ul></div>${guide.redFlags ? `<div class="alert warning"><strong>⚠️ RED FLAGS</strong><br>${guide.redFlags.join('<br>')}</div>` : ''}`; } }
         function updateGenericGuidance(symptom) { /* generic */ }
 
-        // Clinical summary generation (includes HPC and referral details) – unchanged except adding ROS details
+        // Clinical summary generation (includes HPC and referral details and new ROS narrative)
         function generateClinicalSummary() {
             const fullName = document.getElementById('fullName').value || 'Not provided';
             const age = document.getElementById('age').value || 'Not provided';
@@ -1051,11 +973,8 @@
                 <strong>💊 MEDICATIONS & ALLERGIES</strong><br>Current Meds: ${medications}<br>Allergies: ${allergies}<br>
                 <br><strong>🔄 REVIEW OF SYSTEMS</strong><br>`;
             for (const [sys, data] of Object.entries(reviewOfSystems)) {
-                let findings = [];
-                if (rosData[sys]) {
-                    data.questions.forEach((q, idx) => { if (rosData[sys][idx] && rosData[sys][idx].trim()) findings.push(`${q.q.split('?')[0]}: ${rosData[sys][idx]}`); });
-                }
-                summary += `<strong>${data.icon} ${data.name}:</strong> ${findings.length ? findings.join('; ') : 'No significant findings'}<br>`;
+                const findings = rosData[sys] ? rosData[sys].trim() : '';
+                summary += `<strong>${data.icon} ${data.name}:</strong> ${findings || 'No findings documented'}<br>`;
             }
             summary += `<br><strong>🏠 SOCIAL HISTORY</strong><br>${social}<br><br><strong>👨‍👩‍👧 FAMILY HISTORY</strong><br>${familyHistory}<br><br><em>Based on Hutchison's Clinical Methods, 25th Edition</em>`;
             document.getElementById('clinicalSummary').innerHTML = summary;
