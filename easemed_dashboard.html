@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head> 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EaseMed - Clinical Clerk System</title>
@@ -593,6 +593,25 @@
         .save-toast.show {
             transform: translateX(-50%) translateY(0);
         }
+                /* Previous styles... */
+
+        .btn-no-findings {
+            background: linear-gradient(135deg, #27ae60, #1e8449);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .btn-no-findings:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+    </style>
+</head>
     </style>
 </head>
 <body>
@@ -775,58 +794,175 @@
             updateProgress();
         }
 
-        // ============================================================
-     // ============================================================
-.checklist-container {
-    background: #f8fafc;
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+  // ============================================================
+// IMPROVED REVIEW OF SYSTEMS (with persistent checkboxes)
+// ============================================================
+const reviewOfSystems = {
+    general: {
+        name: "General (Systemic)",
+        icon: "🌡️",
+        chapter: "Hutchison's Ch. 3 & 10",
+        hint: "Weight change, fever, night sweats, fatigue, appetite, sleep",
+        common: ["Weight loss/gain", "Fever/chills/night sweats", "Fatigue/malaise", "Loss of appetite", "Sleep disturbance"]
+    },
+    cardiovascular: {
+        name: "Cardiovascular System",
+        icon: "❤️",
+        chapter: "Hutchison's Ch. 13",
+        hint: "Chest pain, palpitations, dyspnoea, oedema, syncope",
+        common: ["Chest pain", "Palpitations", "Shortness of breath", "Orthopnoea/PND", "Ankle swelling", "Syncope/dizziness", "Claudication"]
+    },
+    respiratory: {
+        name: "Respiratory System",
+        icon: "💨",
+        chapter: "Hutchison's Ch. 12",
+        hint: "Cough, sputum, haemoptysis, wheeze",
+        common: ["Cough", "Sputum production", "Haemoptysis", "Wheeze", "Shortness of breath", "Pleuritic chest pain"]
+    },
+    gastrointestinal: {
+        name: "Gastrointestinal System",
+        icon: "🍽️",
+        chapter: "Hutchison's Ch. 15",
+        hint: "Abdominal pain, nausea, bowel changes, jaundice",
+        common: ["Abdominal pain", "Nausea/vomiting", "Change in bowel habit", "Diarrhoea", "Constipation", "Hematemesis/melena", "Jaundice"]
+    },
+    genitourinary: {
+        name: "Genitourinary System",
+        icon: "💧",
+        chapter: "Hutchison's Ch. 17",
+        hint: "Dysuria, frequency, haematuria, menstrual issues",
+        common: ["Dysuria", "Urinary frequency/nocturia", "Haematuria", "Incontinence", "Flank pain"]
+    },
+    neurological: {
+        name: "Nervous System",
+        icon: "🧠",
+        chapter: "Hutchison's Ch. 19",
+        hint: "Headache, weakness, seizures, visual changes",
+        common: ["Headache", "Dizziness/vertigo", "Weakness/numbness", "Seizures", "Visual disturbance", "Speech difficulty"]
+    },
+    musculoskeletal: {
+        name: "Musculoskeletal System",
+        icon: "🦴",
+        chapter: "Hutchison's Ch. 20",
+        hint: "Joint pain, swelling, back pain, stiffness",
+        common: ["Joint pain/swelling", "Morning stiffness", "Back pain", "Muscle weakness"]
+    },
+    endocrine: {
+        name: "Endocrine System",
+        icon: "🦋",
+        chapter: "Hutchison's Ch. 16",
+        hint: "Polyuria, polydipsia, heat intolerance",
+        common: ["Excessive thirst/urination", "Heat/cold intolerance", "Tremor/sweating"]
+    },
+    psychiatric: {
+        name: "Psychiatric / Mental Health",
+        icon: "🧠",
+        chapter: "Hutchison's Ch. 5",
+        hint: "Mood, anxiety, sleep, suicidal thoughts",
+        common: ["Low mood/anhedonia", "Anxiety/panic", "Insomnia", "Suicidal thoughts"]
+    },
+    dermatological: {
+        name: "Dermatological / Skin",
+        icon: "🩹",
+        chapter: "Hutchison's Ch. 21",
+        hint: "Rash, itching, lesions, hair/nail changes",
+        common: ["Rash/lesions", "Itching/pruritus", "Hair loss", "Nail changes", "Easy bruising"]
+    },
+    haematological: {
+        name: "Haematological System",
+        icon: "🩸",
+        chapter: "Hutchison's Ch. 18",
+        hint: "Bleeding, bruising, recurrent infections",
+        common: ["Easy bruising/bleeding", "Recurrent infections", "Pallor/fatigue", "Lymph node swelling"]
+    }
+};
+
+function buildROS() {
+    const container = document.getElementById('rosContainer');
+    let html = '';
+    
+    for (const [key, system] of Object.entries(reviewOfSystems)) {
+        html += `
+            <div class="ros-category" onclick="toggleROS('${key}')">
+                <h4>${system.icon} ${system.name} 
+                    <span class="badge" id="ros-count-${key}" style="float:right; font-size:10px;">0 checked</span>
+                    <span style="font-size: 12px; float:right; margin-right:10px;">▼</span>
+                </h4>
+                <small style="display: block; color: #2c3e50; margin-bottom: 12px;">${system.chapter}</small>
+                
+                <div class="ros-questions" id="ros-${key}">
+                    <button onclick="markNoFindings('${key}'); event.stopImmediatePropagation();" 
+                            class="btn-no-findings">
+                        ✅ No significant findings
+                    </button>
+                    
+                    <div class="checklist-container">
+                        <label style="font-weight:600; display:block; margin:12px 0 8px;">Common Symptoms:</label>
+                        <div class="checklist" id="checklist-${key}"></div>
+                    </div>
+                    
+                    <div class="ros-question">
+                        <label style="font-weight:700; margin-top:15px; display:block;">Additional Narrative / Findings:</label>
+                        <textarea id="ros_${key}" rows="4" 
+                            placeholder="Document relevant positive and negative findings, severity, duration, etc..." 
+                            onchange="saveROS('${key}', this.value)"></textarea>
+                        <div class="ros-hint">${system.hint}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+
+    // Populate checklists
+    setTimeout(() => {
+        for (const [key, system] of Object.entries(reviewOfSystems)) {
+            const checklistDiv = document.getElementById(`checklist-${key}`);
+            if (!checklistDiv) continue;
+
+            system.common.forEach((item, index) => {
+                const label = document.createElement('label');
+                label.className = 'checklist-item';
+                label.innerHTML = `
+                    <input type="checkbox" id="chk_${key}_${index}" 
+                           onchange="updateChecklistCount('${key}')">
+                    <span>${item}</span>
+                `;
+                checklistDiv.appendChild(label);
+            });
+        }
+    }, 150);
 }
 
-.checklist {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 8px;
+function toggleROS(system) {
+    const element = document.getElementById(`ros-${system}`);
+    if (element) element.classList.toggle('active');
 }
 
-.checklist-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: white;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    font-size: 0.92rem;
-    transition: all 0.2s;
-    cursor: pointer;
+function markNoFindings(system) {
+    const textarea = document.getElementById(`ros_${system}`);
+    if (textarea) {
+        textarea.value = "No significant findings in this system.";
+        saveROS(system, textarea.value);
+    }
+    // Uncheck all checkboxes
+    document.querySelectorAll(`#checklist-${system} input[type="checkbox"]`).forEach(cb => cb.checked = false);
+    updateChecklistCount(system);
+    alert(`✅ ${reviewOfSystems[system].name} marked as no significant findings`);
 }
 
-.checklist-item:hover {
-    border-color: #1e3c72;
-    background: #f0f7ff;
+function updateChecklistCount(system) {
+    const checkedCount = document.querySelectorAll(`#checklist-${system} input[type="checkbox"]:checked`).length;
+    const countBadge = document.getElementById(`ros-count-${system}`);
+    if (countBadge) countBadge.textContent = `${checkedCount} checked`;
+    
+    saveROS(system, document.getElementById(`ros_${system}`).value);
 }
 
-.checklist-item input[type="checkbox"] {
-    accent-color: #1e3c72;
-}
-
-.btn-no-findings {
-    background: linear-gradient(135deg, #27ae60, #1e8449);
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
-.btn-no-findings:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
-}      
+function saveROS(system, value) {
+    rosData[system] = value || '';
+    updateProgress();
+}     
         // Symptom guides (SOCRATES for pain, specific for others) – same as before, kept unchanged
         const symptomGuides = {
             pain: { title: "🩺 Pain (SOCRATES)", chapter: "Hutchison's Ch. 8", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity (0-10)?", hint: "" } ], redFlags: ["🚨 Sudden worst pain ever"] },
