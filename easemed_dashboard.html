@@ -12,9 +12,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="description" content="EaseMed Clinical Clerk System - offline-first patient clerking with optional Supabase sync">
+    <meta name="description" content="EaseMed Clinical Clerk System — comprehensive patient history taking guide">
 
-    <!-- Optional Supabase JS SDK. The app still works if this file cannot load. -->
+    <!-- Supabase JS SDK — loaded early so auth check runs immediately -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -76,7 +76,7 @@
         }
 
         .panel-header::before {
-            content: 'ðŸ“š';
+            content: '📚';
             position: absolute;
             right: -20px;
             top: -20px;
@@ -353,7 +353,7 @@
         }
 
         .ros-hint::before {
-            content: 'ðŸ“–';
+            content: '📖';
         }
 
         .badge {
@@ -1127,89 +1127,31 @@
         .summary-document:hover, .ros-card:hover, .patient-card:hover {
             transform: translateY(-3px);
         }
-        /* Offline/online sync status additions */
-        .sync-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            padding: 7px 12px;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.18);
-            color: #fff;
-            font-size: 0.82rem;
-            font-weight: 700;
-            white-space: nowrap;
-        }
 
-        .sync-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            background: #27ae60;
-            box-shadow: 0 0 0 4px rgba(39,174,96,0.16);
-        }
-
-        .sync-pill.offline .sync-dot { background: #f4b942; box-shadow: 0 0 0 4px rgba(244,185,66,0.18); }
-        .sync-pill.error .sync-dot { background: #e74c3c; box-shadow: 0 0 0 4px rgba(231,76,60,0.18); }
-
-        .btn-sync {
-            background: linear-gradient(135deg, #2a9d8f, #1e7d5a);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 7px 13px;
-            font-size: 0.82rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .btn-sync.secondary {
-            background: rgba(255,255,255,0.16);
-            border: 1px solid rgba(255,255,255,0.22);
-        }
-
-        .offline-note {
-            max-width: 1600px;
-            margin: 0 auto 14px;
-            padding: 10px 16px;
-            border-radius: 14px;
-            background: rgba(255,255,255,0.94);
-            color: #40566a;
-            box-shadow: 0 10px 25px rgba(15,32,39,0.16);
-            font-size: 0.88rem;
-            line-height: 1.45;
-        }
+ 
+        
     </style>
 </head>
 <body>
     <div class="progress-bar" id="progressBar"></div>
 
-    <!-- Offline-first top bar. Login is optional; local mode is always usable. -->
-    <div id="authBar" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(15,32,39,0.92); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; gap:12px; padding: 10px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.4); font-family: 'Segoe UI', sans-serif; flex-wrap:wrap;">
-        <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:22px;">ðŸ©º</span><span style="color:#fff; font-weight:700; font-size:1rem;">EaseMed</span></div>
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
-            <span class="sync-pill" id="connectionStatus"><span class="sync-dot"></span><span id="connectionText">Checking connection</span></span>
-            <span class="sync-pill" id="syncStatus"><span class="sync-dot"></span><span id="syncText">Local records ready</span></span>
-            <span id="userGreeting" style="color:#90cdf4; font-size:0.88rem; font-weight:500;">Local mode</span>
-            <button class="btn-sync secondary" onclick="syncRecordsNow()">Sync now</button>
-            <button class="btn-sync secondary" onclick="optionalSignInPrompt()">Online sign in</button>
-            <button class="btn-sync" onclick="handleLogout()">Reset user</button>
-        </div>
+    <!-- Auth Top Bar -->
+    <div id="authBar" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(15,32,39,0.92); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.4); font-family: 'Segoe UI', sans-serif;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:22px;">🩺</span><span style="color:#fff; font-weight:700; font-size:1rem;">EaseMed</span></div>
+        <div style="display:flex; align-items:center; gap:14px;"><span id="userGreeting" style="color:#90cdf4; font-size:0.88rem; font-weight:500;"></span><button onclick="handleLogout()" style="background: linear-gradient(135deg, #e53e3e, #c53030); color: white; border: none; border-radius: 8px; padding: 7px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">🚪 Logout</button></div>
     </div>
-    <div style="height: 70px;"></div>
-    <div class="offline-note" id="offlineNote">EaseMed saves patient records on this device first. If Supabase is configured and the internet is available, unsynced records upload automatically. The app stays usable even without login.</div>
+    <div style="height: 52px;"></div>
 
     <div class="container">
         <div class="clerking-panel">
             <div class="panel-header">
-                <h1><span>ðŸ“š</span> EaseMed - Clinical Clerk System <span class="badge">Hutchison's Clinical Methods 25th Ed.</span></h1>
+                <h1><span>📚</span> EaseMed - Clinical Clerk System <span class="badge">Hutchison's Clinical Methods 25th Ed.</span></h1>
                 <p>Comprehensive history taking & physical examination guide | Based on Hutchison's Clinical Methods</p>
             </div>
 
             <!-- Demographics Section -->
             <div class="form-section">
-                <h3>ðŸ“‹ Patient Demographics</h3>
+                <h3>📋 Patient Demographics</h3>
                 <div class="demographics-grid">
                     <div><label>Full Name:</label><input type="text" id="fullName" placeholder="Surname, First name"></div>
                     <div><label>Age:</label><input type="number" id="age" placeholder="Years"></div>
@@ -1241,25 +1183,25 @@
 
             <!-- Presenting Complaint -->
             <div class="form-section">
-                <h3>ðŸ©º Presenting Complaint <span class="stat-card">SOCRATES only for Pain | System-specific guides for others</span></h3>
+                <h3>🩺 Presenting Complaint <span class="stat-card">SOCRATES only for Pain | System-specific guides for others</span></h3>
                 <label>Select or type the main symptom:</label>
                 <div class="symptom-buttons" id="symptomButtons">
-                    <button class="symptom-btn" onclick="setSymptom('fever')">ðŸŒ¡ï¸ Fever</button>
-                    <button class="symptom-btn" onclick="setSymptom('pain')">ðŸ©º Pain (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('chest pain')">ðŸ’” Chest Pain (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('shortness of breath')">ðŸ’¨ SOB</button>
-                    <button class="symptom-btn" onclick="setSymptom('cough')">ðŸ¤§ Cough</button>
-                    <button class="symptom-btn" onclick="setSymptom('headache')">ðŸ¤• Headache (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('dizziness')">ðŸŒ€ Dizziness/Vertigo</button>
-                    <button class="symptom-btn" onclick="setSymptom('nausea')">ðŸ¤¢ Nausea/Vomiting</button>
-                    <button class="symptom-btn" onclick="setSymptom('diarrhea')">ðŸ’© Diarrhea</button>
-                    <button class="symptom-btn" onclick="setSymptom('constipation')">ðŸš« Constipation</button>
-                    <button class="symptom-btn" onclick="setSymptom('swelling')">ðŸ’§ Swelling/Edema</button>
-                    <button class="symptom-btn" onclick="setSymptom('palpitations')">ðŸ’“ Palpitations</button>
-                    <button class="symptom-btn" onclick="setSymptom('fatigue')">ðŸ˜´ Fatigue</button>
-                    <button class="symptom-btn" onclick="setSymptom('weight loss')">âš–ï¸ Weight Loss</button>
-                    <button class="symptom-btn" onclick="setSymptom('joint pain')">ðŸ¦´ Joint Pain (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('rash')">ðŸ”´ Skin Rash</button>
+                    <button class="symptom-btn" onclick="setSymptom('fever')">🌡️ Fever</button>
+                    <button class="symptom-btn" onclick="setSymptom('pain')">🩺 Pain (SOCRATES)</button>
+                    <button class="symptom-btn" onclick="setSymptom('chest pain')">💔 Chest Pain (SOCRATES)</button>
+                    <button class="symptom-btn" onclick="setSymptom('shortness of breath')">💨 SOB</button>
+                    <button class="symptom-btn" onclick="setSymptom('cough')">🤧 Cough</button>
+                    <button class="symptom-btn" onclick="setSymptom('headache')">🤕 Headache (SOCRATES)</button>
+                    <button class="symptom-btn" onclick="setSymptom('dizziness')">🌀 Dizziness/Vertigo</button>
+                    <button class="symptom-btn" onclick="setSymptom('nausea')">🤢 Nausea/Vomiting</button>
+                    <button class="symptom-btn" onclick="setSymptom('diarrhea')">💩 Diarrhea</button>
+                    <button class="symptom-btn" onclick="setSymptom('constipation')">🚫 Constipation</button>
+                    <button class="symptom-btn" onclick="setSymptom('swelling')">💧 Swelling/Edema</button>
+                    <button class="symptom-btn" onclick="setSymptom('palpitations')">💓 Palpitations</button>
+                    <button class="symptom-btn" onclick="setSymptom('fatigue')">😴 Fatigue</button>
+                    <button class="symptom-btn" onclick="setSymptom('weight loss')">⚖️ Weight Loss</button>
+                    <button class="symptom-btn" onclick="setSymptom('joint pain')">🦴 Joint Pain (SOCRATES)</button>
+                    <button class="symptom-btn" onclick="setSymptom('rash')">🔴 Skin Rash</button>
                 </div>
                 <label style="margin-top: 15px;">Or type your own symptom:</label>
                 <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
@@ -1268,20 +1210,20 @@
 
             <!-- History of Presenting Complaint (HPC) -->
             <div class="form-section">
-                <h3>ðŸ“ History of Presenting Complaint (HPC)</h3>
+                <h3>📝 History of Presenting Complaint (HPC)</h3>
                 <textarea id="hpc" rows="4" placeholder="Provide a chronological narrative of the presenting complaint including onset, progression, associated symptoms, any treatments tried, and impact on daily activities. Include relevant negatives and positives..."></textarea>
             </div>
 
             <!-- Past Medical History with integrated HIV section (unchanged) -->
             <div class="form-section">
-                <h3>ðŸ“œ Past Medical History</h3>
+                <h3>📜 Past Medical History</h3>
                 <textarea id="pmh" placeholder="Previous illnesses: Hypertension, Diabetes, Asthma, TB, Malaria, Hepatitis, Heart disease, Stroke, Cancer, Surgeries, Hospitalizations, Blood transfusions..."></textarea>
                 <label style="margin-top: 12px;">Current Medications:</label>
                 <textarea id="medications" placeholder="All current medications with doses and frequency..."></textarea>
                 <label style="margin-top: 12px;">Allergies:</label>
                 <textarea id="allergies" placeholder="Drug allergies, food allergies, reactions..."></textarea>
                 
-                <div class="expand-hiv" onclick="toggleHIVDetails()"><span style="font-weight: 600;">ðŸ©¸ HIV History <span style="color: #e74c3c;">(Click to expand/collapse)</span></span><span style="float: right;">â–¼</span></div>
+                <div class="expand-hiv" onclick="toggleHIVDetails()"><span style="font-weight: 600;">🩸 HIV History <span style="color: #e74c3c;">(Click to expand/collapse)</span></span><span style="float: right;">▼</span></div>
                 <div id="hivDetails" class="hiv-details">
                     <!-- HIV details content unchanged -->
                     <div class="demographics-grid">
@@ -1290,7 +1232,7 @@
                         <div><label>How was HIV Diagnosed?</label><select id="hivDiagnosisMethod"><option value="">Select method</option><option>Rapid Test (HIV 1/2)</option><option>Determine + Stat-Pak + UniGold</option><option>DNA PCR (for <18 months)</option><option>Western Blot</option></select></div>
                         <div><label>WHO Clinical Stage at Diagnosis:</label><select id="hivWhoStage"><option value="">Select stage</option><option>Stage 1 - Asymptomatic</option><option>Stage 2 - Mild symptoms</option><option>Stage 3 - Advanced symptoms</option><option>Stage 4 - AIDS defining illness</option></select></div>
                     </div>
-                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">ðŸ’Š Antiretroviral Therapy (ART)</h4>
+                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">💊 Antiretroviral Therapy (ART)</h4>
                     <div class="demographics-grid">
                         <div><label>On ART?</label><select id="hivOnArt" onchange="toggleARTDetails()"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
                         <div><label>ART Start Date:</label><input type="text" id="hivArtStartDate" placeholder="DD/MM/YYYY"></div>
@@ -1303,31 +1245,31 @@
                             <div><label>Barriers to Adherence:</label><input type="text" id="hivAdherenceBarriers" placeholder="Forgetfulness, side effects, lack of food, stigma"></div>
                         </div>
                     </div>
-                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">ðŸ“Š Laboratory Monitoring</h4>
+                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">📊 Laboratory Monitoring</h4>
                     <div class="demographics-grid">
-                        <div><label>Most Recent CD4 Count:</label><input type="text" id="hivCd4" placeholder="cells/ÂµL (e.g., 450)"></div>
+                        <div><label>Most Recent CD4 Count:</label><input type="text" id="hivCd4" placeholder="cells/µL (e.g., 450)"></div>
                         <div><label>Date of CD4:</label><input type="text" id="hivCd4Date" placeholder="DD/MM/YYYY"></div>
                         <div><label>Most Recent Viral Load:</label><input type="text" id="hivViralLoad" placeholder="copies/mL (e.g., <20 or 5000)"></div>
                         <div><label>Date of Viral Load:</label><input type="text" id="hivVlDate" placeholder="DD/MM/YYYY"></div>
                     </div>
-                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">ðŸ©º Opportunistic Infections</h4>
+                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">🩺 Opportunistic Infections</h4>
                     <div><div style="display: flex; flex-wrap: wrap; gap: 10px;"><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="TB"> TB</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="Cryptococcal Meningitis"> Cryptococcal Meningitis</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="PCP"> PCP Pneumonia</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="Esophageal Candidiasis"> Esophageal Candidiasis</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="KS"> Kaposi's Sarcoma</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="CMV"> CMV Retinitis</label></div><div style="margin-top: 10px;"><label>IPT (Isoniazid Preventive Therapy):</label><select id="hivIpt"><option value="">Select status</option><option>Completed 6 months</option><option>Currently on IPT</option><option>Not started</option></select></div><div style="margin-top: 10px;"><label>Cotrimoxazole Preventive Therapy (CPT):</label><select id="hivCpt"><option value="">Select status</option><option>Currently on CPT</option><option>Not on CPT</option><option>Allergic/Contraindicated</option></select></div><div style="margin-top: 10px;"><label>Partner/Family HIV Status:</label><input type="text" id="hivPartnerStatus" placeholder="Partner HIV status, children's status, disclosure"></div></div>
                 </div>
             </div>
 
             <!-- Guided Review of Systems - ENHANCED with free-text areas for student to fill -->
             <div class="form-section">
-                <h3>ðŸ”„ Review of Systems <span class="stat-card">Hutchison's Ch. 3-5 & system-specific chapters</span></h3>
+                <h3>🔄 Review of Systems <span class="stat-card">Hutchison's Ch. 3-5 & system-specific chapters</span></h3>
                 <p class="ros-guide-panel">
-                    ðŸ’¡ <strong>Student Guide:</strong> The Review of Systems (ROS) is a systematic inventory of symptoms across all body systems. 
+                    💡 <strong>Student Guide:</strong> The Review of Systems (ROS) is a systematic inventory of symptoms across all body systems. 
                     It helps identify potential diagnoses and ensures no important symptom is missed. Based on <strong>Hutchison's Clinical Methods, 25th Edition</strong>, 
                     write a narrative summary of findings for each system below. Click on any system to expand and document your findings.
                 </p>
                 <div id="rosContainer"></div>
             </div>
 
-            <div class="form-section"><h3>ðŸ  Social History</h3><textarea id="social" placeholder="Smoking, alcohol, drugs, living conditions, occupation, diet, travel..."></textarea></div>
-            <div class="form-section"><h3>ðŸ‘¨â€ðŸ‘©â€ðŸ‘§ Family History</h3><textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders..."></textarea></div>
+            <div class="form-section"><h3>🏠 Social History</h3><textarea id="social" placeholder="Smoking, alcohol, drugs, living conditions, occupation, diet, travel..."></textarea></div>
+            <div class="form-section"><h3>👨‍👩‍👧 Family History</h3><textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders..."></textarea></div>
             <div class="summary-actions"><button class="btn-generate" onclick="generateClinicalSummary()">Generate Clinical Summary + Ward Round Format</button><button class="btn-generate" onclick="savePatient()" style="background: linear-gradient(135deg, #27ae60, #1e8449);">Save Patient Record</button></div>
             <div class="form-section" id="summarySection" style="display:none;">
                 <h3>Clinical Summary & Ward Round Presentation</h3>
@@ -1347,20 +1289,18 @@
         </div>
 
         <!-- Right Panel: Guidance -->
-        <div class="guidance-panel"><div class="guidance-header"><h2>ðŸ“– Hutchison's Clinical Guidance</h2><p>Reference: Hutchison's Clinical Methods, 25th Edition</p></div><div class="guidance-content" id="guidanceContent" style="padding: 20px;"><div class="guidance-card"><h4>ðŸ“š Welcome to EaseMed</h4><p>This system guides you through systematic history taking. Select a symptom for specific questions.</p></div><div class="guidance-card"><h4>ðŸ’¡ Key principle</h4><p>SOCRATES is reserved for PAIN complaints. For other symptoms, specific clinical questions are provided.</p></div></div></div>
+        <div class="guidance-panel"><div class="guidance-header"><h2>📖 Hutchison's Clinical Guidance</h2><p>Reference: Hutchison's Clinical Methods, 25th Edition</p></div><div class="guidance-content" id="guidanceContent" style="padding: 20px;"><div class="guidance-card"><h4>📚 Welcome to EaseMed</h4><p>This system guides you through systematic history taking. Select a symptom for specific questions.</p></div><div class="guidance-card"><h4>💡 Key principle</h4><p>SOCRATES is reserved for PAIN complaints. For other symptoms, specific clinical questions are provided.</p></div></div></div>
     </div>
 
     <!-- Patient Records Panel -->
-    <div style="max-width:1600px; margin: 25px auto; padding: 0 20px;"><div class="records-panel"><div class="records-header"><h2>ðŸ—‚ï¸ Saved Patient Records</h2><div class="records-actions"><button class="btn-record btn-new" onclick="newPatient()">âž• New Patient</button><button class="btn-record btn-save" onclick="savePatient()">ðŸ’¾ Save Current</button><button class="btn-record btn-export" onclick="exportRecords()">â¬‡ï¸ Download Backup</button><label class="btn-record btn-import" style="margin:0; display:inline-block;">ðŸ“‚ Restore Backup<input type="file" accept=".json" onchange="importRecords(event)" style="display:none;"></label></div></div><div class="records-body"><input class="records-search" type="text" id="recordSearch" placeholder="ðŸ” Search by patient name, complaint, or date..." oninput="renderRecords()"><div id="recordsList"></div></div></div></div>
+    <div style="max-width:1600px; margin: 25px auto; padding: 0 20px;"><div class="records-panel"><div class="records-header"><h2>🗂️ Saved Patient Records</h2><div class="records-actions"><button class="btn-record btn-new" onclick="newPatient()">➕ New Patient</button><button class="btn-record btn-save" onclick="savePatient()">💾 Save Current</button><button class="btn-record btn-export" onclick="exportRecords()">⬇️ Download Backup</button><label class="btn-record btn-import" style="margin:0; display:inline-block;">📂 Restore Backup<input type="file" accept=".json" onchange="importRecords(event)" style="display:none;"></label></div></div><div class="records-body"><input class="records-search" type="text" id="recordSearch" placeholder="🔍 Search by patient name, complaint, or date..." oninput="renderRecords()"><div id="recordsList"></div></div></div></div>
 
-    <div class="save-toast" id="saveToast">âœ… Patient record saved!</div>
-    <div class="floating-tip" onclick="showTip()">ðŸ’¡ Tip: Use SOCRATES only for pain!</div>
+    <div class="save-toast" id="saveToast">✅ Patient record saved!</div>
+    <div class="floating-tip" onclick="showTip()">💡 Tip: Use SOCRATES only for pain!</div>
 
     <script>
         // Global state
         const STORAGE_KEY = 'easemed_patients';
-        const SYNC_QUEUE_KEY = 'easemed_patients_sync_queue';
-        const SUPABASE_RECORDS_TABLE = 'patient_records';
         let currentSymptom = '';
         let symptomDetails = {};
         let rosData = {};
@@ -1370,7 +1310,7 @@
         function toggleARTDetails() { document.getElementById('artDetails').style.display = document.getElementById('hivOnArt').value === 'yes' ? 'block' : 'none'; updateProgress(); }
         function updateProgress() { let total = document.querySelectorAll('input, textarea, select').length, filled = 0; document.querySelectorAll('input, textarea, select').forEach(f => { if (f.value && f.value.trim() !== '') filled++; }); document.getElementById('progressBar').style.width = ((filled / total) * 100) + '%'; }
         document.addEventListener('input', updateProgress); document.addEventListener('change', updateProgress);
-        function showTip() { alert('ðŸ“– Hutchison\'s Tip:\n\nâ€¢ SOCRATES is for PAIN only (site, onset, character, radiation, associations, timing, exacerbating, severity).\nâ€¢ For nonâ€‘pain complaints, use the specific structured questions provided.'); }
+        function showTip() { alert('📖 Hutchison\'s Tip:\n\n• SOCRATES is for PAIN only (site, onset, character, radiation, associations, timing, exacerbating, severity).\n• For non‑pain complaints, use the specific structured questions provided.'); }
 
         // Referral details toggle
         function toggleReferralDetails() {
@@ -1390,16 +1330,16 @@
 // NEW CLEAN ROS DESIGN
 // ============================================================
 const reviewOfSystems = {
-    general: { name: "General (Systemic)", icon: "ðŸŒ¡ï¸", chapter: "Ch. 3 & 10", hint: "Weight, fever, fatigue, appetite, night sweats", common: ["Weight loss/gain", "Fever/chills", "Night sweats", "Fatigue", "Poor appetite", "Sleep issues"] },
-    cardiovascular: { name: "Cardiovascular", icon: "â¤ï¸", chapter: "Ch. 13", hint: "Chest pain, palpitations, SOB, swelling", common: ["Chest pain", "Palpitations", "Shortness of breath", "Ankle swelling", "Orthopnoea", "Syncope"] },
-    respiratory: { name: "Respiratory", icon: "ðŸ’¨", chapter: "Ch. 12", hint: "Cough, sputum, wheeze, haemoptysis", common: ["Cough", "Sputum", "Haemoptysis", "Wheeze", "Pleuritic pain"] },
-    gastrointestinal: { name: "Gastrointestinal", icon: "ðŸ½ï¸", chapter: "Ch. 15", hint: "Abdominal pain, nausea, bowel changes", common: ["Abdominal pain", "Nausea/vomiting", "Diarrhoea", "Constipation", "Jaundice"] },
-    genitourinary: { name: "Genitourinary", icon: "ðŸ’§", chapter: "Ch. 17", hint: "Dysuria, frequency, haematuria", common: ["Dysuria", "Frequency/Nocturia", "Haematuria", "Incontinence"] },
-    neurological: { name: "Neurological", icon: "ðŸ§ ", chapter: "Ch. 19", hint: "Headache, weakness, seizures", common: ["Headache", "Dizziness", "Weakness", "Seizures", "Visual changes"] },
-    musculoskeletal: { name: "Musculoskeletal", icon: "ðŸ¦´", chapter: "Ch. 20", hint: "Joint/back pain, stiffness", common: ["Joint pain", "Back pain", "Morning stiffness", "Muscle weakness"] },
-    endocrine: { name: "Endocrine", icon: "ðŸ¦‹", chapter: "Ch. 16", hint: "Thirst, sweating, heat intolerance", common: ["Polyuria/polydipsia", "Heat/cold intolerance", "Tremor"] },
-    psychiatric: { name: "Psychiatric", icon: "ðŸ§ ", chapter: "Ch. 5", hint: "Mood, anxiety, sleep", common: ["Low mood", "Anxiety", "Insomnia", "Suicidal thoughts"] },
-    dermatological: { name: "Dermatological", icon: "ðŸ©¹", chapter: "Ch. 21", hint: "Rash, itching, lesions", common: ["Rash", "Itching", "Hair loss", "Easy bruising"] }
+    general: { name: "General (Systemic)", icon: "🌡️", chapter: "Ch. 3 & 10", hint: "Weight, fever, fatigue, appetite, night sweats", common: ["Weight loss/gain", "Fever/chills", "Night sweats", "Fatigue", "Poor appetite", "Sleep issues"] },
+    cardiovascular: { name: "Cardiovascular", icon: "❤️", chapter: "Ch. 13", hint: "Chest pain, palpitations, SOB, swelling", common: ["Chest pain", "Palpitations", "Shortness of breath", "Ankle swelling", "Orthopnoea", "Syncope"] },
+    respiratory: { name: "Respiratory", icon: "💨", chapter: "Ch. 12", hint: "Cough, sputum, wheeze, haemoptysis", common: ["Cough", "Sputum", "Haemoptysis", "Wheeze", "Pleuritic pain"] },
+    gastrointestinal: { name: "Gastrointestinal", icon: "🍽️", chapter: "Ch. 15", hint: "Abdominal pain, nausea, bowel changes", common: ["Abdominal pain", "Nausea/vomiting", "Diarrhoea", "Constipation", "Jaundice"] },
+    genitourinary: { name: "Genitourinary", icon: "💧", chapter: "Ch. 17", hint: "Dysuria, frequency, haematuria", common: ["Dysuria", "Frequency/Nocturia", "Haematuria", "Incontinence"] },
+    neurological: { name: "Neurological", icon: "🧠", chapter: "Ch. 19", hint: "Headache, weakness, seizures", common: ["Headache", "Dizziness", "Weakness", "Seizures", "Visual changes"] },
+    musculoskeletal: { name: "Musculoskeletal", icon: "🦴", chapter: "Ch. 20", hint: "Joint/back pain, stiffness", common: ["Joint pain", "Back pain", "Morning stiffness", "Muscle weakness"] },
+    endocrine: { name: "Endocrine", icon: "🦋", chapter: "Ch. 16", hint: "Thirst, sweating, heat intolerance", common: ["Polyuria/polydipsia", "Heat/cold intolerance", "Tremor"] },
+    psychiatric: { name: "Psychiatric", icon: "🧠", chapter: "Ch. 5", hint: "Mood, anxiety, sleep", common: ["Low mood", "Anxiety", "Insomnia", "Suicidal thoughts"] },
+    dermatological: { name: "Dermatological", icon: "🩹", chapter: "Ch. 21", hint: "Rash, itching, lesions", common: ["Rash", "Itching", "Hair loss", "Easy bruising"] }
 };
 
 function buildROS() {
@@ -1415,12 +1355,12 @@ function buildROS() {
                         <strong>${system.name}</strong>
                         <small>${system.chapter}</small>
                     </div>
-                    <span class="ros-chevron">â–¼</span>
+                    <span class="ros-chevron">▼</span>
                 </div>
                 
                 <div class="ros-content" id="ros-content-${key}">
                     <button onclick="markNoFindings('${key}'); event.stopImmediatePropagation()" class="no-findings-btn">
-                        âœ… No Significant Findings
+                        ✅ No Significant Findings
                     </button>
                     
                     <div class="checklist-group">
@@ -1593,24 +1533,24 @@ function refreshROSCardState(key) {
     if (count) count.textContent = `${selected} selected`;
 }
       
-        // Symptom guides (SOCRATES for pain, specific for others) â€“ same as before, kept unchanged
+        // Symptom guides (SOCRATES for pain, specific for others) – same as before, kept unchanged
         const symptomGuides = {
-            pain: { title: "ðŸ©º Pain (SOCRATES)", chapter: "Hutchison's Ch. 8", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity (0-10)?", hint: "" } ], redFlags: ["ðŸš¨ Sudden worst pain ever"] },
-            "chest pain": { title: "ðŸ’” Chest Pain (SOCRATES)", chapter: "Hutchison's Ch. 13", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity?", hint: "" } ], redFlags: ["ðŸš¨ Crushing pain + radiation"] },
-            headache: { title: "ðŸ¤• Headache (SOCRATES)", chapter: "Hutchison's Ch. 19", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity?", hint: "" } ], redFlags: ["ðŸš¨ Thunderclap onset"] },
-            "joint pain": { title: "ðŸ¦´ Joint Pain (SOCRATES)", chapter: "Hutchison's Ch. 20", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity?", hint: "" } ], redFlags: ["ðŸš¨ Acute monoarthritis"] },
-            fever: { title: "ðŸŒ¡ï¸ Fever", chapter: "Hutchison's Ch. 10", questions: [ { q: "Duration?", hint: "" }, { q: "Pattern?", hint: "" }, { q: "Maximum temp?", hint: "" }, { q: "Chills/rigors?", hint: "" }, { q: "Associated cough, dysuria, diarrhoea?", hint: "" } ], redFlags: ["ðŸš¨ Temp >40Â°C", "ðŸš¨ Altered mental status"] },
-            nausea: { title: "ðŸ¤¢ Nausea/Vomiting", chapter: "Hutchison's Ch. 15", questions: [ { q: "Onset & duration?", hint: "" }, { q: "Frequency?", hint: "" }, { q: "Vomit content (food, bile, blood)?", hint: "" }, { q: "Associated abdominal pain, diarrhoea, fever?", hint: "" }, { q: "Triggers (eating, smell)?", hint: "" }, { q: "Signs of dehydration?", hint: "" } ], redFlags: ["ðŸš¨ Haematemesis", "ðŸš¨ Severe abdominal pain"] },
-            diarrhea: { title: "ðŸ’© Diarrhoea", chapter: "Hutchison's Ch. 15", questions: [ { q: "Duration (acute/chronic)?", hint: "" }, { q: "Frequency & consistency?", hint: "" }, { q: "Blood or mucus?", hint: "" }, { q: "Associated fever, pain, tenesmus?", hint: "" }, { q: "Travel or sick contacts?", hint: "" }, { q: "Recent antibiotics?", hint: "" } ], redFlags: ["ðŸš¨ Bloody diarrhoea", "ðŸš¨ Severe dehydration"] },
-            constipation: { title: "ðŸš« Constipation", chapter: "Hutchison's Ch. 15", questions: [ { q: "Duration?", hint: "" }, { q: "Bowel frequency per week?", hint: "" }, { q: "Stool consistency (hard, lumpy)?", hint: "" }, { q: "Straining or incomplete evacuation?", hint: "" }, { q: "Abdominal bloating or pain?", hint: "" }, { q: "Laxative use?", hint: "" }, { q: "Dietary fibre and fluid intake?", hint: "" } ], redFlags: ["ðŸš¨ New-onset in >50 years", "ðŸš¨ Blood in stool"] },
-            "shortness of breath": { title: "ðŸ’¨ Dyspnoea", chapter: "Hutchison's Ch. 12/13", questions: [ { q: "Onset (sudden/gradual)?", hint: "" }, { q: "Severity (stairs)?", hint: "" }, { q: "Worse lying flat (orthopnoea)?", hint: "" }, { q: "PND?", hint: "" }, { q: "Associated chest pain, cough, leg swelling?", hint: "" }, { q: "Triggers?", hint: "" } ], redFlags: ["ðŸš¨ Acute onset + chest pain", "ðŸš¨ Cyanosis"] },
-            cough: { title: "ðŸ¤§ Cough", chapter: "Hutchison's Ch. 12", questions: [ { q: "Duration (acute/chronic)?", hint: "" }, { q: "Productive? Sputum colour?", hint: "" }, { q: "Timing (night, morning, after meals)?", hint: "" }, { q: "Triggers?", hint: "" }, { q: "Associated haemoptysis, fever, weight loss?", hint: "" } ], redFlags: ["ðŸš¨ Haemoptysis", "ðŸš¨ Unexplained weight loss"] },
-            swelling: { title: "ðŸ’§ Oedema", chapter: "Hutchison's Ch. 13/14", questions: [ { q: "Site (face, feet, abdomen)?", hint: "" }, { q: "Onset (sudden/gradual)?", hint: "" }, { q: "Pitting oedema?", hint: "" }, { q: "Associated SOB, reduced urine, pain?", hint: "" }, { q: "Diurnal variation?", hint: "" } ], redFlags: ["ðŸš¨ Unilateral leg + pain (DVT)", "ðŸš¨ Swelling + SOB"] },
-            palpitations: { title: "ðŸ’“ Palpitations", chapter: "Hutchison's Ch. 13", questions: [ { q: "Onset & duration?", hint: "" }, { q: "Rate & regularity?", hint: "" }, { q: "Triggers (exercise, caffeine)?", hint: "" }, { q: "Associated chest pain, SOB, syncope?", hint: "" }, { q: "Termination (vagal manoeuvres)?", hint: "" } ], redFlags: ["ðŸš¨ Palpitations + syncope"] },
-            fatigue: { title: "ðŸ˜´ Fatigue", chapter: "Hutchison's Ch. 3", questions: [ { q: "Duration?", hint: "" }, { q: "Impact on daily activities?", hint: "" }, { q: "Associated fever, weight loss, pain, sleep disturbance?", hint: "" }, { q: "Sleep quality?", hint: "" }, { q: "Mood (low mood, anxiety)?", hint: "" } ], redFlags: ["ðŸš¨ Unexplained weight loss", "ðŸš¨ Night sweats"] },
-            "weight loss": { title: "âš–ï¸ Unintentional Weight Loss", chapter: "Hutchison's Ch. 3", questions: [ { q: "Amount & timeframe?", hint: "" }, { q: "Appetite (increased/decreased/normal)?", hint: "" }, { q: "Dysphagia or early satiety?", hint: "" }, { q: "Associated fever, night sweats, diarrhoea?", hint: "" }, { q: "Drugs (metformin, antidepressants)?", hint: "" } ], redFlags: ["ðŸš¨ >5% loss in 6 months", "ðŸš¨ Dysphagia"] },
-            rash: { title: "ðŸ”´ Skin Rash", chapter: "Hutchison's Ch. 21", questions: [ { q: "Appearance (macules, vesicles, pustules)?", hint: "" }, { q: "Distribution and spread?", hint: "" }, { q: "Onset and time course?", hint: "" }, { q: "Itching present?", hint: "" }, { q: "Associated systemic symptoms (fever, joint pain)?", hint: "" }, { q: "Triggers (new soap, drug, infection)?", hint: "" } ], redFlags: ["ðŸš¨ Petechial/purpuric rash", "ðŸš¨ Mucosal involvement"] },
-            dizziness: { title: "ðŸŒ€ Dizziness/Vertigo", chapter: "Hutchison's Ch. 19", questions: [ { q: "Type: true vertigo or lightheadedness?", hint: "" }, { q: "Onset & duration (seconds, minutes, hours)?", hint: "" }, { q: "Triggers (head movement, standing)?", hint: "" }, { q: "Associated hearing loss, tinnitus?", hint: "" }, { q: "Associated palpitations, chest pain?", hint: "" }, { q: "Neurological symptoms (diplopia, dysarthria)?", hint: "" } ], redFlags: ["ðŸš¨ Acute vertigo + neurological deficit", "ðŸš¨ Syncope"] }
+            pain: { title: "🩺 Pain (SOCRATES)", chapter: "Hutchison's Ch. 8", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity (0-10)?", hint: "" } ], redFlags: ["🚨 Sudden worst pain ever"] },
+            "chest pain": { title: "💔 Chest Pain (SOCRATES)", chapter: "Hutchison's Ch. 13", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity?", hint: "" } ], redFlags: ["🚨 Crushing pain + radiation"] },
+            headache: { title: "🤕 Headache (SOCRATES)", chapter: "Hutchison's Ch. 19", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity?", hint: "" } ], redFlags: ["🚨 Thunderclap onset"] },
+            "joint pain": { title: "🦴 Joint Pain (SOCRATES)", chapter: "Hutchison's Ch. 20", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity?", hint: "" } ], redFlags: ["🚨 Acute monoarthritis"] },
+            fever: { title: "🌡️ Fever", chapter: "Hutchison's Ch. 10", questions: [ { q: "Duration?", hint: "" }, { q: "Pattern?", hint: "" }, { q: "Maximum temp?", hint: "" }, { q: "Chills/rigors?", hint: "" }, { q: "Associated cough, dysuria, diarrhoea?", hint: "" } ], redFlags: ["🚨 Temp >40°C", "🚨 Altered mental status"] },
+            nausea: { title: "🤢 Nausea/Vomiting", chapter: "Hutchison's Ch. 15", questions: [ { q: "Onset & duration?", hint: "" }, { q: "Frequency?", hint: "" }, { q: "Vomit content (food, bile, blood)?", hint: "" }, { q: "Associated abdominal pain, diarrhoea, fever?", hint: "" }, { q: "Triggers (eating, smell)?", hint: "" }, { q: "Signs of dehydration?", hint: "" } ], redFlags: ["🚨 Haematemesis", "🚨 Severe abdominal pain"] },
+            diarrhea: { title: "💩 Diarrhoea", chapter: "Hutchison's Ch. 15", questions: [ { q: "Duration (acute/chronic)?", hint: "" }, { q: "Frequency & consistency?", hint: "" }, { q: "Blood or mucus?", hint: "" }, { q: "Associated fever, pain, tenesmus?", hint: "" }, { q: "Travel or sick contacts?", hint: "" }, { q: "Recent antibiotics?", hint: "" } ], redFlags: ["🚨 Bloody diarrhoea", "🚨 Severe dehydration"] },
+            constipation: { title: "🚫 Constipation", chapter: "Hutchison's Ch. 15", questions: [ { q: "Duration?", hint: "" }, { q: "Bowel frequency per week?", hint: "" }, { q: "Stool consistency (hard, lumpy)?", hint: "" }, { q: "Straining or incomplete evacuation?", hint: "" }, { q: "Abdominal bloating or pain?", hint: "" }, { q: "Laxative use?", hint: "" }, { q: "Dietary fibre and fluid intake?", hint: "" } ], redFlags: ["🚨 New-onset in >50 years", "🚨 Blood in stool"] },
+            "shortness of breath": { title: "💨 Dyspnoea", chapter: "Hutchison's Ch. 12/13", questions: [ { q: "Onset (sudden/gradual)?", hint: "" }, { q: "Severity (stairs)?", hint: "" }, { q: "Worse lying flat (orthopnoea)?", hint: "" }, { q: "PND?", hint: "" }, { q: "Associated chest pain, cough, leg swelling?", hint: "" }, { q: "Triggers?", hint: "" } ], redFlags: ["🚨 Acute onset + chest pain", "🚨 Cyanosis"] },
+            cough: { title: "🤧 Cough", chapter: "Hutchison's Ch. 12", questions: [ { q: "Duration (acute/chronic)?", hint: "" }, { q: "Productive? Sputum colour?", hint: "" }, { q: "Timing (night, morning, after meals)?", hint: "" }, { q: "Triggers?", hint: "" }, { q: "Associated haemoptysis, fever, weight loss?", hint: "" } ], redFlags: ["🚨 Haemoptysis", "🚨 Unexplained weight loss"] },
+            swelling: { title: "💧 Oedema", chapter: "Hutchison's Ch. 13/14", questions: [ { q: "Site (face, feet, abdomen)?", hint: "" }, { q: "Onset (sudden/gradual)?", hint: "" }, { q: "Pitting oedema?", hint: "" }, { q: "Associated SOB, reduced urine, pain?", hint: "" }, { q: "Diurnal variation?", hint: "" } ], redFlags: ["🚨 Unilateral leg + pain (DVT)", "🚨 Swelling + SOB"] },
+            palpitations: { title: "💓 Palpitations", chapter: "Hutchison's Ch. 13", questions: [ { q: "Onset & duration?", hint: "" }, { q: "Rate & regularity?", hint: "" }, { q: "Triggers (exercise, caffeine)?", hint: "" }, { q: "Associated chest pain, SOB, syncope?", hint: "" }, { q: "Termination (vagal manoeuvres)?", hint: "" } ], redFlags: ["🚨 Palpitations + syncope"] },
+            fatigue: { title: "😴 Fatigue", chapter: "Hutchison's Ch. 3", questions: [ { q: "Duration?", hint: "" }, { q: "Impact on daily activities?", hint: "" }, { q: "Associated fever, weight loss, pain, sleep disturbance?", hint: "" }, { q: "Sleep quality?", hint: "" }, { q: "Mood (low mood, anxiety)?", hint: "" } ], redFlags: ["🚨 Unexplained weight loss", "🚨 Night sweats"] },
+            "weight loss": { title: "⚖️ Unintentional Weight Loss", chapter: "Hutchison's Ch. 3", questions: [ { q: "Amount & timeframe?", hint: "" }, { q: "Appetite (increased/decreased/normal)?", hint: "" }, { q: "Dysphagia or early satiety?", hint: "" }, { q: "Associated fever, night sweats, diarrhoea?", hint: "" }, { q: "Drugs (metformin, antidepressants)?", hint: "" } ], redFlags: ["🚨 >5% loss in 6 months", "🚨 Dysphagia"] },
+            rash: { title: "🔴 Skin Rash", chapter: "Hutchison's Ch. 21", questions: [ { q: "Appearance (macules, vesicles, pustules)?", hint: "" }, { q: "Distribution and spread?", hint: "" }, { q: "Onset and time course?", hint: "" }, { q: "Itching present?", hint: "" }, { q: "Associated systemic symptoms (fever, joint pain)?", hint: "" }, { q: "Triggers (new soap, drug, infection)?", hint: "" } ], redFlags: ["🚨 Petechial/purpuric rash", "🚨 Mucosal involvement"] },
+            dizziness: { title: "🌀 Dizziness/Vertigo", chapter: "Hutchison's Ch. 19", questions: [ { q: "Type: true vertigo or lightheadedness?", hint: "" }, { q: "Onset & duration (seconds, minutes, hours)?", hint: "" }, { q: "Triggers (head movement, standing)?", hint: "" }, { q: "Associated hearing loss, tinnitus?", hint: "" }, { q: "Associated palpitations, chest pain?", hint: "" }, { q: "Neurological symptoms (diplopia, dysarthria)?", hint: "" } ], redFlags: ["🚨 Acute vertigo + neurological deficit", "🚨 Syncope"] }
         };
 
         function displayQuestions(symptom) {
@@ -1621,7 +1561,7 @@ function refreshROSCardState(key) {
                 guide.questions.forEach((item, idx) => {
                     html += `<div style="margin-bottom:15px;"><label style="font-weight:600;">${item.q}</label><input type="text" id="pc_q${idx}" placeholder="Patient response..." onchange="savePCResponse(${idx}, this.value)" style="margin-top:5px;"><div class="ros-hint">${item.hint}</div></div>`;
                 });
-                if (guide.redFlags) html += `<div class="alert warning"><strong>âš ï¸ RED FLAGS:</strong><br>${guide.redFlags.join('<br>')}</div>`;
+                if (guide.redFlags) html += `<div class="alert warning"><strong>⚠️ RED FLAGS:</strong><br>${guide.redFlags.join('<br>')}</div>`;
                 html += `</div>`;
                 container.innerHTML = html;
             } else { displayGenericQuestions(symptom); }
@@ -1633,7 +1573,7 @@ function refreshROSCardState(key) {
         function savePCResponse(idx, value) { if (!symptomDetails[currentSymptom]) symptomDetails[currentSymptom] = []; symptomDetails[currentSymptom][idx] = value; updateProgress(); }
         function setSymptom(symptom) { currentSymptom = symptom; document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active')); event.target.classList.add('active'); document.getElementById('customSymptom').value = ''; displayQuestions(symptom); updateGuidancePanel(symptom); }
         function setCustomSymptom() { const custom = document.getElementById('customSymptom').value.toLowerCase(); if (custom) { currentSymptom = custom; document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active')); displayGenericQuestions(custom); updateGenericGuidance(custom); } }
-        function updateGuidancePanel(symptom) { const guide = symptomGuides[symptom]; const container = document.getElementById('guidanceContent'); if (guide) { container.innerHTML = `<div class="guidance-card"><h4>ðŸ“– ${guide.title}</h4><p>${guide.chapter}</p></div><div class="guidance-card"><h4>ðŸŽ¯ Key questions</h4><ul>${guide.questions.map(q => `<li>${q.q}</li>`).join('')}</ul></div>${guide.redFlags ? `<div class="alert warning"><strong>âš ï¸ RED FLAGS</strong><br>${guide.redFlags.join('<br>')}</div>` : ''}`; } }
+        function updateGuidancePanel(symptom) { const guide = symptomGuides[symptom]; const container = document.getElementById('guidanceContent'); if (guide) { container.innerHTML = `<div class="guidance-card"><h4>📖 ${guide.title}</h4><p>${guide.chapter}</p></div><div class="guidance-card"><h4>🎯 Key questions</h4><ul>${guide.questions.map(q => `<li>${q.q}</li>`).join('')}</ul></div>${guide.redFlags ? `<div class="alert warning"><strong>⚠️ RED FLAGS</strong><br>${guide.redFlags.join('<br>')}</div>` : ''}`; } }
         function updateGenericGuidance(symptom) { /* generic */ }
 
         // Clinical summary generation (includes HPC and referral details and new ROS narrative)
@@ -1661,7 +1601,7 @@ function refreshROSCardState(key) {
             // HIV data (simplified)
             let hivSummary = '';
             if (document.getElementById('hivStatus').value === 'positive') {
-                hivSummary = `<br><strong>ðŸ©¸ HIV History:</strong><br>â€¢ Positive, diagnosed ${document.getElementById('hivDiagnosisDate').value || '?'}<br>â€¢ WHO Stage: ${document.getElementById('hivWhoStage').value || '?'}<br>â€¢ On ART: ${document.getElementById('hivOnArt').value}<br>â€¢ CD4: ${document.getElementById('hivCd4').value || '?'}<br>â€¢ Viral load: ${document.getElementById('hivViralLoad').value || '?'}<br>`;
+                hivSummary = `<br><strong>🩸 HIV History:</strong><br>• Positive, diagnosed ${document.getElementById('hivDiagnosisDate').value || '?'}<br>• WHO Stage: ${document.getElementById('hivWhoStage').value || '?'}<br>• On ART: ${document.getElementById('hivOnArt').value}<br>• CD4: ${document.getElementById('hivCd4').value || '?'}<br>• Viral load: ${document.getElementById('hivViralLoad').value || '?'}<br>`;
             }
 
             let referralText = referralStatus;
@@ -1669,47 +1609,47 @@ function refreshROSCardState(key) {
                 referralText += ` (From: ${referralFrom || 'N/A'}, Reason: ${referralReason || 'N/A'})`;
             }
 
-            let summary = `<strong>ðŸ“š EaseMed CLINICAL SUMMARY - ${new Date().toLocaleString()}</strong><br><br>
-                <strong>ðŸ“‹ PATIENT DEMOGRAPHICS</strong><br>
-                â€¢ Name: ${fullName} | Age: ${age} | Sex: ${gender}<br>
-                â€¢ Marital Status: ${maritalStatus} | Occupation: ${occupation}<br>
-                â€¢ Religion: ${religion} | Tribe: ${tribe}<br>
-                â€¢ Address: ${address}<br>
-                â€¢ Next of Kin: ${nextOfKin}<br>
-                â€¢ Nearest Health Centre: ${nearestHealthCentre}<br>
-                â€¢ Referral Status: ${referralText}<br>
+            let summary = `<strong>📚 EaseMed CLINICAL SUMMARY - ${new Date().toLocaleString()}</strong><br><br>
+                <strong>📋 PATIENT DEMOGRAPHICS</strong><br>
+                • Name: ${fullName} | Age: ${age} | Sex: ${gender}<br>
+                • Marital Status: ${maritalStatus} | Occupation: ${occupation}<br>
+                • Religion: ${religion} | Tribe: ${tribe}<br>
+                • Address: ${address}<br>
+                • Next of Kin: ${nextOfKin}<br>
+                • Nearest Health Centre: ${nearestHealthCentre}<br>
+                • Referral Status: ${referralText}<br>
                 ${hivSummary}
-                <br><strong>ðŸ©º PRESENTING COMPLAINT</strong><br>
-                â€¢ Main Symptom: ${currentSymptom || 'Not specified'}<br>
-                <br><strong>ðŸ“ HISTORY OF PRESENTING COMPLAINT</strong><br>${hpc.replace(/\n/g, '<br>')}<br>
-                <br><strong>ðŸ“œ PAST MEDICAL HISTORY</strong><br>${pmh}<br>
-                <strong>ðŸ’Š MEDICATIONS & ALLERGIES</strong><br>Current Meds: ${medications}<br>Allergies: ${allergies}<br>
-                <br><strong>ðŸ”„ REVIEW OF SYSTEMS</strong><br>`;
+                <br><strong>🩺 PRESENTING COMPLAINT</strong><br>
+                • Main Symptom: ${currentSymptom || 'Not specified'}<br>
+                <br><strong>📝 HISTORY OF PRESENTING COMPLAINT</strong><br>${hpc.replace(/\n/g, '<br>')}<br>
+                <br><strong>📜 PAST MEDICAL HISTORY</strong><br>${pmh}<br>
+                <strong>💊 MEDICATIONS & ALLERGIES</strong><br>Current Meds: ${medications}<br>Allergies: ${allergies}<br>
+                <br><strong>🔄 REVIEW OF SYSTEMS</strong><br>`;
             for (const [sys, data] of Object.entries(reviewOfSystems)) {
                 const findings = rosData[sys] ? rosData[sys].trim() : '';
                 summary += `<strong>${data.icon} ${data.name}:</strong> ${findings || 'No findings documented'}<br>`;
             }
-            summary += `<br><strong>ðŸ  SOCIAL HISTORY</strong><br>${social}<br><br><strong>ðŸ‘¨â€ðŸ‘©â€ðŸ‘§ FAMILY HISTORY</strong><br>${familyHistory}<br><br><em>Based on Hutchison's Clinical Methods, 25th Edition</em>`;
+            summary += `<br><strong>🏠 SOCIAL HISTORY</strong><br>${social}<br><br><strong>👨‍👩‍👧 FAMILY HISTORY</strong><br>${familyHistory}<br><br><em>Based on Hutchison's Clinical Methods, 25th Edition</em>`;
             document.getElementById('clinicalSummary').innerHTML = summary;
             document.getElementById('summarySection').style.display = 'block';
             document.getElementById('summarySection').scrollIntoView({ behavior: 'smooth' });
             updateProgress();
         }
 
-        function copyToClipboard() { navigator.clipboard.writeText(document.getElementById('clinicalSummary').innerText); alert('âœ… Summary copied!'); }
+        function copyToClipboard() { navigator.clipboard.writeText(document.getElementById('clinicalSummary').innerText); alert('✅ Summary copied!'); }
 
         // Patient records functions (unchanged)
         function getRecords() { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
         function saveRecords(records) { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
         function captureFormData() { const data = {}; document.querySelectorAll('input[id], textarea[id], select[id]').forEach(el => { data[el.id] = el.type === 'checkbox' ? el.checked : el.value; }); return data; }
         function restoreFormData(data) { Object.entries(data).forEach(([id, val]) => { let el = document.getElementById(id); if (el) { if (el.type === 'checkbox') el.checked = val; else el.value = val; } }); toggleReferralDetails(); if (data.referralStatus && data.referralStatus !== 'Self-referred') document.getElementById('referralDetails').style.display = 'block'; }
-        function savePatient() { const name = (document.getElementById('fullName').value || '').trim(); if (!name) { showToast('âš ï¸ Enter patient name', '#e67e22'); return; } const records = getRecords(); const user = localStorage.getItem('easemed_user') || 'unknown'; const existingIdx = records.findIndex(r => r.name.toLowerCase() === name.toLowerCase() && r.user === user); const record = { id: existingIdx >= 0 ? records[existingIdx].id : Date.now(), savedAt: new Date().toISOString(), user, name, age: document.getElementById('age').value, gender: document.getElementById('gender').value, complaint: currentSymptom, summary: document.getElementById('clinicalSummary').innerHTML, formData: captureFormData() }; if (existingIdx >= 0) records[existingIdx] = record; else records.unshift(record); saveRecords(records); renderRecords(); showToast('âœ… Record saved!', '#27ae60'); }
-        function newPatient() { if (!confirm('Clear form?')) return; document.querySelectorAll('input[id], textarea[id]').forEach(el => { if (el.type === 'checkbox') el.checked = false; else el.value = ''; }); document.querySelectorAll('select[id]').forEach(el => el.selectedIndex = 0); document.getElementById('clinicalSummary').innerHTML = ''; document.getElementById('summarySection').style.display = 'none'; toggleReferralDetails(); updateProgress(); showToast('âž• New patient', '#2471a3'); }
-        function loadPatient(id) { const record = getRecords().find(r => r.id === id); if (!record) return; if (!confirm(`Load ${record.name}?`)) return; restoreFormData(record.formData); if (record.summary) { document.getElementById('clinicalSummary').innerHTML = record.summary; document.getElementById('summarySection').style.display = 'block'; } updateProgress(); window.scrollTo(0, 0); showToast(`ðŸ“‚ Loaded ${record.name}`, '#2471a3'); }
-        function deletePatient(id) { if (!confirm('Delete record?')) return; saveRecords(getRecords().filter(r => r.id !== id)); renderRecords(); showToast('ðŸ—‘ï¸ Deleted', '#e53e3e'); }
-        function exportRecords() { const records = getRecords(); if (!records.length) { showToast('No records', '#e67e22'); return; } const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `easemed_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href); showToast('â¬‡ï¸ Exported', '#8e44ad'); }
-        function importRecords(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = e => { try { const imported = JSON.parse(e.target.result); if (!Array.isArray(imported)) throw new Error(); const existing = getRecords(); const merged = [...existing]; let added = 0; imported.forEach(r => { if (!existing.some(e => e.id === r.id)) { merged.push(r); added++; } }); merged.sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt)); saveRecords(merged); renderRecords(); showToast(`ðŸ“‚ Backup restored: ${added} records added`, '#27ae60'); } catch(err) { showToast('âŒ Could not read backup file', '#e53e3e'); } }; reader.readAsText(file); event.target.value = ''; }
-        function renderRecords() { const records = getRecords(); const query = (document.getElementById('recordSearch')?.value || '').toLowerCase(); const user = localStorage.getItem('easemed_user') || ''; const filtered = records.filter(r => r.user === user && (!query || r.name.toLowerCase().includes(query) || (r.complaint || '').toLowerCase().includes(query))); const container = document.getElementById('recordsList'); if (!filtered.length) { container.innerHTML = `<div class="records-empty">${records.length ? 'ðŸ” No match' : 'ðŸ“­ No saved records'}</div>`; return; } container.innerHTML = filtered.map(r => `<div class="patient-card"><div class="patient-card-info"><div class="patient-card-name">ðŸ‘¤ ${r.name}</div><div class="patient-card-meta">${r.age ? r.age+' yrs' : ''} Â· ${r.gender || ''} Â· ${new Date(r.savedAt).toLocaleString()}</div></div><div class="patient-card-btns"><button class="btn-card btn-load" onclick="loadPatient(${r.id})">ðŸ“‚ Load</button><button class="btn-card btn-delete" onclick="deletePatient(${r.id})">ðŸ—‘ï¸ Delete</button></div></div>`).join(''); }
+        function savePatient() { const name = (document.getElementById('fullName').value || '').trim(); if (!name) { showToast('⚠️ Enter patient name', '#e67e22'); return; } const records = getRecords(); const user = localStorage.getItem('easemed_user') || 'unknown'; const existingIdx = records.findIndex(r => r.name.toLowerCase() === name.toLowerCase() && r.user === user); const record = { id: existingIdx >= 0 ? records[existingIdx].id : Date.now(), savedAt: new Date().toISOString(), user, name, age: document.getElementById('age').value, gender: document.getElementById('gender').value, complaint: currentSymptom, summary: document.getElementById('clinicalSummary').innerHTML, formData: captureFormData() }; if (existingIdx >= 0) records[existingIdx] = record; else records.unshift(record); saveRecords(records); renderRecords(); showToast('✅ Record saved!', '#27ae60'); }
+        function newPatient() { if (!confirm('Clear form?')) return; document.querySelectorAll('input[id], textarea[id]').forEach(el => { if (el.type === 'checkbox') el.checked = false; else el.value = ''; }); document.querySelectorAll('select[id]').forEach(el => el.selectedIndex = 0); document.getElementById('clinicalSummary').innerHTML = ''; document.getElementById('summarySection').style.display = 'none'; toggleReferralDetails(); updateProgress(); showToast('➕ New patient', '#2471a3'); }
+        function loadPatient(id) { const record = getRecords().find(r => r.id === id); if (!record) return; if (!confirm(`Load ${record.name}?`)) return; restoreFormData(record.formData); if (record.summary) { document.getElementById('clinicalSummary').innerHTML = record.summary; document.getElementById('summarySection').style.display = 'block'; } updateProgress(); window.scrollTo(0, 0); showToast(`📂 Loaded ${record.name}`, '#2471a3'); }
+        function deletePatient(id) { if (!confirm('Delete record?')) return; saveRecords(getRecords().filter(r => r.id !== id)); renderRecords(); showToast('🗑️ Deleted', '#e53e3e'); }
+        function exportRecords() { const records = getRecords(); if (!records.length) { showToast('No records', '#e67e22'); return; } const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `easemed_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href); showToast('⬇️ Exported', '#8e44ad'); }
+        function importRecords(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = e => { try { const imported = JSON.parse(e.target.result); if (!Array.isArray(imported)) throw new Error(); const existing = getRecords(); const merged = [...existing]; let added = 0; imported.forEach(r => { if (!existing.some(e => e.id === r.id)) { merged.push(r); added++; } }); merged.sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt)); saveRecords(merged); renderRecords(); showToast(`📂 Backup restored: ${added} records added`, '#27ae60'); } catch(err) { showToast('❌ Could not read backup file', '#e53e3e'); } }; reader.readAsText(file); event.target.value = ''; }
+        function renderRecords() { const records = getRecords(); const query = (document.getElementById('recordSearch')?.value || '').toLowerCase(); const user = localStorage.getItem('easemed_user') || ''; const filtered = records.filter(r => r.user === user && (!query || r.name.toLowerCase().includes(query) || (r.complaint || '').toLowerCase().includes(query))); const container = document.getElementById('recordsList'); if (!filtered.length) { container.innerHTML = `<div class="records-empty">${records.length ? '🔍 No match' : '📭 No saved records'}</div>`; return; } container.innerHTML = filtered.map(r => `<div class="patient-card"><div class="patient-card-info"><div class="patient-card-name">👤 ${r.name}</div><div class="patient-card-meta">${r.age ? r.age+' yrs' : ''} · ${r.gender || ''} · ${new Date(r.savedAt).toLocaleString()}</div></div><div class="patient-card-btns"><button class="btn-card btn-load" onclick="loadPatient(${r.id})">📂 Load</button><button class="btn-card btn-delete" onclick="deletePatient(${r.id})">🗑️ Delete</button></div></div>`).join(''); }
         function showToast(msg, color) { const toast = document.getElementById('saveToast'); toast.textContent = msg; toast.style.background = color; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2500); }
 
         // Polished clinical summary and ward-round presentation output.
@@ -1947,27 +1887,24 @@ function refreshROSCardState(key) {
             if (!name) { showToast('Enter patient name', '#e67e22'); return; }
             if (!document.getElementById('clinicalSummary').innerHTML.trim()) generateClinicalSummary();
             const records = getRecords();
-            const user = localStorage.getItem('easemed_user') || 'local-user';
+            const user = localStorage.getItem('easemed_user') || 'unknown';
             const existingIdx = records.findIndex(r => r.name.toLowerCase() === name.toLowerCase() && r.user === user);
             const record = {
                 id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
-                savedAt: existingIdx >= 0 ? records[existingIdx].savedAt : new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
+                savedAt: new Date().toISOString(),
                 user,
                 name,
                 age: document.getElementById('age').value,
                 gender: document.getElementById('gender').value,
-                complaint: currentSymptom || document.getElementById('customSymptom')?.value || '',
+                complaint: currentSymptom,
                 summary: document.getElementById('clinicalSummary').innerHTML,
                 wardRound: document.getElementById('wardRoundSummary').innerHTML,
                 formData: captureFormData()
             };
             if (existingIdx >= 0) records[existingIdx] = record; else records.unshift(record);
             saveRecords(records);
-            queueRecordForSync(record);
             renderRecords();
-            updateConnectionStatus();
-            showToast('Record saved locally', '#27ae60');
+            showToast('Record saved', '#27ae60');
         }
 
         function newPatient() {
@@ -2035,149 +1972,11 @@ function refreshROSCardState(key) {
             event.target.value = '';
         }
 
-        // Optional Supabase + offline-first sync. Leave URL/key blank for local-only mode.
-        const SUPABASE_URL = '';
-        const SUPABASE_ANON = '';
-        window._sb = null;
-
-        function getSyncQueue() {
-            try { return JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY)) || []; }
-            catch(err) { return []; }
-        }
-
-        function saveSyncQueue(queue) {
-            localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue));
-        }
-
-        function queueRecordForSync(record) {
-            const queue = getSyncQueue().filter(item => item.record.id !== record.id);
-            queue.push({ id: Date.now() + Math.random(), record, queuedAt: new Date().toISOString() });
-            saveSyncQueue(queue);
-            if (navigator.onLine) syncRecordsNow();
-        }
-
-        function updateConnectionStatus(message) {
-            const online = navigator.onLine;
-            const connectionStatus = document.getElementById('connectionStatus');
-            const syncStatus = document.getElementById('syncStatus');
-            const queueLength = getSyncQueue().length;
-            connectionStatus?.classList.toggle('offline', !online);
-            document.getElementById('connectionText').textContent = online ? 'Online' : 'Offline';
-            if (syncStatus) syncStatus.className = 'sync-pill' + (!window._sb ? ' error' : (!online ? ' offline' : ''));
-            document.getElementById('syncText').textContent = message || (!window._sb
-                ? `${queueLength} queued · local-only mode`
-                : (!online ? `${queueLength} queued · waiting for internet` : `${queueLength} queued · Supabase ready`));
-        }
-
-        async function setupOptionalSupabase() {
-            localStorage.setItem('easemed_user', localStorage.getItem('easemed_user') || 'local-user');
-            document.getElementById('userGreeting').textContent = localStorage.getItem('easemed_user_name') || 'Local mode';
-            renderRecords();
-
-            try {
-                if (!SUPABASE_URL || !SUPABASE_ANON) {
-                    updateConnectionStatus('Supabase not configured · local mode');
-                    return;
-                }
-                if (!window.supabase?.createClient) {
-                    updateConnectionStatus('Supabase library unavailable · local mode');
-                    return;
-                }
-                const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-                window._sb = sb;
-                const { data, error } = await sb.auth.getSession();
-                if (!error && data.session?.user) {
-                    const user = data.session.user;
-                    const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
-                    localStorage.setItem('easemed_user', user.email || user.id);
-                    localStorage.setItem('easemed_user_name', displayName);
-                    document.getElementById('userGreeting').textContent = 'Signed in: ' + displayName;
-                    renderRecords();
-                }
-                updateConnectionStatus();
-                if (navigator.onLine) syncRecordsNow();
-            } catch(err) {
-                window._sb = null;
-                updateConnectionStatus('Supabase unavailable · local mode');
-            }
-        }
-
-        async function syncRecordsNow() {
-            if (!navigator.onLine) {
-                updateConnectionStatus('Offline · sync will retry later');
-                showToast('Offline. Records will sync when internet returns.', '#e67e22');
-                return;
-            }
-            if (!window._sb) {
-                updateConnectionStatus('Supabase not configured · records saved locally');
-                showToast('Supabase is unavailable, so records remain local.', '#2471a3');
-                return;
-            }
-
-            const queue = getSyncQueue();
-            if (!queue.length) {
-                updateConnectionStatus('All local changes synced');
-                showToast('No records waiting to sync', '#2471a3');
-                return;
-            }
-
-            updateConnectionStatus('Syncing records...');
-            const remaining = [];
-            for (const item of queue) {
-                try {
-                    const r = item.record;
-                    const payload = {
-                        id: String(r.id),
-                        user_email: r.user,
-                        patient_name: r.name,
-                        age: r.age,
-                        gender: r.gender,
-                        complaint: r.complaint,
-                        saved_at: r.savedAt,
-                        updated_at: r.updatedAt || r.savedAt,
-                        summary_html: r.summary,
-                        ward_round_html: r.wardRound,
-                        form_data: r.formData
-                    };
-                    const { error } = await window._sb.from(SUPABASE_RECORDS_TABLE).upsert(payload, { onConflict: 'id' });
-                    if (error) throw error;
-                } catch(err) {
-                    remaining.push(item);
-                }
-            }
-            saveSyncQueue(remaining);
-            updateConnectionStatus(remaining.length ? `${remaining.length} records still queued` : 'All local changes synced');
-            showToast(remaining.length ? 'Some records could not sync yet' : 'Records synced', remaining.length ? '#e67e22' : '#27ae60');
-        }
-
-        async function optionalSignInPrompt() {
-            if (!window._sb) {
-                showToast('Add Supabase URL and anon key in the code to enable online sign-in.', '#2471a3');
-                return;
-            }
-            const email = prompt('Enter email for Supabase magic link. Leave blank to stay in local mode.');
-            if (!email) return;
-            try {
-                const { error } = await window._sb.auth.signInWithOtp({ email });
-                if (error) throw error;
-                showToast('Magic link sent. Check your email.', '#27ae60');
-            } catch(err) {
-                showToast('Could not send magic link. Local mode is still available.', '#e53e3e');
-            }
-        }
-
-        async function handleLogout() {
-            try { if (window._sb) await window._sb.auth.signOut(); } catch(err) {}
-            localStorage.setItem('easemed_user', 'local-user');
-            localStorage.setItem('easemed_user_name', 'Local mode');
-            document.getElementById('userGreeting').textContent = 'Local mode';
-            renderRecords();
-            updateConnectionStatus('Local mode active');
-        }
-
-        window.addEventListener('online', () => { updateConnectionStatus(); syncRecordsNow(); });
-        window.addEventListener('offline', () => updateConnectionStatus('Offline · records stay local'));
-        setupOptionalSupabase();
+        // Supabase auth (unchanged)
+        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+        (async function authCheck() { try { const { createClient } = supabase; const sb = createClient(SUPABASE_URL, SUPABASE_ANON); const { data: { session } } = await sb.auth.getSession(); if (!session) { window.location.href = 'easemed_login.html'; return; } const user = session.user; const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email; document.getElementById('userGreeting').textContent = '👤 ' + displayName; localStorage.setItem('easemed_user', user.email); localStorage.setItem('easemed_user_name', displayName); renderRecords(); window._sb = sb; } catch(err) { window.location.href = 'easemed_login.html'; } })();
+        async function handleLogout() { if (window._sb) await window._sb.auth.signOut(); localStorage.removeItem('easemed_user'); localStorage.removeItem('easemed_user_name'); window.location.href = 'easemed_login.html'; }
 
         // Initialize
         buildROS();
