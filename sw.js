@@ -1,21 +1,13 @@
 const CACHE_NAME  = 'easemed-v3';
 const REPO        = '/easemed'; // ← change this to your repo name
 const OFFLINE_URL = `${REPO}/easemed_login.html`;
-
 const PRECACHE_URLS = [
-    `${REPO}/easemed_login.html`,
-    `${REPO}/easemed_dashboard.html`,
-    `${REPO}/manifest.json`,
-    `${REPO}/icons/icon-72.png`,
-    `${REPO}/icons/icon-96.png`,
-    `${REPO}/icons/icon-128.png`,
-    `${REPO}/icons/icon-144.png`,
-    `${REPO}/icons/icon-152.png`,
-    `${REPO}/icons/icon-192.png`,
-    `${REPO}/icons/icon-384.png`,
-    `${REPO}/icons/icon-512.png`
+    'easemed_login.html',
+    'easemed_dashboard.html',
+    'manifest.json',
+    'icon-192.png',
+    'icon-512.png'
 ];
-
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
