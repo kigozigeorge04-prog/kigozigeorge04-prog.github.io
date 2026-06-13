@@ -13,10 +13,6 @@
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="EaseMed Clinical Clerk System — comprehensive patient history taking guide">
-
-    <!-- Supabase JS SDK — loaded in <head> so authCheck() runs immediately on DOMContentLoaded -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
         * {
             margin: 0;
@@ -941,6 +937,45 @@
     <script>
         // ── Global state ─────────────────────────────────────────
         const STORAGE_KEY  = 'easemed_patients';   // patient records key
+
+        // ── SUPABASE CLIENT ───────────────────────────────────────
+        const { createClient: _createClient } = supabase;
+        const _sb = _createClient(
+            'https://uhjcybwczelmqkkapeac.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc'
+        );
+
+        // ── LOG FEATURE USAGE ─────────────────────────────────────
+        async function logFeature(featureName, recordId = null) {
+            try {
+                const userId    = localStorage.getItem('easemed_user_id');
+                const sessionId = localStorage.getItem('easemed_session_id');
+                if (!userId) return;
+                await _sb.from('feature_usage').insert({
+                    user_id     : userId,
+                    session_id  : sessionId || null,
+                    feature_name: featureName,
+                    record_id   : recordId  || null,
+                });
+            } catch (e) { /* non-blocking */ }
+        }
+
+        // ── LOG ACTIVITY ──────────────────────────────────────────
+        async function logActivity(action, metadata = {}) {
+            try {
+                const userId    = localStorage.getItem('easemed_user_id');
+                const sessionId = localStorage.getItem('easemed_session_id');
+                if (!userId) return;
+                await _sb.from('activity_logs').insert({
+                    user_id   : userId,
+                    session_id: sessionId || null,
+                    action    : action,
+                    severity  : 'info',
+                    metadata  : metadata,
+                    user_agent: navigator.userAgent,
+                });
+            } catch (e) { /* non-blocking */ }
+        }
         let currentSymptom = '';
         let symptomDetails = {};
         let rosData        = {};
@@ -1541,7 +1576,7 @@
             });
         }
 
-        // ── Initialize UI (non-auth parts run immediately) ───────────
+        // Initialize
         buildROS();
         updateProgress();
 
@@ -1555,6 +1590,9 @@
         // so the entire form can be fully restored when a record is loaded.
         // ─────────────────────────────────────────────────────────────
 
+        // ── LOCAL CACHE HELPERS ───────────────────────────────────
+        // localStorage acts as an offline cache so the app works
+        // without internet. Supabase is the source of truth when online.
         function getRecords() {
             return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         }
@@ -1562,6 +1600,8 @@
         function saveRecords(records) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
         }
+
+
 
         // Collect every form field value by ID into a plain object
         function captureFormData() {
@@ -1590,48 +1630,136 @@
             });
         }
 
-        // Save the current patient form to localStorage
-        function savePatient() {
+        // Save patient — writes to BOTH localStorage (offline cache) AND Supabase
+        async function savePatient() {
             const name      = (document.getElementById('fullName')?.value || '').trim();
             const age       = document.getElementById('age')?.value || '';
             const gender    = document.getElementById('gender')?.value || '';
-            const complaint = (document.getElementById('presentingComplaint')?.value || '').trim();
+            const complaint = currentSymptom || '';
             const summary   = document.getElementById('clinicalSummary')?.innerHTML || '';
             const user      = localStorage.getItem('easemed_user') || 'unknown';
+            const userId    = localStorage.getItem('easemed_user_id');
 
             if (!name) {
                 showToast('⚠️ Please enter the patient\'s full name before saving.', '#e67e22');
                 return;
             }
 
+            const now     = new Date().toISOString();
             const records = getRecords();
-
-            // Update existing record if same name + same user, else create new
             const existingIdx = records.findIndex(
                 r => r.name.toLowerCase() === name.toLowerCase() && r.user === user
             );
 
+            const localId = existingIdx >= 0 ? records[existingIdx].id : Date.now();
+
             const record = {
-                id:       existingIdx >= 0 ? records[existingIdx].id : Date.now(),
-                savedAt:  new Date().toISOString(),
-                user:     user,
-                name:     name,
-                age:      age,
-                gender:   gender,
+                id:        localId,
+                savedAt:   now,
+                user:      user,
+                name:      name,
+                age:       age,
+                gender:    gender,
                 complaint: complaint,
-                summary:  summary,
-                formData: captureFormData(),
+                summary:   summary,
+                formData:  captureFormData(),
             };
 
+            // ── Step 1: Save to localStorage immediately (works offline) ──
             if (existingIdx >= 0) {
                 records[existingIdx] = record;
             } else {
-                records.unshift(record);   // newest first
+                records.unshift(record);
             }
-
             saveRecords(records);
             renderRecords();
             showToast('✅ Patient record saved!', '#27ae60');
+
+            // ── Step 2: Sync to Supabase in background ────────────────
+            if (!userId) return;   // demo account — skip Supabase
+
+            try {
+                // Capture all individual fields for the database
+                const hivStatus   = document.getElementById('hivStatus')?.value || null;
+                const formData    = record.formData;
+
+                const supabaseRecord = {
+                    user_id              : userId,
+                    patient_name         : name,
+                    patient_age          : age ? parseInt(age) : null,
+                    patient_sex          : gender,
+                    presenting_complaint : complaint,
+                    past_medical_history : formData['pmh']          || null,
+                    medications          : formData['medications']   || null,
+                    allergies            : formData['allergies']     || null,
+                    social_history       : formData['social']        || null,
+                    family_history       : formData['familyHistory'] || null,
+                    clinical_summary     : document.getElementById('clinicalSummary')?.innerText || null,
+                    is_complete          : summary.length > 0,
+                    word_count           : (document.getElementById('clinicalSummary')?.innerText || '').split(' ').length,
+                    // Store structured data as JSONB
+                    demographics: {
+                        marital_status       : formData['maritalStatus'],
+                        occupation           : formData['occupation'],
+                        religion             : formData['religion'],
+                        tribe                : formData['tribe'],
+                        address              : formData['address'],
+                        next_of_kin          : formData['nextOfKin'],
+                        nearest_health_centre: formData['nearestHealthCentre'],
+                        referral_status      : formData['referralStatus'],
+                    },
+                    hiv_history: hivStatus ? {
+                        status              : hivStatus,
+                        diagnosis_date      : formData['hivDiagnosisDate'],
+                        diagnosis_method    : formData['hivDiagnosisMethod'],
+                        who_stage           : formData['hivWhoStage'],
+                        on_art              : formData['hivOnArt'],
+                        art_regimen         : formData['hivArtRegimen'],
+                        adherence           : formData['hivAdherence'],
+                        missed_doses        : formData['hivMissedDoses'],
+                        cd4                 : formData['hivCd4'],
+                        viral_load          : formData['hivViralLoad'],
+                    } : null,
+                    review_of_systems: rosData || null,
+                    updated_at: now,
+                };
+
+                // Check if record already exists in Supabase for this user + patient name
+                const { data: existing } = await _sb
+                    .from('patient_records')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .ilike('patient_name', name)
+                    .single();
+
+                if (existing) {
+                    // Update existing Supabase record
+                    await _sb.from('patient_records')
+                        .update(supabaseRecord)
+                        .eq('id', existing.id);
+                } else {
+                    // Insert new record
+                    await _sb.from('patient_records')
+                        .insert(supabaseRecord);
+                }
+
+                // Log the save activity
+                await logActivity('record_created', {
+                    patient_name: name,
+                    complaint   : complaint,
+                    is_complete : summary.length > 0,
+                });
+
+                // Log feature usage
+                await logFeature('record_saved');
+                if (hivStatus === 'positive') await logFeature('hiv_module');
+                if (Object.keys(rosData).length > 0) await logFeature('ros_expanded');
+                if (summary.length > 0) await logFeature('summary_generated');
+
+            } catch (err) {
+                // Supabase sync failed — record is still saved locally
+                console.warn('[EaseMed] Supabase sync warning:', err.message);
+            }
         }
 
         // Clear the form for a new patient
@@ -1668,16 +1796,31 @@
             showToast(`📂 Loaded: ${record.name}`, '#2471a3');
         }
 
-        // Delete a record
-        function deletePatient(id) {
+        // Delete a record from localStorage AND Supabase
+        async function deletePatient(id) {
             const records = getRecords();
             const record  = records.find(r => r.id === id);
             if (!record) return;
             if (!confirm(`Delete ${record.name}'s record? This cannot be undone.`)) return;
 
+            // Remove from localStorage immediately
             saveRecords(records.filter(r => r.id !== id));
             renderRecords();
             showToast('🗑️ Record deleted', '#e53e3e');
+
+            // Soft-delete from Supabase (sets deleted_at timestamp)
+            const userId = localStorage.getItem('easemed_user_id');
+            if (!userId) return;
+            try {
+                await _sb.from('patient_records')
+                    .update({ deleted_at: new Date().toISOString() })
+                    .eq('user_id', userId)
+                    .ilike('patient_name', record.name);
+
+                await logActivity('record_deleted', { patient_name: record.name });
+            } catch (err) {
+                console.warn('[EaseMed] Supabase delete warning:', err.message);
+            }
         }
 
         // Export all records as a downloadable JSON file
@@ -1797,19 +1940,10 @@
             setTimeout(() => toast.classList.remove('show'), 2800);
         }
 
-        // ── AUTH GUARD (Supabase) ───────────────────────────────────
-        // SDK is already in <head> so it's available immediately.
-        // We show a branded loading overlay right away so the user
-        // never sees a frozen or partially-rendered page.
-        // localStorage is set BEFORE renderRecords() so record
-        // filtering works correctly from the first call.
-        // ────────────────────────────────────────────────────────────
-        const SUPABASE_URL  = 'https://uhjcybwczelmqkkapeac.supabase.co';
-        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
-
+        // ── AUTH GUARD (Supabase) ──────────────────────────────────
         (async function authCheck() {
 
-            // ── Step 1: Show branded loading overlay immediately ──────
+            // Show loading overlay
             const overlay = document.createElement('div');
             overlay.id = 'authOverlay';
             overlay.style.cssText = `
@@ -1821,17 +1955,11 @@
                 transition: opacity 0.3s ease;
             `;
             overlay.innerHTML = `
-                <div style="font-size:3.5rem; margin-bottom:18px; animation:hb 1.5s ease-in-out infinite; display:inline-block;">🩺</div>
-                <div style="font-size:1.3rem; font-weight:700; letter-spacing:1px; margin-bottom:6px;">EaseMed</div>
-                <div style="font-size:0.82rem; opacity:0.55; margin-bottom:28px;">Clinical Clerk System</div>
-                <div style="
-                    width:42px; height:42px;
-                    border:3px solid rgba(255,255,255,0.15);
-                    border-top-color:#90cdf4;
-                    border-radius:50%;
-                    animation:spin 0.75s linear infinite;">
-                </div>
-                <div style="margin-top:20px; font-size:0.78rem; opacity:0.4;">Verifying your session...</div>
+                <div style="font-size:3.5rem;margin-bottom:18px;animation:hb 1.5s ease-in-out infinite;display:inline-block;">🩺</div>
+                <div style="font-size:1.3rem;font-weight:700;letter-spacing:1px;margin-bottom:6px;">EaseMed</div>
+                <div style="font-size:0.82rem;opacity:0.55;margin-bottom:28px;">Clinical Clerk System</div>
+                <div style="width:42px;height:42px;border:3px solid rgba(255,255,255,0.15);border-top-color:#90cdf4;border-radius:50%;animation:spin 0.75s linear infinite;"></div>
+                <div style="margin-top:20px;font-size:0.78rem;opacity:0.4;">Verifying your session...</div>
                 <style>
                     @keyframes spin { to { transform: rotate(360deg); } }
                     @keyframes hb   { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.15); } }
@@ -1839,48 +1967,64 @@
             `;
             document.body.appendChild(overlay);
 
-            // ── Step 2: Check Supabase session ────────────────────────
             try {
-                const { createClient } = supabase;
-                const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+                const { data: { session } } = await _sb.auth.getSession();
 
-                const { data: { session } } = await sb.auth.getSession();
+                // ── Demo account fallback ─────────────────────────────
+                const isDemo    = localStorage.getItem('easemed_is_demo') === 'true';
+                const loggedIn  = localStorage.getItem('easemed_logged_in') === 'true';
 
-                if (!session) {
-                    // No valid session — go back to login
+                if (!session && !isDemo) {
                     window.location.href = 'easemed_login.html';
                     return;
                 }
 
-                // ── Step 3: Session confirmed — populate UI ───────────
-                const user = session.user;
-                const displayName =
-                    user.user_metadata?.full_name ||
-                    user.user_metadata?.name      ||
-                    localStorage.getItem('easemed_user_name') ||
-                    user.email;
+                // ── Set user identity ─────────────────────────────────
+                let displayName, userEmail;
 
-                // CRITICAL: set localStorage BEFORE calling renderRecords()
-                // so the user-email filter inside renderRecords() works correctly
-                localStorage.setItem('easemed_user',      user.email);
-                localStorage.setItem('easemed_user_name', displayName);
+                if (session) {
+                    const user  = session.user;
+                    userEmail   = user.email;
+                    displayName = user.user_metadata?.full_name ||
+                                  localStorage.getItem('easemed_user_name') ||
+                                  userEmail;
 
-                // Show greeting in the top bar
+                    localStorage.setItem('easemed_user',      userEmail);
+                    localStorage.setItem('easemed_user_id',   user.id);
+                    localStorage.setItem('easemed_user_name', displayName);
+                    localStorage.setItem('easemed_logged_in', 'true');
+                    localStorage.setItem('easemed_is_demo',   'false');
+
+                    // Update last_seen in profiles
+                    await _sb.from('profiles')
+                        .update({ last_seen_at: new Date().toISOString() })
+                        .eq('id', user.id);
+
+                    // Log dashboard open
+                    await logActivity('dashboard_opened');
+
+                } else {
+                    // Demo account
+                    userEmail   = localStorage.getItem('easemed_user') || 'demo';
+                    displayName = localStorage.getItem('easemed_user_name') || 'Demo User';
+                }
+
+                // Show greeting
                 const greeting = document.getElementById('userGreeting');
                 if (greeting) greeting.textContent = '👤 ' + displayName;
 
-                // Now safe to render records with the correct user email
+                // Render records with correct user
                 renderRecords();
 
-                // Expose sb so the logout button can sign out properly
-                window._sb = sb;
+                // Expose sb globally for logout
+                window._sb = _sb;
 
-                // ── Step 4: Fade out overlay smoothly ─────────────────
+                // Fade out overlay
                 overlay.style.opacity = '0';
                 setTimeout(() => overlay.remove(), 320);
 
             } catch (err) {
-                console.error('[EaseMed] Auth check error:', err);
+                console.error('[EaseMed] Auth error:', err);
                 window.location.href = 'easemed_login.html';
             }
         })();
@@ -1888,10 +2032,39 @@
         // ── LOGOUT ──────────────────────────────────────────────────
         async function handleLogout() {
             if (!confirm('Are you sure you want to log out?')) return;
-            if (window._sb) await window._sb.auth.signOut();
+            try {
+                await logActivity('logout');
+                // Close session in Supabase
+                const sessionId = localStorage.getItem('easemed_session_id');
+                if (sessionId) {
+                    await _sb.from('sessions')
+                        .update({ logged_out_at: new Date().toISOString() })
+                        .eq('id', sessionId);
+                }
+                await _sb.auth.signOut();
+            } catch(e) { /* continue logout */ }
+            localStorage.removeItem('easemed_logged_in');
             localStorage.removeItem('easemed_user');
+            localStorage.removeItem('easemed_user_id');
             localStorage.removeItem('easemed_user_name');
+            localStorage.removeItem('easemed_session_id');
+            localStorage.removeItem('easemed_is_demo');
             window.location.href = 'easemed_login.html';
+        }
+
+        // ── LOG FEATURE WHEN SYMPTOM IS SELECTED ─────────────────
+        const _origSetSymptom = setSymptom;
+        function setSymptom(symptom) {
+            _origSetSymptom.call(this, symptom);
+            logFeature('symptom_' + symptom.replace(/ /g, '_'));
+        }
+
+        // ── LOG WHEN SUMMARY IS GENERATED ────────────────────────
+        const _origGenerate = generateClinicalSummary;
+        function generateClinicalSummary() {
+            _origGenerate.call(this);
+            logFeature('summary_generated');
+            logActivity('summary_generated', { symptom: currentSymptom });
         }
     </script>
 </body>
