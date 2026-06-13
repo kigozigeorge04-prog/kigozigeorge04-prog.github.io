@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EaseMed Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #20313f;
+            background:
+                radial-gradient(circle at 12% 10%, rgba(42, 157, 143, 0.22), transparent 28%),
+                radial-gradient(circle at 86% 12%, rgba(244, 211, 94, 0.18), transparent 25%),
+                linear-gradient(135deg, #0f2027 0%, #203a43 48%, #2c5364 100%);
+            padding: 22px;
+        }
+
+        .shell {
+            max-width: 1500px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            gap: 22px;
+        }
+
+        .sidebar,
+        .main-panel,
+        .card,
+        .table-panel {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            box-shadow: 0 22px 55px rgba(15, 32, 39, 0.25), inset 0 1px 0 rgba(255,255,255,0.75);
+            backdrop-filter: blur(14px);
+        }
+
+        .sidebar {
+            border-radius: 20px;
+            padding: 22px;
+            min-height: calc(100vh - 44px);
+            position: sticky;
+            top: 22px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 22px;
+            border-bottom: 1px solid #dbe7ef;
+        }
+
+        .brand-mark {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-weight: 900;
+            background: linear-gradient(135deg, #1e3c72, #2a9d8f);
+            box-shadow: 0 10px 20px rgba(30, 60, 114, 0.25);
+        }
+
+        .brand h1 {
+            font-size: 1.08rem;
+            color: #17324d;
+        }
+
+        .brand span {
+            display: block;
+            color: #718096;
+            font-size: 0.78rem;
+            margin-top: 2px;
+        }
+
+        .nav {
+            margin-top: 22px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .nav button {
+            border: 0;
+            border-radius: 12px;
+            padding: 12px 14px;
+            text-align: left;
+            color: #40566a;
+            background: transparent;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.22s ease;
+        }
+
+        .nav button:hover,
+        .nav button.active {
+            color: #1e3c72;
+            background: #e8f4f8;
+            transform: translateX(3px);
+        }
+
+        .sidebar-note {
+            margin-top: 28px;
+            border-radius: 16px;
+            padding: 16px;
+            background: linear-gradient(135deg, #f7fbfd, #eef8f4);
+            border: 1px solid #dbe7ef;
+            color: #496173;
+            font-size: 0.86rem;
+            line-height: 1.55;
+        }
+
+        .main {
+            display: grid;
+            gap: 20px;
+        }
+
+        .main-panel {
+            border-radius: 22px;
+            overflow: hidden;
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            color: #fff;
+            padding: 26px 30px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 48%, #2a9d8f 100%);
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #2a9d8f, #f4d35e, #e74c3c);
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h2 {
+            font-size: 1.75rem;
+            margin-bottom: 7px;
+        }
+
+        .hero p {
+            opacity: 0.9;
+            max-width: 720px;
+            line-height: 1.55;
+        }
+
+        .admin-pill {
+            white-space: nowrap;
+            border-radius: 999px;
+            padding: 9px 13px;
+            background: rgba(255,255,255,0.16);
+            border: 1px solid rgba(255,255,255,0.28);
+            font-weight: 800;
+            font-size: 0.84rem;
+        }
+
+        .auth-bar {
+            max-width: 1500px;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            color: #fff;
+            background: rgba(15, 32, 39, 0.74);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 16px;
+            padding: 12px 16px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+        }
+
+        .auth-bar strong {
+            color: #90cdf4;
+        }
+
+        .auth-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .auth-actions button {
+            border: 0;
+            border-radius: 10px;
+            padding: 9px 12px;
+            color: #fff;
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            cursor: pointer;
+            font-weight: 800;
+        }
+
+        .access-lock {
+            max-width: 720px;
+            margin: 90px auto;
+            background: rgba(255,255,255,0.96);
+            border: 1px solid rgba(255,255,255,0.55);
+            border-radius: 22px;
+            padding: 28px;
+            text-align: center;
+            box-shadow: 0 22px 55px rgba(15, 32, 39, 0.30);
+        }
+
+        .access-lock h2 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        .access-lock p {
+            color: #496173;
+            line-height: 1.6;
+        }
+
+        .access-lock button {
+            margin-top: 18px;
+            border: 0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            background: linear-gradient(135deg, #1e3c72, #2a9d8f);
+            cursor: pointer;
+            font-weight: 800;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+
+        .card {
+            border-radius: 16px;
+            padding: 18px;
+            transition: 0.25s ease;
+        }
+
+        .card:hover,
+        .table-panel:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 26px 60px rgba(15, 32, 39, 0.27), inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .metric-label {
+            color: #718096;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            color: #17324d;
+            font-weight: 900;
+            margin-top: 8px;
+        }
+
+        .metric-sub {
+            margin-top: 8px;
+            font-size: 0.84rem;
+            color: #496173;
+        }
+
+        .accent-teal { border-left: 5px solid #2a9d8f; }
+        .accent-gold { border-left: 5px solid #f4d35e; }
+        .accent-red { border-left: 5px solid #e74c3c; }
+        .accent-blue { border-left: 5px solid #2a5298; }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1.25fr 0.75fr;
+            gap: 20px;
+        }
+
+        .table-panel {
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .panel-title {
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .panel-title h3 {
+            color: #17324d;
+            font-size: 1.05rem;
+        }
+
+        .panel-title button {
+            border: 0;
+            border-radius: 10px;
+            padding: 9px 12px;
+            color: #fff;
+            background: linear-gradient(135deg, #1e3c72, #2a9d8f);
+            cursor: pointer;
+            font-weight: 800;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 0.9rem;
+        }
+
+        th {
+            color: #718096;
+            background: #f8fafc;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        tr:hover td {
+            background: #f8fcfd;
+        }
+
+        .status {
+            display: inline-flex;
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-size: 0.76rem;
+            font-weight: 900;
+        }
+
+        .status.good {
+            color: #1e7d5a;
+            background: #e8f7ef;
+        }
+
+        .status.warn {
+            color: #936900;
+            background: #fff6d8;
+        }
+
+        .status.risk {
+            color: #b73128;
+            background: #fdecea;
+        }
+
+        .activity-list {
+            padding: 16px 18px 20px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .activity {
+            display: grid;
+            grid-template-columns: 12px 1fr;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 5px;
+            background: #2a9d8f;
+            box-shadow: 0 0 0 5px rgba(42,157,143,0.12);
+        }
+
+        .activity strong {
+            color: #20313f;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .activity span {
+            color: #718096;
+            font-size: 0.84rem;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .action {
+            border: 1px solid #dbe7ef;
+            border-radius: 16px;
+            padding: 16px;
+            background: rgba(255,255,255,0.95);
+            cursor: pointer;
+            transition: 0.25s ease;
+        }
+
+        .action:hover {
+            border-color: #2a9d8f;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(15,32,39,0.12);
+        }
+
+        .action span {
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            color: #fff;
+            background: linear-gradient(135deg, #1e3c72, #2a9d8f);
+            font-weight: 900;
+            margin-bottom: 12px;
+        }
+
+        .action strong {
+            color: #17324d;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .action p {
+            color: #718096;
+            font-size: 0.84rem;
+            line-height: 1.45;
+        }
+
+        @media (max-width: 1050px) {
+            .shell,
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                min-height: auto;
+            }
+
+            .metrics,
+            .quick-actions {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 14px;
+            }
+
+            .metrics,
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-top,
+            .panel-title {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            table {
+                min-width: 680px;
+            }
+
+            .table-scroll {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-bar" id="adminAuthBar" style="display:none;">
+        <div>Signed in as <strong id="adminUserName">Admin</strong></div>
+        <div class="auth-actions">
+            <button onclick="handleAdminLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="access-lock" id="accessLock">
+        <h2>Checking admin access</h2>
+        <p>Please wait while EaseMed verifies that this account has permission to view the admin dashboard.</p>
+    </div>
+
+    <div class="shell" id="adminShell" style="display:none;">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">EM</div>
+                <div>
+                    <h1>EaseMed Admin</h1>
+                    <span>Clinical clerkship control center</span>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <button class="active">Dashboard Overview</button>
+                <button>Students</button>
+                <button>Patient Records</button>
+                <button>Ward Round Reviews</button>
+                <button>Supervisors</button>
+                <button>Settings</button>
+            </nav>
+
+            <div class="sidebar-note">
+                Monitor clerked patients, review completion quality, and identify students who need feedback before ward rounds.
+            </div>
+        </aside>
+
+        <main class="main">
+            <section class="main-panel">
+                <div class="hero">
+                    <div class="hero-top">
+                        <div>
+                            <h2>Admin Dashboard</h2>
+                            <p>Track medical clerkship activity, review patient documentation quality, and coordinate supervisor feedback from one focused workspace.</p>
+                        </div>
+                        <div class="admin-pill" id="adminRolePill">Admin Access</div>
+                    </div>
+                </div>
+
+                <div class="metrics">
+                    <div class="card accent-teal">
+                        <div class="metric-label">Clerked Patients</div>
+                        <div class="metric-value">128</div>
+                        <div class="metric-sub">24 added this week</div>
+                    </div>
+                    <div class="card accent-blue">
+                        <div class="metric-label">Active Students</div>
+                        <div class="metric-value">42</div>
+                        <div class="metric-sub">8 pending feedback</div>
+                    </div>
+                    <div class="card accent-gold">
+                        <div class="metric-label">Ward Round Ready</div>
+                        <div class="metric-value">76%</div>
+                        <div class="metric-sub">Cases with summary completed</div>
+                    </div>
+                    <div class="card accent-red">
+                        <div class="metric-label">Needs Review</div>
+                        <div class="metric-value">11</div>
+                        <div class="metric-sub">Missing ROS or HPC details</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="quick-actions">
+                <div class="action">
+                    <span>+</span>
+                    <strong>Add Student</strong>
+                    <p>Create a student profile and assign a clerkship rotation.</p>
+                </div>
+                <div class="action">
+                    <span>R</span>
+                    <strong>Review Cases</strong>
+                    <p>Open pending patient records that need supervisor feedback.</p>
+                </div>
+                <div class="action">
+                    <span>B</span>
+                    <strong>Backup Records</strong>
+                    <p>Download or restore saved clerkship records securely.</p>
+                </div>
+            </section>
+
+            <section class="content-grid">
+                <div class="table-panel">
+                    <div class="panel-title">
+                        <h3>Recent Clerked Patients</h3>
+                        <button>View All</button>
+                    </div>
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Student</th>
+                                    <th>Main Complaint</th>
+                                    <th>Summary</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>M. Chanda</td>
+                                    <td>Ruth Mwape</td>
+                                    <td>Shortness of breath</td>
+                                    <td>Ward summary ready</td>
+                                    <td><span class="status good">Reviewed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>P. Banda</td>
+                                    <td>Daniel Phiri</td>
+                                    <td>Abdominal pain</td>
+                                    <td>ROS incomplete</td>
+                                    <td><span class="status warn">Pending</span></td>
+                                </tr>
+                                <tr>
+                                    <td>A. Tembo</td>
+                                    <td>Grace Zulu</td>
+                                    <td>Fever</td>
+                                    <td>Needs supervisor note</td>
+                                    <td><span class="status risk">Needs Action</span></td>
+                                </tr>
+                                <tr>
+                                    <td>L. Sakala</td>
+                                    <td>Michael Daka</td>
+                                    <td>Chest pain</td>
+                                    <td>Complete</td>
+                                    <td><span class="status good">Ready</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="table-panel">
+                    <div class="panel-title">
+                        <h3>Admin Activity</h3>
+                        <button>Refresh</button>
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity">
+                            <div class="dot"></div>
+                            <div><strong>3 ward summaries approved</strong><span>Supervisor review completed this morning</span></div>
+                        </div>
+                        <div class="activity">
+                            <div class="dot"></div>
+                            <div><strong>2 records flagged</strong><span>Missing important negatives in ROS</span></div>
+                        </div>
+                        <div class="activity">
+                            <div class="dot"></div>
+                            <div><strong>New student added</strong><span>Assigned to Internal Medicine rotation</span></div>
+                        </div>
+                        <div class="activity">
+                            <div class="dot"></div>
+                            <div><strong>Backup downloaded</strong><span>Records backup completed successfully</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+        // Add admin emails here if you are not using Supabase role metadata yet.
+        const ADMIN_EMAILS = [
+            // 'admin@example.com'
+        ];
+
+        let adminSupabase = null;
+
+        function isAdminUser(user) {
+            const email = (user.email || '').toLowerCase();
+            const appRole = user.app_metadata?.role || user.app_metadata?.user_role;
+            const userRole = user.user_metadata?.role || user.user_metadata?.user_role;
+            const isAdminFlag = user.user_metadata?.is_admin || user.app_metadata?.is_admin;
+
+            return ADMIN_EMAILS.map(item => item.toLowerCase()).includes(email)
+                || appRole === 'admin'
+                || userRole === 'admin'
+                || isAdminFlag === true;
+        }
+
+        function showAdmin(user) {
+            const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
+            document.getElementById('adminUserName').textContent = displayName;
+            document.getElementById('adminRolePill').textContent = `Admin: ${displayName}`;
+            document.getElementById('accessLock').style.display = 'none';
+            document.getElementById('adminAuthBar').style.display = 'flex';
+            document.getElementById('adminShell').style.display = 'grid';
+        }
+
+        function showAccessDenied() {
+            document.getElementById('adminShell').style.display = 'none';
+            document.getElementById('adminAuthBar').style.display = 'none';
+            document.getElementById('accessLock').innerHTML = `
+                <h2>Admin access required</h2>
+                <p>This account is signed in, but it has not been marked as an EaseMed admin. Ask the system owner to add an admin role or include this email in the admin list.</p>
+                <button onclick="handleAdminLogout()">Use another account</button>
+            `;
+            document.getElementById('accessLock').style.display = 'block';
+        }
+
+        async function handleAdminLogout() {
+            if (adminSupabase) await adminSupabase.auth.signOut();
+            localStorage.removeItem('easemed_user');
+            localStorage.removeItem('easemed_user_name');
+            window.location.href = 'easemed_login.html';
+        }
+
+        (async function checkAdminAccess() {
+            try {
+                const { createClient } = supabase;
+                adminSupabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+                const { data: { session } } = await adminSupabase.auth.getSession();
+
+                if (!session) {
+                    window.location.href = 'easemed_login.html';
+                    return;
+                }
+
+                if (!isAdminUser(session.user)) {
+                    showAccessDenied();
+                    return;
+                }
+
+                showAdmin(session.user);
+            } catch (error) {
+                document.getElementById('accessLock').innerHTML = `
+                    <h2>Unable to verify access</h2>
+                    <p>Please check the Supabase connection and try signing in again.</p>
+                    <button onclick="window.location.href='easemed_login.html'">Go to login</button>
+                `;
+            }
+        })();
+    </script>
+</body>
+</html>
