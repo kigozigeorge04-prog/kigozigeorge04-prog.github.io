@@ -726,6 +726,243 @@
             box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
         }
 
+        /* ==================== POLISHED INTERACTIVE ROS SECTION ==================== */
+        .ros-guide-panel {
+            color: #2c3e50;
+            margin-bottom: 18px;
+            font-size: 14px;
+            background: linear-gradient(135deg, #eef7f8 0%, #f8fbfd 100%);
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(30, 60, 114, 0.12);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+        .ros-grid {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 14px;
+        }
+
+        .ros-card {
+            border-radius: 14px;
+            border: 1px solid #dbe7ef;
+            box-shadow: 0 8px 20px rgba(15, 32, 39, 0.07);
+            position: relative;
+        }
+
+        .ros-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 4px;
+            background: linear-gradient(90deg, #1e3c72, #2a9d8f, #c0392b);
+            opacity: 0.72;
+        }
+
+        .ros-card:hover {
+            border-color: #b7d1df;
+            box-shadow: 0 14px 28px rgba(30, 60, 114, 0.13);
+            transform: translateY(-2px);
+        }
+
+        .ros-card.expanded {
+            border-color: rgba(42, 157, 143, 0.55);
+            box-shadow: 0 18px 36px rgba(30, 60, 114, 0.16);
+        }
+
+        .ros-card.documented .ros-card-header {
+            background: linear-gradient(135deg, #f6fffc 0%, #eef8f4 100%);
+        }
+
+        .ros-card-header {
+            padding: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #f7fbfd 100%);
+            color: #1e3c72;
+            gap: 12px;
+            border: 0;
+            min-height: 92px;
+        }
+
+        .ros-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 46px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0;
+            box-shadow: 0 8px 16px rgba(30, 60, 114, 0.22);
+        }
+
+        .ros-title strong {
+            display: block;
+            color: #203a43;
+            font-size: 0.98rem;
+            line-height: 1.25;
+        }
+
+        .ros-title small {
+            display: inline-flex;
+            margin-top: 6px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #e8f4f8;
+            color: #1e3c72;
+            opacity: 1;
+            font-weight: 700;
+        }
+
+        .ros-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ros-status {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #62748a;
+            background: #f0f4f8;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            padding: 4px 8px;
+        }
+
+        .ros-card.documented .ros-status {
+            color: #1e7d5a;
+            background: #e8f7ef;
+            border-color: #bde7cf;
+        }
+
+        .ros-chevron {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            color: #1e3c72;
+            background: #edf5f8;
+            font-size: 0.95rem;
+            font-weight: 900;
+            flex: 0 0 34px;
+        }
+
+        .ros-content {
+            padding: 0 16px 16px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .ros-content.active {
+            display: block;
+            animation: fadeIn 0.22s ease;
+        }
+
+        .no-findings-btn {
+            background: #ecf8f1;
+            color: #1e7d5a;
+            border: 1px solid #bde7cf;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin: 2px 0 14px;
+            text-align: left;
+        }
+
+        .no-findings-btn:hover {
+            background: #dff3e8;
+        }
+
+        .checklist-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #203a43;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .checklist {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+
+        .check-item {
+            border-radius: 999px;
+            padding: 8px 11px;
+            border: 1px solid #dbe7ef;
+            color: #2d3748;
+            cursor: pointer;
+            min-height: 38px;
+        }
+
+        .check-item input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .check-item:has(input[type="checkbox"]:checked) {
+            background: #e8f4f8;
+            border-color: #2a9d8f;
+            color: #1e3c72;
+            box-shadow: inset 0 0 0 1px rgba(42, 157, 143, 0.18);
+        }
+
+        .check-item span::before {
+            content: '+';
+            display: inline-grid;
+            place-items: center;
+            width: 18px;
+            height: 18px;
+            margin-right: 7px;
+            border-radius: 50%;
+            background: #eef4f7;
+            color: #1e3c72;
+            font-weight: 900;
+            font-size: 0.78rem;
+        }
+
+        .check-item:has(input[type="checkbox"]:checked) span::before {
+            content: '';
+            background: #2a9d8f;
+            color: white;
+        }
+
+        .ros-narrative {
+            min-height: 92px;
+            border-radius: 12px;
+            border-color: #dbe7ef;
+            box-shadow: inset 0 1px 2px rgba(15, 32, 39, 0.04);
+        }
+
+        .ros-hint {
+            color: #496173;
+            background: #f1f7fa;
+            border-radius: 10px;
+            padding: 9px 10px;
+            margin-top: 10px;
+            font-style: normal;
+        }
+
+        @media (max-width: 560px) {
+            .ros-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ros-card-header {
+                align-items: flex-start;
+            }
+
+            .checklist {
+                grid-template-columns: 1fr;
+            }
+        }
+
        
     </style>
 </head>
@@ -859,7 +1096,7 @@
             <!-- Guided Review of Systems - ENHANCED with free-text areas for student to fill -->
             <div class="form-section">
                 <h3>🔄 Review of Systems <span class="stat-card">Hutchison's Ch. 3-5 & system-specific chapters</span></h3>
-                <p style="color: #2c3e50; margin-bottom: 15px; font-size: 14px; background: #e8f4f8; padding: 10px; border-radius: 12px;">
+                <p class="ros-guide-panel">
                     💡 <strong>Student Guide:</strong> The Review of Systems (ROS) is a systematic inventory of symptoms across all body systems. 
                     It helps identify potential diagnoses and ensures no important symptom is missed. Based on <strong>Hutchison's Clinical Methods, 25th Edition</strong>, 
                     write a narrative summary of findings for each system below. Click on any system to expand and document your findings.
@@ -1003,7 +1240,121 @@ function updateROS(key) {
 function saveROS(key, value) {
     rosData[key] = value || '';
     updateProgress();
-}      
+}
+
+const rosIconLabels = {
+    general: "GEN",
+    cardiovascular: "CV",
+    respiratory: "RESP",
+    gastrointestinal: "GI",
+    genitourinary: "GU",
+    neurological: "NEU",
+    musculoskeletal: "MSK",
+    endocrine: "ENDO",
+    psychiatric: "PSY",
+    dermatological: "DERM",
+    haematological: "HEME"
+};
+
+function buildROS() {
+    const container = document.getElementById('rosContainer');
+    let html = '<div class="ros-grid">';
+
+    for (const [key, system] of Object.entries(reviewOfSystems)) {
+        const iconLabel = rosIconLabels[key] || system.icon;
+        html += `
+            <div class="ros-card" data-system="${key}">
+                <div class="ros-card-header" onclick="toggleROS('${key}')" role="button" tabindex="0" aria-expanded="false">
+                    <div class="ros-icon" aria-hidden="true">${iconLabel}</div>
+                    <div class="ros-title">
+                        <strong>${system.name}</strong>
+                        <small>${system.chapter}</small>
+                        <div class="ros-card-meta">
+                            <span class="ros-status" id="ros-status-${key}">Not documented</span>
+                        </div>
+                    </div>
+                    <span class="ros-chevron">v</span>
+                </div>
+
+                <div class="ros-content" id="ros-content-${key}">
+                    <button onclick="markNoFindings('${key}'); event.stopImmediatePropagation()" class="no-findings-btn">
+                        No Significant Findings
+                    </button>
+
+                    <div class="checklist-group">
+                        <p class="checklist-title">
+                            <span>Common Symptoms</span>
+                            <span id="ros-count-${key}">0 selected</span>
+                        </p>
+                        <div class="checklist" id="checklist-${key}"></div>
+                    </div>
+
+                    <textarea id="ros_${key}" rows="3" class="ros-narrative"
+                        placeholder="Additional findings, duration, severity, relevant negatives..."
+                        oninput="saveROS('${key}', this.value)"></textarea>
+
+                    <div class="ros-hint">${system.hint}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    for (const [key, system] of Object.entries(reviewOfSystems)) {
+        const div = document.getElementById(`checklist-${key}`);
+        system.common.forEach((text) => {
+            const label = document.createElement('label');
+            label.className = 'check-item';
+            label.innerHTML = `
+                <input type="checkbox" onchange="updateROS('${key}')">
+                <span>${text}</span>
+            `;
+            div.appendChild(label);
+        });
+        refreshROSCardState(key);
+    }
+}
+
+function toggleROS(key) {
+    const content = document.getElementById(`ros-content-${key}`);
+    const card = content.parentElement;
+    const header = card.querySelector('.ros-card-header');
+    const isOpen = content.classList.toggle('active');
+    card.classList.toggle('expanded', isOpen);
+    header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+}
+
+function markNoFindings(key) {
+    document.getElementById(`ros_${key}`).value = "No significant findings.";
+    document.querySelectorAll(`#checklist-${key} input[type="checkbox"]`).forEach(chk => chk.checked = false);
+    saveROS(key, "No significant findings.");
+}
+
+function updateROS(key) {
+    saveROS(key, document.getElementById(`ros_${key}`).value);
+}
+
+function saveROS(key, value) {
+    rosData[key] = value || '';
+    refreshROSCardState(key);
+    updateProgress();
+}
+
+function refreshROSCardState(key) {
+    const card = document.querySelector(`.ros-card[data-system="${key}"]`);
+    const status = document.getElementById(`ros-status-${key}`);
+    const count = document.getElementById(`ros-count-${key}`);
+    const narrative = document.getElementById(`ros_${key}`)?.value.trim() || '';
+    const selected = document.querySelectorAll(`#checklist-${key} input[type="checkbox"]:checked`).length;
+    const documented = selected > 0 || narrative.length > 0;
+
+    if (card) card.classList.toggle('documented', documented);
+    if (status) status.textContent = documented ? "Documented" : "Not documented";
+    if (count) count.textContent = `${selected} selected`;
+}
+      
         // Symptom guides (SOCRATES for pain, specific for others) – same as before, kept unchanged
         const symptomGuides = {
             pain: { title: "🩺 Pain (SOCRATES)", chapter: "Hutchison's Ch. 8", questions: [ { q: "S - Site?", hint: "" }, { q: "O - Onset?", hint: "" }, { q: "C - Character?", hint: "" }, { q: "R - Radiation?", hint: "" }, { q: "A - Associations?", hint: "" }, { q: "T - Timing?", hint: "" }, { q: "E - Exacerbating factors?", hint: "" }, { q: "S - Severity (0-10)?", hint: "" } ], redFlags: ["🚨 Sudden worst pain ever"] },
