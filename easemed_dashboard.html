@@ -1128,7 +1128,1147 @@
             transform: translateY(-3px);
         }
 
- 
+ <!--
+=======================================================================
+  EASEMED — EXAMINATIONS PANEL v2 (Redesigned)
+  
+  HOW TO ADD THIS TO YOUR DASHBOARD:
+  
+  STEP 1: Copy everything inside <!-- EXAM CSS --> into your <style> tag
+          (paste at the very bottom, before </style>)
+          
+  STEP 2: Copy the <!-- EXAM HTML --> block and paste it just AFTER
+          your records panel closing </div></div> and BEFORE your
+          <div class="save-toast"...> line
+          
+  STEP 3: Copy everything inside <!-- EXAM JS --> and paste it just
+          BEFORE your closing </script> tag
+=======================================================================
+-->
+
+
+<!-- ============================================================
+     STEP 1 — EXAM CSS
+     Paste inside your <style> tag, at the very bottom before </style>
+     ============================================================ -->
+<style>
+
+/* ── Examinations Panel Shell ── */
+.xp-shell {
+    max-width: 1600px;
+    margin: 25px auto;
+    padding: 0 20px;
+}
+
+.xp-panel {
+    background: rgba(255,255,255,0.97);
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.55);
+    box-shadow: 0 22px 55px rgba(15,32,39,0.28), inset 0 1px 0 rgba(255,255,255,0.8);
+    overflow: hidden;
+}
+
+/* ── Panel Top Bar ── */
+.xp-topbar {
+    background: linear-gradient(135deg, #0f2027 0%, #1e3c72 55%, #2a9d8f 100%);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    user-select: none;
+}
+
+.xp-topbar::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #2a9d8f, #f4d35e, #e74c3c, #2a9d8f);
+    background-size: 200% 100%;
+    animation: shimmer 4s linear infinite;
+}
+
+@keyframes shimmer {
+    0%   { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+}
+
+.xp-topbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 28px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.xp-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.xp-topbar-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.22);
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.xp-topbar-text h2 {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 3px;
+    letter-spacing: 0.01em;
+}
+
+.xp-topbar-text p {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.78rem;
+    margin: 0;
+}
+
+.xp-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.xp-progress-pill {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.9);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 5px 13px;
+    border-radius: 999px;
+}
+
+.xp-progress-pill span {
+    color: #2a9d8f;
+}
+
+.xp-toggle-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.xp-toggle-btn:hover { background: rgba(255,255,255,0.25); }
+
+.xp-toggle-arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+    font-size: 0.7rem;
+}
+
+.xp-toggle-btn.open .xp-toggle-arrow {
+    transform: rotate(180deg);
+}
+
+/* ── System Tabs Navigation ── */
+.xp-body {
+    display: none;
+}
+
+.xp-body.open {
+    display: block;
+    animation: xpSlideDown 0.3s ease;
+}
+
+@keyframes xpSlideDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.xp-tabs-wrap {
+    border-bottom: 1.5px solid #e8f0f5;
+    background: #f8fafc;
+    padding: 0 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.xp-tabs-wrap::-webkit-scrollbar { display: none; }
+
+.xp-tabs {
+    display: flex;
+    gap: 2px;
+    min-width: max-content;
+}
+
+.xp-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 12px 16px 10px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #718096;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1.5px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    position: relative;
+}
+
+.xp-tab:hover {
+    color: #1e3c72;
+    background: rgba(30,60,114,0.04);
+}
+
+.xp-tab.active {
+    color: #1e3c72;
+    border-bottom-color: #1e3c72;
+    background: white;
+}
+
+.xp-tab-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    transition: background 0.2s;
+    margin-top: 2px;
+}
+
+.xp-tab.done .xp-tab-dot   { background: #2a9d8f; }
+.xp-tab.active .xp-tab-dot { background: #1e3c72; }
+
+/* ── Content Area ── */
+.xp-content {
+    padding: 24px;
+}
+
+.xp-pane {
+    display: none;
+}
+
+.xp-pane.active {
+    display: block;
+    animation: xpFadeIn 0.2s ease;
+}
+
+@keyframes xpFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── System Guide Banner ── */
+.xp-guide {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: linear-gradient(135deg, #f0f7ff 0%, #eef8f4 100%);
+    border: 1px solid rgba(30,60,114,0.12);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #2c3e50;
+    line-height: 1.6;
+}
+
+.xp-guide-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* ── Vitals Grid ── */
+.xp-vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.xp-vital {
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 12px 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.xp-vital:hover {
+    border-color: #1e3c72;
+    box-shadow: 0 4px 12px rgba(30,60,114,0.1);
+}
+
+.xp-vital label {
+    display: block;
+    color: #718096;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.xp-vital input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e3c72;
+    padding: 0;
+    outline: none;
+}
+
+.xp-vital input::placeholder {
+    color: #c0cad6;
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
+.xp-vital-unit {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    font-size: 0.65rem;
+    color: #a0aec0;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.xp-vital.bmi-card { border-color: #2a9d8f; }
+.xp-vital.bmi-card input { color: #2a9d8f; }
+
+/* ── Two-column layout ── */
+.xp-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 700px) {
+    .xp-two-col { grid-template-columns: 1fr; }
+}
+
+/* ── Findings Column ── */
+.xp-col-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #1e3c72;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.xp-col-count {
+    background: #e8f4f8;
+    color: #1e3c72;
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+/* Tag-style findings ── */
+.xp-findings-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.xp-finding-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1.5px solid #dbe7ef;
+    background: white;
+    font-size: 0.82rem;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.18s;
+    user-select: none;
+    position: relative;
+    overflow: visible;
+}
+
+.xp-finding-tag:hover {
+    border-color: #1e3c72;
+    background: #f0f7ff;
+    color: #1e3c72;
+}
+
+.xp-finding-tag input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+.xp-finding-tag.selected {
+    background: #1e3c72;
+    border-color: #1e3c72;
+    color: white;
+}
+
+.xp-finding-tag.selected .xp-tag-check {
+    opacity: 1;
+}
+
+.xp-diff-tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%) translateY(4px);
+    width: max-content;
+    max-width: 260px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #102a43;
+    color: #fff;
+    font-size: 0.74rem;
+    line-height: 1.35;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(15,32,39,0.24);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 30;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    white-space: normal;
+}
+
+.xp-diff-tooltip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    border-width: 6px 6px 0 6px;
+    border-style: solid;
+    border-color: #102a43 transparent transparent transparent;
+}
+
+.xp-finding-tag.show-clue .xp-diff-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.xp-tag-check {
+    opacity: 0;
+    font-size: 0.72rem;
+    transition: opacity 0.15s;
+}
+
+/* Subsection tags (lighter style) */
+.xp-finding-tag.sub {
+    border-color: #e2e8f0;
+    background: #f8fafc;
+}
+
+.xp-finding-tag.sub.selected {
+    background: #2a9d8f;
+    border-color: #2a9d8f;
+    color: white;
+}
+
+/* ── Narrative Column ── */
+.xp-narrative-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.xp-normal-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: #f0fdf7;
+    border: 1.5px solid #86efcd;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: #0f7b56;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.xp-normal-btn:hover {
+    background: #dcfcee;
+    border-color: #2a9d8f;
+}
+
+.xp-normal-btn .xp-tick {
+    font-size: 15px;
+}
+
+.xp-narrative {
+    flex: 1;
+    border: 1.5px solid #dbe7ef;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+    font-family: 'Segoe UI', sans-serif;
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.65;
+    color: #2d3748;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.xp-narrative:focus {
+    outline: none;
+    border-color: #1e3c72;
+    box-shadow: 0 0 0 3px rgba(30,60,114,0.08);
+}
+
+.xp-narrative::placeholder {
+    color: #a0aec0;
+    font-style: italic;
+}
+
+/* ── Hutchison Hint ── */
+.xp-hint {
+    background: #fffbf0;
+    border: 1px solid #f6e199;
+    border-radius: 10px;
+    padding: 10px 13px;
+    font-size: 12.5px;
+    color: #7a5f00;
+    line-height: 1.55;
+    margin-top: 2px;
+}
+
+.xp-hint strong {
+    color: #5a4300;
+}
+
+/* ── Abnormal Alert ── */
+.xp-abnormal {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 10px;
+    padding: 10px 13px;
+    font-size: 12.5px;
+    color: #c53030;
+    margin-top: 6px;
+}
+
+.xp-abnormal.show { display: flex; }
+
+/* ── Divider between findings subsections ── */
+.xp-subsection-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 14px 0 8px;
+    padding-top: 12px;
+    border-top: 1px dashed #e8f0f5;
+}
+
+/* ── Status bar at bottom of pane ── */
+.xp-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0 0;
+    margin-top: 16px;
+    border-top: 1px solid #f0f4f8;
+    font-size: 12px;
+    color: #a0aec0;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.xp-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: #f0f4f8;
+    color: #718096;
+    border: 1px solid #e2e8f0;
+}
+
+.xp-status-pill.done {
+    background: #e8f7ef;
+    color: #1e7d5a;
+    border-color: #bde7cf;
+}
+
+.xp-status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+}
+
+@media (max-width: 560px) {
+    .xp-tabs-wrap { padding: 0 10px; }
+    .xp-tab { padding: 10px 11px 8px; font-size: 0.68rem; }
+    .xp-content { padding: 16px; }
+    .xp-vitals-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+</style>
+<!-- END STEP 1 CSS -->
+
+
+
+
+<!-- ============================================================
+     STEP 2 — EXAM HTML
+     Paste AFTER your records panel, BEFORE <div class="save-toast"...>
+     ============================================================ -->
+
+<div class="xp-shell">
+  <div class="xp-panel">
+
+    <!-- Top Bar -->
+    <div class="xp-topbar" onclick="xpTogglePanel()">
+      <div class="xp-topbar-inner">
+        <div class="xp-topbar-left">
+          <div class="xp-topbar-icon">🩺</div>
+          <div class="xp-topbar-text">
+            <h2>Physical Examination</h2>
+            <p>Structured clinical guide · Hutchison's Clinical Methods, 25th Ed.</p>
+          </div>
+        </div>
+        <div class="xp-topbar-right">
+          <div class="xp-progress-pill" id="xpProgressPill">
+            <span id="xpDoneCount">0</span> / <span id="xpTotalCount">0</span> systems examined
+          </div>
+          <button class="xp-toggle-btn" id="xpToggleBtn" onclick="event.stopPropagation(); xpTogglePanel()">
+            Expand Examinations <span class="xp-toggle-arrow" id="xpArrow">▼</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Collapsible Body -->
+    <div class="xp-body" id="xpBody">
+
+      <!-- System Tabs -->
+      <div class="xp-tabs-wrap">
+        <div class="xp-tabs" id="xpTabs">
+          <!-- injected by JS -->
+        </div>
+      </div>
+
+      <!-- Pane Content -->
+      <div class="xp-content">
+        <div id="xpPanes">
+          <!-- injected by JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- END STEP 2 HTML -->
+
+
+
+
+<!-- ============================================================
+     STEP 3 — EXAM JS
+     Paste just BEFORE your closing </script> tag
+     ============================================================ -->
+<script>
+
+/* ── Examination Systems Data ── */
+const XP = {
+    general: {
+        label: "General",
+        icon: "🌡️",
+        chapter: "Ch. 3 & 10",
+        guide: "Inspect from the end of the bed: general appearance, nutrition, hydration, pallor, jaundice, cyanosis, clubbing, lymphadenopathy, oedema. Hutchison's tip: <strong>'Use your eyes before your hands.'</strong>",
+        hasVitals: true,
+        normal: "Patient appears well, alert and orientated. No pallor, jaundice, cyanosis or clubbing. Hydration adequate. No peripheral oedema. No palpable lymphadenopathy.",
+        findings: ["Pallor","Jaundice","Central cyanosis","Peripheral cyanosis","Clubbing","Koilonychia","Leukonychia","Lymphadenopathy","Pedal oedema","Wasting / cachexia","Dehydration","Pyrexia (hot to touch)"],
+        subs: [
+            { label: "Nutritional status", items: ["Well-nourished","Malnourished (mild)","Malnourished (severe)","Obese / overweight"] },
+            { label: "Conscious level (AVPU)", items: ["Alert","Responds to voice","Responds to pain","Unresponsive"] }
+        ]
+    },
+    cvs: {
+        label: "CVS",
+        icon: "❤️",
+        chapter: "Ch. 13",
+        guide: "Position at 45°. Inspect hands, face, JVP. Palpate apex beat (5th ICS MCL = normal), heaves, thrills. Auscultate S1/S2, added sounds and murmurs — time with carotid pulse. Use <strong>bell for low-pitched</strong> (S3, mitral stenosis), <strong>diaphragm for high-pitched</strong>.",
+        normal: "No peripheral stigmata. JVP not elevated. Apex beat at 5th ICS MCL — not displaced. No heaves or thrills. S1 + S2 heard. No added sounds or murmurs. Peripheral pulses present and equal bilaterally.",
+        findings: ["Elevated JVP","Displaced apex beat","LV heave","RV heave","Thrill palpable","S3 gallop","S4","Systolic murmur","Diastolic murmur","Pericardial rub","Muffled heart sounds","Irregular rhythm","Pulsus paradoxus"],
+        subs: [
+            { label: "Peripheral pulses", items: ["Radial ✓ (R)","Radial ✓ (L)","Femoral ✓ (R)","Femoral ✓ (L)","Dorsalis pedis ✓","Radiofemoral delay"] },
+            { label: "Blood pressure", items: ["Normal","Hypertension","Hypotension","BP differential >20 mmHg","Postural drop"] }
+        ]
+    },
+    resp: {
+        label: "Respiratory",
+        icon: "💨",
+        chapter: "Ch. 12",
+        guide: "Inspect: chest shape, symmetry, accessory muscle use, recession, RR & depth. Palpate: trachea (midline?), expansion, tactile fremitus. Percuss. Auscultate: breath sounds (<strong>vesicular vs bronchial</strong>), added sounds — <strong>crackles</strong> = alveolar; <strong>wheeze</strong> = airway narrowing; <strong>rub</strong> = pleural.",
+        normal: "Chest symmetrical. No deformity. RR normal. Trachea central. Equal expansion bilaterally. Resonant throughout. Vesicular breath sounds bilaterally. No added sounds.",
+        findings: ["Tracheal deviation","Reduced expansion (R)","Reduced expansion (L)","Dull to percussion (R)","Dull to percussion (L)","Stony dull — effusion","Hyperresonant — pneumothorax","Coarse crackles","Fine crackles","Expiratory wheeze","Inspiratory wheeze","Pleural rub","Bronchial breathing","Reduced breath sounds","Accessory muscle use","Subcostal recession"],
+        subs: [
+            { label: "Vocal resonance / fremitus", items: ["Normal","Reduced","Increased (consolidation)","Aegophony"] }
+        ]
+    },
+    abdo: {
+        label: "Abdominal",
+        icon: "🍽️",
+        chapter: "Ch. 15",
+        guide: "Patient supine, expose nipples → groins. Inspect: shape, scars, dilated veins, visible peristalsis. Palpate lightly then deeply — <strong>start AWAY from pain</strong>. Check liver (lower edge on inspiration), spleen (start at RIF), kidneys (bimanual). Percuss for liver span, shifting dullness. Auscultate bowel sounds.",
+        normal: "Abdomen soft and non-tender. Not distended. No visible masses. Bowel sounds present and normal. Liver, spleen and kidneys not palpable. No shifting dullness. No guarding or rigidity.",
+        findings: ["Distension","Scaphoid abdomen","Visible peristalsis","Guarding","Rigidity (board-like)","Rebound tenderness","Hepatomegaly","Splenomegaly","Palpable kidney","Palpable mass","Shifting dullness — ascites","Absent bowel sounds","Hyperactive bowel sounds","Murphy's sign ✓","McBurney's tenderness ✓","Hernia present"],
+        subs: [
+            { label: "Liver characteristics (if enlarged)", items: ["Smooth edge","Irregular / nodular","Tender","Pulsatile","Hard consistency"] },
+            { label: "Hernia / groin", items: ["No hernia","Inguinal (R)","Inguinal (L)","Umbilical","Femoral"] }
+        ]
+    },
+    neuro: {
+        label: "Neurological",
+        icon: "🧠",
+        chapter: "Ch. 19",
+        guide: "Assess: GCS, higher functions (orientation, memory), cranial nerves I–XII, motor system (tone, power MRC 0–5, coordination), deep tendon reflexes, plantar responses, sensation (light touch, pain, vibration, proprioception), gait. Hutchison's Ch. 19.",
+        normal: "GCS 15/15. Oriented to time, place and person. Cranial nerves I–XII intact. Power 5/5 all four limbs. Tone normal. Coordination intact. DTRs present and equal bilaterally. Plantars downgoing. Sensation intact. Gait normal.",
+        findings: ["Reduced GCS","Disorientation","Cranial nerve palsy","UMN pattern","LMN pattern","Reduced power","Spasticity (increased tone)","Rigidity (lead-pipe / cogwheel)","Flaccidity","Cerebellar signs","Sensory deficit","Upgoing plantars (Babinski +)","Absent reflexes","Brisk / hyperreflexia","Papilloedema (on fundoscopy)","Meningism — neck stiffness"],
+        subs: [
+            { label: "Cranial nerve screen", items: ["CN II — acuity / fields","CN III/IV/VI — eye movements","CN V — facial sensation","CN VII — facial muscles","CN VIII — hearing","CN IX/X — gag / swallow","CN XII — tongue"] }
+        ]
+    },
+    msk: {
+        label: "MSK",
+        icon: "🦴",
+        chapter: "Ch. 20",
+        guide: "<strong>Look → Feel → Move</strong> for every joint. Look: deformity, swelling, erythema, wasting. Feel: warmth, tenderness, effusion (patellar tap for knee). Move: active then passive ROM, note pain and crepitus. Spine: flexion, extension, lateral flexion, rotation.",
+        normal: "No joint deformity, swelling or erythema. All joints non-tender. Full active and passive ROM. No muscle wasting. No crepitus. Spine: full ROM, no midline tenderness.",
+        findings: ["Joint swelling","Joint erythema","Joint warmth","Joint tenderness","Restricted ROM","Crepitus","Deformity","Muscle wasting","Synovial thickening","Effusion","Bony enlargement","Heberden's nodes","Bouchard's nodes","Subcutaneous nodules"],
+        subs: [
+            { label: "Joints affected", items: ["Hands / Wrists","Elbows","Shoulders","Hips","Knees","Ankles / Feet","Cervical spine","Lumbar spine"] }
+        ]
+    },
+    derm: {
+        label: "Dermatological",
+        icon: "🩹",
+        chapter: "Ch. 21",
+        guide: "Expose all skin systematically (scalp, face, trunk, limbs, nails, mucosae). Describe lesions: <strong>type</strong> (macule/papule/vesicle/pustule/plaque/ulcer), <strong>colour</strong>, <strong>size</strong>, <strong>number</strong>, <strong>distribution</strong>, <strong>border</strong>, <strong>surface</strong>. Note nails, hair, mucous membranes.",
+        normal: "Skin warm, moist and intact. No rash, ulcers or abnormal lesions. Nails normal. Hair normal. Mucous membranes intact.",
+        findings: ["Macules","Papules","Vesicles","Pustules","Plaques","Ulcers","Petechiae","Purpura","Excoriations","Lichenification","Hyperpigmentation","Hypopigmentation","Nail changes","Alopecia","Oral ulcers","Jaundice (icterus)"],
+        subs: [
+            { label: "Distribution", items: ["Localised","Widespread","Dermatomal","Sun-exposed","Flexural","Extensor surfaces","Palms and soles"] }
+        ]
+    },
+    eyes: {
+        label: "Eyes",
+        icon: "👁️",
+        chapter: "Ch. 22",
+        guide: "VA (Snellen, each eye). Visual fields (confrontation). Pupils: size, equality, reaction to light + accommodation (<strong>PERLA</strong>). EOMs (H-pattern), nystagmus. External: conjunctiva, sclera, cornea. Fundoscopy: disc margins, cup:disc ratio, AV ratio, macula, haemorrhages/exudates.",
+        normal: "VA normal bilaterally. Visual fields full to confrontation. PERLA. EOMs intact. Conjunctivae normal. Sclerae white. Fundoscopy: disc margins sharp, normal cup:disc ratio, no haemorrhages or exudates.",
+        findings: ["Reduced VA","Visual field defect","Anisocoria","Sluggish pupils","Conjunctival pallor","Conjunctival injection","Scleral jaundice","Corneal opacity","Papilloedema","Diabetic retinopathy","Hypertensive retinopathy","Nystagmus","Ptosis","Proptosis","Periorbital oedema"],
+        subs: []
+    },
+    ent: {
+        label: "ENT",
+        icon: "👂",
+        chapter: "Ch. 22",
+        guide: "Ears: otoscope — TM (light reflex, perforations), Rinne & Weber tuning fork. Nose: mucosa, septum, turbinates. Throat: tonsils (grade 0–4), pharynx, uvula (midline?). Neck: lymph nodes (anterior / posterior triangles), thyroid (moves on swallowing).",
+        normal: "EACs clear. TMs intact, light reflex present. Hearing normal. Nasal mucosa pink. Septum central. Throat clear. Tonsils not enlarged. Uvula central. No cervical lymphadenopathy. Thyroid not palpable.",
+        findings: ["TM perforation","Otitis media","Hearing loss","Nasal polyps","Deviated septum","Turbinate hypertrophy","Tonsillar enlargement","Tonsillar exudate","Pharyngeal erythema","Uvular deviation","Cervical lymphadenopathy","Thyromegaly","Thyroid nodule","Thyroid bruit"],
+        subs: []
+    },
+    pr: {
+        label: "PR / Rectal",
+        icon: "🔍",
+        chapter: "Ch. 15",
+        guide: "Position: left lateral, knees drawn up. Inspect perianal region (fissures, fistulae, haemorrhoids). Lubricate finger — assess sphincter tone, rectal mucosa (smooth vs irregular), masses, prostate (males), cervix/pouch of Douglas (females). Note stool on glove.",
+        normal: "Perianal region normal. Sphincter tone normal. Rectum empty. Mucosa smooth. No masses. Prostate (M): normal size, smooth, non-tender, central sulcus palpable. No blood or mucus on glove.",
+        findings: ["External haemorrhoids","Anal fissure","Fistula-in-ano","Reduced sphincter tone","Rectal mass","Blood on glove","Mucus on glove","Enlarged prostate","Tender prostate","Hard / irregular prostate","Loss of central sulcus","Rectal fullness"],
+        subs: []
+    }
+};
+
+const XP_DIFFERENTIAL_CLUES = {
+    "Pallor": "Think anaemia, chronic disease or acute blood loss.",
+    "Jaundice": "Consider hepatitis, biliary obstruction or haemolysis.",
+    "Central cyanosis": "Suggests arterial desaturation or cardiorespiratory disease.",
+    "Peripheral cyanosis": "Consider poor peripheral perfusion or cold exposure.",
+    "Clubbing": "Think chronic lung disease, cyanotic heart disease or IBD.",
+    "Koilonychia": "Often points toward iron deficiency anaemia.",
+    "Lymphadenopathy": "Consider infection, TB, HIV, lymphoma or malignancy.",
+    "Pedal oedema": "Consider heart failure, renal disease, liver disease or venous disease.",
+    "Wasting / cachexia": "Think malignancy, TB, HIV or chronic systemic illness.",
+    "Dehydration": "Consider fluid loss, poor intake, sepsis or DKA.",
+    "Elevated JVP": "Think right heart failure, fluid overload, tamponade or constrictive pericarditis.",
+    "Displaced apex beat": "Suggests cardiomegaly or left ventricular enlargement.",
+    "LV heave": "Consider left ventricular hypertrophy.",
+    "RV heave": "Consider pulmonary hypertension or right ventricular hypertrophy.",
+    "Thrill palpable": "Suggests a loud murmur, often grade 4 or above.",
+    "S3 gallop": "Think heart failure or volume overload.",
+    "S4": "Consider stiff ventricle, hypertension or ischaemic heart disease.",
+    "Systolic murmur": "Consider valve stenosis/regurgitation or flow murmur.",
+    "Diastolic murmur": "Pathological until proven otherwise; consider AR or MS.",
+    "Pericardial rub": "Suggests pericarditis.",
+    "Muffled heart sounds": "Consider pericardial effusion or tamponade.",
+    "Irregular rhythm": "Think atrial fibrillation or ectopic rhythm.",
+    "Tracheal deviation": "Consider tension pneumothorax, collapse, fibrosis or large effusion.",
+    "Dull to percussion (R)": "Think consolidation, pleural effusion or collapse.",
+    "Dull to percussion (L)": "Think consolidation, pleural effusion or collapse.",
+    "Stony dull — effusion": "Strong clue for pleural effusion.",
+    "Hyperresonant — pneumothorax": "Suggests pneumothorax or hyperinflation.",
+    "Coarse crackles": "Consider secretions, bronchiectasis or pulmonary oedema.",
+    "Fine crackles": "Think pulmonary fibrosis, early oedema or interstitial disease.",
+    "Expiratory wheeze": "Suggests asthma, COPD or lower airway narrowing.",
+    "Inspiratory wheeze": "Consider upper airway obstruction.",
+    "Pleural rub": "Suggests pleurisy or pulmonary infarction.",
+    "Bronchial breathing": "Think consolidation above a patent airway.",
+    "Reduced breath sounds": "Consider effusion, pneumothorax, collapse or obesity.",
+    "Guarding": "Suggests peritoneal irritation or localized inflammation.",
+    "Rigidity (board-like)": "Surgical abdomen until proven otherwise.",
+    "Rebound tenderness": "Suggests peritonitis.",
+    "Hepatomegaly": "Consider hepatitis, congestion, malignancy or fatty liver.",
+    "Splenomegaly": "Think portal hypertension, malaria, haematologic disease or infection.",
+    "Shifting dullness — ascites": "Suggests ascites; consider liver, cardiac or malignant causes.",
+    "Absent bowel sounds": "Consider ileus or peritonitis.",
+    "Hyperactive bowel sounds": "Consider obstruction or gastroenteritis.",
+    "Murphy's sign ✓": "Suggests acute cholecystitis.",
+    "McBurney's tenderness ✓": "Suggests appendicitis.",
+    "Reduced GCS": "Consider metabolic, neurological, toxic or septic causes.",
+    "Cranial nerve palsy": "Localize lesion; consider stroke, tumour, diabetes or raised ICP.",
+    "UMN pattern": "Consider stroke, cord lesion, MS or upper motor pathway disease.",
+    "LMN pattern": "Consider peripheral nerve, root, plexus or anterior horn cell lesion.",
+    "Spasticity (increased tone)": "Suggests upper motor neuron lesion.",
+    "Rigidity (lead-pipe / cogwheel)": "Think parkinsonism or extrapyramidal disease.",
+    "Cerebellar signs": "Consider cerebellar stroke, alcohol, tumour or demyelination.",
+    "Upgoing plantars (Babinski +)": "Suggests corticospinal tract lesion.",
+    "Papilloedema (on fundoscopy)": "Suggests raised intracranial pressure.",
+    "Meningism — neck stiffness": "Consider meningitis or subarachnoid haemorrhage.",
+    "Joint swelling": "Consider inflammatory arthritis, infection, trauma or crystal disease.",
+    "Joint warmth": "Suggests active inflammation or septic arthritis.",
+    "Restricted ROM": "Consider arthritis, effusion, pain, contracture or mechanical block.",
+    "Crepitus": "Often suggests osteoarthritis or rough articular surfaces.",
+    "Synovial thickening": "Suggests chronic inflammatory arthritis.",
+    "Heberden's nodes": "Suggests osteoarthritis of DIP joints.",
+    "Bouchard's nodes": "Suggests osteoarthritis of PIP joints.",
+    "Petechiae": "Consider thrombocytopenia, platelet dysfunction or sepsis.",
+    "Purpura": "Consider vasculitis, thrombocytopenia or coagulation disorder.",
+    "Vesicles": "Think viral infection, dermatitis or blistering disorder.",
+    "Ulcers": "Consider infection, vascular disease, malignancy or inflammatory disease.",
+    "Scleral jaundice": "Supports clinically significant jaundice.",
+    "Papilloedema": "Suggests raised intracranial pressure.",
+    "Diabetic retinopathy": "Supports chronic diabetes complications.",
+    "Hypertensive retinopathy": "Supports chronic or severe hypertension.",
+    "Nystagmus": "Consider vestibular, cerebellar or drug-related causes.",
+    "TM perforation": "Consider chronic otitis media or trauma.",
+    "Otitis media": "Middle-ear infection or effusion.",
+    "Tonsillar exudate": "Consider bacterial tonsillitis or infectious mononucleosis.",
+    "Uvular deviation": "Consider CN X palsy or peritonsillar abscess.",
+    "Thyroid bruit": "Suggests Graves' disease or hypervascular thyroid.",
+    "Blood on glove": "Consider haemorrhoids, fissure, colorectal cancer or colitis.",
+    "Hard / irregular prostate": "Concerning for prostate cancer.",
+    "Loss of central sulcus": "May suggest enlarged or malignant prostate."
+};
+
+function xpEscapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function xpDifferentialClue(finding, key) {
+    const custom = XP_DIFFERENTIAL_CLUES[finding];
+    const system = XP[key]?.label || 'system';
+    return xpEscapeHtml(custom || `Correlate this ${system} finding with the history, vitals, examination pattern and investigations.`);
+}
+
+/* ── State ── */
+let xpActive = Object.keys(XP)[0];
+let xpData   = {};
+let xpOpen   = false;
+
+/* ── Init ── */
+function xpInit() {
+    const tabsEl  = document.getElementById('xpTabs');
+    const panesEl = document.getElementById('xpPanes');
+    const keys    = Object.keys(XP);
+
+    document.getElementById('xpTotalCount').textContent = keys.length;
+
+    let tabsHtml  = '';
+    let panesHtml = '';
+
+    keys.forEach((key, i) => {
+        const sys = XP[key];
+
+        /* Tab */
+        tabsHtml += `
+            <button class="xp-tab ${i === 0 ? 'active' : ''}" id="xp-tab-${key}" onclick="xpSwitchTab('${key}')">
+                ${sys.icon} ${sys.label}
+                <div class="xp-tab-dot" id="xp-dot-${key}"></div>
+            </button>
+        `;
+
+        /* Vitals (general only) */
+        const vitalsHtml = sys.hasVitals ? `
+            <div class="xp-vitals-grid">
+                <div class="xp-vital"><label>Heart Rate</label><input type="number" id="xp_hr" placeholder="72" oninput="xpSave('${key}')"><span class="xp-vital-unit">bpm</span></div>
+                <div class="xp-vital"><label>Blood Pressure</label><input type="text" id="xp_bp" placeholder="120/80" oninput="xpSave('${key}')"><span class="xp-vital-unit">mmHg</span></div>
+                <div class="xp-vital"><label>Resp Rate</label><input type="number" id="xp_rr" placeholder="16" oninput="xpSave('${key}')"><span class="xp-vital-unit">/min</span></div>
+                <div class="xp-vital"><label>SpO₂</label><input type="number" id="xp_spo2" placeholder="98" oninput="xpSave('${key}')"><span class="xp-vital-unit">%</span></div>
+                <div class="xp-vital"><label>Temperature</label><input type="number" id="xp_temp" step="0.1" placeholder="37.0" oninput="xpSave('${key}')"><span class="xp-vital-unit">°C</span></div>
+                <div class="xp-vital"><label>Weight</label><input type="number" id="xp_weight" placeholder="65" oninput="xpCalcBMI()"><span class="xp-vital-unit">kg</span></div>
+                <div class="xp-vital"><label>Height</label><input type="number" id="xp_height" placeholder="170" oninput="xpCalcBMI()"><span class="xp-vital-unit">cm</span></div>
+                <div class="xp-vital bmi-card"><label>BMI (auto)</label><input type="text" id="xp_bmi" placeholder="—" readonly><span class="xp-vital-unit">kg/m²</span></div>
+            </div>
+        ` : '';
+
+        /* Main findings tags */
+        const mainTags = sys.findings.map(f => `
+            <label class="xp-finding-tag" onclick="xpToggleTag(this, '${key}')">
+                <input type="checkbox" value="${f}">
+                <span class="xp-tag-check">✓</span>${f}
+                <span class="xp-diff-tooltip">${xpDifferentialClue(f, key)}</span>
+            </label>
+        `).join('');
+
+        /* Sub-finding tags */
+        const subTagsHtml = sys.subs.map(sub => `
+            <div class="xp-subsection-label">${sub.label}</div>
+            <div class="xp-findings-wrap">
+                ${sub.items.map(item => `
+                    <label class="xp-finding-tag sub" onclick="xpToggleTag(this, '${key}')">
+                        <input type="checkbox" value="${item}">
+                        <span class="xp-tag-check">✓</span>${item}
+                        <span class="xp-diff-tooltip">${xpDifferentialClue(item, key)}</span>
+                    </label>
+                `).join('')}
+            </div>
+        `).join('');
+
+        /* Full pane */
+        panesHtml += `
+            <div class="xp-pane ${i === 0 ? 'active' : ''}" id="xp-pane-${key}">
+                <div class="xp-guide">
+                    <div class="xp-guide-icon">${sys.icon}</div>
+                    <div><strong>${sys.label} — ${sys.chapter}</strong><br>${sys.guide}</div>
+                </div>
+
+                ${vitalsHtml}
+
+                <div class="xp-two-col">
+                    <!-- Left: findings -->
+                    <div>
+                        <div class="xp-col-label">
+                            Clinical Findings
+                            <span class="xp-col-count" id="xp-count-${key}">0 selected</span>
+                        </div>
+                        <div class="xp-findings-wrap" id="xp-main-${key}">${mainTags}</div>
+                        ${subTagsHtml}
+                    </div>
+
+                    <!-- Right: narrative -->
+                    <div>
+                        <div class="xp-col-label">Examination Narrative</div>
+                        <div class="xp-narrative-wrap">
+                            <button class="xp-normal-btn" onclick="xpMarkNormal('${key}')">
+                                <span class="xp-tick">✅</span> Normal findings — no abnormalities
+                            </button>
+                            <textarea
+                                id="xp-narr-${key}"
+                                class="xp-narrative"
+                                placeholder="Describe findings in detail — location, size, character, relevant negatives…"
+                                oninput="xpSave('${key}')"></textarea>
+                            <div class="xp-hint">
+                                <strong>📖 Hutchison's:</strong> ${sys.guide.replace(/<[^>]+>/g, '')}
+                            </div>
+                            <div class="xp-abnormal" id="xp-alert-${key}">
+                                ⚠️ <strong>Abnormal findings noted.</strong> Ensure these are documented in your assessment and plan.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="xp-status-bar">
+                    <span class="xp-status-pill" id="xp-status-${key}">
+                        <span class="xp-status-dot"></span> Not examined
+                    </span>
+                    <span style="font-size: 11px; color: #c0cad6;">Based on Hutchison's Clinical Methods, 25th Ed.</span>
+                </div>
+            </div>
+        `;
+    });
+
+    tabsEl.innerHTML  = tabsHtml;
+    panesEl.innerHTML = panesHtml;
+    xpRefreshAll();
+}
+
+/* ── Toggle panel open/close ── */
+function xpTogglePanel() {
+    xpOpen = !xpOpen;
+    const body = document.getElementById('xpBody');
+    const btn  = document.getElementById('xpToggleBtn');
+    const arr  = document.getElementById('xpArrow');
+    body.classList.toggle('open', xpOpen);
+    btn.classList.toggle('open', xpOpen);
+    btn.childNodes[0].textContent = xpOpen ? 'Collapse ' : 'Expand ';
+}
+
+/* ── Switch tabs ── */
+function xpSwitchTab(key) {
+    document.querySelectorAll('.xp-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.xp-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById(`xp-tab-${key}`).classList.add('active');
+    document.getElementById(`xp-pane-${key}`).classList.add('active');
+    xpActive = key;
+}
+
+/* ── Toggle finding tag ── */
+function xpToggleTag(label, key) {
+    const chk = label.querySelector('input[type="checkbox"]');
+    chk.checked = !chk.checked;
+    label.classList.toggle('selected', chk.checked);
+    if (chk.checked) xpShowDifferentialClue(label);
+    xpSave(key);
+}
+
+function xpShowDifferentialClue(label) {
+    clearTimeout(label._xpClueTimer);
+    document.querySelectorAll('.xp-finding-tag.show-clue').forEach(tag => {
+        if (tag !== label) tag.classList.remove('show-clue');
+    });
+    label.classList.add('show-clue');
+    label._xpClueTimer = setTimeout(() => {
+        label.classList.remove('show-clue');
+    }, 2600);
+}
+
+/* ── Mark normal ── */
+function xpMarkNormal(key) {
+    document.querySelectorAll(`#xp-pane-${key} input[type="checkbox"]`).forEach(chk => {
+        chk.checked = false;
+        chk.closest('label')?.classList.remove('selected');
+    });
+    const narr = document.getElementById(`xp-narr-${key}`);
+    if (narr) narr.value = XP[key].normal;
+    xpSave(key);
+}
+
+/* ── BMI calculator ── */
+function xpCalcBMI() {
+    const w   = parseFloat(document.getElementById('xp_weight')?.value);
+    const h   = parseFloat(document.getElementById('xp_height')?.value);
+    const bmi = document.getElementById('xp_bmi');
+    if (w && h && bmi) {
+        bmi.value = (w / Math.pow(h / 100, 2)).toFixed(1);
+    }
+    xpSave('general');
+}
+
+/* ── Save & refresh state ── */
+function xpSave(key) {
+    const checked = Array.from(
+        document.querySelectorAll(`#xp-pane-${key} input[type="checkbox"]:checked`)
+    ).map(c => c.value);
+
+    const narr = (document.getElementById(`xp-narr-${key}`)?.value || '').trim();
+
+    if (!xpData[key]) xpData[key] = {};
+    xpData[key].checked   = checked;
+    xpData[key].narrative = narr;
+
+    xpRefreshCard(key);
+    xpRefreshProgressPill();
+}
+
+function xpRefreshCard(key) {
+    const checked   = xpData[key]?.checked || [];
+    const narr      = xpData[key]?.narrative || '';
+    const documented = checked.length > 0 || narr.length > 0;
+
+    const isNormal   = narr === XP[key]?.normal;
+    const hasAbnormal = checked.length > 0 && !isNormal;
+
+    /* Tab dot */
+    const dot = document.getElementById(`xp-dot-${key}`);
+    if (dot) dot.parentElement.classList.toggle('done', documented);
+
+    /* Count badge */
+    const cnt = document.getElementById(`xp-count-${key}`);
+    if (cnt) cnt.textContent = `${checked.length} selected`;
+
+    /* Status pill */
+    const status = document.getElementById(`xp-status-${key}`);
+    if (status) {
+        status.classList.toggle('done', documented);
+        status.innerHTML = documented
+            ? `<span class="xp-status-dot"></span> ✅ Examined`
+            : `<span class="xp-status-dot"></span> Not examined`;
+    }
+
+    /* Abnormal alert */
+    const alert = document.getElementById(`xp-alert-${key}`);
+    if (alert) alert.classList.toggle('show', hasAbnormal);
+}
+
+function xpRefreshAll() {
+    Object.keys(XP).forEach(k => xpRefreshCard(k));
+    xpRefreshProgressPill();
+}
+
+function xpRefreshProgressPill() {
+    const done = Object.keys(XP).filter(k => {
+        const d = xpData[k];
+        return d && (d.checked?.length > 0 || d.narrative?.length > 0);
+    }).length;
+    const el = document.getElementById('xpDoneCount');
+    if (el) el.textContent = done;
+}
+
+/* ── Boot ── */
+xpInit();
+
+</script>
+<!-- END STEP 3 JS -->
+
         
     </style>
 </head>
