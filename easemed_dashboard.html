@@ -17,6 +17,7 @@
     <!-- Supabase JS SDK — loaded early so auth check runs immediately -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+
         * {
             margin: 0;
             padding: 0;
@@ -1128,32 +1129,7 @@
             transform: translateY(-3px);
         }
 
- <!--
-=======================================================================
-  EASEMED — EXAMINATIONS PANEL v2 (Redesigned)
-  
-  HOW TO ADD THIS TO YOUR DASHBOARD:
-  
-  STEP 1: Copy everything inside <!-- EXAM CSS --> into your <style> tag
-          (paste at the very bottom, before </style>)
-          
-  STEP 2: Copy the <!-- EXAM HTML --> block and paste it just AFTER
-          your records panel closing </div></div> and BEFORE your
-          <div class="save-toast"...> line
-          
-  STEP 3: Copy everything inside <!-- EXAM JS --> and paste it just
-          BEFORE your closing </script> tag
-=======================================================================
--->
-
-
-<!-- ============================================================
-     STEP 1 — EXAM CSS
-     Paste inside your <style> tag, at the very bottom before </style>
-     ============================================================ -->
-<style>
-
-/* ── Examinations Panel Shell ── */
+/* Physical Examination Panel */
 .xp-shell {
     max-width: 1600px;
     margin: 25px auto;
@@ -1743,74 +1719,217 @@
     .xp-content { padding: 16px; }
     .xp-vitals-grid { grid-template-columns: repeat(2, 1fr); }
 }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
 
-</style>
-<!-- END STEP 1 CSS -->
+    <!-- Auth Top Bar -->
+    <div id="authBar" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(15,32,39,0.92); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.4); font-family: 'Segoe UI', sans-serif;">
+        <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:22px;">🩺</span><span style="color:#fff; font-weight:700; font-size:1rem;">EaseMed</span></div>
+        <div style="display:flex; align-items:center; gap:14px;"><span id="userGreeting" style="color:#90cdf4; font-size:0.88rem; font-weight:500;"></span><button onclick="handleLogout()" style="background: linear-gradient(135deg, #e53e3e, #c53030); color: white; border: none; border-radius: 8px; padding: 7px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">🚪 Logout</button></div>
+    </div>
+    <div style="height: 52px;"></div>
 
+    <div class="container">
+        <div class="clerking-panel">
+            <div class="panel-header">
+                <h1><span>📚</span> EaseMed - Clinical Clerk System <span class="badge">Hutchison's Clinical Methods 25th Ed.</span></h1>
+                <p>Comprehensive history taking & physical examination guide | Based on Hutchison's Clinical Methods</p>
+            </div>
 
+            <!-- Demographics Section -->
+            <div class="form-section">
+                <h3>📋 Patient Demographics</h3>
+                <div class="demographics-grid">
+                    <div><label>Full Name:</label><input type="text" id="fullName" placeholder="Surname, First name"></div>
+                    <div><label>Age:</label><input type="number" id="age" placeholder="Years"></div>
+                    <div><label>Sex:</label><select id="gender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+                    <div><label>Marital Status:</label><select id="maritalStatus"><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option><option>Separated</option></select></div>
+                    <div><label>Occupation:</label><input type="text" id="occupation" placeholder="Current job/profession"></div>
+                    <div><label>Religion:</label><input type="text" id="religion" placeholder="Religious affiliation"></div>
+                    <div><label>Tribe/Ethnicity:</label><input type="text" id="tribe" placeholder="Tribe or ethnic group"></div>
+                    <div><label>Referral Status:</label>
+                        <select id="referralStatus" onchange="toggleReferralDetails()">
+                            <option value="Self-referred">Self-referred</option>
+                            <option value="Referred from health center">Referred from health center</option>
+                            <option value="Referred from hospital">Referred from hospital</option>
+                            <option value="Emergency/Ambulance">Emergency/Ambulance</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Referral details (initially hidden) -->
+                <div id="referralDetails" style="display: none; margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 12px;">
+                    <div class="demographics-grid">
+                        <div><label>Referred from (Health Centre/Hospital):</label><input type="text" id="referralFrom" placeholder="Name of referring facility"></div>
+                        <div><label>Reason for Referral:</label><input type="text" id="referralReason" placeholder="Reason for referral"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 12px;"><label>Physical Address:</label><input type="text" id="address" placeholder="Full residential address"></div>
+                <div style="margin-top: 12px;"><label>Next of Kin:</label><input type="text" id="nextOfKin" placeholder="Name, relationship, contact number"></div>
+                <div style="margin-top: 12px;"><label>Nearest Health Centre:</label><input type="text" id="nearestHealthCentre" placeholder="Clinic/health centre name"></div>
+            </div>
 
+            <!-- Presenting Complaint -->
+            <div class="form-section">
+                <h3>🩺 Presenting Complaint <span class="stat-card">SOCRATES only for Pain | System-specific guides for others</span></h3>
+                <label>Select or type the main symptom:</label>
+                <div class="symptom-buttons" id="symptomButtons">
+                    <button class="symptom-btn" onclick="setSymptom('fever')">🌡️ Fever</button>
+                    <button class="symptom-btn" onclick="setSymptom('pain')">🩺 Pain (SOCRATES)</button>
+                    <button class="symptom-btn" onclick="setSymptom('chest pain')">💔 Chest Pain (SOCRATES)</button>
+                    <button class="symptom-btn" onclick="setSymptom('shortness of breath')">💨 SOB</button>
+                    <button class="symptom-btn" onclick="setSymptom('cough')">🤧 Cough</button>
+                    <button class="symptom-btn" onclick="setSymptom('headache')">🤕 Headache (SOCRATES)</button>
+                    <button class="symptom-btn" onclick="setSymptom('dizziness')">🌀 Dizziness/Vertigo</button>
+                    <button class="symptom-btn" onclick="setSymptom('nausea')">🤢 Nausea/Vomiting</button>
+                    <button class="symptom-btn" onclick="setSymptom('diarrhea')">💩 Diarrhea</button>
+                    <button class="symptom-btn" onclick="setSymptom('constipation')">🚫 Constipation</button>
+                    <button class="symptom-btn" onclick="setSymptom('swelling')">💧 Swelling/Edema</button>
+                    <button class="symptom-btn" onclick="setSymptom('palpitations')">💓 Palpitations</button>
+                    <button class="symptom-btn" onclick="setSymptom('fatigue')">😴 Fatigue</button>
+                    <button class="symptom-btn" onclick="setSymptom('weight loss')">⚖️ Weight Loss</button>
+                    <button class="symptom-btn" onclick="setSymptom('joint pain')">🦴 Joint Pain (SOCRATES)</button>
+                    <button class="symptom-btn" onclick="setSymptom('rash')">🔴 Skin Rash</button>
+                </div>
+                <label style="margin-top: 15px;">Or type your own symptom:</label>
+                <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
+                <div id="dynamicQuestions" style="margin-top: 15px;"></div>
+            </div>
 
-<!-- ============================================================
-     STEP 2 — EXAM HTML
-     Paste AFTER your records panel, BEFORE <div class="save-toast"...>
-     ============================================================ -->
+            <!-- History of Presenting Complaint (HPC) -->
+            <div class="form-section">
+                <h3>📝 History of Presenting Complaint (HPC)</h3>
+                <textarea id="hpc" rows="4" placeholder="Provide a chronological narrative of the presenting complaint including onset, progression, associated symptoms, any treatments tried, and impact on daily activities. Include relevant negatives and positives..."></textarea>
+            </div>
 
-<div class="xp-shell">
-  <div class="xp-panel">
+            <!-- Past Medical History with integrated HIV section (unchanged) -->
+            <div class="form-section">
+                <h3>📜 Past Medical History</h3>
+                <textarea id="pmh" placeholder="Previous illnesses: Hypertension, Diabetes, Asthma, TB, Malaria, Hepatitis, Heart disease, Stroke, Cancer, Surgeries, Hospitalizations, Blood transfusions..."></textarea>
+                <label style="margin-top: 12px;">Current Medications:</label>
+                <textarea id="medications" placeholder="All current medications with doses and frequency..."></textarea>
+                <label style="margin-top: 12px;">Allergies:</label>
+                <textarea id="allergies" placeholder="Drug allergies, food allergies, reactions..."></textarea>
+                
+                <div class="expand-hiv" onclick="toggleHIVDetails()"><span style="font-weight: 600;">🩸 HIV History <span style="color: #e74c3c;">(Click to expand/collapse)</span></span><span style="float: right;">▼</span></div>
+                <div id="hivDetails" class="hiv-details">
+                    <!-- HIV details content unchanged -->
+                    <div class="demographics-grid">
+                        <div><label>HIV Status:</label><select id="hivStatus"><option value="">Select status</option><option value="positive">HIV Positive</option><option value="negative">HIV Negative</option><option value="unknown">Unknown/Not Tested</option></select></div>
+                        <div><label>Date of HIV Diagnosis:</label><input type="text" id="hivDiagnosisDate" placeholder="DD/MM/YYYY"></div>
+                        <div><label>How was HIV Diagnosed?</label><select id="hivDiagnosisMethod"><option value="">Select method</option><option>Rapid Test (HIV 1/2)</option><option>Determine + Stat-Pak + UniGold</option><option>DNA PCR (for <18 months)</option><option>Western Blot</option></select></div>
+                        <div><label>WHO Clinical Stage at Diagnosis:</label><select id="hivWhoStage"><option value="">Select stage</option><option>Stage 1 - Asymptomatic</option><option>Stage 2 - Mild symptoms</option><option>Stage 3 - Advanced symptoms</option><option>Stage 4 - AIDS defining illness</option></select></div>
+                    </div>
+                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">💊 Antiretroviral Therapy (ART)</h4>
+                    <div class="demographics-grid">
+                        <div><label>On ART?</label><select id="hivOnArt" onchange="toggleARTDetails()"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+                        <div><label>ART Start Date:</label><input type="text" id="hivArtStartDate" placeholder="DD/MM/YYYY"></div>
+                    </div>
+                    <div id="artDetails" style="display: none;">
+                        <div class="demographics-grid">
+                            <div><label>Current ART Regimen:</label><select id="hivArtRegimen"><option value="">Select regimen</option><option>TDF/3TC/DTG (Tenofovir + Lamivudine + Dolutegravir)</option><option>TDF/3TC/EFV (Tenofovir + Lamivudine + Efavirenz)</option><option>ABC/3TC/DTG (Abacavir + Lamivudine + Dolutegravir)</option><option>AZT/3TC/DTG (Zidovudine + Lamivudine + Dolutegravir)</option><option>Second-line: ATV/r + TDF/3TC</option></select></div>
+                            <div><label>ART Adherence (Last 30 days):</label><select id="hivAdherence"><option value="">Select adherence level</option><option>Excellent (>95% - Missed 0-1 dose)</option><option>Good (85-94% - Missed 2-5 doses)</option><option>Fair (75-84% - Missed 6-8 doses)</option><option>Poor (<75% - Missed >9 doses)</option></select></div>
+                            <div><label>Missed Doses Last Month:</label><input type="number" id="hivMissedDoses" placeholder="Number of missed doses"></div>
+                            <div><label>Barriers to Adherence:</label><input type="text" id="hivAdherenceBarriers" placeholder="Forgetfulness, side effects, lack of food, stigma"></div>
+                        </div>
+                    </div>
+                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">📊 Laboratory Monitoring</h4>
+                    <div class="demographics-grid">
+                        <div><label>Most Recent CD4 Count:</label><input type="text" id="hivCd4" placeholder="cells/µL (e.g., 450)"></div>
+                        <div><label>Date of CD4:</label><input type="text" id="hivCd4Date" placeholder="DD/MM/YYYY"></div>
+                        <div><label>Most Recent Viral Load:</label><input type="text" id="hivViralLoad" placeholder="copies/mL (e.g., <20 or 5000)"></div>
+                        <div><label>Date of Viral Load:</label><input type="text" id="hivVlDate" placeholder="DD/MM/YYYY"></div>
+                    </div>
+                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">🩺 Opportunistic Infections</h4>
+                    <div><div style="display: flex; flex-wrap: wrap; gap: 10px;"><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="TB"> TB</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="Cryptococcal Meningitis"> Cryptococcal Meningitis</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="PCP"> PCP Pneumonia</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="Esophageal Candidiasis"> Esophageal Candidiasis</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="KS"> Kaposi's Sarcoma</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="CMV"> CMV Retinitis</label></div><div style="margin-top: 10px;"><label>IPT (Isoniazid Preventive Therapy):</label><select id="hivIpt"><option value="">Select status</option><option>Completed 6 months</option><option>Currently on IPT</option><option>Not started</option></select></div><div style="margin-top: 10px;"><label>Cotrimoxazole Preventive Therapy (CPT):</label><select id="hivCpt"><option value="">Select status</option><option>Currently on CPT</option><option>Not on CPT</option><option>Allergic/Contraindicated</option></select></div><div style="margin-top: 10px;"><label>Partner/Family HIV Status:</label><input type="text" id="hivPartnerStatus" placeholder="Partner HIV status, children's status, disclosure"></div></div>
+                </div>
+            </div>
 
-    <!-- Top Bar -->
-    <div class="xp-topbar" onclick="xpTogglePanel()">
-      <div class="xp-topbar-inner">
-        <div class="xp-topbar-left">
-          <div class="xp-topbar-icon">🩺</div>
-          <div class="xp-topbar-text">
-            <h2>Physical Examination</h2>
-            <p>Structured clinical guide · Hutchison's Clinical Methods, 25th Ed.</p>
+            <!-- Guided Review of Systems - ENHANCED with free-text areas for student to fill -->
+            <div class="form-section">
+                <h3>🔄 Review of Systems <span class="stat-card">Hutchison's Ch. 3-5 & system-specific chapters</span></h3>
+                <p class="ros-guide-panel">
+                    💡 <strong>Student Guide:</strong> The Review of Systems (ROS) is a systematic inventory of symptoms across all body systems. 
+                    It helps identify potential diagnoses and ensures no important symptom is missed. Based on <strong>Hutchison's Clinical Methods, 25th Edition</strong>, 
+                    write a narrative summary of findings for each system below. Click on any system to expand and document your findings.
+                </p>
+                <div id="rosContainer"></div>
+            </div>
+
+            <div class="form-section"><h3>🏠 Social History</h3><textarea id="social" placeholder="Smoking, alcohol, drugs, living conditions, occupation, diet, travel..."></textarea></div>
+            <div class="form-section"><h3>👨‍👩‍👧 Family History</h3><textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders..."></textarea></div>
+            <div class="summary-actions"><button class="btn-generate" onclick="generateClinicalSummary()">Generate Clinical Summary + Ward Round Format</button><button class="btn-generate" onclick="savePatient()" style="background: linear-gradient(135deg, #27ae60, #1e8449);">Save Patient Record</button></div>
+            <div class="form-section" id="summarySection" style="display:none;">
+                <h3>Clinical Summary & Ward Round Presentation</h3>
+                <div class="summary-tabs">
+                    <div class="summary-document">
+                        <h4>Complete Clinical Summary</h4>
+                        <div class="clinical-summary" id="clinicalSummary"></div>
+                        <button class="btn-generate" onclick="copyToClipboard('clinicalSummary')" style="background: linear-gradient(135deg, #3498db, #2980b9); margin-top: 10px;">Copy Clinical Summary</button>
+                    </div>
+                    <div class="summary-document ward-round-card">
+                        <h4>Five-Line Ward Round Diagnostic Summary</h4>
+                        <div class="clinical-summary" id="wardRoundSummary"></div>
+                        <button class="btn-generate" onclick="copyToClipboard('wardRoundSummary')" style="background: linear-gradient(135deg, #2a9d8f, #1e7d5a); margin-top: 10px;">Copy Ward Round Summary</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Guidance -->
+        <div class="guidance-panel"><div class="guidance-header"><h2>📖 Hutchison's Clinical Guidance</h2><p>Reference: Hutchison's Clinical Methods, 25th Edition</p></div><div class="guidance-content" id="guidanceContent" style="padding: 20px;"><div class="guidance-card"><h4>📚 Welcome to EaseMed</h4><p>This system guides you through systematic history taking. Select a symptom for specific questions.</p></div><div class="guidance-card"><h4>💡 Key principle</h4><p>SOCRATES is reserved for PAIN complaints. For other symptoms, specific clinical questions are provided.</p></div></div></div>
+    </div>
+
+    <!-- Patient Records Panel -->
+    <div style="max-width:1600px; margin: 25px auto; padding: 0 20px;"><div class="records-panel"><div class="records-header"><h2>🗂️ Saved Patient Records</h2><div class="records-actions"><button class="btn-record btn-new" onclick="newPatient()">➕ New Patient</button><button class="btn-record btn-save" onclick="savePatient()">💾 Save Current</button><button class="btn-record btn-export" onclick="exportRecords()">⬇️ Download Backup</button><label class="btn-record btn-import" style="margin:0; display:inline-block;">📂 Restore Backup<input type="file" accept=".json" onchange="importRecords(event)" style="display:none;"></label></div></div><div class="records-body"><input class="records-search" type="text" id="recordSearch" placeholder="🔍 Search by patient name, complaint, or date..." oninput="renderRecords()"><div id="recordsList"></div></div></div></div>
+
+    <div class="xp-shell">
+      <div class="xp-panel">
+    
+        <!-- Top Bar -->
+        <div class="xp-topbar" onclick="xpTogglePanel()">
+          <div class="xp-topbar-inner">
+            <div class="xp-topbar-left">
+              <div class="xp-topbar-icon">🩺</div>
+              <div class="xp-topbar-text">
+                <h2>Physical Examination</h2>
+                <p>Structured clinical guide · Hutchison's Clinical Methods, 25th Ed.</p>
+              </div>
+            </div>
+            <div class="xp-topbar-right">
+              <div class="xp-progress-pill" id="xpProgressPill">
+                <span id="xpDoneCount">0</span> / <span id="xpTotalCount">0</span> systems examined
+              </div>
+              <button class="xp-toggle-btn" id="xpToggleBtn" onclick="event.stopPropagation(); xpTogglePanel()">
+                Expand Examinations <span class="xp-toggle-arrow" id="xpArrow">▼</span>
+              </button>
+            </div>
           </div>
         </div>
-        <div class="xp-topbar-right">
-          <div class="xp-progress-pill" id="xpProgressPill">
-            <span id="xpDoneCount">0</span> / <span id="xpTotalCount">0</span> systems examined
+    
+        <!-- Collapsible Body -->
+        <div class="xp-body" id="xpBody">
+    
+          <!-- System Tabs -->
+          <div class="xp-tabs-wrap">
+            <div class="xp-tabs" id="xpTabs">
+              <!-- injected by JS -->
+            </div>
           </div>
-          <button class="xp-toggle-btn" id="xpToggleBtn" onclick="event.stopPropagation(); xpTogglePanel()">
-            Expand Examinations <span class="xp-toggle-arrow" id="xpArrow">▼</span>
-          </button>
+    
+          <!-- Pane Content -->
+          <div class="xp-content">
+            <div id="xpPanes">
+              <!-- injected by JS -->
+            </div>
+          </div>
+    
         </div>
       </div>
     </div>
 
-    <!-- Collapsible Body -->
-    <div class="xp-body" id="xpBody">
-
-      <!-- System Tabs -->
-      <div class="xp-tabs-wrap">
-        <div class="xp-tabs" id="xpTabs">
-          <!-- injected by JS -->
-        </div>
-      </div>
-
-      <!-- Pane Content -->
-      <div class="xp-content">
-        <div id="xpPanes">
-          <!-- injected by JS -->
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- END STEP 2 HTML -->
-
-
-
-
-<!-- ============================================================
-     STEP 3 — EXAM JS
-     Paste just BEFORE your closing </script> tag
-     ============================================================ -->
-<script>
-
+    <script>
 /* ── Examination Systems Data ── */
 const XP = {
     general: {
@@ -2265,177 +2384,9 @@ function xpRefreshProgressPill() {
 
 /* ── Boot ── */
 xpInit();
+    </script>
 
-</script>
-<!-- END STEP 3 JS -->
-
-        
-    </style>
-</head>
-<body>
-    <div class="progress-bar" id="progressBar"></div>
-
-    <!-- Auth Top Bar -->
-    <div id="authBar" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(15,32,39,0.92); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.4); font-family: 'Segoe UI', sans-serif;">
-        <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:22px;">🩺</span><span style="color:#fff; font-weight:700; font-size:1rem;">EaseMed</span></div>
-        <div style="display:flex; align-items:center; gap:14px;"><span id="userGreeting" style="color:#90cdf4; font-size:0.88rem; font-weight:500;"></span><button onclick="handleLogout()" style="background: linear-gradient(135deg, #e53e3e, #c53030); color: white; border: none; border-radius: 8px; padding: 7px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">🚪 Logout</button></div>
-    </div>
-    <div style="height: 52px;"></div>
-
-    <div class="container">
-        <div class="clerking-panel">
-            <div class="panel-header">
-                <h1><span>📚</span> EaseMed - Clinical Clerk System <span class="badge">Hutchison's Clinical Methods 25th Ed.</span></h1>
-                <p>Comprehensive history taking & physical examination guide | Based on Hutchison's Clinical Methods</p>
-            </div>
-
-            <!-- Demographics Section -->
-            <div class="form-section">
-                <h3>📋 Patient Demographics</h3>
-                <div class="demographics-grid">
-                    <div><label>Full Name:</label><input type="text" id="fullName" placeholder="Surname, First name"></div>
-                    <div><label>Age:</label><input type="number" id="age" placeholder="Years"></div>
-                    <div><label>Sex:</label><select id="gender"><option>Male</option><option>Female</option><option>Other</option></select></div>
-                    <div><label>Marital Status:</label><select id="maritalStatus"><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option><option>Separated</option></select></div>
-                    <div><label>Occupation:</label><input type="text" id="occupation" placeholder="Current job/profession"></div>
-                    <div><label>Religion:</label><input type="text" id="religion" placeholder="Religious affiliation"></div>
-                    <div><label>Tribe/Ethnicity:</label><input type="text" id="tribe" placeholder="Tribe or ethnic group"></div>
-                    <div><label>Referral Status:</label>
-                        <select id="referralStatus" onchange="toggleReferralDetails()">
-                            <option value="Self-referred">Self-referred</option>
-                            <option value="Referred from health center">Referred from health center</option>
-                            <option value="Referred from hospital">Referred from hospital</option>
-                            <option value="Emergency/Ambulance">Emergency/Ambulance</option>
-                        </select>
-                    </div>
-                </div>
-                <!-- Referral details (initially hidden) -->
-                <div id="referralDetails" style="display: none; margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 12px;">
-                    <div class="demographics-grid">
-                        <div><label>Referred from (Health Centre/Hospital):</label><input type="text" id="referralFrom" placeholder="Name of referring facility"></div>
-                        <div><label>Reason for Referral:</label><input type="text" id="referralReason" placeholder="Reason for referral"></div>
-                    </div>
-                </div>
-                <div style="margin-top: 12px;"><label>Physical Address:</label><input type="text" id="address" placeholder="Full residential address"></div>
-                <div style="margin-top: 12px;"><label>Next of Kin:</label><input type="text" id="nextOfKin" placeholder="Name, relationship, contact number"></div>
-                <div style="margin-top: 12px;"><label>Nearest Health Centre:</label><input type="text" id="nearestHealthCentre" placeholder="Clinic/health centre name"></div>
-            </div>
-
-            <!-- Presenting Complaint -->
-            <div class="form-section">
-                <h3>🩺 Presenting Complaint <span class="stat-card">SOCRATES only for Pain | System-specific guides for others</span></h3>
-                <label>Select or type the main symptom:</label>
-                <div class="symptom-buttons" id="symptomButtons">
-                    <button class="symptom-btn" onclick="setSymptom('fever')">🌡️ Fever</button>
-                    <button class="symptom-btn" onclick="setSymptom('pain')">🩺 Pain (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('chest pain')">💔 Chest Pain (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('shortness of breath')">💨 SOB</button>
-                    <button class="symptom-btn" onclick="setSymptom('cough')">🤧 Cough</button>
-                    <button class="symptom-btn" onclick="setSymptom('headache')">🤕 Headache (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('dizziness')">🌀 Dizziness/Vertigo</button>
-                    <button class="symptom-btn" onclick="setSymptom('nausea')">🤢 Nausea/Vomiting</button>
-                    <button class="symptom-btn" onclick="setSymptom('diarrhea')">💩 Diarrhea</button>
-                    <button class="symptom-btn" onclick="setSymptom('constipation')">🚫 Constipation</button>
-                    <button class="symptom-btn" onclick="setSymptom('swelling')">💧 Swelling/Edema</button>
-                    <button class="symptom-btn" onclick="setSymptom('palpitations')">💓 Palpitations</button>
-                    <button class="symptom-btn" onclick="setSymptom('fatigue')">😴 Fatigue</button>
-                    <button class="symptom-btn" onclick="setSymptom('weight loss')">⚖️ Weight Loss</button>
-                    <button class="symptom-btn" onclick="setSymptom('joint pain')">🦴 Joint Pain (SOCRATES)</button>
-                    <button class="symptom-btn" onclick="setSymptom('rash')">🔴 Skin Rash</button>
-                </div>
-                <label style="margin-top: 15px;">Or type your own symptom:</label>
-                <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
-                <div id="dynamicQuestions" style="margin-top: 15px;"></div>
-            </div>
-
-            <!-- History of Presenting Complaint (HPC) -->
-            <div class="form-section">
-                <h3>📝 History of Presenting Complaint (HPC)</h3>
-                <textarea id="hpc" rows="4" placeholder="Provide a chronological narrative of the presenting complaint including onset, progression, associated symptoms, any treatments tried, and impact on daily activities. Include relevant negatives and positives..."></textarea>
-            </div>
-
-            <!-- Past Medical History with integrated HIV section (unchanged) -->
-            <div class="form-section">
-                <h3>📜 Past Medical History</h3>
-                <textarea id="pmh" placeholder="Previous illnesses: Hypertension, Diabetes, Asthma, TB, Malaria, Hepatitis, Heart disease, Stroke, Cancer, Surgeries, Hospitalizations, Blood transfusions..."></textarea>
-                <label style="margin-top: 12px;">Current Medications:</label>
-                <textarea id="medications" placeholder="All current medications with doses and frequency..."></textarea>
-                <label style="margin-top: 12px;">Allergies:</label>
-                <textarea id="allergies" placeholder="Drug allergies, food allergies, reactions..."></textarea>
-                
-                <div class="expand-hiv" onclick="toggleHIVDetails()"><span style="font-weight: 600;">🩸 HIV History <span style="color: #e74c3c;">(Click to expand/collapse)</span></span><span style="float: right;">▼</span></div>
-                <div id="hivDetails" class="hiv-details">
-                    <!-- HIV details content unchanged -->
-                    <div class="demographics-grid">
-                        <div><label>HIV Status:</label><select id="hivStatus"><option value="">Select status</option><option value="positive">HIV Positive</option><option value="negative">HIV Negative</option><option value="unknown">Unknown/Not Tested</option></select></div>
-                        <div><label>Date of HIV Diagnosis:</label><input type="text" id="hivDiagnosisDate" placeholder="DD/MM/YYYY"></div>
-                        <div><label>How was HIV Diagnosed?</label><select id="hivDiagnosisMethod"><option value="">Select method</option><option>Rapid Test (HIV 1/2)</option><option>Determine + Stat-Pak + UniGold</option><option>DNA PCR (for <18 months)</option><option>Western Blot</option></select></div>
-                        <div><label>WHO Clinical Stage at Diagnosis:</label><select id="hivWhoStage"><option value="">Select stage</option><option>Stage 1 - Asymptomatic</option><option>Stage 2 - Mild symptoms</option><option>Stage 3 - Advanced symptoms</option><option>Stage 4 - AIDS defining illness</option></select></div>
-                    </div>
-                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">💊 Antiretroviral Therapy (ART)</h4>
-                    <div class="demographics-grid">
-                        <div><label>On ART?</label><select id="hivOnArt" onchange="toggleARTDetails()"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
-                        <div><label>ART Start Date:</label><input type="text" id="hivArtStartDate" placeholder="DD/MM/YYYY"></div>
-                    </div>
-                    <div id="artDetails" style="display: none;">
-                        <div class="demographics-grid">
-                            <div><label>Current ART Regimen:</label><select id="hivArtRegimen"><option value="">Select regimen</option><option>TDF/3TC/DTG (Tenofovir + Lamivudine + Dolutegravir)</option><option>TDF/3TC/EFV (Tenofovir + Lamivudine + Efavirenz)</option><option>ABC/3TC/DTG (Abacavir + Lamivudine + Dolutegravir)</option><option>AZT/3TC/DTG (Zidovudine + Lamivudine + Dolutegravir)</option><option>Second-line: ATV/r + TDF/3TC</option></select></div>
-                            <div><label>ART Adherence (Last 30 days):</label><select id="hivAdherence"><option value="">Select adherence level</option><option>Excellent (>95% - Missed 0-1 dose)</option><option>Good (85-94% - Missed 2-5 doses)</option><option>Fair (75-84% - Missed 6-8 doses)</option><option>Poor (<75% - Missed >9 doses)</option></select></div>
-                            <div><label>Missed Doses Last Month:</label><input type="number" id="hivMissedDoses" placeholder="Number of missed doses"></div>
-                            <div><label>Barriers to Adherence:</label><input type="text" id="hivAdherenceBarriers" placeholder="Forgetfulness, side effects, lack of food, stigma"></div>
-                        </div>
-                    </div>
-                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">📊 Laboratory Monitoring</h4>
-                    <div class="demographics-grid">
-                        <div><label>Most Recent CD4 Count:</label><input type="text" id="hivCd4" placeholder="cells/µL (e.g., 450)"></div>
-                        <div><label>Date of CD4:</label><input type="text" id="hivCd4Date" placeholder="DD/MM/YYYY"></div>
-                        <div><label>Most Recent Viral Load:</label><input type="text" id="hivViralLoad" placeholder="copies/mL (e.g., <20 or 5000)"></div>
-                        <div><label>Date of Viral Load:</label><input type="text" id="hivVlDate" placeholder="DD/MM/YYYY"></div>
-                    </div>
-                    <h4 style="margin: 15px 0 10px 0; color: #1e3c72;">🩺 Opportunistic Infections</h4>
-                    <div><div style="display: flex; flex-wrap: wrap; gap: 10px;"><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="TB"> TB</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="Cryptococcal Meningitis"> Cryptococcal Meningitis</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="PCP"> PCP Pneumonia</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="Esophageal Candidiasis"> Esophageal Candidiasis</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="KS"> Kaposi's Sarcoma</label><label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" value="CMV"> CMV Retinitis</label></div><div style="margin-top: 10px;"><label>IPT (Isoniazid Preventive Therapy):</label><select id="hivIpt"><option value="">Select status</option><option>Completed 6 months</option><option>Currently on IPT</option><option>Not started</option></select></div><div style="margin-top: 10px;"><label>Cotrimoxazole Preventive Therapy (CPT):</label><select id="hivCpt"><option value="">Select status</option><option>Currently on CPT</option><option>Not on CPT</option><option>Allergic/Contraindicated</option></select></div><div style="margin-top: 10px;"><label>Partner/Family HIV Status:</label><input type="text" id="hivPartnerStatus" placeholder="Partner HIV status, children's status, disclosure"></div></div>
-                </div>
-            </div>
-
-            <!-- Guided Review of Systems - ENHANCED with free-text areas for student to fill -->
-            <div class="form-section">
-                <h3>🔄 Review of Systems <span class="stat-card">Hutchison's Ch. 3-5 & system-specific chapters</span></h3>
-                <p class="ros-guide-panel">
-                    💡 <strong>Student Guide:</strong> The Review of Systems (ROS) is a systematic inventory of symptoms across all body systems. 
-                    It helps identify potential diagnoses and ensures no important symptom is missed. Based on <strong>Hutchison's Clinical Methods, 25th Edition</strong>, 
-                    write a narrative summary of findings for each system below. Click on any system to expand and document your findings.
-                </p>
-                <div id="rosContainer"></div>
-            </div>
-
-            <div class="form-section"><h3>🏠 Social History</h3><textarea id="social" placeholder="Smoking, alcohol, drugs, living conditions, occupation, diet, travel..."></textarea></div>
-            <div class="form-section"><h3>👨‍👩‍👧 Family History</h3><textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders..."></textarea></div>
-            <div class="summary-actions"><button class="btn-generate" onclick="generateClinicalSummary()">Generate Clinical Summary + Ward Round Format</button><button class="btn-generate" onclick="savePatient()" style="background: linear-gradient(135deg, #27ae60, #1e8449);">Save Patient Record</button></div>
-            <div class="form-section" id="summarySection" style="display:none;">
-                <h3>Clinical Summary & Ward Round Presentation</h3>
-                <div class="summary-tabs">
-                    <div class="summary-document">
-                        <h4>Complete Clinical Summary</h4>
-                        <div class="clinical-summary" id="clinicalSummary"></div>
-                        <button class="btn-generate" onclick="copyToClipboard('clinicalSummary')" style="background: linear-gradient(135deg, #3498db, #2980b9); margin-top: 10px;">Copy Clinical Summary</button>
-                    </div>
-                    <div class="summary-document ward-round-card">
-                        <h4>Five-Line Ward Round Diagnostic Summary</h4>
-                        <div class="clinical-summary" id="wardRoundSummary"></div>
-                        <button class="btn-generate" onclick="copyToClipboard('wardRoundSummary')" style="background: linear-gradient(135deg, #2a9d8f, #1e7d5a); margin-top: 10px;">Copy Ward Round Summary</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Panel: Guidance -->
-        <div class="guidance-panel"><div class="guidance-header"><h2>📖 Hutchison's Clinical Guidance</h2><p>Reference: Hutchison's Clinical Methods, 25th Edition</p></div><div class="guidance-content" id="guidanceContent" style="padding: 20px;"><div class="guidance-card"><h4>📚 Welcome to EaseMed</h4><p>This system guides you through systematic history taking. Select a symptom for specific questions.</p></div><div class="guidance-card"><h4>💡 Key principle</h4><p>SOCRATES is reserved for PAIN complaints. For other symptoms, specific clinical questions are provided.</p></div></div></div>
-    </div>
-
-    <!-- Patient Records Panel -->
-    <div style="max-width:1600px; margin: 25px auto; padding: 0 20px;"><div class="records-panel"><div class="records-header"><h2>🗂️ Saved Patient Records</h2><div class="records-actions"><button class="btn-record btn-new" onclick="newPatient()">➕ New Patient</button><button class="btn-record btn-save" onclick="savePatient()">💾 Save Current</button><button class="btn-record btn-export" onclick="exportRecords()">⬇️ Download Backup</button><label class="btn-record btn-import" style="margin:0; display:inline-block;">📂 Restore Backup<input type="file" accept=".json" onchange="importRecords(event)" style="display:none;"></label></div></div><div class="records-body"><input class="records-search" type="text" id="recordSearch" placeholder="🔍 Search by patient name, complaint, or date..." oninput="renderRecords()"><div id="recordsList"></div></div></div></div>
-
-    <div class="save-toast" id="saveToast">✅ Patient record saved!</div>
+<div class="save-toast" id="saveToast">✅ Patient record saved!</div>
     <div class="floating-tip" onclick="showTip()">💡 Tip: Use SOCRATES only for pain!</div>
 
     <script>
