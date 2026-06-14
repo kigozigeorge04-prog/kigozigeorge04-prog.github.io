@@ -262,17 +262,7 @@
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) { window.location.href = "login.html"; return; }
 
-    // Get plan ID
-    const { data: plan } = await supabaseClient
-      .from("plans")
-      .select("id")
-      .eq("name", "EaseMed Student Monthly")
-      .single();
-
-    if (!plan) {
-      showStatus("Could not load plan. Please refresh and try again.", "error");
-      return;
-    }
+   const plan = { id: "bc1d0402-af21-460d-8ee6-53a6b40d1b2b" };
 
     // Disable button, show loading
     btn.disabled = true;
