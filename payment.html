@@ -280,14 +280,12 @@
     showStatus("Sending payment request to your phone...", "info");
 
     try {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-
-      const res = await fetch(INITIATE_PAYMENT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`
-        },
+     const res = await fetch(INITIATE_PAYMENT_URL, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc}`
+  },
         body: JSON.stringify({
           user_id: user.id,
           plan_id: plan.id,
