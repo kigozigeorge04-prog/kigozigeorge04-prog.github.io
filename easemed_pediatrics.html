@@ -230,6 +230,77 @@
 .clue-pill:hover:not(.selected) {
     background: #cbd5e1;
 }  
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+}
+.modal-content {
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 28px;
+    width: 90%;
+    max-width: 800px;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    animation: modalFadeIn 0.3s;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.modal-header {
+    background: linear-gradient(135deg, #1b7e6b, #2a9d8f);
+    color: white;
+    padding: 20px 25px;
+    border-radius: 28px 28px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.modal-header h3 { margin: 0; font-size: 1.4rem; }
+.modal-header .close {
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.modal-header .close:hover { transform: scale(1.2); }
+.modal-body { padding: 20px 25px; }
+.diff-card {
+    background: white;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+.diff-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.08); transform: translateY(-2px); }
+.diff-title {
+    background: #f0fdf4;
+    padding: 12px 18px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1b7e6b;
+    border-bottom: 2px solid #c8e6e0;
+}
+.diff-body { padding: 15px 18px; }
+.diff-evidence { color: #2c6e49; font-weight: 600; margin: 8px 0; }
+.diff-ref { font-size: 0.8rem; color: #718096; border-top: 1px solid #e2e8f0; margin-top: 10px; padding-top: 8px; font-style: italic; }
+.loading-diff { text-align: center; padding: 30px; color: #2a9d8f; }
+        
     </style>
 </head>
 <body>
@@ -372,11 +443,12 @@
             </div>
         </div>
 
-        <div class="form-section" style="display: flex; gap: 12px;">
-            <button class="btn-generate" onclick="generateClinicalSummary()">Generate Summary + Ward Round</button>
-            <button class="btn-generate" onclick="savePatient()" style="background:#2c6e49;">Save Record</button>
-            <button class="btn-generate" onclick="resetForm()" style="background:#e67e22;">Reset Form</button>
-        </div>
+       <div class="form-section" style="display: flex; gap: 12px; flex-wrap: wrap;">
+    <button class="btn-generate" onclick="generateClinicalSummary()">Generate Summary + Ward Round</button>
+    <button class="btn-generate" onclick="generateDifferentials()" style="background:#8e44ad;">🧠 Generate Differentials</button>
+    <button class="btn-generate" onclick="savePatient()" style="background:#2c6e49;">Save Record</button>
+    <button class="btn-generate" onclick="resetForm()" style="background:#e67e22;">Reset Form</button>
+</div>
     </div>
 
     <div class="guidance-panel">
@@ -1982,6 +2054,19 @@ if (referralStatus !== 'Self‑referred' && !referralFrom) {
             <div><strong>Physical Examination:</strong><br>${examHtml}</div>
             <div><strong>Social/Family:</strong> ${data.socialHistory} | ${data.familyHistory}</div>
             <div><strong>Plan:</strong> ${data.managementPlan}</div>
+
+            <!-- Modal for Differential Diagnoses -->
+<div id="diffModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🧠 Differential Diagnoses</h3>
+            <span class="close" onclick="closeDiffModal()">&times;</span>
+        </div>
+        <div class="modal-body" id="diffModalBody">
+            <div class="loading-diff">Analysing clinical data...</div>
+        </div>
+    </div>
+</div>
         `;
         document.getElementById('clinicalSummary').innerHTML = summaryHtml;
 
@@ -2008,7 +2093,255 @@ if (referralStatus !== 'Self‑referred' && !referralFrom) {
         document.getElementById('progressBar').style.width = percent + '%';
     }
     function escapeHtml(str) { return String(str || '').replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+// ==================== DIFFERENTIAL DIAGNOSIS GENERATOR ====================
+function generateDifferentials() {
+    const modal = document.getElementById('diffModal');
+    const modalBody = document.getElementById('diffModalBody');
+    modal.style.display = 'block';
+    modalBody.innerHTML = '<div class="loading-diff">Analysing clinical data using Nelson Textbook of Pediatrics criteria...</div>';
 
+    setTimeout(() => {
+        const data = captureFormData();  // get current form state
+        const diffs = computeDifferentials(data);
+        if (diffs.length === 0) {
+            modalBody.innerHTML = '<div class="guidance-tip">No clear differentials identified. Please complete more clinical information.</div>';
+            return;
+        }
+        let html = '';
+        for (let diff of diffs) {
+            html += `
+                <div class="diff-card">
+                    <div class="diff-title">${diff.condition}</div>
+                    <div class="diff-body">
+                        <div class="diff-evidence">📌 Supporting evidence: ${diff.evidence}</div>
+                        <div>${diff.description}</div>
+                        <div class="diff-ref">📖 ${diff.reference}</div>
+                    </div>
+                </div>
+            `;
+        }
+        modalBody.innerHTML = html;
+    }, 200);
+}
+
+function closeDiffModal() {
+    document.getElementById('diffModal').style.display = 'none';
+}
+
+function computeDifferentials(data) {
+    const diffs = [];
+
+    // Helper functions
+    function hasPill(containerId, value) {
+        const container = document.getElementById(containerId);
+        if (!container) return false;
+        const pills = container.querySelectorAll('.toggle-pill.active');
+        for (let pill of pills) {
+            if (pill.getAttribute('data-value') === value) return true;
+        }
+        return false;
+    }
+
+    function hasExamPill(system, value) {
+        const card = document.querySelector(`.exam-card[data-exam="${system}"]`);
+        if (!card) return false;
+        const pills = card.querySelectorAll('.toggle-pill.active');
+        for (let pill of pills) {
+            if (pill.getAttribute('data-value') === value) return true;
+        }
+        return false;
+    }
+
+    // Extract key findings from the captured data
+    const presenting = data.currentSymptom || '';
+    const hpc = (data.hpc || '').toLowerCase();
+    const dangerSigns = data.redFlags || [];
+    const muacVal = parseFloat(data.muac);
+    const weight = parseFloat(data.weight);
+    const hasFever = presenting.includes('fever') || hpc.includes('fever');
+    const hasCough = presenting.includes('cough') || hpc.includes('cough');
+    const hasDiarrhoea = presenting.includes('diarrhea') || hpc.includes('diarrhoea');
+    const hasConvulsions = presenting.includes('convulsions') || dangerSigns.includes('Convulsions');
+    const hasPoorFeeding = presenting.includes('poor feeding') || dangerSigns.includes('Unable to drink/breastfeed');
+    const hasRash = presenting.includes('rash') || hasExamPill('skin', 'Rash (maculopapular)') || hasExamPill('skin', 'Petechiae');
+    const hasJaundice = presenting.includes('jaundice') || hasExamPill('general', 'Jaundiced') || hasExamPill('skin', 'Jaundice');
+    const hasPallor = presenting.includes('pallor') || hasExamPill('general', 'Pale') || hasExamPill('skin', 'Pallor');
+    const hasOedema = presenting.includes('oedema') || hasExamPill('general', 'Oedematous') || hasExamPill('skin', 'Oedema (pitting)');
+    const hasNeckStiffness = presenting.includes('neck stiffness') || hasExamPill('neurological', 'Neck stiffness');
+    const hasMalnourished = hasExamPill('general', 'Malnourished') || (muacVal < 12.5);
+    const hasRespDistress = hasExamPill('respiratory', 'Chest indrawing (subcostal)') || hasExamPill('respiratory', 'Nasal flaring') || hasExamPill('respiratory', 'Grunting');
+    const hasWheeze = hasExamPill('respiratory', 'Wheeze (expiratory)');
+    const hasCrackles = hasExamPill('respiratory', 'Fine crackles') || hasExamPill('respiratory', 'Coarse crackles');
+    const hasMurmur = hasExamPill('cardiovascular', 'Murmur present');
+    const hasHepatomegaly = hasExamPill('abdomen', 'Hepatomegaly');
+    const hasSplenomegaly = hasExamPill('abdomen', 'Splenomegaly');
+    const avpu = data.examData?.neurological?.avpu || '';
+    const bulgingFontanelle = hasExamPill('neurological', 'Bulging fontanelle');
+    const gcs = parseInt(data.examData?.vitals?.gcs) || 15;
+
+    // 1. Severe Malaria / Cerebral Malaria
+    if (hasFever && (hasConvulsions || avpu !== 'Alert' || gcs < 15) && !hasNeckStiffness) {
+        diffs.push({
+            condition: "Severe Malaria / Cerebral Malaria",
+            evidence: "Fever + altered consciousness/convulsions in endemic area",
+            description: "Common cause of febrile illness with neurological involvement in Uganda. Perform RDT or blood smear.",
+            reference: "Nelson Textbook of Pediatrics, 21st ed., Chapter 275. Zitelli's Atlas, 8th ed., p. 634."
+        });
+    } else if (hasFever && !hasConvulsions) {
+        diffs.push({
+            condition: "Uncomplicated Malaria",
+            evidence: "Fever with nonspecific symptoms in endemic region",
+            description: "High index of suspicion; test all febrile children in malaria-endemic areas.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 275; Uganda Clinical Guidelines 2016."
+        });
+    }
+
+    // 2. Severe Pneumonia
+    if ((hasCough || hasRespDistress) && (hasExamPill('respiratory', 'Fast breathing') || dangerSigns.includes('Fast breathing (age‑specific)'))) {
+        diffs.push({
+            condition: "Severe Pneumonia",
+            evidence: "Cough + fast breathing and/or chest indrawing",
+            description: "Leading cause of child mortality. Classify using IMCI criteria.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 409. Zitelli's Atlas, p. 300-304."
+        });
+    } else if (hasCough && hasWheeze) {
+        diffs.push({
+            condition: "Asthma / Reactive Airway Disease",
+            evidence: "Wheeze with cough, may be episodic",
+            description: "Common in older children. Look for atopy, response to bronchodilators.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 173."
+        });
+    }
+
+    // 3. Bacterial Meningitis
+    if ((hasNeckStiffness || bulgingFontanelle) && hasFever && (gcs < 15 || hasConvulsions)) {
+        diffs.push({
+            condition: "Bacterial Meningitis",
+            evidence: "Fever + neck stiffness/bulging fontanelle + altered sensorium",
+            description: "Medical emergency. Lumbar puncture essential.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 193. Zitelli's Atlas, p. 896-900."
+        });
+    }
+
+    // 4. Kwashiorkor / Marasmus
+    if (hasOedema && hasMalnourished && hasExamPill('skin', 'Flaky paint dermatosis')) {
+        diffs.push({
+            condition: "Kwashiorkor",
+            evidence: "Oedema + skin changes + wasting",
+            description: "Protein deficiency with nutritional oedema. Often associated with infections.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 51. Zitelli's Atlas, p. 276-278."
+        });
+    } else if (hasMalnourished && weight && weight < 10 && !hasOedema) {
+        diffs.push({
+            condition: "Marasmus (Severe Wasting)",
+            evidence: "Weight-for-age low, no oedema",
+            description: "Energy deficiency. High risk of hypoglycaemia, hypothermia, infection.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 51."
+        });
+    }
+
+    // 5. Sepsis
+    if (dangerSigns.includes('Lethargy/unconscious') && (hasFever || hasPoorFeeding) && (hasRespDistress || hasExamPill('cardiovascular', 'Capillary refill >2s'))) {
+        diffs.push({
+            condition: "Sepsis / Septic Shock",
+            evidence: "Lethargy + fever + poor perfusion / respiratory distress",
+            description: "Life‑threatening organ dysfunction. Initiate antibiotics and fluids urgently.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 177. Zitelli's Atlas, p. 108-111."
+        });
+    }
+
+    // 6. Pulmonary Tuberculosis
+    if (hpc.includes('chronic') && hasCough && hasExamPill('respiratory', 'Reduced air entry')) {
+        diffs.push({
+            condition: "Pulmonary Tuberculosis",
+            evidence: "Chronic cough + failure to thrive + close contact history",
+            description: "High burden in Uganda. Perform TST/IGRA, chest X‑ray, GeneXpert.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 216. Zitelli's Atlas, p. 464-467."
+        });
+    }
+
+    // 7. HIV Infection
+    if (hasMalnourished && (hasExamPill('ent', 'Oral thrush') || hasExamPill('skin', 'Generalised lymphadenopathy'))) {
+        diffs.push({
+            condition: "HIV Infection (Paediatric AIDS)",
+            evidence: "Failure to thrive + oral thrush + recurrent infections",
+            description: "Mother‑to‑child transmission. Perform HIV DNA PCR (<18 months) or antibody test (>18 months).",
+            reference: "Nelson Textbook of Pediatrics, Ch. 276. Zitelli's Atlas, p. 214-217."
+        });
+    }
+
+    // 8. Congenital Heart Disease
+    if (hasMurmur && (hasExamPill('cardiovascular', 'Cyanosis (central)') || hasExamPill('cardiovascular', 'Heave'))) {
+        diffs.push({
+            condition: "Congenital Heart Disease (e.g., VSD, TOF)",
+            evidence: "Murmur + cyanosis or heave",
+            description: "Common in infants. Perform echocardiography.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 443. Zitelli's Atlas, p. 602-622."
+        });
+    }
+
+    // 9. Sickle Cell Disease with Crisis
+    if (hasPallor && (hasHepatomegaly || hasSplenomegaly) && (hpc.includes('pain') || hasExamPill('abdomen', 'Tenderness (generalised)'))) {
+        diffs.push({
+            condition: "Sickle Cell Disease – Vaso‑occlusive Crisis / Acute Splenic Sequestration",
+            evidence: "Pallor + organomegaly + pain",
+            description: "Common in Uganda. Look for dactylitis, acute chest syndrome.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 462. Zitelli's Atlas, p. 838-842."
+        });
+    }
+
+    // 10. Acute Gastroenteritis with Dehydration
+    if (hasDiarrhoea && (dangerSigns.includes('Severe dehydration') || hasExamPill('general', 'Dehydrated'))) {
+        diffs.push({
+            condition: "Acute Gastroenteritis (Dehydrating Diarrhoea)",
+            evidence: "Diarrhoea + signs of dehydration",
+            description: "Rotavirus, bacterial causes. Classify by WHO dehydration scale.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 354. Zitelli's Atlas, p. 334-338."
+        });
+    }
+
+    // 11. Measles
+    if (hasRash && hasFever && (hasExamPill('ent', 'Koplik's spots') || hpc.includes('coryza'))) {
+        diffs.push({
+            condition: "Measles",
+            evidence: "Fever + maculopapular rash + cough/coryza/conjunctivitis",
+            description: "Vaccine‑preventable. Complicated by pneumonia, diarrhoea, encephalitis.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 252. Zitelli's Atlas, p. 180-182."
+        });
+    }
+
+    // 12. Nephrotic Syndrome
+    if (hasOedema && hasExamPill('general', 'Oedematous') && !hasMalnourished) {
+        diffs.push({
+            condition: "Nephrotic Syndrome",
+            evidence: "Generalised oedema + periorbital swelling + frothy urine",
+            description: "Minimal change disease most common. Check urine protein.",
+            reference: "Nelson Textbook of Pediatrics, Ch. 535. Zitelli's Atlas, p. 732-735."
+        });
+    }
+
+    // Remove duplicates and sort by severity
+    const unique = [];
+    const seen = new Set();
+    for (let d of diffs) {
+        if (!seen.has(d.condition)) {
+            seen.add(d.condition);
+            unique.push(d);
+        }
+    }
+    const priority = ["Bacterial Meningitis","Sepsis / Septic Shock","Severe Malaria / Cerebral Malaria","Severe Pneumonia","Kwashiorkor","Nephrotic Syndrome","HIV Infection (Paediatric AIDS)","Pulmonary Tuberculosis","Acute Gastroenteritis (Dehydrating Diarrhoea)","Sickle Cell Disease – Vaso‑occlusive Crisis / Acute Splenic Sequestration","Congenital Heart Disease","Asthma / Reactive Airway Disease","Measles","Uncomplicated Malaria","Marasmus (Severe Wasting)"];
+    unique.sort((a,b) => {
+        let ia = priority.indexOf(a.condition);
+        let ib = priority.indexOf(b.condition);
+        if (ia === -1) ia = 999;
+        if (ib === -1) ib = 999;
+        return ia - ib;
+    });
+    return unique.slice(0, 8);
+}
+
+
+    
     // ==================== Immunization Grid ====================
     const vaccineList = [
         { name: "BCG", due: "Birth" }, { name: "OPV0", due: "Birth" },
