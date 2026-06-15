@@ -266,21 +266,21 @@
             <h3>🩺 Presenting Complaint</h3>
             <label>Select or type the main symptom:</label>
             <div class="symptom-buttons" id="symptomButtons">
-                <button type="button" class="symptom-btn" data-symptom="fever">🌡️ Fever</button>
-                <button type="button" class="symptom-btn" data-symptom="cough">🤧 Cough</button>
-                <button type="button" class="symptom-btn" data-symptom="diarrhea">💩 Diarrhoea/Vomiting</button>
-                <button type="button" class="symptom-btn" data-symptom="poor feeding">🍼 Poor feeding</button>
-                <button type="button" class="symptom-btn" data-symptom="convulsions">⚠️ Convulsions</button>
-                <button type="button" class="symptom-btn" data-symptom="rash">🔴 Skin rash</button>
-                <button type="button" class="symptom-btn" data-symptom="jaundice">🟡 Jaundice</button>
-                <button type="button" class="symptom-btn" data-symptom="pain">🩺 Pain (SOCRATES)</button>
-                <button type="button" class="symptom-btn" data-symptom="difficulty breathing">💨 Difficulty breathing</button>
-                <button type="button" class="symptom-btn" data-symptom="swelling">💧 Swelling</button>
-                <button type="button" class="symptom-btn" data-symptom="lethargy">😴 Lethargy/irritability</button>
-                <button type="button" class="symptom-btn" data-symptom="pallor">🩸 Pallor (anaemia)</button>
-                <button type="button" class="symptom-btn" data-symptom="neck stiffness">🦟 Neck stiffness</button>
-                <button type="button" class="symptom-btn" data-symptom="ear discharge">👂 Ear discharge</button>
-                <button type="button" class="symptom-btn" data-symptom="oedema">💧 Oedema (kwashiorkor)</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'fever')">🌡️ Fever</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'cough')">🤧 Cough</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this,'diarrhea')">💩 Diarrhoea/Vomiting</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'poor feeding')">🍼 Poor feeding</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'convulsions')">⚠️ Convulsions</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'rash')">🔴 Skin rash</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'jaundice')">🟡 Jaundice</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'pain')">🩺 Pain (SOCRATES)</button>
+                <button type="button" class="symptom-btn" onclick= "setSymptom(this, 'difficulty breathing')">💨 Difficulty breathing</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'swelling')">💧 Swelling</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'lethargy')">😴 Lethargy/irritability</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'pallor')">🩸 Pallor (anaemia)</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'neck stiffness')">🦟 Neck stiffness</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'ear discharge')">👂 Ear discharge</button>
+                <button type="button" class="symptom-btn" onclick="setSymptom(this, 'oedema')">💧 Oedema (kwashiorkor)</button>
             </div>
             <label style="margin-top:15px;">Or type your own symptom:</label>
             <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
@@ -1446,10 +1446,12 @@ function toggleCluePill(el, symptom, qIndex, value) {
     updateProgress();
 }
 
-function setSymptom(symptom) {
+function setSymptom(btn, symptom) {
     currentSymptom = symptom;
-    document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
-    if (event && event.target) event.target.classList.add('active');
+    // Remove active class from all symptom buttons
+    document.querySelectorAll('.symptom-btn').forEach(button => button.classList.remove('active'));
+    // Add active class to the clicked button
+    btn.classList.add('active');
     document.getElementById('customSymptom').value = '';
     displayQuestions(symptom);
     const guide = pediatricSymptomGuides[symptom];
@@ -1476,7 +1478,6 @@ function setSymptom(symptom) {
         }, 150);
     }
 }
-
 function setCustomSymptom() {
     const custom = document.getElementById('customSymptom').value.toLowerCase().trim();
     if (custom) {
