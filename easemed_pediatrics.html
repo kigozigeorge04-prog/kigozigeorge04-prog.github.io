@@ -1224,6 +1224,14 @@
 
     function savePatient() {
         const name = document.getElementById('childName').value.trim();
+
+        const referralStatus = document.getElementById('referralStatus').value;
+const referralFrom = document.getElementById('referralFrom').value.trim();
+if (referralStatus !== 'Self‑referred' && !referralFrom) {
+    showToast('Please enter the referring facility name', '#e67e22');
+    return;
+}
+        
         if (!name) { showToast('Enter child name', '#e67e22'); return; }
         const records = getRecords();
         const user = localStorage.getItem('easemed_user') || 'unknown';
@@ -1336,6 +1344,8 @@
             <div><strong>Plan:</strong> ${data.managementPlan}</div>
         `;
         document.getElementById('clinicalSummary').innerHTML = summaryHtml;
+
+        const referralInfo = (data.referralStatus !== 'Self‑referred' && data.referralFrom) ? ` (Referred from ${data.referralFrom})` : '';
         const wardHtml = `<ol><li><strong>Patient:</strong> ${data.childName}, ${data.childAge}, ${data.childSex}, guardian ${data.guardian}</li><li><strong>Presenting & danger signs:</strong> ${data.currentSymptom || 'None'} | ${redFlagsList}</li><li><strong>Major positives:</strong> ${milestonesAchieved !== 'None' ? 'Milestones: '+milestonesAchieved : ''} ${data.weight ? 'Weight '+data.weight+'kg' : ''}</li><li><strong>Key negatives/background:</strong> ${data.milestoneNotes || ''} ${data.socialHistory}</li><li><strong>Working diagnosis & plan:</strong> ${data.managementPlan || 'Awaiting review'}</li></ol>`;
         document.getElementById('wardRoundSummary').innerHTML = wardHtml;
         document.getElementById('summarySection').style.display = 'block';
