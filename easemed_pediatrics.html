@@ -47,8 +47,47 @@
         input, textarea, select { width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; transition: all 0.3s; background: white; }
         input:focus, textarea:focus, select:focus { outline: none; border-color: #2a9d8f; box-shadow: 0 0 0 3px rgba(42,157,143,0.1); transform: scale(1.01); }
         .symptom-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; max-height: 250px; overflow-y: auto; padding: 5px; }
-        .symptom-btn { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border: none; padding: 12px 22px; border-radius: 40px; cursor: pointer; transition: all 0.3s; font-size: 14px; font-weight: 600; color: #2d3748; }
-        .symptom-btn.active { background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%); color: white; box-shadow: 0 10px 20px rgba(42,157,143,0.4); transform: scale(1.05); }
+        .symptom-btn {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: none;
+            padding: 12px 22px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            position: relative;
+            overflow: hidden;
+        }
+        .symptom-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(42,157,143,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        .symptom-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        .symptom-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(42,157,143,0.3);
+            background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%);
+            color: white;
+        }
+        .symptom-btn.active {
+            background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%);
+            color: white;
+            box-shadow: 0 10px 20px rgba(42,157,143,0.4);
+            transform: scale(1.05);
+        }
         .btn-generate { background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%); color: white; border: none; padding: 16px 32px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px; transition: all 0.3s ease; }
         .btn-generate:hover { transform: scale(1.02); box-shadow: 0 10px 25px rgba(42,157,143,0.4); }
         .records-panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden; margin-top: 25px; grid-column: 1 / -1; }
@@ -751,27 +790,27 @@
     let currentSymptom = '';
     let symptomDetails = {};
     const pediatricSymptomGuides = {
-        fever: { title:"🌡️ Fever", questions:[{q:"Duration?",hint:"Acute <7d"},{q:"Max temp?",hint:"°C"},{q:"Pattern?",hint:"Intermittent"},{q:"Chills?",hint:"Rigors"},{q:"Associated?",hint:"Cough, rash"},{q:"Antipyretics?",hint:"Paracetamol"}], redFlags:["🚨 Fever+altered consciousness → meningitis"], tips:["Fever is the most common pediatric presentation in Uganda. Always test for malaria."] },
-        cough: { title:"🤧 Cough", questions:[{q:"Duration?",hint:"Acute/chronic"},{q:"Productive?",hint:"Colour"},{q:"Worse at night?",hint:"Asthma"},{q:"Fast breathing?",hint:"Pneumonia"},{q:"Choking history?",hint:"Foreign body"}], redFlags:["🚨 Cough+fast breathing+indrawing → severe pneumonia"] },
-        diarrhea: { title:"💩 Diarrhoea", questions:[{q:"Stools/day?",hint:""},{q:"Blood/mucus?",hint:"Dysentery"},{q:"Vomiting?",hint:"Projectile"},{q:"Dehydration signs?",hint:"Sunken eyes"},{q:"Feeding status?",hint:"Able to drink?"}], redFlags:["🚨 Severe dehydration → IV fluids"] },
-        "poor feeding": { title:"🍼 Poor feeding", questions:[{q:"Breastfed?",hint:""},{q:"When started?",hint:""},{q:"Vomiting?",hint:""},{q:"Able to suck?",hint:""},{q:"Weight loss?",hint:""}], redFlags:["🚨 Unable to drink → severe illness"] },
-        convulsions: { title:"⚠️ Convulsions", questions:[{q:"Age?",hint:""},{q:"Type?",hint:"Generalised/focal"},{q:"Duration?",hint:""},{q:"Fever?",hint:"Febrile seizure"},{q:"Post-ictal state?",hint:""}], redFlags:["🚨 Prolonged seizure → status epilepticus"] },
-        rash: { title:"🔴 Skin rash", questions:[{q:"Appearance?",hint:"Macules/purpura"},{q:"Distribution?",hint:""},{q:"Fever?",hint:"Measles"},{q:"Itching?",hint:""}], redFlags:["🚨 Non-blanching rash+fever → meningococcaemia"] },
-        jaundice: { title:"🟡 Jaundice", questions:[{q:"Age at onset?",hint:"<24h pathological"},{q:"Stool colour?",hint:"Pale=obstruction"},{q:"Lethargy?",hint:"Kernicterus"},{q:"Maternal blood group?",hint:""}], redFlags:["🚨 Jaundice <24h or >2 weeks → pathological"] },
-        pain: { title:"🩺 Pain (SOCRATES)", questions:[{q:"Site?",hint:""},{q:"Onset?",hint:""},{q:"Character?",hint:""},{q:"Radiation?",hint:""},{q:"Associations?",hint:""},{q:"Timing?",hint:""},{q:"Exacerbating/relieving?",hint:""},{q:"Severity (faces scale)?",hint:""}], redFlags:["🚨 Severe acute abdomen → surgical"] },
-        "difficulty breathing": { title:"💨 Difficulty breathing", questions:[{q:"Onset?",hint:""},{q:"Cough/wheeze?",hint:""},{q:"Chest indrawing?",hint:""},{q:"SpO₂?",hint:""},{q:"Feeding difficulty?",hint:""}], redFlags:["🚨 Stridor+ drooling → epiglottitis"] },
-        pallor: { title:"🩸 Pallor", questions:[{q:"Duration?",hint:""},{q:"Fatigue?",hint:""},{q:"Dark urine?",hint:"Haemolysis"},{q:"Diet/hookworm?",hint:""},{q:"Sickle cell history?",hint:""}], redFlags:["🚨 Severe pallor+lethargy → transfusion"] },
-        "neck stiffness": { title:"🦟 Neck stiffness", questions:[{q:"Onset?",hint:""},{q:"Fever?",hint:""},{q:"Rash?",hint:""},{q:"Bulging fontanelle?",hint:""},{q:"Contacts?",hint:""}], redFlags:["🚨 Neck stiffness+fever+altered consciousness → lumbar puncture"] },
-        "ear discharge": { title:"👂 Ear discharge", questions:[{q:"Duration?",hint:""},{q:"Ear pain?",hint:""},{q:"Discharge colour?",hint:""},{q:"Previous episodes?",hint:""},{q:"Risk factors?",hint:""}], redFlags:["🚨 Ear discharge+ mastoid tenderness → mastoiditis"] },
-        oedema: { title:"💧 Oedema", questions:[{q:"Distribution?",hint:""},{q:"Nutritional history?",hint:""},{q:"Urine frothy?",hint:"Nephrotic"},{q:"Hypertension?",hint:""}], redFlags:["🚨 Generalised oedema+anuria → AKI"] },
-        swelling: { title:"💧 Swelling", questions:[{q:"Location?",hint:""},{q:"Pitting?",hint:""},{q:"SOB?",hint:""}], redFlags:[] },
-        lethargy: { title:"😴 Lethargy", questions:[{q:"Onset?",hint:""},{q:"Fever?",hint:""},{q:"Convulsions?",hint:""},{q:"Drugs?",hint:""}], redFlags:["🚨 Lethargy+inability to wake → emergency"] }
+        fever: { title:"🌡️ Fever", chapter:"Nelson Textbook of Pediatrics, Ch. 275", questions:[{q:"Duration?",hint:"Acute <7d"},{q:"Max temp?",hint:"°C"},{q:"Pattern?",hint:"Intermittent"},{q:"Chills?",hint:"Rigors"},{q:"Associated?",hint:"Cough, rash"},{q:"Antipyretics?",hint:"Paracetamol"}], redFlags:["🚨 Fever+altered consciousness → meningitis"], tips:["Fever is the most common pediatric presentation in Uganda. Always test for malaria."] },
+        cough: { title:"🤧 Cough", chapter:"Nelson Textbook of Pediatrics, Ch. 409", questions:[{q:"Duration?",hint:"Acute/chronic"},{q:"Productive?",hint:"Colour"},{q:"Worse at night?",hint:"Asthma"},{q:"Fast breathing?",hint:"Pneumonia"},{q:"Choking history?",hint:"Foreign body"}], redFlags:["🚨 Cough+fast breathing+indrawing → severe pneumonia"] },
+        diarrhea: { title:"💩 Diarrhoea", chapter:"Nelson Textbook of Pediatrics, Ch. 354", questions:[{q:"Stools/day?",hint:""},{q:"Blood/mucus?",hint:"Dysentery"},{q:"Vomiting?",hint:"Projectile"},{q:"Dehydration signs?",hint:"Sunken eyes"},{q:"Feeding status?",hint:"Able to drink?"}], redFlags:["🚨 Severe dehydration → IV fluids"] },
+        "poor feeding": { title:"🍼 Poor feeding", chapter:"Nelson Textbook of Pediatrics, Ch. 51", questions:[{q:"Breastfed?",hint:""},{q:"When started?",hint:""},{q:"Vomiting?",hint:""},{q:"Able to suck?",hint:""},{q:"Weight loss?",hint:""}], redFlags:["🚨 Unable to drink → severe illness"] },
+        convulsions: { title:"⚠️ Convulsions", chapter:"Nelson Textbook of Pediatrics, Ch. 193", questions:[{q:"Age?",hint:""},{q:"Type?",hint:"Generalised/focal"},{q:"Duration?",hint:""},{q:"Fever?",hint:"Febrile seizure"},{q:"Post-ictal state?",hint:""}], redFlags:["🚨 Prolonged seizure → status epilepticus"] },
+        rash: { title:"🔴 Skin rash", chapter:"Nelson Textbook of Pediatrics, Ch. 252", questions:[{q:"Appearance?",hint:"Macules/purpura"},{q:"Distribution?",hint:""},{q:"Fever?",hint:"Measles"},{q:"Itching?",hint:""}], redFlags:["🚨 Non-blanching rash+fever → meningococcaemia"] },
+        jaundice: { title:"🟡 Jaundice", chapter:"Nelson Textbook of Pediatrics, Ch. 368", questions:[{q:"Age at onset?",hint:"<24h pathological"},{q:"Stool colour?",hint:"Pale=obstruction"},{q:"Lethargy?",hint:"Kernicterus"},{q:"Maternal blood group?",hint:""}], redFlags:["🚨 Jaundice <24h or >2 weeks → pathological"] },
+        pain: { title:"🩺 Pain (SOCRATES)", chapter:"Nelson Textbook of Pediatrics, Ch. 22", questions:[{q:"Site?",hint:""},{q:"Onset?",hint:""},{q:"Character?",hint:""},{q:"Radiation?",hint:""},{q:"Associations?",hint:""},{q:"Timing?",hint:""},{q:"Exacerbating/relieving?",hint:""},{q:"Severity (faces scale)?",hint:""}], redFlags:["🚨 Severe acute abdomen → surgical"] },
+        "difficulty breathing": { title:"💨 Difficulty breathing", chapter:"Nelson Textbook of Pediatrics, Ch. 409", questions:[{q:"Onset?",hint:""},{q:"Cough/wheeze?",hint:""},{q:"Chest indrawing?",hint:""},{q:"SpO₂?",hint:""},{q:"Feeding difficulty?",hint:""}], redFlags:["🚨 Stridor+ drooling → epiglottitis"] },
+        pallor: { title:"🩸 Pallor", chapter:"Nelson Textbook of Pediatrics, Ch. 462", questions:[{q:"Duration?",hint:""},{q:"Fatigue?",hint:""},{q:"Dark urine?",hint:"Haemolysis"},{q:"Diet/hookworm?",hint:""},{q:"Sickle cell history?",hint:""}], redFlags:["🚨 Severe pallor+lethargy → transfusion"] },
+        "neck stiffness": { title:"🦟 Neck stiffness", chapter:"Nelson Textbook of Pediatrics, Ch. 193", questions:[{q:"Onset?",hint:""},{q:"Fever?",hint:""},{q:"Rash?",hint:""},{q:"Bulging fontanelle?",hint:""},{q:"Contacts?",hint:""}], redFlags:["🚨 Neck stiffness+fever+altered consciousness → lumbar puncture"] },
+        "ear discharge": { title:"👂 Ear discharge", chapter:"Nelson Textbook of Pediatrics, Ch. 221", questions:[{q:"Duration?",hint:""},{q:"Ear pain?",hint:""},{q:"Discharge colour?",hint:""},{q:"Previous episodes?",hint:""},{q:"Risk factors?",hint:""}], redFlags:["🚨 Ear discharge+ mastoid tenderness → mastoiditis"] },
+        oedema: { title:"💧 Oedema", chapter:"Nelson Textbook of Pediatrics, Ch. 535", questions:[{q:"Distribution?",hint:""},{q:"Nutritional history?",hint:""},{q:"Urine frothy?",hint:"Nephrotic"},{q:"Hypertension?",hint:""}], redFlags:["🚨 Generalised oedema+anuria → AKI"] },
+        swelling: { title:"💧 Swelling", chapter:"Nelson Textbook of Pediatrics, Ch. 471", questions:[{q:"Location?",hint:""},{q:"Pitting?",hint:""},{q:"SOB?",hint:""}], redFlags:[] },
+        lethargy: { title:"😴 Lethargy", chapter:"Nelson Textbook of Pediatrics, Ch. 177", questions:[{q:"Onset?",hint:""},{q:"Fever?",hint:""},{q:"Convulsions?",hint:""},{q:"Drugs?",hint:""}], redFlags:["🚨 Lethargy+inability to wake → emergency"] }
     };
     function displayQuestions(symptom) {
         const guide = pediatricSymptomGuides[symptom];
         const container = document.getElementById('dynamicQuestions');
         if (guide) {
-            let html = `<div style="background:#f0f7ff; padding:20px; border-radius:16px;"><h4>${guide.title}</h4>`;
+            let html = `<div style="background:#f0f7ff; padding:20px; border-radius:16px;"><h4>${guide.title}</h4><small>${guide.chapter}</small>`;
             guide.questions.forEach((item, idx) => {
                 html += `<div style="margin-bottom:15px;"><label style="font-weight:600;">${item.q}</label>
                          <input type="text" id="pc_q${idx}" placeholder="Response..." onchange="savePCResponse(${idx}, this.value)" style="margin-top:5px;">
@@ -791,8 +830,14 @@
         const guide = pediatricSymptomGuides[symptom];
         let guidanceHtml = '';
         if (guide) {
-            guidanceHtml = `<div class="guidance-tip"><strong>${guide.title}</strong><br>Ask the structured questions above.</div><div class="guidance-tip"><strong>🚨 Red flags</strong><br>${guide.redFlags?.join('<br>') || 'No specific red flags'}</div>`;
-            if (guide.tips) guidanceHtml += `<div class="guidance-tip"><strong>💡 Clinical tip</strong><br>${guide.tips.join('<br>')}</div>`;
+            // Build the guidance panel exactly like adult dashboard: title card + key questions card + red flags
+            let questionsList = '';
+            guide.questions.forEach(q => { questionsList += `<li>${q.q}</li>`; });
+            guidanceHtml = `
+                <div class="guidance-tip"><strong>📖 ${guide.title}</strong><br>${guide.chapter}</div>
+                <div class="guidance-tip"><strong>🎯 Key questions</strong><ul style="margin-top:8px; margin-left:20px;">${questionsList}</ul></div>
+                ${guide.redFlags ? `<div class="alert warning"><strong>⚠️ RED FLAGS</strong><br>${guide.redFlags.join('<br>')}</div>` : ''}
+            `;
         } else {
             guidanceHtml = `<div class="guidance-tip"><strong>Presenting Complaint</strong><br>Document the symptom in detail below.</div>`;
         }
