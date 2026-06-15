@@ -938,29 +938,61 @@ function refreshROSCardState(key) {
             Object.keys(reviewOfSystems).forEach(key => refreshROSCardState(key));
             if (data?.referralStatus && data.referralStatus !== 'Self-referred') document.getElementById('referralDetails').style.display = 'block';
         }
-        function savePatient() {
-            const name = (document.getElementById('fullName').value || '').trim();
-            if (!name) { showToast('Enter patient name', '#e67e22'); return; }
-            if (!document.getElementById('clinicalSummary').innerHTML.trim()) generateClinicalSummary();
-            const records = getRecords();
-            const user = localStorage.getItem('easemed_user') || 'unknown';
-            const existingIdx = records.findIndex(r => r.name.toLowerCase() === name.toLowerCase() && r.user === user);
-            const record = {
-                id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
-                savedAt: new Date().toISOString(),
-                user,
-                name,
-                age: document.getElementById('age').value,
-                gender: document.getElementById('gender').value,
-                complaint: currentSymptom,
-                summary: document.getElementById('clinicalSummary').innerHTML,
-                wardRound: document.getElementById('wardRoundSummary').innerHTML,
-                formData: captureFormData()
-            };
-            if (existingIdx >= 0) records[existingIdx] = record; else records.unshift(record);
-            saveRecords(records);
-            renderRecords();
-            showToast('Record saved', '#27ae60');
+        
+        async function savePatient() {
+    const name = document.getElementById('fullName').value.trim();
+    if (!name) { showToast('Enter patient name', '#e67e22'); return; }
+
+    const formData = captureFormData();  // this function already exists in your adult dashboard
+    const user = window._sb?.auth?.user() || currentUser;
+
+    // 1. Save to Supabase (if logged in)
+    if (user && window._sb) {
+        try {
+            const { error } = await window._sb
+                .from('adult_encounters')
+                .insert({
+                    user_id: user.id,
+                    full_name: formData.fullName,
+                    age: formData.age,
+                    gender: formData.gender,
+                    current_symptom: formData._currentSymptom,
+                    hpc: formData.hpc,
+                    pmh: formData.pmh,
+                    medications: formData.medications,
+                    allergies: formData.allergies,
+                    ros_data: formData._rosData,
+                    social: formData.social,
+                    family_history: formData.familyHistory,
+                    created_at: new Date().toISOString()
+                });
+            if (error) throw error;
+            showToast('Record saved to cloud + local', '#2c6e49');
+        } catch (err) {
+            console.warn('Supabase insert failed:', err);
+            showToast('Saved locally only (cloud sync failed)', '#e67e22');
+        }
+    } else {
+        showToast('You are offline – saved locally only', '#e67e22');
+    }
+
+    // 2. Save to localStorage (existing code)
+    const records = getRecords();
+    const userEmail = localStorage.getItem('easemed_user') || 'unknown';
+    const existingIdx = records.findIndex(r => r.name.toLowerCase() === name.toLowerCase() && r.user === userEmail);
+    const record = {
+        id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
+        savedAt: new Date().toISOString(),
+        user: userEmail,
+        ...formData
+    };
+    if (existingIdx >= 0) records[existingIdx] = record;
+    else records.unshift(record);
+    saveRecords(records);
+    showToast('Record saved', '#27ae60');
+    generateClinicalSummary();
+}
+        
         }
         function newPatient() {
             if (!confirm('Clear form?')) return;
