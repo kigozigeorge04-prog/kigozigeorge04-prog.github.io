@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EaseMed – AI Differential Diagnosis</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal-900: #0b3b2f;
+    --teal-700: #1b7e6b;
+    --teal-500: #2a9d8f;
+    --teal-100: #e1f5ee;
+    --teal-50:  #f0faf6;
+    --amber:    #f4a261;
+    --red:      #e63946;
+    --red-bg:   #fdf0f0;
+    --text:     #1a1a1a;
+    --muted:    #5a6472;
+    --border:   #d8e4e1;
+    --surface:  #ffffff;
+    --page-bg:  #f4f7f6;
+    --radius:   12px;
+    --radius-sm: 6px;
+    --shadow:   0 2px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--page-bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  .shell {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--teal-900) 0%, var(--teal-700) 60%, var(--teal-500) 100%);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '🧠';
+    position: absolute;
+    right: 20px; top: 10px;
+    font-size: 80px;
+    opacity: 0.08;
+    pointer-events: none;
+    user-select: none;
+  }
+  .header-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 6px;
+  }
+  .header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  .header p {
+    opacity: 0.85;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    max-width: 540px;
+  }
+  .ref-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 14px;
+  }
+
+  /* ── Data preview card ── */
+  .data-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .data-card-header {
+    padding: 14px 20px;
+    background: var(--teal-50);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .data-card-header h2 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--teal-700);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .data-summary {
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .data-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .data-item .di-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+  }
+  .data-item .di-val {
+    font-size: 0.88rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .di-val.empty { color: #bbb; font-style: italic; font-weight: 400; }
+  .di-val.danger { color: var(--red); font-weight: 700; }
+
+  /* ── Warning banner ── */
+  .warning-banner {
+    background: #fff8ed;
+    border: 1px solid #f4c07a;
+    border-left: 4px solid var(--amber);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: #7a4f00;
+    display: none;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .warning-banner.show { display: flex; }
+
+  /* ── Generate button ── */
+  .generate-btn {
+    background: linear-gradient(135deg, var(--teal-500), var(--teal-700));
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px 28px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: opacity 0.2s, transform 0.15s;
+    letter-spacing: 0.2px;
+  }
+  .generate-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+  .generate-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+  /* ── Loading state ── */
+  .loading-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px 32px;
+    text-align: center;
+    display: none;
+    box-shadow: var(--shadow);
+  }
+  .loading-card.show { display: block; }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 3px solid var(--teal-100);
+    border-top-color: var(--teal-500);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: var(--muted); font-size: 0.9rem; }
+  .loading-sub { font-size: 0.78rem; color: #aaa; margin-top: 6px; }
+
+  /* ── Error card ── */
+  .error-card {
+    background: var(--red-bg);
+    border: 1px solid #f5bcbc;
+    border-left: 4px solid var(--red);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    font-size: 0.88rem;
+    color: #8b1a1a;
+    display: none;
+  }
+  .error-card.show { display: block; }
+
+  /* ── Results area ── */
+  .results-area { display: none; flex-direction: column; gap: 16px; }
+  .results-area.show { display: flex; }
+
+  .results-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .results-meta h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--teal-700);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .results-actions { display: flex; gap: 8px; }
+  .btn-sm {
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--teal-700);
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn-sm:hover { background: var(--teal-50); border-color: var(--teal-500); }
+
+  /* ── Insufficient data card ── */
+  .insuff-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    box-shadow: var(--shadow);
+  }
+  .insuff-card .insuff-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+  /* ── Differential card ── */
+  .diff-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.15s;
+  }
+  .diff-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+
+  .diff-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .diff-rank {
+    min-width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .rank-1  { background: #fef3e2; color: #b45309; border: 2px solid #f59e0b; }
+  .rank-2  { background: #e8f5e9; color: #276749; border: 2px solid #2a9d8f; }
+  .rank-3  { background: #e8eaf6; color: #3730a3; border: 2px solid #6366f1; }
+  .rank-other { background: #f3f4f6; color: #4b5563; border: 2px solid #9ca3af; }
+
+  .diff-title-block { flex: 1; min-width: 0; }
+  .diff-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .diff-urgency {
+    display: inline-block;
+    margin-top: 5px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    border-radius: 20px;
+    padding: 2px 9px;
+  }
+  .urg-high   { background: #fde8e8; color: var(--red); }
+  .urg-medium { background: #fef3e2; color: #9a6800; }
+  .urg-low    { background: #e8f5e9; color: #1a6b3c; }
+
+  .diff-chevron {
+    color: var(--muted);
+    font-size: 1rem;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+    margin-top: 8px;
+  }
+  .diff-card.open .diff-chevron { transform: rotate(180deg); }
+
+  .diff-body {
+    display: none;
+    padding: 0 20px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .diff-card.open .diff-body { display: block; }
+
+  .diff-section { margin-top: 14px; }
+  .diff-section-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--teal-700);
+    margin-bottom: 6px;
+  }
+  .diff-section p, .diff-section ul {
+    font-size: 0.88rem;
+    color: #333;
+    line-height: 1.6;
+  }
+  .diff-section ul { padding-left: 16px; }
+  .diff-section ul li { margin-bottom: 3px; }
+
+  .ref-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--teal-50);
+    border: 1px solid #b2d8d0;
+    border-radius: 20px;
+    padding: 4px 11px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--teal-700);
+    margin-top: 6px;
+  }
+
+  /* ── Disclaimer ── */
+  .disclaimer {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 0.78rem;
+    color: #78350f;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  /* ── Integration notice ── */
+  .integration-notice {
+    background: var(--teal-50);
+    border: 1px solid #b2d8d0;
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    font-size: 0.85rem;
+    color: var(--teal-900);
+    line-height: 1.6;
+  }
+  .integration-notice strong { color: var(--teal-700); }
+  .integration-notice code {
+    background: #d4ede9;
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 0.8rem;
+    font-family: monospace;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 12px 8px 40px; }
+    .header { padding: 20px 18px; }
+    .header h1 { font-size: 1.3rem; }
+    .data-summary { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-label">EaseMed · Pediatric AI</div>
+    <h1>Differential Diagnosis Generator</h1>
+    <p>Generates a prioritised differential list from clerking data using Nelson (22nd ed.), Zitelli's Atlas (8th ed.), and Uganda Clinical Guidelines 2016.</p>
+    <div class="ref-badge">📚 Nelson · Zitelli's · UCG 2016</div>
+  </div>
+
+  <!-- Data preview card -->
+  <div class="data-card">
+    <div class="data-card-header">
+      <h2>📋 Patient data loaded from EaseMed form</h2>
+      <span id="data-status" style="font-size:0.78rem; color: var(--muted);">Loading…</span>
+    </div>
+    <div class="data-summary" id="data-summary">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+  <!-- Warning banner (incomplete data) -->
+  <div class="warning-banner" id="warning-banner">
+    <span style="font-size:1.1rem; flex-shrink:0;">⚠️</span>
+    <div id="warning-text"></div>
+  </div>
+
+  <!-- Integration notice (when no parent window data) -->
+  <div class="integration-notice" id="integration-notice" style="display:none;">
+    <strong>Integration instructions:</strong> This panel is designed to be embedded inside the EaseMed pediatric clerking page. Paste the <code>&lt;script&gt;</code> block and button from the integration guide into <strong>easemed_pediatrics.html</strong>, then open this panel from within that page so it can read the live form data. Alternatively, use the demo mode below to test with sample data.
+    <br><br>
+    <button class="generate-btn" style="margin-top:4px; max-width:260px;" onclick="loadDemoData()">▶ Load demo data & generate</button>
+  </div>
+
+  <!-- Generate button -->
+  <button class="generate-btn" id="generate-btn" onclick="generateDifferentials()">
+    🧠 Generate Differential Diagnosis
+  </button>
+
+  <!-- Loading -->
+  <div class="loading-card" id="loading-card">
+    <div class="spinner"></div>
+    <div class="loading-text">Consulting Nelson, Zitelli's, and Uganda Guidelines…</div>
+    <div class="loading-sub">This usually takes 10–20 seconds</div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-card" id="error-card"></div>
+
+  <!-- Results -->
+  <div class="results-area" id="results-area">
+    <div class="results-meta">
+      <h2 id="results-title">📑 Differential Diagnosis</h2>
+      <div class="results-actions">
+        <button class="btn-sm" onclick="copyResults()">📋 Copy</button>
+        <button class="btn-sm" onclick="clearResults()">✕ Clear</button>
+      </div>
+    </div>
+    <div id="diff-list"></div>
+    <div class="disclaimer">
+      ⚕️ <strong>Clinical decision support only.</strong> These AI-generated differentials are based on the reference texts cited and should be reviewed by a qualified clinician. Do not use as a substitute for clinical judgment.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────
+// 1. DATA EXTRACTION
+// Reads from parent window's EaseMed form when embedded via opener
+// Falls back to demo data for standalone testing
+// ─────────────────────────────────────────────────────────────────
+
+let patientData = null;
+let rawMarkdown = '';
+
+function getVal(id, ctx) {
+  const el = (ctx || document).getElementById(id);
+  return el ? (el.value || '').trim() : '';
+}
+
+function getPills(containerId, ctx) {
+  const container = (ctx || document).getElementById(containerId);
+  if (!container) return '';
+  return Array.from(container.querySelectorAll('.toggle-pill.active'))
+    .map(p => p.getAttribute('data-value') || p.textContent.trim())
+    .join(', ') || 'None';
+}
+
+function getExamPills(examKey, ctx) {
+  const card = (ctx || document).querySelector(`.exam-card[data-exam="${examKey}"]`);
+  if (!card) return '';
+  return Array.from(card.querySelectorAll('.toggle-pill.active'))
+    .map(p => p.getAttribute('data-value') || p.textContent.trim())
+    .join(', ') || 'None';
+}
+
+function getExamNotes(examKey, ctx) {
+  const el = (ctx || document).getElementById(`exam-${examKey}-notes`);
+  return el ? (el.value || '').trim() : '';
+}
+
+function getROS(ctx) {
+  const systems = ['general','resp','cardio','git','neuro','derm','ent'];
+  const findings = [];
+  systems.forEach(key => {
+    const container = (ctx || document).getElementById(`ros-pills-${key}`);
+    if (!container) return;
+    const active = Array.from(container.querySelectorAll('.toggle-pill.active'))
+      .map(p => p.getAttribute('data-value') || p.textContent.trim());
+    const narrative = (ctx || document).querySelector(`#ros-content-${key} .ros-narrative`);
+    const narText = narrative ? narrative.value.trim() : '';
+    if (active.length || narText) {
+      findings.push(`${key.toUpperCase()}: ${[...active, narText].filter(Boolean).join('; ')}`);
+    }
+  });
+  return findings.join(' | ') || 'None documented';
+}
+
+function getImmunizations(ctx) {
+  const items = [];
+  (ctx || document).querySelectorAll('.vaccine-item').forEach(item => {
+    const cb = item.querySelector('.vaccine-cb');
+    if (cb && cb.checked) {
+      const date = item.querySelector('.vaccine-date-input')?.value || '';
+      items.push(cb.dataset.vaccine + (date ? ` (${date})` : ''));
+    }
+  });
+  return items.join(', ') || 'None recorded';
+}
+
+function getAVPU(ctx) {
+  const active = (ctx || document).querySelector('#avpu-group .toggle-pill.active');
+  return active ? (active.getAttribute('data-value') || active.textContent.trim()) : 'Not assessed';
+}
+
+function extractFromContext(ctx) {
+  return {
+    childAge:             getVal('childAge', ctx) || 'Not specified',
+    childSex:             getVal('childSex', ctx) || 'Not specified',
+    currentSymptom:       (ctx.currentSymptom) || getVal('customSymptom', ctx) || 'Not specified',
+    pcResponses:          getPCResponses(ctx),
+    hpc:                  getVal('hpc', ctx) || 'Not documented',
+    antenatal:            getVal('antenatal', ctx) || 'Not documented',
+    delivery:             getVal('delivery', ctx) || 'Not documented',
+    birthWeight:          getVal('birthWeight', ctx) || 'Unknown',
+    neonatalComp:         getVal('neonatalComp', ctx) || 'None',
+    milestones:           getPills('milestonesContainer', ctx),
+    milestoneNotes:       getVal('milestoneNotes', ctx) || 'None',
+    immunizationsGiven:   getImmunizations(ctx),
+    feedingHistory:       getVal('feedingHistory', ctx) || 'Not documented',
+    weight:               getVal('weight', ctx) || 'Unknown',
+    height:               getVal('height', ctx) || 'Unknown',
+    muac:                 getVal('muac', ctx) || 'Not measured',
+    redFlags:             getPills('dangerSignsContainer', ctx),
+    rosFindings:          getROS(ctx),
+    hr:                   getVal('hr', ctx) || '?',
+    rr:                   getVal('rr', ctx) || '?',
+    temp:                 getVal('temp', ctx) || '?',
+    spo2:                 getVal('spo2', ctx) || '?',
+    bp:                   getVal('bp', ctx) || '?',
+    gcs:                  getVal('gcs', ctx) || '?',
+    avpu:                 getAVPU(ctx),
+    generalAppearancePills: getExamFindings('general', ctx),
+    nutritionPills:         getNutritionPills(ctx),
+    respiratoryFindings:    getExamPills('respiratory', ctx),
+    cardiovascularFindings: getExamPills('cardiovascular', ctx),
+    abdomenFindings:        getExamPills('abdomen', ctx),
+    neurologicalFindings:   getExamPills('neurological', ctx),
+    skinFindings:           getExamPills('skin', ctx),
+    entFindings:            getExamPills('ent', ctx),
+    examNotes:              getAllExamNotes(ctx),
+    socialHistory:          getVal('socialHistory', ctx) || 'Not documented',
+    familyHistory:          getVal('familyHistory', ctx) || 'None',
+    managementPlan:         getVal('managementPlan', ctx) || 'Not yet formulated',
+  };
+}
+
+function getPCResponses(ctx) {
+  const responses = [];
+  let idx = 0;
+  while (true) {
+    const el = (ctx || document).getElementById(`pc_q${idx}`);
+    if (!el) break;
+    const label = el.previousElementSibling?.textContent?.trim() || `Q${idx+1}`;
+    if (el.value.trim()) responses.push(`${label}: ${el.value.trim()}`);
+    idx++;
+  }
+  return responses.join('; ') || 'Not completed';
+}
+
+function getExamFindings(examKey, ctx) {
+  const card = (ctx || document).querySelector(`.exam-card[data-exam="${examKey}"]`);
+  if (!card) return 'Not documented';
+  const pills = Array.from(card.querySelectorAll('.toggle-pill'))
+    .filter(p => !p.closest('#avpu-group') && p.classList.contains('active'))
+    .map(p => p.getAttribute('data-value') || p.textContent.trim());
+  return pills.join(', ') || 'Not documented';
+}
+
+function getNutritionPills(ctx) {
+  const card = (ctx || document).querySelector(`.exam-card[data-exam="general"]`);
+  if (!card) return 'Not documented';
+  return getExamFindings('general', ctx);
+}
+
+function getAllExamNotes(ctx) {
+  const notes = [];
+  ['general','respiratory','cardiovascular','abdomen','neurological','skin','ent'].forEach(key => {
+    const n = getExamNotes(key, ctx);
+    if (n) notes.push(`${key}: ${n}`);
+    const murmur = (ctx || document).getElementById(`exam-cardiovascular-murmur`);
+    if (key === 'cardiovascular' && murmur?.value) notes.push(`Murmur: ${murmur.value}`);
+    const hep = (ctx || document).getElementById(`exam-abdomen-hepatomegaly`);
+    if (key === 'abdomen' && hep?.value) notes.push(`Hepatomegaly: ${hep.value} cm`);
+    const spl = (ctx || document).getElementById(`exam-abdomen-spleen`);
+    if (key === 'abdomen' && spl?.value) notes.push(`Spleen: ${spl.value}`);
+    const rash = (ctx || document).getElementById(`exam-skin-rash`);
+    if (key === 'skin' && rash?.value) notes.push(`Rash desc: ${rash.value}`);
+  });
+  return notes.join(' | ') || 'None';
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 2. POPULATE PREVIEW PANEL
+// ─────────────────────────────────────────────────────────────────
+
+function populatePreview(d) {
+  const hasSymptom = d.currentSymptom && d.currentSymptom !== 'Not specified';
+  const hasHPC = d.hpc && d.hpc !== 'Not documented';
+  const hasExam = d.hr !== '?';
+  const hasDanger = d.redFlags && d.redFlags !== 'None';
+
+  const items = [
+    { label: 'Age', val: d.childAge },
+    { label: 'Sex', val: d.childSex },
+    { label: 'Main complaint', val: d.currentSymptom },
+    { label: 'Danger signs', val: d.redFlags, danger: hasDanger },
+    { label: 'Weight', val: d.weight + (d.weight !== 'Unknown' ? ' kg' : '') },
+    { label: 'MUAC', val: d.muac },
+    { label: 'HR', val: d.hr + (d.hr !== '?' ? ' bpm' : '') },
+    { label: 'Temp', val: d.temp + (d.temp !== '?' ? '°C' : '') },
+    { label: 'SpO₂', val: d.spo2 + (d.spo2 !== '?' ? '%' : '') },
+    { label: 'Milestones', val: d.milestones || 'None selected' },
+    { label: 'Immunizations', val: d.immunizationsGiven },
+    { label: 'General appearance', val: d.generalAppearancePills },
+  ];
+
+  document.getElementById('data-summary').innerHTML = items.map(item => `
+    <div class="data-item">
+      <span class="di-label">${item.label}</span>
+      <span class="di-val ${!item.val || item.val === 'Not specified' || item.val === 'Unknown' || item.val === '? bpm' || item.val === '?°C' || item.val === '?%' || item.val === '?' ? 'empty' : ''} ${item.danger ? 'danger' : ''}">
+        ${item.val || '—'}
+      </span>
+    </div>
+  `).join('');
+
+  document.getElementById('data-status').textContent =
+    hasSymptom ? `✓ Complaint: ${d.currentSymptom}` : '⚠ No presenting complaint';
+
+  const missing = [];
+  if (!hasSymptom) missing.push('presenting complaint');
+  if (!hasHPC) missing.push('HPC narrative');
+  if (!hasExam) missing.push('vital signs');
+
+  const wb = document.getElementById('warning-banner');
+  const wt = document.getElementById('warning-text');
+  if (missing.length) {
+    wt.innerHTML = `<strong>Incomplete data detected.</strong> Missing: ${missing.join(', ')}. The AI will note this but will still attempt to generate differentials. Complete these sections for better results.`;
+    wb.classList.add('show');
+  } else {
+    wb.classList.remove('show');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 3. BUILD PROMPT
+// ─────────────────────────────────────────────────────────────────
+
+function buildPrompt(d) {
+  return `You are a senior pediatrician using the Nelson Textbook of Pediatrics (22nd edition), Zitelli and Davis' Atlas of Pediatric Physical Diagnosis (8th edition), and the Uganda Clinical Guidelines (2016). Based on the following clinical data from a pediatric clerking module, generate a prioritized differential diagnosis list (maximum 8 conditions). For each differential, provide:
+1. **Condition name**
+2. **Supporting evidence** (specific findings from the data that point to this diagnosis)
+3. **Brief description** (key pathophysiology or clinical pearl, relevant to Uganda)
+4. **Urgency** (High / Medium / Low)
+5. **Reference** (cite the specific chapter or page range from Nelson, Zitelli, or Uganda guidelines)
+
+Use the following data:
+
+**Demographics:**
+- Age: ${d.childAge}
+- Sex: ${d.childSex}
+
+**Presenting complaint & HPC:**
+- Main symptom: ${d.currentSymptom}
+- PC responses: ${d.pcResponses}
+- HPC narrative: ${d.hpc}
+
+**Birth history:**
+- Antenatal: ${d.antenatal}
+- Delivery: ${d.delivery}
+- Birth weight: ${d.birthWeight} kg
+- Neonatal complications: ${d.neonatalComp}
+
+**Developmental milestones achieved:** ${d.milestones}
+- Milestone concerns: ${d.milestoneNotes}
+
+**Immunizations (Uganda EPI):** ${d.immunizationsGiven}
+
+**Nutrition & growth:**
+- Feeding history: ${d.feedingHistory}
+- Weight: ${d.weight} kg
+- Height: ${d.height} cm
+- MUAC: ${d.muac} cm
+
+**Danger signs present:** ${d.redFlags}
+
+**Review of systems (key positives):** ${d.rosFindings}
+
+**Physical examination:**
+- General appearance & vitals: HR ${d.hr} bpm, RR ${d.rr}/min, Temp ${d.temp}°C, SpO₂ ${d.spo2}%, BP ${d.bp} mmHg, GCS ${d.gcs}
+- General appearance: ${d.generalAppearancePills}
+- Nutrition/hydration: ${d.nutritionPills}
+- Respiratory findings: ${d.respiratoryFindings}
+- Cardiovascular findings: ${d.cardiovascularFindings}
+- Abdomen findings: ${d.abdomenFindings}
+- Neurological findings: ${d.neurologicalFindings} (AVPU: ${d.avpu})
+- Skin findings: ${d.skinFindings}
+- ENT findings: ${d.entFindings}
+- Additional exam notes: ${d.examNotes}
+
+**Social & family history:**
+- Social: ${d.socialHistory}
+- Family: ${d.familyHistory}
+
+**Current working diagnosis / plan:** ${d.managementPlan}
+
+---
+
+**Instructions:**
+- Only include diagnoses that are **likely** given the prevalence in Uganda and the pattern of findings.
+- Do not include normal variants or extremely rare conditions unless strongly suggested.
+- Sort the list from **most likely / most urgent** to least.
+- For each condition, write the supporting evidence as short bullet-point sentences using the exact findings from the data.
+- Keep descriptions concise (1–2 sentences) but clinically useful.
+- References must be real (e.g., "Nelson Textbook of Pediatrics, Ch. 275: Malaria"; "Zitelli's Atlas, p. 634–636"; "UCG 2016, p. 241").
+- If there is insufficient data to generate meaningful differentials, respond with exactly: "INSUFFICIENT_DATA: [reason]"
+- For each condition also include an Urgency field: High, Medium, or Low.
+
+**Output format — respond ONLY in this exact Markdown format, no preamble:**
+
+### 1. [Condition name]
+- **Supporting evidence:** ...
+- **Description:** ...
+- **Urgency:** High/Medium/Low
+- **Reference:** ...
+
+### 2. [Condition name]
+... etc.`;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 4. API CALL
+// ─────────────────────────────────────────────────────────────────
+
+async function callClaudeAPI(prompt) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API error ${response.status}`);
+  }
+  const data = await response.json();
+  return data.content.map(b => b.text || '').join('');
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 5. PARSE & RENDER MARKDOWN
+// ─────────────────────────────────────────────────────────────────
+
+function parseDifferentials(markdown) {
+  // Split on ### N. headers
+  const sections = markdown.split(/\n(?=###\s+\d+\.)/);
+  return sections
+    .filter(s => s.trim().startsWith('###'))
+    .map((section, idx) => {
+      const lines = section.trim().split('\n');
+      const titleLine = lines[0].replace(/^###\s+\d+\.\s*/, '').trim();
+
+      const get = (field) => {
+        const re = new RegExp(`\\*\\*${field}:\\*\\*\\s*(.+)`, 'i');
+        for (const line of lines) {
+          const m = line.match(re);
+          if (m) return m[1].trim();
+        }
+        // Multi-line evidence
+        if (field === 'Supporting evidence') {
+          const startIdx = lines.findIndex(l => l.match(/\*\*Supporting evidence:\*\*/i));
+          if (startIdx >= 0) {
+            const evidenceLines = [];
+            for (let i = startIdx; i < lines.length; i++) {
+              if (i > startIdx && lines[i].match(/^\s*-\s*\*\*/)) break;
+              evidenceLines.push(lines[i]);
+            }
+            return evidenceLines.join('\n').replace(/\*\*Supporting evidence:\*\*\s*/i,'').trim();
+          }
+        }
+        return '';
+      };
+
+      const evidence = get('Supporting evidence');
+      const description = get('Description');
+      const urgency = get('Urgency');
+      const reference = get('Reference');
+
+      return { rank: idx + 1, name: titleLine, evidence, description, urgency, reference };
+    });
+}
+
+function urgencyClass(u) {
+  if (!u) return 'urg-low';
+  const l = u.toLowerCase();
+  if (l === 'high') return 'urg-high';
+  if (l === 'medium') return 'urg-medium';
+  return 'urg-low';
+}
+
+function rankClass(r) {
+  if (r === 1) return 'rank-1';
+  if (r === 2) return 'rank-2';
+  if (r === 3) return 'rank-3';
+  return 'rank-other';
+}
+
+function renderEvidenceBullets(text) {
+  if (!text) return '<p style="color:#aaa; font-style:italic;">Not specified</p>';
+  // Bullet points
+  const lines = text.split('\n').map(l => l.replace(/^[-•]\s*/, '').trim()).filter(Boolean);
+  if (lines.length > 1) {
+    return '<ul>' + lines.map(l => `<li>${l}</li>`).join('') + '</ul>';
+  }
+  // Semicolon-separated inline list
+  const parts = text.split(';').map(l => l.trim()).filter(Boolean);
+  if (parts.length > 1) {
+    return '<ul>' + parts.map(l => `<li>${l}</li>`).join('') + '</ul>';
+  }
+  return `<p>${text}</p>`;
+}
+
+function renderDifferentials(diffs) {
+  const container = document.getElementById('diff-list');
+  container.innerHTML = '';
+  document.getElementById('results-title').textContent = `📑 ${diffs.length} Differential${diffs.length !== 1 ? 's' : ''} – ${patientData?.currentSymptom || ''}`;
+
+  diffs.forEach(diff => {
+    const card = document.createElement('div');
+    card.className = 'diff-card';
+    card.innerHTML = `
+      <div class="diff-header" onclick="toggleCard(this.closest('.diff-card'))">
+        <div class="diff-rank ${rankClass(diff.rank)}">${diff.rank}</div>
+        <div class="diff-title-block">
+          <div class="diff-name">${diff.name}</div>
+          ${diff.urgency ? `<span class="diff-urgency ${urgencyClass(diff.urgency)}">${diff.urgency} urgency</span>` : ''}
+        </div>
+        <div class="diff-chevron">▼</div>
+      </div>
+      <div class="diff-body">
+        <div class="diff-section">
+          <div class="diff-section-label">Supporting evidence</div>
+          ${renderEvidenceBullets(diff.evidence)}
+        </div>
+        <div class="diff-section">
+          <div class="diff-section-label">Clinical description</div>
+          <p>${diff.description || 'Not provided'}</p>
+        </div>
+        <div class="diff-section">
+          <div class="diff-section-label">Reference</div>
+          <span class="ref-pill">📖 ${diff.reference || 'See cited texts'}</span>
+        </div>
+      </div>
+    `;
+    // Auto-open first card
+    if (diff.rank === 1) card.classList.add('open');
+    container.appendChild(card);
+  });
+}
+
+function toggleCard(card) {
+  card.classList.toggle('open');
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 6. MAIN GENERATE FLOW
+// ─────────────────────────────────────────────────────────────────
+
+async function generateDifferentials() {
+  const btn = document.getElementById('generate-btn');
+  const loading = document.getElementById('loading-card');
+  const error = document.getElementById('error-card');
+  const results = document.getElementById('results-area');
+
+  btn.disabled = true;
+  loading.classList.add('show');
+  error.classList.remove('show');
+  results.classList.remove('show');
+
+  try {
+    const prompt = buildPrompt(patientData);
+    const text = await callClaudeAPI(prompt);
+    rawMarkdown = text;
+
+    if (text.trim().startsWith('INSUFFICIENT_DATA:')) {
+      loading.classList.remove('show');
+      const reason = text.replace('INSUFFICIENT_DATA:', '').trim();
+      document.getElementById('diff-list').innerHTML = `
+        <div class="insuff-card">
+          <div class="insuff-icon">📋</div>
+          <strong>Insufficient clinical data</strong>
+          <p style="margin-top:8px">${reason || 'Please complete the presenting complaint, HPC, and physical examination sections.'}</p>
+        </div>`;
+      results.classList.add('show');
+      document.getElementById('results-title').textContent = '⚠ Insufficient data';
+    } else {
+      const diffs = parseDifferentials(text);
+      loading.classList.remove('show');
+      if (diffs.length === 0) {
+        document.getElementById('diff-list').innerHTML = `
+          <div class="insuff-card">
+            <div class="insuff-icon">🔍</div>
+            <strong>Could not parse response</strong>
+            <p style="margin-top:8px">The AI returned a response but it could not be parsed into differentials. Raw response below:</p>
+            <pre style="margin-top:10px; font-size:0.78rem; white-space:pre-wrap; color:#555; background:#f5f5f5; padding:12px; border-radius:6px;">${text.slice(0,1200)}</pre>
+          </div>`;
+      } else {
+        renderDifferentials(diffs);
+      }
+      results.classList.add('show');
+    }
+  } catch(err) {
+    loading.classList.remove('show');
+    error.classList.add('show');
+    error.textContent = `❌ Error: ${err.message}. Check your network connection and try again.`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 7. UTILITIES
+// ─────────────────────────────────────────────────────────────────
+
+function copyResults() {
+  if (!rawMarkdown) return;
+  navigator.clipboard.writeText(rawMarkdown).then(() => {
+    const btn = event.target;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy', 2000);
+  });
+}
+
+function clearResults() {
+  document.getElementById('results-area').classList.remove('show');
+  document.getElementById('diff-list').innerHTML = '';
+  rawMarkdown = '';
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 8. DEMO DATA (for standalone testing)
+// ─────────────────────────────────────────────────────────────────
+
+function loadDemoData() {
+  patientData = {
+    childAge: '18 months',
+    childSex: 'Male',
+    currentSymptom: 'fever',
+    pcResponses: 'Duration: 3 days; Max temp: 39.5°C; Pattern: Intermittent; Chills/rigors: Yes; Associated: Cough, poor feeding; Antipyretics: Paracetamol given at home',
+    hpc: 'Mother reports 3-day history of high-grade fever, intermittent, associated with rigors. Child has been feeding poorly and is less active than usual. One episode of vomiting. Treated at home with paracetamol with temporary relief. No convulsions. Attends daycare. No recent travel outside Kampala.',
+    antenatal: 'Attended ANC x4, no complications, no HIV/syphilis, iron/folate given',
+    delivery: 'SVD at health centre, no resuscitation needed',
+    birthWeight: '3.1',
+    neonatalComp: 'None',
+    milestones: 'Social smile by 2m, Holds head up by 3m, Sits without support by 8m, Walks alone by 18m',
+    milestoneNotes: '',
+    immunizationsGiven: 'BCG, OPV0, DPT-HepB-Hib1, PCV1, Rota1, DPT-HepB-Hib2, PCV2, Rota2, DPT-HepB-Hib3, PCV3, IPV, Measles 1, Yellow Fever',
+    feedingHistory: 'Exclusive breastfeeding for 6 months, complementary foods introduced at 6 months, still breastfeeding',
+    weight: '10.2',
+    height: '80',
+    muac: '13.5',
+    redFlags: 'None',
+    rosFindings: 'GENERAL: Fever, poor appetite | RESP: Cough | GIT: Vomiting',
+    hr: '148', rr: '36', temp: '38.8', spo2: '97', bp: '90/60', gcs: '15',
+    avpu: 'Alert',
+    generalAppearancePills: 'Ill-looking, Pale',
+    nutritionPills: 'Well-nourished',
+    respiratoryFindings: 'Nasal flaring, Vesicular breath sounds',
+    cardiovascularFindings: 'Normal S1 S2, Capillary refill <2s',
+    abdomenFindings: 'Soft, Hepatomegaly, Splenomegaly',
+    neurologicalFindings: 'Alert and oriented',
+    skinFindings: 'Pallor',
+    entFindings: 'Normal oropharynx, Nasal discharge (clear)',
+    examNotes: 'Hepatomegaly: 3 cm below right costal margin | Spleen: 2 cm below left costal margin',
+    socialHistory: 'Lives in Kampala, crowded household, uses municipal water, has latrine',
+    familyHistory: 'No known chronic illness in family. Father had malaria 2 months ago.',
+    managementPlan: 'Rule out malaria, consider sepsis. Malaria RDT pending.',
+  };
+  document.getElementById('integration-notice').style.display = 'none';
+  populatePreview(patientData);
+  generateDifferentials();
+}
+
+// ─────────────────────────────────────────────────────────────────
+// 9. INIT — try to read from parent window, else show notice
+// ─────────────────────────────────────────────────────────────────
+
+(function init() {
+  // Try parent window (when opened as popup from EaseMed)
+  let ctx = null;
+  try {
+    if (window.opener && window.opener.document) {
+      ctx = window.opener.document;
+    } else if (window.parent && window.parent !== window && window.parent.document) {
+      ctx = window.parent.document;
+    }
+  } catch(e) { ctx = null; }
+
+  if (ctx) {
+    try {
+      // Pull currentSymptom from parent's JS
+      const parentCurrentSymptom = window.opener?.currentSymptom || window.parent?.currentSymptom || '';
+      const fakeCtx = Object.assign(ctx, { currentSymptom: parentCurrentSymptom });
+      patientData = extractFromContext(fakeCtx);
+      document.getElementById('integration-notice').style.display = 'none';
+      populatePreview(patientData);
+    } catch(e) {
+      showIntegrationNotice();
+    }
+  } else {
+    showIntegrationNotice();
+  }
+})();
+
+function showIntegrationNotice() {
+  // Standalone mode — show demo option and use empty data
+  patientData = {
+    childAge: 'Not specified', childSex: 'Not specified', currentSymptom: 'Not specified',
+    pcResponses: 'Not completed', hpc: 'Not documented', antenatal: 'Not documented',
+    delivery: 'Not documented', birthWeight: 'Unknown', neonatalComp: 'None',
+    milestones: 'None selected', milestoneNotes: '', immunizationsGiven: 'None recorded',
+    feedingHistory: 'Not documented', weight: 'Unknown', height: 'Unknown', muac: 'Not measured',
+    redFlags: 'None', rosFindings: 'None documented', hr: '?', rr: '?', temp: '?',
+    spo2: '?', bp: '?', gcs: '?', avpu: 'Not assessed',
+    generalAppearancePills: 'Not documented', nutritionPills: 'Not documented',
+    respiratoryFindings: 'Not documented', cardiovascularFindings: 'Not documented',
+    abdomenFindings: 'Not documented', neurologicalFindings: 'Not documented',
+    skinFindings: 'Not documented', entFindings: 'Not documented', examNotes: 'None',
+    socialHistory: 'Not documented', familyHistory: 'None', managementPlan: 'Not yet formulated',
+  };
+  document.getElementById('integration-notice').style.display = 'block';
+  document.getElementById('generate-btn').style.display = 'none';
+  populatePreview(patientData);
+}
+</script>
+</body>
+</html>
