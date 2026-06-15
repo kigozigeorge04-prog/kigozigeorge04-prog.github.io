@@ -39,7 +39,7 @@
         .panel-header::before { content: '👶'; position: absolute; right: -20px; top: -20px; font-size: 120px; opacity: 0.1; pointer-events: none; }
         .panel-header h1 { font-size: 1.8rem; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
         .panel-header p { opacity: 0.9; font-size: 0.95rem; }
-        .form-section { padding: 25px; border-bottom: 1px solid rgba(0,0,0,0.08); transition: background 0.3s ease; }
+        .form-section { padding: 25px; border-bottom: 1px solid rgba(0,0,0,0.08); transition: background 0.3s ease, border-left 0.2s ease; position: relative; }
         .form-section:hover { background: rgba(30,110,94,0.03); }
         .form-section h3 { color: #1b7e6b; margin-bottom: 20px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 2px solid #1b7e6b; display: inline-block; }
         .demographics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
@@ -130,13 +130,29 @@
         .summary-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
         .summary-document { background: white; border-radius: 16px; padding: 18px; border: 1px solid #e2e8f0; }
         @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } .demographics-grid { grid-template-columns: 1fr; } .guidance-panel { position: static; margin-top: 20px; } .summary-tabs { grid-template-columns: 1fr; } .ros-grid, .exam-grid { grid-template-columns: 1fr; } }
+        @media (min-width: 1025px) {
+            .guidance-panel { position: sticky; top: 70px; max-height: calc(100vh - 90px); overflow-y: auto; }
+        }
         #authBar { position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(15,32,39,0.92); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; font-family: 'Segoe UI', sans-serif; }
         .ros-hint { font-size: 12px; color: #2a9d8f; margin-top: 6px; font-style: italic; }
         .milestone-warning { background: #fef9c3; color: #854d0e; padding: 10px; border-radius: 12px; margin-top: 10px; display: none; }
         .guidance-header { background: linear-gradient(135deg, #1b7e6b 0%, #2a9d8f 100%); color: white; padding: 25px 30px; }
         .guidance-header h2 { font-size: 1.4rem; margin-bottom: 6px; }
         .guidance-header p { opacity: 0.9; font-size: 0.9rem; }
-        .guidance-content { padding: 20px; }
+        .guidance-content { padding: 20px; transition: opacity 0.15s ease; }
+        .guidance-tip {
+            background: white;
+            border-left: 4px solid #2a9d8f;
+            border-radius: 0 12px 12px 0;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            font-size: 0.88rem;
+            line-height: 1.6;
+            color: #2d3748;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .guidance-tip strong { color: #1b7e6b; }
+        .form-section.active-section { border-left: 4px solid #2a9d8f; padding-left: 21px; }
         .vitals-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .vital-item label { font-size: 0.7rem; margin-bottom: 4px; }
         .vital-item input { padding: 8px 10px; font-size: 0.9rem; }
@@ -163,14 +179,9 @@
 <div style="height: 52px;"></div>
 
 <div class="container">
-    <div class="clerking-panel">
-        <div class="panel-header">
-            <h1><span>👶</span> Pediatric Clerking Module</h1>
-            <p>Structured history, birth, milestones, immunizations (Uganda EPI), growth monitoring & red flags</p>
-        </div>
-
-        <!-- Child Demographics -->
-        <div class="form-section">
+    <div class="clerking-panel" id="clerkingPanel">
+        <!-- Demographics (no guidance) -->
+        <div class="form-section" data-section="demographics">
             <h3>📋 Child Demographics</h3>
             <div class="demographics-grid">
                 <div><label>Full Name *</label><input type="text" id="childName" placeholder="Child's full name"></div>
@@ -189,38 +200,39 @@
         </div>
 
         <!-- Presenting Complaint -->
-        <div class="form-section">
+        <div class="form-section" data-section="presenting-complaint">
             <h3>🩺 Presenting Complaint</h3>
             <label>Select or type the main symptom:</label>
             <div class="symptom-buttons" id="symptomButtons">
-                <button type="button" class="symptom-btn" onclick="setSymptom('fever')">🌡️ Fever</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('cough')">🤧 Cough</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('diarrhea')">💩 Diarrhoea/Vomiting</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('poor feeding')">🍼 Poor feeding</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('convulsions')">⚠️ Convulsions</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('rash')">🔴 Skin rash</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('jaundice')">🟡 Jaundice</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('pain')">🩺 Pain (SOCRATES)</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('difficulty breathing')">💨 Difficulty breathing</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('swelling')">💧 Swelling</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('lethargy')">😴 Lethargy/irritability</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('pallor')">🩸 Pallor (anaemia)</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('neck stiffness')">🦟 Neck stiffness</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('ear discharge')">👂 Ear discharge</button>
-                <button type="button" class="symptom-btn" onclick="setSymptom('oedema')">💧 Oedema (kwashiorkor)</button>
+                <button type="button" class="symptom-btn" data-symptom="fever">🌡️ Fever</button>
+                <button type="button" class="symptom-btn" data-symptom="cough">🤧 Cough</button>
+                <button type="button" class="symptom-btn" data-symptom="diarrhea">💩 Diarrhoea/Vomiting</button>
+                <button type="button" class="symptom-btn" data-symptom="poor feeding">🍼 Poor feeding</button>
+                <button type="button" class="symptom-btn" data-symptom="convulsions">⚠️ Convulsions</button>
+                <button type="button" class="symptom-btn" data-symptom="rash">🔴 Skin rash</button>
+                <button type="button" class="symptom-btn" data-symptom="jaundice">🟡 Jaundice</button>
+                <button type="button" class="symptom-btn" data-symptom="pain">🩺 Pain (SOCRATES)</button>
+                <button type="button" class="symptom-btn" data-symptom="difficulty breathing">💨 Difficulty breathing</button>
+                <button type="button" class="symptom-btn" data-symptom="swelling">💧 Swelling</button>
+                <button type="button" class="symptom-btn" data-symptom="lethargy">😴 Lethargy/irritability</button>
+                <button type="button" class="symptom-btn" data-symptom="pallor">🩸 Pallor (anaemia)</button>
+                <button type="button" class="symptom-btn" data-symptom="neck stiffness">🦟 Neck stiffness</button>
+                <button type="button" class="symptom-btn" data-symptom="ear discharge">👂 Ear discharge</button>
+                <button type="button" class="symptom-btn" data-symptom="oedema">💧 Oedema (kwashiorkor)</button>
             </div>
             <label style="margin-top:15px;">Or type your own symptom:</label>
             <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
             <div id="dynamicQuestions" style="margin-top:15px;"></div>
         </div>
 
-        <div class="form-section">
+        <!-- HPC -->
+        <div class="form-section" data-section="hpc">
             <h3>📝 History of Presenting Complaint (HPC)</h3>
             <textarea id="hpc" rows="4" placeholder="Chronological narrative: onset, progression, associated symptoms, treatments tried, impact on feeding/activity..."></textarea>
         </div>
 
         <!-- Birth History -->
-        <div class="form-section">
+        <div class="form-section" data-section="birth">
             <h3>🤱 Birth History</h3>
             <div class="demographics-grid">
                 <div><label>Antenatal course</label><textarea id="antenatal" rows="2" placeholder="Gestational age, complications, medications"></textarea></div>
@@ -230,22 +242,22 @@
             </div>
         </div>
 
-        <!-- Developmental Milestones (toggle pills) -->
-        <div class="form-section">
+        <!-- Developmental Milestones -->
+        <div class="form-section" data-section="milestones">
             <h3>🧸 Developmental Milestones</h3>
             <div class="toggle-pill-group" id="milestonesContainer"></div>
             <textarea id="milestoneNotes" rows="2" class="mt-2" placeholder="Additional concerns..."></textarea>
             <div id="milestoneWarning" class="milestone-warning">⚠️ Warning: This milestone is not expected at this age (child is too young).</div>
         </div>
 
-        <!-- Immunizations (Uganda EPI) -->
-        <div class="form-section">
+        <!-- Immunizations -->
+        <div class="form-section" data-section="immunizations">
             <h3>💉 Immunizations (Uganda EPI)</h3>
             <div id="immunizationGrid" class="vaccine-grid"></div>
         </div>
 
         <!-- Nutrition & Growth -->
-        <div class="form-section">
+        <div class="form-section" data-section="nutrition">
             <h3>🍼 Nutrition & Growth</h3>
             <div class="demographics-grid">
                 <div><label>Feeding history</label><textarea id="feedingHistory" rows="2" placeholder="Breastfeeding, formula, complementary foods"></textarea></div>
@@ -257,33 +269,33 @@
             <div class="growth-chart-container"><canvas id="growthChart" width="400" height="200"></canvas><p>Weight-for-age (WHO 0–60 months)</p></div>
         </div>
 
-        <!-- Danger Signs (toggle pills) -->
-        <div class="form-section">
+        <!-- Danger Signs -->
+        <div class="form-section" data-section="danger-signs">
             <h3>🚨 Danger Signs (Red Flags)</h3>
             <div class="toggle-pill-group" id="dangerSignsContainer"></div>
         </div>
 
-        <!-- Review of Systems (unchanged) -->
-        <div class="form-section">
+        <!-- Review of Systems -->
+        <div class="form-section" data-section="ros">
             <h3>🩺 Review of Systems (Pediatric)</h3>
             <div id="rosContainer"></div>
         </div>
 
-        <!-- NEW: Physical Examination (Hutchison sequence) -->
-        <div class="form-section">
+        <!-- Physical Examination -->
+        <div class="form-section" data-section="exam-general">
             <h3>❤️ Physical Examination</h3>
             <div id="examContainer" class="exam-grid"></div>
         </div>
 
         <!-- Social & Family History -->
-        <div class="form-section">
+        <div class="form-section" data-section="social">
             <h3>🏠 Social & Family History</h3>
             <textarea id="socialHistory" rows="2" placeholder="Living conditions, smoking in home, school, travel, pets..."></textarea>
             <textarea id="familyHistory" rows="2" placeholder="Family history of chronic diseases, TB, HIV, congenital conditions..." class="mt-2"></textarea>
         </div>
 
         <!-- Management Plan -->
-        <div class="form-section">
+        <div class="form-section" data-section="plan">
             <h3>📋 Assessment & Plan</h3>
             <textarea id="managementPlan" rows="4" placeholder="Diagnosis, investigations, treatment, follow-up"></textarea>
         </div>
@@ -308,8 +320,8 @@
     <div class="guidance-panel">
         <div class="guidance-header"><h2>📖 Pediatric Guidance</h2><p>Based on Uganda Clinical Guidelines & WHO/EPI</p></div>
         <div class="guidance-content" id="guidanceContent">
-            <div class="alert">👶 <strong>Pediatric Principles</strong><br>Always check danger signs first. Use age‑appropriate equipment.</div>
-            <div class="alert warning">🚨 <strong>Emergency signs</strong><br>Convulsions, lethargy, inability to feed, stridor, severe dehydration, fast breathing.</div>
+            <div class="guidance-tip"><strong>👶 Pediatric Principles</strong><br>Always check danger signs first. Use age‑appropriate equipment.</div>
+            <div class="guidance-tip"><strong>🚨 Emergency signs</strong><br>Convulsions, lethargy, inability to feed, stridor, severe dehydration, fast breathing.</div>
         </div>
     </div>
 </div>
@@ -408,7 +420,7 @@
         warningDiv.style.display = tooYoung ? 'block' : 'none';
     }
 
-    // ==================== Review of Systems (unchanged) ====================
+    // ==================== Review of Systems ====================
     const pedsROS = {
         general: { name: "General", icon: "🌡️", common: ["Fever","Fatigue","Poor appetite","Night sweats","Weight loss"] },
         resp: { name: "Respiratory", icon: "💨", common: ["Cough","Fast breathing","Wheeze","Chest indrawing","Nasal flaring"] },
@@ -440,7 +452,7 @@
         card.classList.toggle('expanded');
     }
 
-    // ==================== NEW: Physical Examination Systems (Hutchison sequence) ====================
+    // ==================== Physical Examination Systems ====================
     const examSystems = {
         general: {
             name: "General & Vitals",
@@ -545,11 +557,9 @@
                     <div class="vital-item"><label>SpO₂ (%)</label><input type="number" id="spo2" placeholder="98" oninput="updateProgress()"></div>
                     <div class="vital-item"><label>BP (mmHg)</label><input type="text" id="bp" placeholder="100/70" oninput="updateProgress()"></div>
                 </div><div id="vitalWarning" class="alert warning" style="display:none;"></div>`;
-                // General appearance and nutrition
                 contentHtml += `<div class="exam-step-label">General appearance</div><div class="toggle-pill-group">${sys.appearance.map(p => `<button type="button" class="toggle-pill" data-value="${p}">${p}</button>`).join('')}</div>`;
                 contentHtml += `<div class="exam-step-label">Nutrition / Hydration</div><div class="toggle-pill-group">${sys.nutrition.map(p => `<button type="button" class="toggle-pill" data-value="${p}">${p}</button>`).join('')}</div>`;
             } else {
-                // For systems with steps
                 sys.steps.forEach(step => {
                     contentHtml += `<div class="exam-step-label">${step.name}</div><div class="toggle-pill-group">${step.pills.map(p => `<button type="button" class="toggle-pill" data-value="${p}">${p}</button>`).join('')}</div>`;
                 });
@@ -572,10 +582,8 @@
             contentHtml += `</div>`;
             card.innerHTML = headerHtml + contentHtml;
             container.appendChild(card);
-            // Attach toggle pill events
             card.querySelectorAll('.toggle-pill').forEach(pill => { pill.onclick = () => togglePill(pill); });
         }
-        // Make general card expanded by default
         const generalContent = document.getElementById('exam-content-general');
         if (generalContent) { generalContent.classList.add('active'); }
         checkVitals();
@@ -682,7 +690,7 @@
         }
     }
 
-    // ==================== Growth Chart & MUAC (unchanged) ====================
+    // ==================== Growth Chart & MUAC ====================
     let growthChart;
     function initGrowthChart() {
         const ctx = document.getElementById('growthChart').getContext('2d');
@@ -711,11 +719,11 @@
         else { feedback.innerHTML = '🟢 Normal MUAC (≥12.5 cm)'; feedback.className = 'muac-feedback muac-green'; }
     }
 
-    // ==================== Presenting Complaint (unchanged, abbreviated) ====================
+    // ==================== Presenting Complaint ====================
     let currentSymptom = '';
     let symptomDetails = {};
     const pediatricSymptomGuides = {
-        fever: { title:"🌡️ Fever", questions:[{q:"Duration?",hint:"Acute <7d"},{q:"Max temp?",hint:"°C"},{q:"Pattern?",hint:"Intermittent"},{q:"Chills?",hint:"Rigors"},{q:"Associated?",hint:"Cough, rash"},{q:"Antipyretics?",hint:"Paracetamol"}], redFlags:["🚨 Fever+altered consciousness → meningitis"] },
+        fever: { title:"🌡️ Fever", questions:[{q:"Duration?",hint:"Acute <7d"},{q:"Max temp?",hint:"°C"},{q:"Pattern?",hint:"Intermittent"},{q:"Chills?",hint:"Rigors"},{q:"Associated?",hint:"Cough, rash"},{q:"Antipyretics?",hint:"Paracetamol"}], redFlags:["🚨 Fever+altered consciousness → meningitis"], tips:["Fever is the most common pediatric presentation in Uganda. Always test for malaria."] },
         cough: { title:"🤧 Cough", questions:[{q:"Duration?",hint:"Acute/chronic"},{q:"Productive?",hint:"Colour"},{q:"Worse at night?",hint:"Asthma"},{q:"Fast breathing?",hint:"Pneumonia"},{q:"Choking history?",hint:"Foreign body"}], redFlags:["🚨 Cough+fast breathing+indrawing → severe pneumonia"] },
         diarrhea: { title:"💩 Diarrhoea", questions:[{q:"Stools/day?",hint:""},{q:"Blood/mucus?",hint:"Dysentery"},{q:"Vomiting?",hint:"Projectile"},{q:"Dehydration signs?",hint:"Sunken eyes"},{q:"Feeding status?",hint:"Able to drink?"}], redFlags:["🚨 Severe dehydration → IV fluids"] },
         "poor feeding": { title:"🍼 Poor feeding", questions:[{q:"Breastfed?",hint:""},{q:"When started?",hint:""},{q:"Vomiting?",hint:""},{q:"Able to suck?",hint:""},{q:"Weight loss?",hint:""}], redFlags:["🚨 Unable to drink → severe illness"] },
@@ -753,12 +761,19 @@
         document.getElementById('customSymptom').value = '';
         displayQuestions(symptom);
         const guide = pediatricSymptomGuides[symptom];
-        const guidanceDiv = document.querySelector('.guidance-panel .guidance-content');
+        let guidanceHtml = '';
         if (guide) {
-            guidanceDiv.innerHTML = `<div class="alert"><strong>${guide.title}</strong><br>Ask the structured questions above.</div><div class="alert warning">${guide.redFlags?.join('<br>') || 'No specific red flags'}</div>`;
+            guidanceHtml = `<div class="guidance-tip"><strong>${guide.title}</strong><br>Ask the structured questions above.</div><div class="guidance-tip"><strong>🚨 Red flags</strong><br>${guide.redFlags?.join('<br>') || 'No specific red flags'}</div>`;
+            if (guide.tips) guidanceHtml += `<div class="guidance-tip"><strong>💡 Clinical tip</strong><br>${guide.tips.join('<br>')}</div>`;
         } else {
-            guidanceDiv.innerHTML = `<div class="alert">General approach: use SOCRATES if pain, otherwise systematic questioning.</div>`;
+            guidanceHtml = `<div class="guidance-tip"><strong>Presenting Complaint</strong><br>Document the symptom in detail below.</div>`;
         }
+        const guidanceDiv = document.getElementById('guidanceContent');
+        guidanceDiv.style.opacity = '0';
+        setTimeout(() => {
+            guidanceDiv.innerHTML = guidanceHtml;
+            guidanceDiv.style.opacity = '1';
+        }, 150);
     }
     function setCustomSymptom() {
         const custom = document.getElementById('customSymptom').value.toLowerCase().trim();
@@ -766,12 +781,204 @@
             currentSymptom = custom;
             document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('dynamicQuestions').innerHTML = `<div class="alert">Please document this symptom fully in the HPC section below.</div>`;
-            document.querySelector('.guidance-panel .guidance-content').innerHTML = `<div class="alert">For "${custom}", take a thorough history: onset, progression, associated symptoms, treatments.</div>`;
+            const guidanceDiv = document.getElementById('guidanceContent');
+            guidanceDiv.style.opacity = '0';
+            setTimeout(() => {
+                guidanceDiv.innerHTML = `<div class="guidance-tip"><strong>Custom symptom: ${custom}</strong><br>Take a thorough history: onset, progression, associated symptoms, treatments.</div>`;
+                guidanceDiv.style.opacity = '1';
+            }, 150);
         }
     }
     function savePCResponse(idx, value) { if (!symptomDetails[currentSymptom]) symptomDetails[currentSymptom] = []; symptomDetails[currentSymptom][idx] = value; updateProgress(); }
 
-    // ==================== Capture / Restore Form Data (including exam) ====================
+    // ==================== Context-aware Guidance ====================
+    const sectionGuidance = {
+        'presenting-complaint': [
+            "Select the main presenting symptom to get structured question prompts.",
+            "In children, always ask the parent/guardian — and the child if old enough.",
+            "Use open questions first: 'What brought you to hospital today?'"
+        ],
+        'hpc': [
+            "Document chronologically: when did it start → how has it progressed → what makes it better/worse",
+            "Always ask about: treatments tried at home, traditional medicines, previous hospital visits for same complaint",
+            "Impact on feeding and activity level is essential in children",
+            "Hutchison tip: Let the parent tell the story first before asking structured questions"
+        ],
+        'birth': [
+            "Antenatal: gestational age, ANC attendance, infections (malaria, syphilis, HIV), medications, complications",
+            "Delivery: SVD or C-section, place of delivery (hospital/home/TBA), who attended, need for resuscitation",
+            "Birth weight: <2.5kg = low birth weight; <1.5kg = very low birth weight",
+            "Neonatal period: jaundice (phototherapy?), sepsis, seizures, NICU admission, feeding difficulties",
+            "Hutchison tip: Birth history is often overlooked but critical for understanding the child's baseline"
+        ],
+        'milestones': [
+            "Use the WHO developmental milestones as a guide — but always compare to parental report",
+            "Gross motor: head control (3m), sitting (6-8m), standing (9-12m), walking (12-18m)",
+            "Fine motor: reaching (4m), pincer grip (9m), drawing (18m+)",
+            "Language: cooing (2m), babbling (6m), single words (12m), two-word phrases (24m)",
+            "Social: social smile (6-8 weeks), stranger anxiety (8m), parallel play (2y)",
+            "⚠️ Regression (loss of previously achieved milestones) is always a red flag"
+        ],
+        'immunizations': [
+            "Uganda EPI schedule: BCG + OPV0 at birth, then 6/10/14 weeks (DPT-HepB-Hib, PCV, Rota), 9 months (Measles + Yellow Fever), 18 months (Measles 2)",
+            "Always check the child's immunization card (yellow card) — do not rely on parent memory alone",
+            "If a vaccine was missed: note which one and at what age — refer to immunization clinic",
+            "Ask about reactions to previous vaccines"
+        ],
+        'nutrition': [
+            "MUAC: <11.5cm = SAM (severe acute malnutrition), 11.5-12.4cm = MAM, ≥12.5cm = normal (for 6-59 months)",
+            "Always plot weight on WHO growth chart — a single weight means nothing without context",
+            "Ask about exclusive breastfeeding (recommended for first 6 months), complementary feeding from 6 months",
+            "Kwashiorkor = protein deficiency (oedema, skin changes, hair changes); Marasmus = calorie deficiency (wasting)",
+            "Hutchison tip: Nutritional assessment is one of the most important parts of any pediatric examination in Uganda"
+        ],
+        'danger-signs': [
+            "These are WHO IMCI danger signs — if ANY is present, the child needs urgent assessment",
+            "🚨 Lethargy/unconscious → check blood glucose, treat for cerebral malaria/sepsis",
+            "🚨 Convulsions → give diazepam, check glucose, treat fever",
+            "🚨 Unable to drink/breastfeed → IV access immediately",
+            "🚨 Vomiting everything → risk of aspiration and dehydration",
+            "🚨 Stridor → upper airway obstruction — do NOT examine throat if epiglottitis suspected",
+            "🚨 Fast breathing: >60/min (0-2m), >50/min (2-12m), >40/min (1-5y)"
+        ],
+        'ros': [
+            "ROS in children should be systematic — use it to find symptoms the parent forgot to mention",
+            "Ask about each system even if the complaint seems isolated",
+            "Hutchison tip: 'The history is 80% of the diagnosis' — a thorough ROS often reveals the diagnosis before examination",
+            "Common Uganda patterns: fever + cough → malaria + pneumonia co-infection; diarrhoea + poor feeding → dehydration + malnutrition"
+        ],
+        'exam-general': [
+            "Always start with general inspection before touching the child",
+            "General appearance: Is the child well or ill? Toxic? Comfortable or distressed?",
+            "Nutritional status: Look for wasting (muscle loss), oedema (kwashiorkor), pallor, jaundice",
+            "Hydration: skin turgor, sunken eyes, dry mucous membranes, capillary refill",
+            "Hutchison: 'Look at the patient as a whole before examining any part'"
+        ],
+        'exam-respiratory': [
+            "Inspection: count RR for 60 seconds. Look for chest indrawing, nasal flaring, tracheal tug, use of accessory muscles, grunting (alveolar collapse)",
+            "Palpation: tracheal position (deviated in effusion/pneumothorax), chest expansion, tactile fremitus (increased = consolidation, reduced = effusion)",
+            "Percussion: dull = consolidation/effusion; stony dull = effusion; hyperresonant = pneumothorax",
+            "Auscultation: listen in all zones. Bronchial breathing = consolidation; crackles = pneumonia/pulmonary oedema; wheeze = asthma/bronchiolitis",
+            "Hutchison tip: In infants, auscultate before percussion — they cry less if you haven't disturbed them yet"
+        ],
+        'exam-cardiovascular': [
+            "Inspection: central vs peripheral cyanosis, precordial bulge (cardiomegaly), scars (previous surgery), oedema",
+            "Palpation: apex beat (displaced in cardiomegaly), heave (RV pressure overload), thrill (palpable murmur ≥ grade 4), pulses (all 4 limbs in neonates — coarctation)",
+            "Auscultation: identify S1 (mitral/tricuspid closure) and S2 (aortic/pulmonary closure). S2 split widens on inspiration. Murmurs: time in cycle, grade (1-6), location, radiation",
+            "Hutchison tip: Innocent murmurs are common in children — they are soft (≤ grade 2), systolic, vary with position, no thrill"
+        ],
+        'exam-abdomen': [
+            "Inspection: ask child to take deep breath — look for movement with respiration (peritonitis = no movement). Distension? Visible peristalsis (obstruction)?",
+            "Palpation: start away from the area of pain. Use warm hands. Watch the child's face, not your hand. Feel for organomegaly in all quadrants",
+            "Liver: percuss upper border first. Measure size in cm below right costal margin in mid-clavicular line",
+            "Spleen: palpate from RIF towards LUQ. Measure in cm below left costal margin",
+            "Percussion: shifting dullness for ascites — dull in flanks when supine, moves when patient turned",
+            "Auscultation: listen before palpating. Absent bowel sounds = ileus/peritonitis; tinkling = obstruction",
+            "Hutchison tip: Hepatosplenomegaly in Uganda = malaria until proven otherwise"
+        ],
+        'exam-neurological': [
+            "Inspection: level of consciousness (AVPU or GCS), posture, involuntary movements, fontanelle in infants (<18 months)",
+            "Fontanelle: bulging = raised ICP (meningitis, hydrocephalus); sunken = dehydration",
+            "Meningeal signs: neck stiffness (passive flexion resisted), Kernig's (inability to extend knee with hip flexed), Brudzinski's (hip flexion on neck flexion)",
+            "Motor: tone (resistance to passive movement), power (age-appropriate testing), reflexes (biceps C5/6, knee L3/4, ankle S1/2)",
+            "Hutchison tip: In children <2 years, Babinski (upgoing plantars) can be normal — interpret in context",
+            "GCS in children: use paediatric GCS — verbal response scored differently for pre-verbal children"
+        ],
+        'exam-skin': [
+            "Inspect in good light. Describe rash: morphology (macule, papule, vesicle, pustule, purpura), distribution, blanching",
+            "Non-blanching rash (petechiae/purpura) = meningococcaemia until proven otherwise — emergency",
+            "Pallor: look at conjunctivae, palms, tongue. Correlates better with Hb than skin colour",
+            "Flaky paint dermatosis + oedema + hair changes = kwashiorkor",
+            "Hutchison tip: Always examine the skin last — but document it systematically, not as an afterthought"
+        ],
+        'exam-ent': [
+            "Ears: use otoscope — look for perforated TM, congested TM (ASOM), discharge, mastoid tenderness",
+            "Nose: discharge (clear = viral, purulent = bacterial), nasal polyps, foreign body in young children",
+            "Throat: use good light and tongue depressor. Grade tonsils: 1 (within pillars), 2 (at pillars), 3 (touching uvula), 4 (kissing)",
+            "Koplik's spots (white spots on buccal mucosa opposite molars) = measles — look before the rash appears",
+            "Oral thrush in older child (not neonate) → consider HIV",
+            "Hutchison tip: Leave throat examination until last — children hate it and will cry, making the rest of the exam harder"
+        ],
+        'social': [
+            "Living conditions: crowded housing → TB, meningitis risk; poor sanitation → diarrhoeal disease",
+            "Smoke exposure in home → recurrent respiratory infections, asthma",
+            "Family history: TB (close contact?), HIV (maternal status, breastfeeding), sickle cell, epilepsy, congenital conditions",
+            "School attendance: chronic illness affects schooling — a useful functional marker",
+            "Hutchison tip: Social history in Uganda must include access to clean water, latrine use, and food security"
+        ],
+        'plan': [
+            "State your working diagnosis first, then differentials in order of likelihood",
+            "Investigations: FBC, malaria RDT/smear, blood culture, urinalysis, CXR as indicated",
+            "Uganda treatment guidelines: use Uganda Clinical Guidelines (UCG) — check antibiotic choices and doses by weight",
+            "Always document: admission/discharge decision, follow-up plan, parent counselling given",
+            "Hutchison tip: 'Treat the patient, not the investigation result' — clinical judgment comes first"
+        ]
+    };
+
+    function updateGuidancePanel(sectionKey) {
+        const contentDiv = document.getElementById('guidanceContent');
+        contentDiv.style.opacity = '0';
+        setTimeout(() => {
+            let items = sectionGuidance[sectionKey];
+            if (!items) {
+                items = ["Select a section to see relevant guidance."];
+            }
+            contentDiv.innerHTML = items.map(tip => `<div class="guidance-tip">${tip}</div>`).join('');
+            contentDiv.style.opacity = '1';
+        }, 150);
+    }
+
+    function highlightActiveSection(element) {
+        const section = element.closest('[data-section]');
+        if (!section) return;
+        document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active-section'));
+        section.classList.add('active-section');
+        const sectionKey = section.getAttribute('data-section');
+        updateGuidancePanel(sectionKey);
+    }
+
+    // Event delegation for focus, click, etc.
+    const clerkingPanel = document.getElementById('clerkingPanel');
+    clerkingPanel.addEventListener('focusin', (e) => {
+        const target = e.target;
+        const section = target.closest('[data-section]');
+        if (section) highlightActiveSection(target);
+    });
+    clerkingPanel.addEventListener('click', (e) => {
+        const target = e.target;
+        // toggle pills, buttons, card headers
+        if (target.classList && target.classList.contains('toggle-pill')) {
+            const section = target.closest('[data-section]');
+            if (section) highlightActiveSection(target);
+        }
+        if (target.classList && target.classList.contains('exam-card-header')) {
+            const card = target.closest('.exam-card');
+            if (card) {
+                const examKey = card.getAttribute('data-exam');
+                if (examKey) {
+                    const sectionMap = {
+                        'general': 'exam-general',
+                        'respiratory': 'exam-respiratory',
+                        'cardiovascular': 'exam-cardiovascular',
+                        'abdomen': 'exam-abdomen',
+                        'neurological': 'exam-neurological',
+                        'skin': 'exam-skin',
+                        'ent': 'exam-ent'
+                    };
+                    const mapped = sectionMap[examKey];
+                    if (mapped) updateGuidancePanel(mapped);
+                    const sectionDiv = card.closest('[data-section]');
+                    if (sectionDiv) highlightActiveSection(card);
+                }
+            }
+        }
+        if (target.classList && target.classList.contains('symptom-btn')) {
+            const section = target.closest('[data-section]');
+            if (section) highlightActiveSection(target);
+        }
+    });
+
+    // ==================== Capture / Restore Form Data ====================
     function captureFormData() {
         const milestones = Array.from(document.querySelectorAll('#milestonesContainer .toggle-pill.active')).map(p => p.getAttribute('data-value'));
         const redFlags = Array.from(document.querySelectorAll('#dangerSignsContainer .toggle-pill.active')).map(p => p.getAttribute('data-value'));
@@ -890,9 +1097,7 @@
                 if (narrative) narrative.value = ros.narrative || '';
             }
         }
-        // exam data
         if (data.examData) restoreExamData(data.examData);
-        // presenting complaint
         if (data.currentSymptom) {
             currentSymptom = data.currentSymptom;
             const btn = Array.from(document.querySelectorAll('.symptom-btn')).find(b => b.textContent.toLowerCase().includes(data.currentSymptom));
@@ -995,7 +1200,7 @@
         event.target.value = '';
     }
 
-    // ==================== Clinical Summary (abnormal findings only) ====================
+    // ==================== Clinical Summary ====================
     function generateClinicalSummary() {
         const data = captureFormData();
         const redFlagsList = data.redFlags.join(', ') || 'None';
@@ -1008,7 +1213,6 @@
             const narrative = ros.narrative;
             return `<strong>${sys.name}:</strong> ${selected} ${narrative}`;
         }).join('<br>');
-        // Exam summary: only include abnormal findings
         let examHtml = '';
         const vitals = data.examData.vitals || {};
         const vitalsStr = `HR ${vitals.hr || '?'} bpm, RR ${vitals.rr || '?'}/min, Temp ${vitals.temp || '?'}°C, SpO2 ${vitals.spo2 || '?'}%, BP ${vitals.bp || '?'}, GCS ${vitals.gcs || '?'}`;
@@ -1104,6 +1308,7 @@
     window.addEventListener('input', updateProgress);
     document.querySelectorAll('.toggle-pill').forEach(p => p.addEventListener('click', updateProgress));
     document.getElementById('milestonesContainer').addEventListener('click', (e) => { if (e.target.classList && e.target.classList.contains('toggle-pill')) checkMilestoneWarnings(); });
+    // Set default guidance on page load (already set in HTML)
 </script>
 </body>
 </html>
