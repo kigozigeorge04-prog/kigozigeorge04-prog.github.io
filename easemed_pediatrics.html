@@ -125,7 +125,7 @@
             box-shadow: 0 4px 12px rgba(42,157,143,0.3);
         }
         .toggle-pill.active::before { content: "✓ "; }
-        .toggle-pill-group.avpu-group .toggle-pill.active { background: #e76f51; border-color: #e76f51; } /* different colour for AVPU */
+        .toggle-pill-group.avpu-group .toggle-pill.active { background: #e76f51; border-color: #e76f51; }
         .ros-narrative, .exam-notes { width: 100%; margin: 10px 0; resize: vertical; min-height: 80px; }
         .clinical-summary { background: #e8f4f8; padding: 20px; border-radius: 16px; margin-top: 15px; font-size: 14px; line-height: 1.8; }
         .summary-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
@@ -181,7 +181,7 @@
 
 <div class="container">
     <div class="clerking-panel" id="clerkingPanel">
-        <!-- Demographics (no guidance) -->
+        <!-- Demographics -->
         <div class="form-section" data-section="demographics">
             <h3>📋 Child Demographics</h3>
             <div class="demographics-grid">
@@ -380,7 +380,6 @@
         el.classList.toggle('active');
         updateProgress();
         if (el.closest('#milestonesContainer')) checkMilestoneWarnings();
-        // For AVPU group, ensure only one active
         if (el.closest('.avpu-group')) {
             const siblings = el.parentElement.querySelectorAll('.toggle-pill');
             if (el.classList.contains('active')) {
@@ -519,7 +518,7 @@
                 { name: "Cranial nerves", pills: ["Pupils equal reactive","Pupils unequal","Facial asymmetry","Gaze deviation"] }
             ],
             hasGcs: true,
-            hasAvpu: true,   // new flag
+            hasAvpu: true,
             freeText: true,
             normalPills: ["Alert and oriented","Fontanelle flat","Tone normal","Power normal","Reflexes normal","Pupils equal reactive"]
         },
@@ -599,9 +598,7 @@
             contentHtml += `</div>`;
             card.innerHTML = headerHtml + contentHtml;
             container.appendChild(card);
-            // Attach toggle pill events
             card.querySelectorAll('.toggle-pill').forEach(pill => { pill.onclick = () => togglePill(pill); });
-            // If AVPU group exists, add mutual exclusivity already handled in togglePill
         }
         const generalContent = document.getElementById('exam-content-general');
         if (generalContent) { generalContent.classList.add('active'); }
@@ -626,7 +623,6 @@
             const hepatomegaly = card.querySelector(`#exam-${key}-hepatomegaly`)?.value || '';
             const spleen = card.querySelector(`#exam-${key}-spleen`)?.value || '';
             const rash = card.querySelector(`#exam-${key}-rash`)?.value || '';
-            // Capture AVPU separately if exists
             let avpu = '';
             if (sys.hasAvpu) {
                 const activeAvpu = card.querySelector('#avpu-group .toggle-pill.active');
@@ -666,7 +662,6 @@
                 if (data.pills && data.pills.includes(val)) pill.classList.add('active');
                 else pill.classList.remove('active');
             });
-            // Restore AVPU if present
             if (data.avpu) {
                 const avpuGroup = card.querySelector('#avpu-group');
                 if (avpuGroup) {
@@ -824,7 +819,7 @@
     }
     function savePCResponse(idx, value) { if (!symptomDetails[currentSymptom]) symptomDetails[currentSymptom] = []; symptomDetails[currentSymptom][idx] = value; updateProgress(); }
 
-    // ==================== Context-aware Guidance ====================
+    // ==================== Context-aware Guidance (updated for General & Vitals) ====================
     const sectionGuidance = {
         'presenting-complaint': [
             "Select the main presenting symptom to get structured question prompts.",
@@ -885,7 +880,15 @@
             "General appearance: Is the child well or ill? Toxic? Comfortable or distressed?",
             "Nutritional status: Look for wasting (muscle loss), oedema (kwashiorkor), pallor, jaundice",
             "Hydration: skin turgor, sunken eyes, dry mucous membranes, capillary refill",
-            "Hutchison: 'Look at the patient as a whole before examining any part'"
+            "Hutchison: 'Look at the patient as a whole before examining any part'",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "📊 <strong>Vital Signs – Age‑Specific Normal Ranges</strong>",
+            "<strong>Heart Rate (HR):</strong> Neonate 120-160, Infant 100-160, Toddler 90-150, School 70-120 bpm",
+            "<strong>Respiratory Rate (RR):</strong> Neonate 30-60, Infant 25-40, Toddler 20-30, School 15-25/min",
+            "<strong>Temperature:</strong> Normal axillary 36.5-37.5°C; fever >38°C",
+            "<strong>SpO₂:</strong> >95% is normal; <90% is severe hypoxaemia",
+            "<strong>Blood pressure:</strong> Use age‑appropriate centiles; hypertension common in nephrotic, renal disease",
+            "💡 Tip: Count RR for a full 60 seconds in children — tachypnoea is an early sign of pneumonia or metabolic acidosis."
         ],
         'exam-respiratory': [
             "Inspection: count RR for 60 seconds. Look for chest indrawing, nasal flaring, tracheal tug, use of accessory muscles, grunting (alveolar collapse)",
@@ -971,7 +974,7 @@
         updateGuidancePanel(sectionKey);
     }
 
-    // Event delegation for focus, click, etc.
+    // Event delegation
     const clerkingPanel = document.getElementById('clerkingPanel');
     clerkingPanel.addEventListener('focusin', (e) => {
         const target = e.target;
@@ -1252,7 +1255,6 @@
         examHtml += `<div><strong>Vitals:</strong> ${vitalsStr}</div>`;
         for (const [key, sys] of Object.entries(examSystems)) {
             const exam = data.examData[key] || { pills: [], notes: '', murmur: '', hepatomegaly: '', spleen: '', rash: '', avpu: '' };
-            // For neuro, include AVPU in abnormal if not Alert
             let avpuNote = '';
             if (key === 'neurological' && exam.avpu && exam.avpu !== 'Alert') {
                 avpuNote = `<strong>AVPU:</strong> ${exam.avpu}<br>`;
