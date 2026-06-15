@@ -188,6 +188,88 @@
             transform: translateY(-2px);
         }
 
+        /* ── Field error state ── */
+        .input-group input.field-error,
+        .input-group select.field-error {
+            border-color: #e53e3e !important;
+            box-shadow: 0 0 0 3px rgba(229,62,62,0.12) !important;
+            animation: fieldShake 0.4s ease;
+        }
+
+        @keyframes fieldShake {
+            0%,100% { transform: translateX(0); }
+            25%      { transform: translateX(-5px); }
+            75%      { transform: translateX(5px); }
+        }
+
+        .field-error-msg {
+            color: #e53e3e;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            animation: fadeInDown 0.2s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity:0; transform:translateY(-4px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* ── Password toggle wrapper ── */
+        .pw-wrap {
+            position: relative;
+        }
+
+        .pw-wrap input {
+            padding-right: 48px !important;
+        }
+
+        .pw-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #a0aec0;
+            font-size: 16px;
+            line-height: 1;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pw-toggle:hover { color: #2c5282; }
+
+        /* ── Password strength bar (signup only) ── */
+        .pw-strength {
+            height: 4px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .pw-strength-bar {
+            height: 100%;
+            border-radius: 999px;
+            width: 0%;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+
+        .pw-strength-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            margin-top: 4px;
+            color: #a0aec0;
+        }
+
         .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
         .login-btn, .signup-btn {
@@ -415,7 +497,12 @@
             </div>
             <div class="input-group">
                 <label>🔒 Password</label>
-                <input type="password" id="loginPassword" placeholder="••••••••">
+                <div class="pw-wrap">
+                    <input type="password" id="loginPassword" placeholder="••••••••">
+                    <button type="button" class="pw-toggle" onclick="togglePassword('loginPassword', this)" tabindex="-1" aria-label="Show/hide password">
+                        👁️
+                    </button>
+                </div>
             </div>
 
             <div class="forgot-link">
@@ -468,11 +555,24 @@
             <div class="input-row">
                 <div class="input-group">
                     <label>🔒 Password</label>
-                    <input type="password" id="signupPassword" placeholder="Min. 6 characters">
+                    <div class="pw-wrap">
+                        <input type="password" id="signupPassword" placeholder="Min. 6 characters" oninput="checkPasswordStrength(this.value)">
+                        <button type="button" class="pw-toggle" onclick="togglePassword('signupPassword', this)" tabindex="-1" aria-label="Show/hide password">
+                            👁️
+                        </button>
+                    </div>
+                    <div class="pw-strength"><div class="pw-strength-bar" id="pwStrengthBar"></div></div>
+                    <div class="pw-strength-label" id="pwStrengthLabel"></div>
                 </div>
                 <div class="input-group">
                     <label>🔒 Confirm Password</label>
-                    <input type="password" id="signupConfirmPassword" placeholder="Confirm password">
+                    <div class="pw-wrap">
+                        <input type="password" id="signupConfirmPassword" placeholder="Confirm password" oninput="checkPasswordMatch()">
+                        <button type="button" class="pw-toggle" onclick="togglePassword('signupConfirmPassword', this)" tabindex="-1" aria-label="Show/hide password">
+                            👁️
+                        </button>
+                    </div>
+                    <div class="field-error-msg" id="pwMatchMsg" style="display:none;">❌ Passwords do not match</div>
                 </div>
             </div>
 
@@ -941,6 +1041,175 @@ function createParticles() {
         container.appendChild(p);
     }
 }
+
+// ── PASSWORD SHOW / HIDE TOGGLE ──────────────────────────────
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    btn.textContent = isHidden ? '🙈' : '👁️';
+    btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+}
+
+// ── PASSWORD STRENGTH METER ───────────────────────────────────
+function checkPasswordStrength(value) {
+    const bar   = document.getElementById('pwStrengthBar');
+    const label = document.getElementById('pwStrengthLabel');
+    if (!bar || !label) return;
+
+    let score = 0;
+    if (value.length >= 6)  score++;
+    if (value.length >= 10) score++;
+    if (/[A-Z]/.test(value)) score++;
+    if (/[0-9]/.test(value)) score++;
+    if (/[^A-Za-z0-9]/.test(value)) score++;
+
+    const levels = [
+        { pct:'20%', color:'#e53e3e', text:'Very weak' },
+        { pct:'40%', color:'#dd6b20', text:'Weak' },
+        { pct:'60%', color:'#d69e2e', text:'Fair' },
+        { pct:'80%', color:'#38a169', text:'Strong' },
+        { pct:'100%',color:'#2c5282', text:'Very strong 💪' },
+    ];
+
+    const lvl = levels[Math.max(0, score - 1)] || levels[0];
+    bar.style.width     = value.length ? lvl.pct : '0%';
+    bar.style.background = lvl.color;
+    label.textContent   = value.length ? lvl.text : '';
+    label.style.color   = lvl.color;
+}
+
+// ── REAL-TIME PASSWORD MATCH CHECK ───────────────────────────
+function checkPasswordMatch() {
+    const pw   = document.getElementById('signupPassword')?.value;
+    const cpw  = document.getElementById('signupConfirmPassword')?.value;
+    const msg  = document.getElementById('pwMatchMsg');
+    const conf = document.getElementById('signupConfirmPassword');
+    if (!msg || !conf || !cpw) return;
+
+    if (pw !== cpw) {
+        conf.classList.add('field-error');
+        msg.style.display = 'flex';
+    } else {
+        conf.classList.remove('field-error');
+        msg.style.display = 'none';
+    }
+}
+
+// ── FIELD VALIDATION HELPERS ──────────────────────────────────
+function markFieldError(el, message) {
+    el.classList.add('field-error');
+    // Remove any existing error message
+    const existing = el.parentElement.querySelector('.field-error-msg');
+    if (existing) existing.remove();
+    // Add new error message below field
+    const msg = document.createElement('div');
+    msg.className   = 'field-error-msg';
+    msg.textContent = '⚠️ ' + message;
+    el.parentElement.appendChild(msg);
+    // Auto-clear on input
+    el.addEventListener('input', function clearErr() {
+        el.classList.remove('field-error');
+        msg.remove();
+        el.removeEventListener('input', clearErr);
+    }, { once: true });
+}
+
+function clearAllErrors(formId) {
+    document.querySelectorAll(`#${formId} .field-error`).forEach(el => {
+        el.classList.remove('field-error');
+    });
+    document.querySelectorAll(`#${formId} .field-error-msg`).forEach(el => {
+        // keep the pw match msg, only remove dynamically added ones
+        if (el.id !== 'pwMatchMsg') el.remove();
+    });
+}
+
+// ── OVERRIDE handleLogin WITH VALIDATION ─────────────────────
+const _origHandleLogin = handleLogin;
+window.handleLogin = async function() {
+    clearAllErrors('loginForm');
+    let valid = true;
+
+    const emailEl = document.getElementById('loginEmail');
+    const passEl  = document.getElementById('loginPassword');
+
+    if (!emailEl.value.trim()) {
+        markFieldError(emailEl, 'Email is required');
+        valid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim())) {
+        markFieldError(emailEl, 'Enter a valid email address');
+        valid = false;
+    }
+
+    if (!passEl.value) {
+        markFieldError(passEl, 'Password is required');
+        valid = false;
+    }
+
+    if (!valid) {
+        // Scroll to first error
+        document.querySelector('#loginForm .field-error')?.scrollIntoView({ behavior:'smooth', block:'center' });
+        return;
+    }
+
+    await _origHandleLogin();
+};
+
+// ── OVERRIDE handleSignup WITH VALIDATION ────────────────────
+const _origHandleSignup = handleSignup;
+window.handleSignup = async function() {
+    clearAllErrors('signupForm');
+    let valid = true;
+
+    const fields = [
+        { id:'signupName',       msg:'Full name is required' },
+        { id:'signupEmail',      msg:'Email is required' },
+        { id:'signupPassword',   msg:'Password is required' },
+        { id:'signupConfirmPassword', msg:'Please confirm your password' },
+        { id:'signupRole',       msg:'Please select your role' },
+        { id:'signupUniversity', msg:'University / institution is required' },
+        { id:'signupYear',       msg:'Please select your year of study' },
+    ];
+
+    fields.forEach(({ id, msg }) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (!el.value.trim()) {
+            markFieldError(el, msg);
+            valid = false;
+        }
+    });
+
+    // Email format check
+    const emailEl = document.getElementById('signupEmail');
+    if (emailEl.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim())) {
+        markFieldError(emailEl, 'Enter a valid email address');
+        valid = false;
+    }
+
+    // Password length check
+    const pwEl = document.getElementById('signupPassword');
+    if (pwEl.value && pwEl.value.length < 6) {
+        markFieldError(pwEl, 'Password must be at least 6 characters');
+        valid = false;
+    }
+
+    // Password match check
+    const cpwEl = document.getElementById('signupConfirmPassword');
+    if (pwEl.value && cpwEl.value && pwEl.value !== cpwEl.value) {
+        markFieldError(cpwEl, 'Passwords do not match');
+        valid = false;
+    }
+
+    if (!valid) {
+        document.querySelector('#signupForm .field-error')?.scrollIntoView({ behavior:'smooth', block:'center' });
+        return;
+    }
+
+    await _origHandleSignup();
+};
 
 // ── ENTER KEY SUPPORT ─────────────────────────────────────────
 document.getElementById('loginPassword').addEventListener('keypress', e => {
