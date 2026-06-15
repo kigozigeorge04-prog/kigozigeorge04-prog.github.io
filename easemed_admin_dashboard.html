@@ -492,23 +492,23 @@
                 <div class="metrics">
                     <div class="card accent-teal">
                         <div class="metric-label">Clerked Patients</div>
-                        <div class="metric-value">128</div>
-                        <div class="metric-sub">24 added this week</div>
+                        <div class="metric-value" id="totalPatientsValue">--</div>
+                        <div class="metric-sub">Total encounters recorded</div>
                     </div>
                     <div class="card accent-blue">
                         <div class="metric-label">Active Students</div>
-                        <div class="metric-value">42</div>
-                        <div class="metric-sub">8 pending feedback</div>
+                        <div class="metric-value" id="activeStudentsValue">--</div>
+                        <div class="metric-sub">Students who have clerked</div>
                     </div>
                     <div class="card accent-gold">
                         <div class="metric-label">Ward Round Ready</div>
-                        <div class="metric-value">76%</div>
-                        <div class="metric-sub">Cases with summary completed</div>
+                        <div class="metric-value" id="completePercentValue">--%</div>
+                        <div class="metric-sub">Cases with management plan</div>
                     </div>
                     <div class="card accent-red">
                         <div class="metric-label">Needs Review</div>
-                        <div class="metric-value">11</div>
-                        <div class="metric-sub">Missing ROS or HPC details</div>
+                        <div class="metric-value" id="needsReviewValue">--</div>
+                        <div class="metric-sub">Missing HPC or exam data</div>
                     </div>
                 </div>
             </section>
@@ -535,48 +535,21 @@
                 <div class="table-panel">
                     <div class="panel-title">
                         <h3>Recent Clerked Patients</h3>
-                        <button>View All</button>
+                        <button onclick="loadRecentPatients()">Refresh</button>
                     </div>
                     <div class="table-scroll">
                         <table>
                             <thead>
                                 <tr>
                                     <th>Patient</th>
-                                    <th>Student</th>
+                                    <th>Student ID</th>
                                     <th>Main Complaint</th>
-                                    <th>Summary</th>
+                                    <th>Management Plan</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>M. Chanda</td>
-                                    <td>Ruth Mwape</td>
-                                    <td>Shortness of breath</td>
-                                    <td>Ward summary ready</td>
-                                    <td><span class="status good">Reviewed</span></td>
-                                </tr>
-                                <tr>
-                                    <td>P. Banda</td>
-                                    <td>Daniel Phiri</td>
-                                    <td>Abdominal pain</td>
-                                    <td>ROS incomplete</td>
-                                    <td><span class="status warn">Pending</span></td>
-                                </tr>
-                                <tr>
-                                    <td>A. Tembo</td>
-                                    <td>Grace Zulu</td>
-                                    <td>Fever</td>
-                                    <td>Needs supervisor note</td>
-                                    <td><span class="status risk">Needs Action</span></td>
-                                </tr>
-                                <tr>
-                                    <td>L. Sakala</td>
-                                    <td>Michael Daka</td>
-                                    <td>Chest pain</td>
-                                    <td>Complete</td>
-                                    <td><span class="status good">Ready</span></td>
-                                </tr>
+                            <tbody id="recentPatientsBody">
+                                <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -585,24 +558,12 @@
                 <div class="table-panel">
                     <div class="panel-title">
                         <h3>Admin Activity</h3>
-                        <button>Refresh</button>
+                        <button onclick="loadRecentActivity()">Refresh</button>
                     </div>
-                    <div class="activity-list">
+                    <div class="activity-list" id="activityList">
                         <div class="activity">
                             <div class="dot"></div>
-                            <div><strong>3 ward summaries approved</strong><span>Supervisor review completed this morning</span></div>
-                        </div>
-                        <div class="activity">
-                            <div class="dot"></div>
-                            <div><strong>2 records flagged</strong><span>Missing important negatives in ROS</span></div>
-                        </div>
-                        <div class="activity">
-                            <div class="dot"></div>
-                            <div><strong>New student added</strong><span>Assigned to Internal Medicine rotation</span></div>
-                        </div>
-                        <div class="activity">
-                            <div class="dot"></div>
-                            <div><strong>Backup downloaded</strong><span>Records backup completed successfully</span></div>
+                            <div><strong>Loading activity...</strong><span>Please wait</span></div>
                         </div>
                     </div>
                 </div>
@@ -611,11 +572,11 @@
     </div>
 
     <script>
-        // ── FIX 1: Correct Supabase anon key (payload now has "iss":"supabase") ──
+        // Supabase configuration (same as other EaseMed pages)
         const SUPABASE_URL  = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
-        // ── FIX 2: Admin email uncommented ──
+        // Admin email list (only these can access)
         const ADMIN_EMAILS = [
             'kigozigeorge04@gmail.com'
         ];
@@ -634,6 +595,134 @@
                 || isAdminFlag === true;
         }
 
+        // ========== LOAD REAL DATA FROM SUPABASE ==========
+        async function loadDashboardStats() {
+            try {
+                // 1. Total encounters (all records)
+                const { count: total, error: totalErr } = await adminSupabase
+                    .from('pediatric_encounters')
+                    .select('*', { count: 'exact', head: true });
+
+                if (totalErr) throw totalErr;
+
+                // 2. Active students (distinct user_id)
+                const { data: studentsData, error: studentsErr } = await adminSupabase
+                    .from('pediatric_encounters')
+                    .select('user_id');
+
+                let activeStudents = 0;
+                if (!studentsErr && studentsData) {
+                    const unique = new Set(studentsData.map(s => s.user_id));
+                    activeStudents = unique.size;
+                }
+
+                // 3. Records with management_plan not empty (Ward Round Ready)
+                const { count: complete, error: completeErr } = await adminSupabase
+                    .from('pediatric_encounters')
+                    .select('*', { count: 'exact', head: true })
+                    .not('management_plan', 'is', null)
+                    .not('management_plan', 'eq', '');
+
+                const completeCount = complete || 0;
+                const percentReady = total ? Math.round((completeCount / total) * 100) : 0;
+
+                // 4. Records missing HPC or exam_data (Needs Review)
+                const { count: missing, error: missingErr } = await adminSupabase
+                    .from('pediatric_encounters')
+                    .select('*', { count: 'exact', head: true })
+                    .or('hpc.is.null,hpc.eq.,exam_data.is.null');
+
+                // Update DOM
+                document.getElementById('totalPatientsValue').innerText = total || 0;
+                document.getElementById('activeStudentsValue').innerText = activeStudents;
+                document.getElementById('completePercentValue').innerHTML = `${percentReady}%`;
+                document.getElementById('needsReviewValue').innerText = missing || 0;
+
+            } catch (err) {
+                console.error('Error loading dashboard stats:', err);
+                document.getElementById('totalPatientsValue').innerText = 'Error';
+                document.getElementById('activeStudentsValue').innerText = 'Error';
+                document.getElementById('completePercentValue').innerHTML = 'Error';
+                document.getElementById('needsReviewValue').innerText = 'Error';
+            }
+        }
+
+        async function loadRecentPatients() {
+            const tbody = document.getElementById('recentPatientsBody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+
+            try {
+                const { data, error } = await adminSupabase
+                    .from('pediatric_encounters')
+                    .select('child_name, user_id, current_symptom, management_plan, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No patient records found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                for (let rec of data) {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).innerText = rec.child_name || '—';
+                    // Show short user_id (or you could fetch student name from a users table)
+                    const shortUserId = rec.user_id ? rec.user_id.slice(0, 8) + '…' : '—';
+                    row.insertCell(1).innerText = shortUserId;
+                    row.insertCell(2).innerText = rec.current_symptom || '—';
+                    const hasPlan = rec.management_plan && rec.management_plan.trim() !== '';
+                    row.insertCell(3).innerText = hasPlan ? 'Yes' : 'No';
+                    const statusClass = hasPlan ? 'good' : 'warn';
+                    const statusText = hasPlan ? 'Ready' : 'Pending';
+                    row.insertCell(4).innerHTML = `<span class="status ${statusClass}">${statusText}</span>`;
+                }
+            } catch (err) {
+                console.error('Error loading recent patients:', err);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Failed to load data</td></tr>';
+            }
+        }
+
+        async function loadRecentActivity() {
+            const activityContainer = document.getElementById('activityList');
+            activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Loading activity...</strong><span>Please wait</span></div></div>';
+
+            try {
+                // Fetch the 5 most recently created records to mimic "activity"
+                const { data, error } = await adminSupabase
+                    .from('pediatric_encounters')
+                    .select('child_name, created_at, user_id')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>No recent activity</strong><span>No records have been saved yet</span></div></div>';
+                    return;
+                }
+
+                activityContainer.innerHTML = '';
+                for (let act of data) {
+                    const date = new Date(act.created_at).toLocaleString();
+                    const shortUser = act.user_id ? act.user_id.slice(0,8) : 'Unknown';
+                    const div = document.createElement('div');
+                    div.className = 'activity';
+                    div.innerHTML = `
+                        <div class="dot"></div>
+                        <div><strong>New patient record</strong><span>${act.child_name || 'Unnamed'} clerked by ${shortUser} on ${date}</span></div>
+                    `;
+                    activityContainer.appendChild(div);
+                }
+            } catch (err) {
+                console.error('Error loading activity:', err);
+                activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Could not load activity</strong><span>Please refresh the page</span></div></div>';
+            }
+        }
+
+        // ========== ADMIN AUTHENTICATION ==========
         function showAdmin(user) {
             const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
             document.getElementById('adminUserName').textContent  = displayName;
@@ -641,6 +730,11 @@
             document.getElementById('accessLock').style.display   = 'none';
             document.getElementById('adminAuthBar').style.display = 'flex';
             document.getElementById('adminShell').style.display   = 'grid';
+
+            // Load real data after showing dashboard
+            loadDashboardStats();
+            loadRecentPatients();
+            loadRecentActivity();
         }
 
         function showAccessDenied() {
