@@ -939,16 +939,23 @@ function refreshROSCardState(key) {
             if (data?.referralStatus && data.referralStatus !== 'Self-referred') document.getElementById('referralDetails').style.display = 'block';
         }
         
-        async function savePatient() {
-    const name = document.getElementById('fullName').value.trim();
+      async function savePatient() {
+    const name = (document.getElementById('fullName').value || '').trim();
     if (!name) { showToast('Enter patient name', '#e67e22'); return; }
 
-    const formData = captureFormData();  // this function already exists in your adult dashboard
-    const user = window._sb?.auth?.user() || currentUser;
+    // Generate clinical summary if not already present
+    if (!document.getElementById('clinicalSummary').innerHTML.trim()) generateClinicalSummary();
 
-    // 1. Save to Supabase (if logged in)
+    // 1. Capture form data (the existing captureFormData function in your adult dashboard)
+    const formData = captureFormData();
+
+    // 2. Save to Supabase (if logged in)
+    const user = window._sb?.auth?.user() || currentUser;
     if (user && window._sb) {
         try {
+            // Build the HIV OI array from checkboxes
+            const oiList = Array.from(document.querySelectorAll('#hivDetails input[type="checkbox"]:checked')).map(cb => cb.value);
+
             const { error } = await window._sb
                 .from('adult_encounters')
                 .insert({
@@ -956,26 +963,78 @@ function refreshROSCardState(key) {
                     full_name: formData.fullName,
                     age: formData.age,
                     gender: formData.gender,
+                    marital_status: formData.maritalStatus,
+                    occupation: formData.occupation,
+                    religion: formData.religion,
+                    tribe: formData.tribe,
+                    address: formData.address,
+                    next_of_kin: formData.nextOfKin,
+                    nearest_health_centre: formData.nearestHealthCentre,
+                    referral_status: formData.referralStatus,
+                    referral_from: formData.referralFrom,
+                    referral_reason: formData.referralReason,
                     current_symptom: formData._currentSymptom,
                     hpc: formData.hpc,
                     pmh: formData.pmh,
                     medications: formData.medications,
                     allergies: formData.allergies,
+                    hiv_status: formData.hivStatus,
+                    hiv_diagnosis_date: formData.hivDiagnosisDate,
+                    hiv_diagnosis_method: formData.hivDiagnosisMethod,
+                    hiv_who_stage: formData.hivWhoStage,
+                    hiv_on_art: formData.hivOnArt,
+                    hiv_art_start_date: formData.hivArtStartDate,
+                    hiv_art_regimen: formData.hivArtRegimen,
+                    hiv_adherence: formData.hivAdherence,
+                    hiv_missed_doses: formData.hivMissedDoses,
+                    hiv_adherence_barriers: formData.hivAdherenceBarriers,
+                    hiv_cd4: formData.hivCd4,
+                    hiv_cd4_date: formData.hivCd4Date,
+                    hiv_viral_load: formData.hivViralLoad,
+                    hiv_vl_date: formData.hivVlDate,
+                    hiv_opportunistic_infections: oiList,
+                    hiv_ipt: formData.hivIpt,
+                    hiv_cpt: formData.hivCpt,
+                    hiv_partner_status: formData.hivPartnerStatus,
                     ros_data: formData._rosData,
-                    social: formData.social,
+                    social_history: formData.social,
                     family_history: formData.familyHistory,
+                    management_plan: formData.managementPlan,
                     created_at: new Date().toISOString()
                 });
-            if (error) throw error;
-            showToast('Record saved to cloud + local', '#2c6e49');
+            if (error) {
+                console.error('Supabase insert failed:', error);
+                showToast('Saved locally only (cloud sync failed): ' + error.message, '#e67e22');
+            } else {
+                console.log('Supabase insert succeeded');
+                showToast('Record saved to cloud + local', '#2c6e49');
+            }
         } catch (err) {
-            console.warn('Supabase insert failed:', err);
-            showToast('Saved locally only (cloud sync failed)', '#e67e22');
+            console.error('Supabase error:', err);
+            showToast('Saved locally only (offline mode): ' + err.message, '#e67e22');
         }
     } else {
         showToast('You are offline – saved locally only', '#e67e22');
     }
 
+    // 3. Save to localStorage (existing code – unchanged)
+    const records = getRecords();
+    const userEmail = localStorage.getItem('easemed_user') || 'unknown';
+    const existingIdx = records.findIndex(r => r.name.toLowerCase() === name.toLowerCase() && r.user === userEmail);
+    const record = {
+        id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
+        savedAt: new Date().toISOString(),
+        user: userEmail,
+        ...formData
+    };
+    if (existingIdx >= 0) records[existingIdx] = record;
+    else records.unshift(record);
+    saveRecords(records);
+
+    renderRecords();
+    showToast('Record saved', '#27ae60');
+    generateClinicalSummary();
+}
     // 2. Save to localStorage (existing code)
     const records = getRecords();
     const userEmail = localStorage.getItem('easemed_user') || 'unknown';
