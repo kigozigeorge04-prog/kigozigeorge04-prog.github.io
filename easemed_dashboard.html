@@ -939,23 +939,19 @@ function refreshROSCardState(key) {
             if (data?.referralStatus && data.referralStatus !== 'Self-referred') document.getElementById('referralDetails').style.display = 'block';
         }
         
-      async function savePatient() {
+   async function savePatient() {
     const name = (document.getElementById('fullName').value || '').trim();
     if (!name) { showToast('Enter patient name', '#e67e22'); return; }
 
-    // Generate clinical summary if not already present
     if (!document.getElementById('clinicalSummary').innerHTML.trim()) generateClinicalSummary();
 
-    // 1. Capture form data (the existing captureFormData function in your adult dashboard)
     const formData = captureFormData();
-
-    // 2. Save to Supabase (if logged in)
     const user = window._sb?.auth?.user() || currentUser;
+
+    // 1. Save to Supabase
     if (user && window._sb) {
         try {
-            // Build the HIV OI array from checkboxes
             const oiList = Array.from(document.querySelectorAll('#hivDetails input[type="checkbox"]:checked')).map(cb => cb.value);
-
             const { error } = await window._sb
                 .from('adult_encounters')
                 .insert({
@@ -1017,6 +1013,24 @@ function refreshROSCardState(key) {
         showToast('You are offline – saved locally only', '#e67e22');
     }
 
+    // 2. Save to localStorage (existing code – unchanged)
+    const records = getRecords();
+    const userEmail = localStorage.getItem('easemed_user') || 'unknown';
+    const existingIdx = records.findIndex(r => r.name.toLowerCase() === name.toLowerCase() && r.user === userEmail);
+    const record = {
+        id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
+        savedAt: new Date().toISOString(),
+        user: userEmail,
+        ...formData
+    };
+    if (existingIdx >= 0) records[existingIdx] = record;
+    else records.unshift(record);
+    saveRecords(records);
+
+    renderRecords();
+    showToast('Record saved', '#27ae60');
+    generateClinicalSummary();
+}
     // 3. Save to localStorage (existing code – unchanged)
     const records = getRecords();
     const userEmail = localStorage.getItem('easemed_user') || 'unknown';
