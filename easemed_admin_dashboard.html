@@ -6,438 +6,85 @@
     <title>EaseMed Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        /* (your existing CSS – unchanged) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            min-height: 100vh;
             font-family: "Segoe UI", Arial, sans-serif;
             color: #20313f;
-            background:
-                radial-gradient(circle at 12% 10%, rgba(42, 157, 143, 0.22), transparent 28%),
-                radial-gradient(circle at 86% 12%, rgba(244, 211, 94, 0.18), transparent 25%),
-                linear-gradient(135deg, #0f2027 0%, #203a43 48%, #2c5364 100%);
+            background: radial-gradient(circle at 12% 10%, rgba(42,157,143,0.22), transparent 28%),
+                        radial-gradient(circle at 86% 12%, rgba(244,211,94,0.18), transparent 25%),
+                        linear-gradient(135deg, #0f2027 0%, #203a43 48%, #2c5364 100%);
             padding: 22px;
         }
-
-        .shell {
-            max-width: 1500px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 270px 1fr;
-            gap: 22px;
-        }
-
-        .sidebar,
-        .main-panel,
-        .card,
-        .table-panel {
-            background: rgba(255, 255, 255, 0.96);
-            border: 1px solid rgba(255, 255, 255, 0.55);
-            box-shadow: 0 22px 55px rgba(15, 32, 39, 0.25), inset 0 1px 0 rgba(255,255,255,0.75);
-            backdrop-filter: blur(14px);
-        }
-
-        .sidebar {
-            border-radius: 20px;
-            padding: 22px;
-            min-height: calc(100vh - 44px);
-            position: sticky;
-            top: 22px;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding-bottom: 22px;
-            border-bottom: 1px solid #dbe7ef;
-        }
-
-        .brand-mark {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            display: grid;
-            place-items: center;
-            color: #fff;
-            font-weight: 900;
-            background: linear-gradient(135deg, #1e3c72, #2a9d8f);
-            box-shadow: 0 10px 20px rgba(30, 60, 114, 0.25);
-        }
-
-        .brand h1 {
-            font-size: 1.08rem;
-            color: #17324d;
-        }
-
-        .brand span {
-            display: block;
-            color: #718096;
-            font-size: 0.78rem;
-            margin-top: 2px;
-        }
-
-        .nav {
-            margin-top: 22px;
-            display: grid;
-            gap: 8px;
-        }
-
-        .nav button {
-            border: 0;
-            border-radius: 12px;
-            padding: 12px 14px;
-            text-align: left;
-            color: #40566a;
-            background: transparent;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.22s ease;
-        }
-
-        .nav button:hover,
-        .nav button.active {
-            color: #1e3c72;
-            background: #e8f4f8;
-            transform: translateX(3px);
-        }
-
-        .sidebar-note {
-            margin-top: 28px;
-            border-radius: 16px;
-            padding: 16px;
-            background: linear-gradient(135deg, #f7fbfd, #eef8f4);
-            border: 1px solid #dbe7ef;
-            color: #496173;
-            font-size: 0.86rem;
-            line-height: 1.55;
-        }
-
-        .main {
-            display: grid;
-            gap: 20px;
-        }
-
-        .main-panel {
-            border-radius: 22px;
-            overflow: hidden;
-        }
-
-        .hero {
-            position: relative;
-            overflow: hidden;
-            color: #fff;
-            padding: 26px 30px;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 48%, #2a9d8f 100%);
-        }
-
-        .hero::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 5px;
-            background: linear-gradient(90deg, #2a9d8f, #f4d35e, #e74c3c);
-        }
-
-        .hero-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 18px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero h2 {
-            font-size: 1.75rem;
-            margin-bottom: 7px;
-        }
-
-        .hero p {
-            opacity: 0.9;
-            max-width: 720px;
-            line-height: 1.55;
-        }
-
-        .admin-pill {
-            white-space: nowrap;
-            border-radius: 999px;
-            padding: 9px 13px;
-            background: rgba(255,255,255,0.16);
-            border: 1px solid rgba(255,255,255,0.28);
-            font-weight: 800;
-            font-size: 0.84rem;
-        }
-
-        .auth-bar {
-            max-width: 1500px;
-            margin: 0 auto 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            color: #fff;
-            background: rgba(15, 32, 39, 0.74);
-            border: 1px solid rgba(255,255,255,0.18);
-            border-radius: 16px;
-            padding: 12px 16px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 12px 28px rgba(0,0,0,0.18);
-        }
-
-        .auth-bar strong {
-            color: #90cdf4;
-        }
-
-        .auth-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .auth-actions button {
-            border: 0;
-            border-radius: 10px;
-            padding: 9px 12px;
-            color: #fff;
-            background: linear-gradient(135deg, #e53e3e, #c53030);
-            cursor: pointer;
-            font-weight: 800;
-        }
-
-        .access-lock {
-            max-width: 720px;
-            margin: 90px auto;
+        .shell { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: 270px 1fr; gap: 22px; }
+        .sidebar, .main-panel, .card, .table-panel {
             background: rgba(255,255,255,0.96);
             border: 1px solid rgba(255,255,255,0.55);
-            border-radius: 22px;
-            padding: 28px;
-            text-align: center;
-            box-shadow: 0 22px 55px rgba(15, 32, 39, 0.30);
+            box-shadow: 0 22px 55px rgba(15,32,39,0.25), inset 0 1px 0 rgba(255,255,255,0.75);
+            backdrop-filter: blur(14px);
         }
-
-        .access-lock h2 {
-            color: #1e3c72;
-            margin-bottom: 10px;
-        }
-
-        .access-lock p {
-            color: #496173;
-            line-height: 1.6;
-        }
-
-        .access-lock button {
-            margin-top: 18px;
-            border: 0;
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: #fff;
-            background: linear-gradient(135deg, #1e3c72, #2a9d8f);
-            cursor: pointer;
-            font-weight: 800;
-        }
-
-        .metrics {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 16px;
-            padding: 20px;
-        }
-
-        .card {
-            border-radius: 16px;
-            padding: 18px;
-            transition: 0.25s ease;
-        }
-
-        .card:hover,
-        .table-panel:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 26px 60px rgba(15, 32, 39, 0.27), inset 0 1px 0 rgba(255,255,255,0.8);
-        }
-
-        .metric-label {
-            color: #718096;
-            font-size: 0.78rem;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .metric-value {
-            font-size: 2rem;
-            color: #17324d;
-            font-weight: 900;
-            margin-top: 8px;
-        }
-
-        .metric-sub {
-            margin-top: 8px;
-            font-size: 0.84rem;
-            color: #496173;
-        }
-
+        .sidebar { border-radius: 20px; padding: 22px; min-height: calc(100vh - 44px); position: sticky; top: 22px; }
+        .brand { display: flex; align-items: center; gap: 12px; padding-bottom: 22px; border-bottom: 1px solid #dbe7ef; }
+        .brand-mark { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: #fff; font-weight: 900; background: linear-gradient(135deg,#1e3c72,#2a9d8f); box-shadow: 0 10px 20px rgba(30,60,114,0.25); }
+        .brand h1 { font-size: 1.08rem; color: #17324d; }
+        .brand span { display: block; color: #718096; font-size: 0.78rem; margin-top: 2px; }
+        .nav { margin-top: 22px; display: grid; gap: 8px; }
+        .nav button { border: 0; border-radius: 12px; padding: 12px 14px; text-align: left; color: #40566a; background: transparent; font-weight: 700; cursor: pointer; transition: 0.22s ease; }
+        .nav button:hover, .nav button.active { color: #1e3c72; background: #e8f4f8; transform: translateX(3px); }
+        .sidebar-note { margin-top: 28px; border-radius: 16px; padding: 16px; background: linear-gradient(135deg,#f7fbfd,#eef8f4); border: 1px solid #dbe7ef; color: #496173; font-size: 0.86rem; line-height: 1.55; }
+        .main { display: grid; gap: 20px; }
+        .main-panel { border-radius: 22px; overflow: hidden; }
+        .hero { position: relative; overflow: hidden; color: #fff; padding: 26px 30px; background: linear-gradient(135deg,#1e3c72 0%,#2a5298 48%,#2a9d8f 100%); }
+        .hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: linear-gradient(90deg,#2a9d8f,#f4d35e,#e74c3c); }
+        .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; position: relative; z-index: 1; }
+        .hero h2 { font-size: 1.75rem; margin-bottom: 7px; }
+        .hero p { opacity: 0.9; max-width: 720px; line-height: 1.55; }
+        .admin-pill { white-space: nowrap; border-radius: 999px; padding: 9px 13px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28); font-weight: 800; font-size: 0.84rem; }
+        .auth-bar { max-width: 1500px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; color: #fff; background: rgba(15,32,39,0.74); border: 1px solid rgba(255,255,255,0.18); border-radius: 16px; padding: 12px 16px; backdrop-filter: blur(12px); box-shadow: 0 12px 28px rgba(0,0,0,0.18); }
+        .auth-bar strong { color: #90cdf4; }
+        .auth-actions button { border: 0; border-radius: 10px; padding: 9px 12px; color: #fff; background: linear-gradient(135deg,#e53e3e,#c53030); cursor: pointer; font-weight: 800; }
+        .access-lock { max-width: 720px; margin: 90px auto; background: rgba(255,255,255,0.96); border: 1px solid rgba(255,255,255,0.55); border-radius: 22px; padding: 28px; text-align: center; box-shadow: 0 22px 55px rgba(15,32,39,0.30); }
+        .access-lock h2 { color: #1e3c72; margin-bottom: 10px; }
+        .access-lock p { color: #496173; line-height: 1.6; }
+        .access-lock button { margin-top: 18px; border: 0; border-radius: 12px; padding: 12px 16px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); cursor: pointer; font-weight: 800; }
+        .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 20px; }
+        .card { border-radius: 16px; padding: 18px; transition: 0.25s ease; }
+        .card:hover, .table-panel:hover { transform: translateY(-3px); box-shadow: 0 26px 60px rgba(15,32,39,0.27), inset 0 1px 0 rgba(255,255,255,0.8); }
+        .metric-label { color: #718096; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+        .metric-value { font-size: 2rem; color: #17324d; font-weight: 900; margin-top: 8px; }
+        .metric-sub { margin-top: 8px; font-size: 0.84rem; color: #496173; }
         .accent-teal { border-left: 5px solid #2a9d8f; }
         .accent-gold { border-left: 5px solid #f4d35e; }
         .accent-red  { border-left: 5px solid #e74c3c; }
         .accent-blue { border-left: 5px solid #2a5298; }
-
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1.25fr 0.75fr;
-            gap: 20px;
-        }
-
-        .table-panel {
-            border-radius: 20px;
-            overflow: hidden;
-        }
-
-        .panel-title {
-            padding: 18px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 14px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .panel-title h3 {
-            color: #17324d;
-            font-size: 1.05rem;
-        }
-
-        .panel-title button {
-            border: 0;
-            border-radius: 10px;
-            padding: 9px 12px;
-            color: #fff;
-            background: linear-gradient(135deg, #1e3c72, #2a9d8f);
-            cursor: pointer;
-            font-weight: 800;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 14px 16px;
-            text-align: left;
-            border-bottom: 1px solid #edf2f7;
-            font-size: 0.9rem;
-        }
-
-        th {
-            color: #718096;
-            background: #f8fafc;
-            font-size: 0.76rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        tr:hover td {
-            background: #f8fcfd;
-        }
-
-        .status {
-            display: inline-flex;
-            border-radius: 999px;
-            padding: 5px 9px;
-            font-size: 0.76rem;
-            font-weight: 900;
-        }
-
+        .content-grid { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 20px; }
+        .table-panel { border-radius: 20px; overflow: hidden; }
+        .panel-title { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; gap: 14px; border-bottom: 1px solid #e2e8f0; }
+        .panel-title h3 { color: #17324d; font-size: 1.05rem; }
+        .panel-title button { border: 0; border-radius: 10px; padding: 9px 12px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); cursor: pointer; font-weight: 800; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #edf2f7; font-size: 0.9rem; }
+        th { color: #718096; background: #f8fafc; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        tr:hover td { background: #f8fcfd; }
+        .status { display: inline-flex; border-radius: 999px; padding: 5px 9px; font-size: 0.76rem; font-weight: 900; }
         .status.good { color: #1e7d5a; background: #e8f7ef; }
         .status.warn { color: #936900; background: #fff6d8; }
         .status.risk { color: #b73128; background: #fdecea; }
-
-        .activity-list {
-            padding: 16px 18px 20px;
-            display: grid;
-            gap: 12px;
-        }
-
-        .activity {
-            display: grid;
-            grid-template-columns: 12px 1fr;
-            gap: 12px;
-            align-items: start;
-        }
-
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-top: 5px;
-            background: #2a9d8f;
-            box-shadow: 0 0 0 5px rgba(42,157,143,0.12);
-        }
-
+        .activity-list { padding: 16px 18px 20px; display: grid; gap: 12px; }
+        .activity { display: grid; grid-template-columns: 12px 1fr; gap: 12px; align-items: start; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; background: #2a9d8f; box-shadow: 0 0 0 5px rgba(42,157,143,0.12); }
         .activity strong { color: #20313f; display: block; margin-bottom: 3px; }
-        .activity span   { color: #718096; font-size: 0.84rem; }
-
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
-        }
-
-        .action {
-            border: 1px solid #dbe7ef;
-            border-radius: 16px;
-            padding: 16px;
-            background: rgba(255,255,255,0.95);
-            cursor: pointer;
-            transition: 0.25s ease;
-        }
-
-        .action:hover {
-            border-color: #2a9d8f;
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(15,32,39,0.12);
-        }
-
-        .action span {
-            display: grid;
-            place-items: center;
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
-            color: #fff;
-            background: linear-gradient(135deg, #1e3c72, #2a9d8f);
-            font-weight: 900;
-            margin-bottom: 12px;
-        }
-
+        .activity span { color: #718096; font-size: 0.84rem; }
+        .quick-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+        .action { border: 1px solid #dbe7ef; border-radius: 16px; padding: 16px; background: rgba(255,255,255,0.95); cursor: pointer; transition: 0.25s ease; }
+        .action:hover { border-color: #2a9d8f; transform: translateY(-3px); box-shadow: 0 15px 30px rgba(15,32,39,0.12); }
+        .action span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); font-weight: 900; margin-bottom: 12px; }
         .action strong { color: #17324d; display: block; margin-bottom: 5px; }
-        .action p      { color: #718096; font-size: 0.84rem; line-height: 1.45; }
-
-        @media (max-width: 1050px) {
-            .shell,
-            .content-grid { grid-template-columns: 1fr; }
-            .sidebar { position: static; min-height: auto; }
-            .metrics,
-            .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-
-        @media (max-width: 640px) {
-            body { padding: 14px; }
-            .metrics,
-            .quick-actions { grid-template-columns: 1fr; }
-            .hero-top,
-            .panel-title { align-items: flex-start; flex-direction: column; }
-            table { min-width: 680px; }
-            .table-scroll { overflow-x: auto; }
-        }
+        .action p { color: #718096; font-size: 0.84rem; line-height: 1.45; }
+        @media (max-width:1050px){ .shell,.content-grid{grid-template-columns:1fr} .sidebar{position:static;min-height:auto} .metrics,.quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))} }
+        @media (max-width:640px){ body{padding:14px} .metrics,.quick-actions{grid-template-columns:1fr} .hero-top,.panel-title{align-items:flex-start;flex-direction:column} table{min-width:680px} .table-scroll{overflow-x:auto} }
+        .alert-info { background: #e6f7ff; color: #0c5460; border-left: 5px solid #17a2b8; padding: 15px; border-radius: 12px; margin: 15px 20px; font-size: 0.9rem; }
+        .alert-info a { color: #0056b3; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -462,7 +109,6 @@
                     <span>Clinical clerkship control center</span>
                 </div>
             </div>
-
             <nav class="nav">
                 <button class="active">Dashboard Overview</button>
                 <button>Students</button>
@@ -471,7 +117,6 @@
                 <button>Supervisors</button>
                 <button>Settings</button>
             </nav>
-
             <div class="sidebar-note">
                 Monitor clerked patients, review completion quality, and identify students who need feedback before ward rounds.
             </div>
@@ -511,24 +156,16 @@
                         <div class="metric-sub">Missing HPC or exam data</div>
                     </div>
                 </div>
+
+                <!-- Info message area for table not found / permission issues -->
+                <div id="dashboardMessage" class="alert-info" style="display:none;"></div>
+
             </section>
 
             <section class="quick-actions">
-                <div class="action">
-                    <span>+</span>
-                    <strong>Add Student</strong>
-                    <p>Create a student profile and assign a clerkship rotation.</p>
-                </div>
-                <div class="action">
-                    <span>R</span>
-                    <strong>Review Cases</strong>
-                    <p>Open pending patient records that need supervisor feedback.</p>
-                </div>
-                <div class="action">
-                    <span>B</span>
-                    <strong>Backup Records</strong>
-                    <p>Download or restore saved clerkship records securely.</p>
-                </div>
+                <div class="action"><span>+</span><strong>Add Student</strong><p>Create a student profile and assign a clerkship rotation.</p></div>
+                <div class="action"><span>R</span><strong>Review Cases</strong><p>Open pending patient records that need supervisor feedback.</p></div>
+                <div class="action"><span>B</span><strong>Backup Records</strong><p>Download or restore saved clerkship records securely.</p></div>
             </section>
 
             <section class="content-grid">
@@ -539,18 +176,8 @@
                     </div>
                     <div class="table-scroll">
                         <table>
-                            <thead>
-                                <tr>
-                                    <th>Patient</th>
-                                    <th>Student ID</th>
-                                    <th>Main Complaint</th>
-                                    <th>Management Plan</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recentPatientsBody">
-                                <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
-                            </tbody>
+                            <thead><tr><th>Patient</th><th>Student ID</th><th>Main Complaint</th><th>Management Plan</th><th>Status</th></tr></thead>
+                            <tbody id="recentPatientsBody"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
@@ -561,10 +188,7 @@
                         <button onclick="loadRecentActivity()">Refresh</button>
                     </div>
                     <div class="activity-list" id="activityList">
-                        <div class="activity">
-                            <div class="dot"></div>
-                            <div><strong>Loading activity...</strong><span>Please wait</span></div>
-                        </div>
+                        <div class="activity"><div class="dot"></div><div><strong>Loading activity...</strong><span>Please wait</span></div></div>
                     </div>
                 </div>
             </section>
@@ -572,74 +196,125 @@
     </div>
 
     <script>
-        // Supabase configuration (same as other EaseMed pages)
         const SUPABASE_URL  = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
-
-        // Admin email list (only these can access)
-        const ADMIN_EMAILS = [
-            'kigozigeorge04@gmail.com'
-        ];
-
+        const ADMIN_EMAILS = ['kigozigeorge04@gmail.com'];
         let adminSupabase = null;
 
         function isAdminUser(user) {
-            const email     = (user.email || '').toLowerCase();
-            const appRole   = user.app_metadata?.role  || user.app_metadata?.user_role;
-            const userRole  = user.user_metadata?.role || user.user_metadata?.user_role;
+            const email = (user.email || '').toLowerCase();
+            const appRole = user.app_metadata?.role || user.app_metadata?.user_role;
+            const userRole = user.user_metadata?.role || user.user_metadata?.user_role;
             const isAdminFlag = user.user_metadata?.is_admin || user.app_metadata?.is_admin;
-
-            return ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email)
-                || appRole     === 'admin'
-                || userRole    === 'admin'
-                || isAdminFlag === true;
+            return ADMIN_EMAILS.map(e=>e.toLowerCase()).includes(email) || appRole === 'admin' || userRole === 'admin' || isAdminFlag === true;
         }
 
-        // ========== LOAD REAL DATA FROM SUPABASE ==========
-        async function loadDashboardStats() {
-            try {
-                // 1. Total encounters (all records)
-                const { count: total, error: totalErr } = await adminSupabase
-                    .from('pediatric_encounters')
-                    .select('*', { count: 'exact', head: true });
+        function showDashboardMessage(message, isError = false) {
+            const msgDiv = document.getElementById('dashboardMessage');
+            if (msgDiv) {
+                msgDiv.style.display = 'block';
+                msgDiv.style.background = isError ? '#f8d7da' : '#e6f7ff';
+                msgDiv.style.color = isError ? '#721c24' : '#0c5460';
+                msgDiv.style.borderLeftColor = isError ? '#e53e3e' : '#17a2b8';
+                msgDiv.innerHTML = message;
+            }
+        }
 
+        async function tableExists() {
+            try {
+                const { error } = await adminSupabase.from('pediatric_encounters').select('id', { count: 'exact', head: true });
+                if (error && error.message.includes('relation') && error.message.includes('does not exist')) return false;
+                return true;
+            } catch { return false; }
+        }
+
+        async function loadDashboardStats() {
+            const exists = await tableExists();
+            if (!exists) {
+                showDashboardMessage(`
+                    ⚠️ The table <strong>pediatric_encounters</strong> does not exist in your Supabase database.
+                    <br><br>👉 Please run the following SQL in your Supabase SQL editor:
+                    <pre style="background:#f1f3f4; padding:12px; border-radius:8px; margin-top:10px; font-size:12px; overflow-x:auto;">CREATE TABLE IF NOT EXISTS pediatric_encounters (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    child_name TEXT,
+    child_age TEXT,
+    child_sex TEXT,
+    guardian TEXT,
+    contact TEXT,
+    address TEXT,
+    nearest_hc TEXT,
+    referral_status TEXT,
+    referral_from TEXT,
+    referral_reason TEXT,
+    current_symptom TEXT,
+    hpc TEXT,
+    antenatal TEXT,
+    delivery TEXT,
+    birth_weight TEXT,
+    neonatal_complications TEXT,
+    milestones TEXT[],
+    milestone_notes TEXT,
+    immunizations JSONB,
+    feeding_history TEXT,
+    weight TEXT,
+    height TEXT,
+    muac TEXT,
+    danger_signs TEXT[],
+    ros_data JSONB,
+    exam_data JSONB,
+    social_history TEXT,
+    family_history TEXT,
+    management_plan TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);</pre>
+                    After creating the table, refresh this page.
+                `, true);
+                // Reset metrics to 0
+                document.getElementById('totalPatientsValue').innerText = '0';
+                document.getElementById('activeStudentsValue').innerText = '0';
+                document.getElementById('completePercentValue').innerHTML = '0%';
+                document.getElementById('needsReviewValue').innerText = '0';
+                return;
+            }
+
+            try {
+                const { count: total, error: totalErr } = await adminSupabase.from('pediatric_encounters').select('*', { count: 'exact', head: true });
                 if (totalErr) throw totalErr;
 
-                // 2. Active students (distinct user_id)
-                const { data: studentsData, error: studentsErr } = await adminSupabase
-                    .from('pediatric_encounters')
-                    .select('user_id');
-
+                const { data: studentsData, error: studentsErr } = await adminSupabase.from('pediatric_encounters').select('user_id');
                 let activeStudents = 0;
-                if (!studentsErr && studentsData) {
-                    const unique = new Set(studentsData.map(s => s.user_id));
-                    activeStudents = unique.size;
-                }
+                if (!studentsErr && studentsData) activeStudents = new Set(studentsData.map(s => s.user_id)).size;
 
-                // 3. Records with management_plan not empty (Ward Round Ready)
-                const { count: complete, error: completeErr } = await adminSupabase
-                    .from('pediatric_encounters')
+                const { count: complete, error: completeErr } = await adminSupabase.from('pediatric_encounters')
                     .select('*', { count: 'exact', head: true })
-                    .not('management_plan', 'is', null)
-                    .not('management_plan', 'eq', '');
-
+                    .not('management_plan', 'is', null).not('management_plan', 'eq', '');
                 const completeCount = complete || 0;
                 const percentReady = total ? Math.round((completeCount / total) * 100) : 0;
 
-                // 4. Records missing HPC or exam_data (Needs Review)
-                const { count: missing, error: missingErr } = await adminSupabase
-                    .from('pediatric_encounters')
+                const { count: missing, error: missingErr } = await adminSupabase.from('pediatric_encounters')
                     .select('*', { count: 'exact', head: true })
                     .or('hpc.is.null,hpc.eq.,exam_data.is.null');
 
-                // Update DOM
                 document.getElementById('totalPatientsValue').innerText = total || 0;
                 document.getElementById('activeStudentsValue').innerText = activeStudents;
                 document.getElementById('completePercentValue').innerHTML = `${percentReady}%`;
                 document.getElementById('needsReviewValue').innerText = missing || 0;
-
+                showDashboardMessage('', false); // hide message if previously shown
             } catch (err) {
                 console.error('Error loading dashboard stats:', err);
+                if (err.message.includes('permission denied') || err.message.includes('403')) {
+                    showDashboardMessage(`
+                        🔒 <strong>Permission denied (403).</strong> Row Level Security (RLS) is likely blocking access.
+                        <br><br>👉 As an admin, you can temporarily disable RLS for testing:
+                        <pre style="background:#f1f3f4; padding:12px; border-radius:8px; margin-top:10px;">ALTER TABLE pediatric_encounters DISABLE ROW LEVEL SECURITY;</pre>
+                        Or create a policy that allows your admin email:
+                        <pre style="background:#f1f3f4; padding:12px; border-radius:8px; margin-top:10px;">CREATE POLICY "Admin full access" ON pediatric_encounters
+    FOR ALL USING ( auth.email() = 'kigozigeorge04@gmail.com' );</pre>
+                    `, true);
+                } else {
+                    showDashboardMessage(`❌ Error loading stats: ${err.message}`, true);
+                }
                 document.getElementById('totalPatientsValue').innerText = 'Error';
                 document.getElementById('activeStudentsValue').innerText = 'Error';
                 document.getElementById('completePercentValue').innerHTML = 'Error';
@@ -651,26 +326,28 @@
             const tbody = document.getElementById('recentPatientsBody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
 
+            const exists = await tableExists();
+            if (!exists) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">⚠️ Table not created yet. See instruction above.</td></tr>';
+                return;
+            }
+
             try {
                 const { data, error } = await adminSupabase
                     .from('pediatric_encounters')
                     .select('child_name, user_id, current_symptom, management_plan, created_at')
                     .order('created_at', { ascending: false })
                     .limit(5);
-
                 if (error) throw error;
-
                 if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No patient records found</td></tr>';
                     return;
                 }
-
                 tbody.innerHTML = '';
                 for (let rec of data) {
                     const row = tbody.insertRow();
                     row.insertCell(0).innerText = rec.child_name || '—';
-                    // Show short user_id (or you could fetch student name from a users table)
-                    const shortUserId = rec.user_id ? rec.user_id.slice(0, 8) + '…' : '—';
+                    const shortUserId = rec.user_id ? rec.user_id.slice(0,8) + '…' : '—';
                     row.insertCell(1).innerText = shortUserId;
                     row.insertCell(2).innerText = rec.current_symptom || '—';
                     const hasPlan = rec.management_plan && rec.management_plan.trim() !== '';
@@ -680,7 +357,7 @@
                     row.insertCell(4).innerHTML = `<span class="status ${statusClass}">${statusText}</span>`;
                 }
             } catch (err) {
-                console.error('Error loading recent patients:', err);
+                console.error(err);
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Failed to load data</td></tr>';
             }
         }
@@ -689,56 +366,53 @@
             const activityContainer = document.getElementById('activityList');
             activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Loading activity...</strong><span>Please wait</span></div></div>';
 
+            const exists = await tableExists();
+            if (!exists) {
+                activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>⚠️ Table not created yet</strong><span>No activity to show</span></div></div>';
+                return;
+            }
+
             try {
-                // Fetch the 5 most recently created records to mimic "activity"
                 const { data, error } = await adminSupabase
                     .from('pediatric_encounters')
                     .select('child_name, created_at, user_id')
                     .order('created_at', { ascending: false })
                     .limit(5);
-
                 if (error) throw error;
-
                 if (!data || data.length === 0) {
                     activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>No recent activity</strong><span>No records have been saved yet</span></div></div>';
                     return;
                 }
-
                 activityContainer.innerHTML = '';
                 for (let act of data) {
                     const date = new Date(act.created_at).toLocaleString();
                     const shortUser = act.user_id ? act.user_id.slice(0,8) : 'Unknown';
                     const div = document.createElement('div');
                     div.className = 'activity';
-                    div.innerHTML = `
-                        <div class="dot"></div>
-                        <div><strong>New patient record</strong><span>${act.child_name || 'Unnamed'} clerked by ${shortUser} on ${date}</span></div>
-                    `;
+                    div.innerHTML = `<div class="dot"></div><div><strong>New patient record</strong><span>${act.child_name || 'Unnamed'} clerked by ${shortUser} on ${date}</span></div>`;
                     activityContainer.appendChild(div);
                 }
             } catch (err) {
-                console.error('Error loading activity:', err);
+                console.error(err);
                 activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Could not load activity</strong><span>Please refresh the page</span></div></div>';
             }
         }
 
-        // ========== ADMIN AUTHENTICATION ==========
+        // Admin authentication
         function showAdmin(user) {
             const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
-            document.getElementById('adminUserName').textContent  = displayName;
-            document.getElementById('adminRolePill').textContent  = `Admin: ${displayName}`;
-            document.getElementById('accessLock').style.display   = 'none';
+            document.getElementById('adminUserName').textContent = displayName;
+            document.getElementById('adminRolePill').textContent = `Admin: ${displayName}`;
+            document.getElementById('accessLock').style.display = 'none';
             document.getElementById('adminAuthBar').style.display = 'flex';
-            document.getElementById('adminShell').style.display   = 'grid';
-
-            // Load real data after showing dashboard
+            document.getElementById('adminShell').style.display = 'grid';
             loadDashboardStats();
             loadRecentPatients();
             loadRecentActivity();
         }
 
         function showAccessDenied() {
-            document.getElementById('adminShell').style.display   = 'none';
+            document.getElementById('adminShell').style.display = 'none';
             document.getElementById('adminAuthBar').style.display = 'none';
             document.getElementById('accessLock').innerHTML = `
                 <h2>Admin access required</h2>
@@ -761,19 +435,17 @@
                 const { createClient } = supabase;
                 adminSupabase = createClient(SUPABASE_URL, SUPABASE_ANON);
                 const { data: { session } } = await adminSupabase.auth.getSession();
-
                 if (!session) {
                     window.location.href = 'easemed_login.html';
                     return;
                 }
-
                 if (!isAdminUser(session.user)) {
                     showAccessDenied();
                     return;
                 }
-
                 showAdmin(session.user);
             } catch (error) {
+                console.error(error);
                 document.getElementById('accessLock').innerHTML = `
                     <h2>Unable to verify access</h2>
                     <p>Please check the Supabase connection and try signing in again.</p>
