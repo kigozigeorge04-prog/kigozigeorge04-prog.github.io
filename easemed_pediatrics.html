@@ -205,22 +205,23 @@
             <h3>🩺 Presenting Complaint</h3>
             <label>Select or type the main symptom:</label>
             <div class="symptom-buttons" id="symptomButtons">
-               <button type="button" class="symptom-btn" data-symptom="fever" onclick="setSymptom('fever', this)">🌡️ Fever</button>
-<button type="button" class="symptom-btn" data-symptom="cough" onclick="setSymptom('cough', this)">🤧 Cough</button>
-<button type="button" class="symptom-btn" data-symptom="diarrhea" onclick="setSymptom('diarrhea', this)">💩 Diarrhoea/Vomiting</button>
-<button type="button" class="symptom-btn" data-symptom="poor feeding" onclick="setSymptom('poor feeding', this)">🍼 Poor feeding</button>
-<button type="button" class="symptom-btn" data-symptom="convulsions" onclick="setSymptom('convulsions', this)">⚠️ Convulsions</button>
-<button type="button" class="symptom-btn" data-symptom="rash" onclick="setSymptom('rash', this)">🔴 Skin rash</button>
-<button type="button" class="symptom-btn" data-symptom="jaundice" onclick="setSymptom('jaundice', this)">🟡 Jaundice</button>
-<button type="button" class="symptom-btn" data-symptom="pain" onclick="setSymptom('pain', this)">🩺 Pain (SOCRATES)</button>
-<button type="button" class="symptom-btn" data-symptom="difficulty breathing" onclick="setSymptom('difficulty breathing', this)">💨 Difficulty breathing</button>
-<button type="button" class="symptom-btn" data-symptom="swelling" onclick="setSymptom('swelling', this)">💧 Swelling</button>
-<button type="button" class="symptom-btn" data-symptom="lethargy" onclick="setSymptom('lethargy', this)">😴 Lethargy/irritability</button>
-<button type="button" class="symptom-btn" data-symptom="pallor" onclick="setSymptom('pallor', this)">🩸 Pallor (anaemia)</button>
-<button type="button" class="symptom-btn" data-symptom="neck stiffness" onclick="setSymptom('neck stiffness', this)">🦟 Neck stiffness</button>
-<button type="button" class="symptom-btn" data-symptom="ear discharge" onclick="setSymptom('ear discharge', this)">👂 Ear discharge</button>
-<button type="button" class="symptom-btn" data-symptom="oedema" onclick="setSymptom('oedema', this)">💧 Oedema (kwashiorkor)</button>     
-                <label style="margin-top:15px;">Or type your own symptom:</label>
+                <button type="button" class="symptom-btn" data-symptom="fever">🌡️ Fever</button>
+                <button type="button" class="symptom-btn" data-symptom="cough">🤧 Cough</button>
+                <button type="button" class="symptom-btn" data-symptom="diarrhea">💩 Diarrhoea/Vomiting</button>
+                <button type="button" class="symptom-btn" data-symptom="poor feeding">🍼 Poor feeding</button>
+                <button type="button" class="symptom-btn" data-symptom="convulsions">⚠️ Convulsions</button>
+                <button type="button" class="symptom-btn" data-symptom="rash">🔴 Skin rash</button>
+                <button type="button" class="symptom-btn" data-symptom="jaundice">🟡 Jaundice</button>
+                <button type="button" class="symptom-btn" data-symptom="pain">🩺 Pain (SOCRATES)</button>
+                <button type="button" class="symptom-btn" data-symptom="difficulty breathing">💨 Difficulty breathing</button>
+                <button type="button" class="symptom-btn" data-symptom="swelling">💧 Swelling</button>
+                <button type="button" class="symptom-btn" data-symptom="lethargy">😴 Lethargy/irritability</button>
+                <button type="button" class="symptom-btn" data-symptom="pallor">🩸 Pallor (anaemia)</button>
+                <button type="button" class="symptom-btn" data-symptom="neck stiffness">🦟 Neck stiffness</button>
+                <button type="button" class="symptom-btn" data-symptom="ear discharge">👂 Ear discharge</button>
+                <button type="button" class="symptom-btn" data-symptom="oedema">💧 Oedema (kwashiorkor)</button>
+            </div>
+            <label style="margin-top:15px;">Or type your own symptom:</label>
             <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
             <div id="dynamicQuestions" style="margin-top:15px;"></div>
         </div>
@@ -310,15 +311,11 @@
             </div>
         </div>
 
-     <div class="form-section" style="display: flex; gap: 12px; flex-wrap: wrap;">
-    <button class="btn-generate" onclick="generateClinicalSummary()">Generate Summary + Ward Round</button>
-         <button class="btn-generate" onclick="openDifferentials()" style="background:#8e44ad;">
-  🧠 AI Differentials
-</button>
-    <button class="btn-generate" onclick="savePatient()" style="background:#2c6e49;">Save Record</button>
-    <button class="btn-generate" onclick="resetForm()" style="background:#e67e22;">Reset Form</button>
-    <button class="btn-generate" onclick="openDifferentials()" style="background:#8e44ad;">🧠 AI Differentials</button>
-</div>
+        <div class="form-section" style="display: flex; gap: 12px;">
+            <button class="btn-generate" onclick="generateClinicalSummary()">Generate Summary + Ward Round</button>
+            <button class="btn-generate" onclick="savePatient()" style="background:#2c6e49;">Save Record</button>
+            <button class="btn-generate" onclick="resetForm()" style="background:#e67e22;">Reset Form</button>
+        </div>
     </div>
 
     <div class="guidance-panel">
@@ -785,12 +782,12 @@
             container.innerHTML = html;
         } else { container.innerHTML = `<div class="alert">Please describe the symptom in detail below.</div>`; }
     }
-  function setSymptom(symptom, btn) {
-    currentSymptom = symptom;
-    document.querySelectorAll('.symptom-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    document.getElementById('customSymptom').value = '';
-    displayQuestions(symptom);
+    function setSymptom(symptom) {
+        currentSymptom = symptom;
+        document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
+        if (event && event.target) event.target.classList.add('active');
+        document.getElementById('customSymptom').value = '';
+        displayQuestions(symptom);
         const guide = pediatricSymptomGuides[symptom];
         let guidanceHtml = '';
         if (guide) {
@@ -968,16 +965,13 @@
         }, 150);
     }
 
-   function highlightActiveSection(element) {
-    const section = element.closest('[data-section]');
-    if (!section) return;
-    document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active-section'));
-    section.classList.add('active-section');
-    const sectionKey = section.getAttribute('data-section');
-    // Don't overwrite guidance panel if a symptom guide is already showing
-    if (sectionKey === 'presenting-complaint' && currentSymptom) return;
-    updateGuidancePanel(sectionKey);
-}
+    function highlightActiveSection(element) {
+        const section = element.closest('[data-section]');
+        if (!section) return;
+        document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active-section'));
+        section.classList.add('active-section');
+        const sectionKey = section.getAttribute('data-section');
+        updateGuidancePanel(sectionKey);
     }
 
     // Event delegation
@@ -1355,15 +1349,6 @@
     window.addEventListener('input', updateProgress);
     document.querySelectorAll('.toggle-pill').forEach(p => p.addEventListener('click', updateProgress));
     document.getElementById('milestonesContainer').addEventListener('click', (e) => { if (e.target.classList && e.target.classList.contains('toggle-pill')) checkMilestoneWarnings(); });
-
-function openDifferentials() {
-    const popup = window.open('easemed_differentials.html', 'differentials',
-        'width=960,height=860,scrollbars=yes,resizable=yes');
-    popup.addEventListener('load', () => {
-        popup.currentSymptom = currentSymptom;
-    });
-}
-
 </script>
 </body>
 </html>
