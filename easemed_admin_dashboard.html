@@ -421,6 +421,30 @@
         .action strong { color: #17324d; display: block; margin-bottom: 5px; }
         .action p      { color: #718096; font-size: 0.84rem; line-height: 1.45; }
 
+        /* Tab styles */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            padding: 0 20px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+        .admin-tab {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #1e3c72;
+        }
+        .admin-tab.active {
+            background: #2a9d8f;
+            color: white;
+            box-shadow: 0 4px 12px rgba(42,157,143,0.3);
+        }
+
         @media (max-width: 1050px) {
             .shell,
             .content-grid { grid-template-columns: 1fr; }
@@ -487,6 +511,12 @@
                         </div>
                         <div class="admin-pill" id="adminRolePill">Admin Access</div>
                     </div>
+                </div>
+
+                <!-- Tab selector -->
+                <div class="tabs">
+                    <button id="tabPediatric" class="admin-tab active" onclick="switchTable('pediatric')">👶 Pediatric Encounters</button>
+                    <button id="tabAdult" class="admin-tab" onclick="switchTable('adult')">🧑 Adult Encounters</button>
                 </div>
 
                 <div class="metrics">
@@ -576,6 +606,7 @@
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
         const ADMIN_EMAILS = ['kigozigeorge04@gmail.com'];
         let adminSupabase = null;
+        let currentTable = 'pediatric'; // 'pediatric' or 'adult'
 
         function isAdminUser(user) {
             const email = (user.email || '').toLowerCase();
@@ -590,23 +621,23 @@
 
         // ========== LOAD REAL DATA FROM SUPABASE ==========
         async function loadDashboardStats() {
+            const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
             try {
                 const { count: total, error: totalErr } = await adminSupabase
-                    .from('pediatric_encounters')
+                    .from(tableName)
                     .select('*', { count: 'exact', head: true });
                 if (totalErr) throw totalErr;
 
                 const { data: studentsData, error: studentsErr } = await adminSupabase
-                    .from('pediatric_encounters')
+                    .from(tableName)
                     .select('user_id');
                 let activeStudents = 0;
                 if (!studentsErr && studentsData) {
-                    const unique = new Set(studentsData.map(s => s.user_id));
-                    activeStudents = unique.size;
+                    activeStudents = new Set(studentsData.map(s => s.user_id)).size;
                 }
 
                 const { count: complete, error: completeErr } = await adminSupabase
-                    .from('pediatric_encounters')
+                    .from(tableName)
                     .select('*', { count: 'exact', head: true })
                     .not('management_plan', 'is', null)
                     .not('management_plan', 'eq', '');
@@ -614,10 +645,9 @@
                 const percentReady = total ? Math.round((completeCount / total) * 100) : 0;
 
                 const { count: missing, error: missingErr } = await adminSupabase
-                    .from('pediatric_encounters')
+                    .from(tableName)
                     .select('*', { count: 'exact', head: true })
                     .or('hpc.is.null,hpc.eq.,exam_data.is.null');
-
                 document.getElementById('totalPatientsValue').innerText = total || 0;
                 document.getElementById('activeStudentsValue').innerText = activeStudents;
                 document.getElementById('completePercentValue').innerHTML = `${percentReady}%`;
@@ -632,24 +662,30 @@
         }
 
         async function loadRecentPatients() {
+            const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
             const tbody = document.getElementById('recentPatientsBody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+            tbody.innerHTML = '<td><td colspan="5" style="text-align:center;">Loading...</td></tr>';
 
             try {
-                const { data: encounters, error } = await adminSupabase
-                    .from('pediatric_encounters')
-                    .select('child_name, user_id, current_symptom, management_plan, created_at')
+                let selectFields;
+                if (currentTable === 'pediatric') {
+                    selectFields = 'child_name, user_id, current_symptom, management_plan, created_at';
+                } else {
+                    selectFields = 'full_name, user_id, current_symptom, management_plan, created_at';
+                }
+                const { data: records, error } = await adminSupabase
+                    .from(tableName)
+                    .select(selectFields)
                     .order('created_at', { ascending: false })
                     .limit(10);
                 if (error) throw error;
 
-                if (!encounters || encounters.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No patient records found</td></tr>';
+                if (!records || records.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found</td></tr>';
                     return;
                 }
 
-                // Get unique user_ids and fetch profiles
-                const userIds = [...new Set(encounters.map(e => e.user_id))];
+                const userIds = [...new Set(records.map(r => r.user_id))];
                 const { data: profiles, error: profilesError } = await adminSupabase
                     .from('profiles')
                     .select('id, name, email')
@@ -662,9 +698,10 @@
                 }
 
                 tbody.innerHTML = '';
-                for (let rec of encounters) {
+                for (let rec of records) {
                     const row = tbody.insertRow();
-                    row.insertCell(0).innerText = rec.child_name || '—';
+                    const patientName = currentTable === 'pediatric' ? rec.child_name : rec.full_name;
+                    row.insertCell(0).innerText = patientName || '—';
                     const studentName = userMap.get(rec.user_id) || 'Unknown';
                     row.insertCell(1).innerText = studentName;
                     row.insertCell(2).innerText = rec.current_symptom || '—';
@@ -681,13 +718,20 @@
         }
 
         async function loadRecentActivity() {
+            const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
             const activityContainer = document.getElementById('activityList');
             activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Loading activity...</strong><span>Please wait</span></div></div>';
 
             try {
+                let selectFields;
+                if (currentTable === 'pediatric') {
+                    selectFields = 'child_name, created_at, user_id';
+                } else {
+                    selectFields = 'full_name, created_at, user_id';
+                }
                 const { data: activities, error } = await adminSupabase
-                    .from('pediatric_encounters')
-                    .select('child_name, created_at, user_id')
+                    .from(tableName)
+                    .select(selectFields)
                     .order('created_at', { ascending: false })
                     .limit(5);
                 if (error) throw error;
@@ -697,7 +741,6 @@
                     return;
                 }
 
-                // Fetch profile names
                 const userIds = [...new Set(activities.map(a => a.user_id))];
                 const { data: profiles } = await adminSupabase
                     .from('profiles')
@@ -710,18 +753,25 @@
                 for (let act of activities) {
                     const date = new Date(act.created_at).toLocaleString();
                     const studentName = userMap.get(act.user_id) || act.user_id?.slice(0,8) || 'Unknown';
+                    const patientName = currentTable === 'pediatric' ? act.child_name : act.full_name;
                     const div = document.createElement('div');
                     div.className = 'activity';
-                    div.innerHTML = `
-                        <div class="dot"></div>
-                        <div><strong>New patient record</strong><span>${act.child_name || 'Unnamed'} clerked by ${studentName} on ${date}</span></div>
-                    `;
+                    div.innerHTML = `<div class="dot"></div><div><strong>New patient record</strong><span>${patientName || 'Unnamed'} clerked by ${studentName} on ${date}</span></div>`;
                     activityContainer.appendChild(div);
                 }
             } catch (err) {
                 console.error('Error loading activity:', err);
                 activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Could not load activity</strong><span>Please refresh the page</span></div></div>';
             }
+        }
+
+        function switchTable(table) {
+            currentTable = table;
+            document.getElementById('tabPediatric').classList.toggle('active', table === 'pediatric');
+            document.getElementById('tabAdult').classList.toggle('active', table === 'adult');
+            loadDashboardStats();
+            loadRecentPatients();
+            loadRecentActivity();
         }
 
         // ========== ADMIN AUTHENTICATION ==========
