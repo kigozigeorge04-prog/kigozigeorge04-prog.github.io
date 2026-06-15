@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
+        /* ======= EXISTING STYLES (unchanged – full) ======= */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
@@ -209,27 +210,49 @@
         }
         .exam-step-label:first-child { border-top: none; margin-top: 0; }
 
-      .clue-pill {
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    border-radius: 20px;
-    padding: 4px 10px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: #1e293b;
-    margin: 3px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: inline-block;
-}
-.clue-pill.selected {
-    background: #2a9d8f;
-    border-color: #2a9d8f;
-    color: white;
-}
-.clue-pill:hover:not(.selected) {
-    background: #cbd5e1;
-}  
+        .clue-pill {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #1e293b;
+            margin: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+        .clue-pill.selected {
+            background: #2a9d8f;
+            border-color: #2a9d8f;
+            color: white;
+        }
+        .clue-pill:hover:not(.selected) {
+            background: #cbd5e1;
+        }
+        /* HIV expand toggle style */
+        .expand-hiv {
+            background: linear-gradient(135deg, #fef5e7 0%, #fdebd0 100%);
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .expand-hiv:hover { background: linear-gradient(135deg, #fdebd0 0%, #fadbd8 100%); }
+        .hiv-details { display: none; margin-top: 15px; padding: 15px; background: white; border-radius: 12px; }
+        .hiv-details.active { display: block; }
+        /* Extra textbox for symptom notes */
+        .symptom-extra-note {
+            margin-top: 8px;
+            width: 100%;
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -291,6 +314,54 @@
         <div class="form-section" data-section="hpc">
             <h3>📝 History of Presenting Complaint (HPC)</h3>
             <textarea id="hpc" rows="4" placeholder="Chronological narrative: onset, progression, associated symptoms, treatments tried, impact on feeding/activity..."></textarea>
+        </div>
+
+        <!-- NEW: Past Medical History (with HIV) -->
+        <div class="form-section" data-section="pmh">
+            <h3>📜 Past Medical History</h3>
+            <div class="demographics-grid">
+                <div><label>Past illnesses</label><textarea id="pmh" rows="2" placeholder="Previous illnesses: Malaria, Pneumonia, TB, Asthma, Heart disease, Surgery, Hospitalisations..."></textarea></div>
+                <div><label>Current medications</label><textarea id="medications" rows="2" placeholder="All current medications with doses and frequency..."></textarea></div>
+                <div><label>Allergies</label><textarea id="allergies" rows="2" placeholder="Drug allergies, food allergies, reactions..."></textarea></div>
+            </div>
+            <div class="expand-hiv" onclick="toggleHIVDetails()">
+                <span style="font-weight: 600;">🩸 HIV History <span style="color: #e74c3c;">(Click to expand/collapse)</span></span><span style="float: right;">▼</span>
+            </div>
+            <div id="hivDetails" class="hiv-details">
+                <div class="demographics-grid">
+                    <div><label>HIV Status:</label><select id="hivStatus"><option value="">Select status</option><option value="positive">HIV Positive</option><option value="negative">HIV Negative</option><option value="unknown">Unknown/Not Tested</option></select></div>
+                    <div><label>Date of HIV Diagnosis:</label><input type="text" id="hivDiagnosisDate" placeholder="DD/MM/YYYY"></div>
+                    <div><label>How was HIV Diagnosed?</label><select id="hivDiagnosisMethod"><option value="">Select method</option><option>Rapid Test (HIV 1/2)</option><option>Determine + Stat-Pak + UniGold</option><option>DNA PCR (for <18 months)</option><option>Western Blot</option></select></div>
+                    <div><label>WHO Clinical Stage at Diagnosis:</label><select id="hivWhoStage"><option value="">Select stage</option><option>Stage 1 - Asymptomatic</option><option>Stage 2 - Mild symptoms</option><option>Stage 3 - Advanced symptoms</option><option>Stage 4 - AIDS defining illness</option></select></div>
+                </div>
+                <h4 style="margin: 15px 0 10px 0; color: #1b7e6b;">💊 Antiretroviral Therapy (ART)</h4>
+                <div class="demographics-grid">
+                    <div><label>On ART?</label><select id="hivOnArt" onchange="toggleARTDetails()"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+                    <div><label>ART Start Date:</label><input type="text" id="hivArtStartDate" placeholder="DD/MM/YYYY"></div>
+                </div>
+                <div id="artDetails" style="display: none;">
+                    <div class="demographics-grid">
+                        <div><label>Current ART Regimen:</label><select id="hivArtRegimen"><option value="">Select regimen</option><option>TDF/3TC/DTG</option><option>TDF/3TC/EFV</option><option>ABC/3TC/DTG</option><option>AZT/3TC/DTG</option><option>Second-line: ATV/r + TDF/3TC</option></select></div>
+                        <div><label>ART Adherence (Last 30 days):</label><select id="hivAdherence"><option value="">Select adherence</option><option>Excellent (>95%)</option><option>Good (85-94%)</option><option>Fair (75-84%)</option><option>Poor (<75%)</option></select></div>
+                        <div><label>Missed Doses Last Month:</label><input type="number" id="hivMissedDoses" placeholder="Number"></div>
+                        <div><label>Barriers to Adherence:</label><input type="text" id="hivAdherenceBarriers" placeholder="Forgetfulness, side effects..."></div>
+                    </div>
+                </div>
+                <h4 style="margin: 15px 0 10px 0; color: #1b7e6b;">📊 Laboratory Monitoring</h4>
+                <div class="demographics-grid">
+                    <div><label>Most Recent CD4 Count:</label><input type="text" id="hivCd4" placeholder="cells/µL"></div>
+                    <div><label>Date of CD4:</label><input type="text" id="hivCd4Date" placeholder="DD/MM/YYYY"></div>
+                    <div><label>Most Recent Viral Load:</label><input type="text" id="hivViralLoad" placeholder="copies/mL"></div>
+                    <div><label>Date of Viral Load:</label><input type="text" id="hivVlDate" placeholder="DD/MM/YYYY"></div>
+                </div>
+                <h4 style="margin: 15px 0 10px 0; color: #1b7e6b;">🩺 Opportunistic Infections</h4>
+                <div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;"><label><input type="checkbox" value="TB"> TB</label><label><input type="checkbox" value="Cryptococcal Meningitis"> Cryptococcal Meningitis</label><label><input type="checkbox" value="PCP"> PCP Pneumonia</label><label><input type="checkbox" value="Esophageal Candidiasis"> Esophageal Candidiasis</label><label><input type="checkbox" value="KS"> Kaposi's Sarcoma</label><label><input type="checkbox" value="CMV"> CMV Retinitis</label></div>
+                    <div style="margin-top: 10px;"><label>IPT (Isoniazid Preventive Therapy):</label><select id="hivIpt"><option value="">Select status</option><option>Completed 6 months</option><option>Currently on IPT</option><option>Not started</option></select></div>
+                    <div style="margin-top: 10px;"><label>Cotrimoxazole Preventive Therapy (CPT):</label><select id="hivCpt"><option value="">Select status</option><option>Currently on CPT</option><option>Not on CPT</option><option>Allergic/Contraindicated</option></select></div>
+                    <div style="margin-top: 10px;"><label>Partner/Family HIV Status:</label><input type="text" id="hivPartnerStatus" placeholder="Partner HIV status, children's status, disclosure"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Birth History -->
@@ -372,7 +443,7 @@
             </div>
         </div>
 
-        <div class="form-section" style="display: flex; gap: 12px;">
+        <div class="form-section" style="display: flex; gap: 12px; flex-wrap: wrap;">
             <button class="btn-generate" onclick="generateClinicalSummary()">Generate Summary + Ward Round</button>
             <button class="btn-generate" onclick="window.location.href='easemed_admin_dashboard.html'" style="background: #8e44ad;">🔐 Admin Dashboard</button>
             <button class="btn-generate" onclick="savePatient()" style="background:#2c6e49;">Save Record</button>
@@ -390,7 +461,12 @@
 </div>
 
 <div class="records-panel">
-    <div class="records-header"><h2>📂 Saved Pediatric Records</h2><div class="records-actions"><button class="btn-record btn-new" onclick="newPatient()">➕ New</button><button class="btn-record btn-save" onclick="savePatient()">💾 Save</button><button class="btn-record btn-export" onclick="exportRecords()">⬇️ Backup</button><label class="btn-record btn-import">📂 Restore<input type="file" accept=".json" onchange="importRecords(event)" style="display:none;"></label></div></div>
+    <div class="records-header"><h2>📂 Saved Pediatric Records</h2><div class="records-actions">
+        <button class="btn-record btn-new" onclick="newPatient()">➕ New</button>
+        <button class="btn-record btn-save" onclick="savePatient()">💾 Save</button>
+        <button class="btn-record btn-export" onclick="exportToWord()">📄 Export as Word</button>
+        <label class="btn-record btn-import">📂 Restore Backup<input type="file" accept=".json" onchange="importRecords(event)" style="display:none;"></label>
+    </div></div>
     <div class="records-body"><input class="records-search" type="text" id="recordSearch" placeholder="🔍 Search by child name..." oninput="renderRecords()"><div id="recordsList"></div></div>
 </div>
 <div class="save-toast" id="saveToast">✅ Saved!</div>
@@ -424,7 +500,7 @@
     // ==================== LocalStorage Records ====================
     const STORAGE_KEY = 'easemed_pediatric_records';
     function getRecords() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-    function saveRecords(records) { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); renderRecords(); }
+    function saveRecords(records) { localStorage.setItem(STORAGE_KEY, JSON.stringify(records, null, 2)); renderRecords(); }
     function renderRecords() {
         const records = getRecords();
         const query = (document.getElementById('recordSearch')?.value || '').toLowerCase();
@@ -809,896 +885,745 @@
         else { feedback.innerHTML = '🟢 Normal MUAC (≥12.5 cm)'; feedback.className = 'muac-feedback muac-green'; }
     }
 
-    // ==================== Presenting Complaint (with clue pills) ====================
-let currentSymptom = '';
-let symptomDetails = {};
+    // ==================== Presenting Complaint (with clue pills + extra notes) ====================
+    let currentSymptom = '';
+    let symptomDetails = {};
 
-const pediatricSymptomGuides = {
-    fever: {
-        title: "🌡️ Fever",
-        intro: "Fever is the most common pediatric presentation in Uganda. Always exclude malaria first — it is the leading cause of fever in children under 5.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 275",
-        questions: [
-            { q: "How long has the child had fever?", hint: "Duration helps classify urgency", clues: [
-                { text: "< 7 days", label: "Acute", color: "#e67e22", desc: "Think: malaria, viral URTI, pneumonia, UTI" },
-                { text: "7–14 days", label: "Subacute", color: "#8e44ad", desc: "Think: typhoid, TB, brucellosis, EBV" },
-                { text: "> 14 days", label: "Prolonged / PUO", color: "#c0392b", desc: "Think: TB, HIV, lymphoma, endocarditis" }
-            ] },
-            { q: "What is the highest temperature recorded?", hint: "Measure axillary or rectal", clues: [
-                { text: "37.5–38.4°C", label: "Low-grade", color: "#27ae60", desc: "May be viral" },
-                { text: "38.5–39.4°C", label: "Moderate", color: "#e67e22", desc: "Treat with paracetamol" },
-                { text: "≥ 39.5°C", label: "High-grade", color: "#c0392b", desc: "Risk of febrile convulsions" }
-            ] },
-            { q: "What is the pattern of the fever?", hint: "Pattern is a powerful clue", clues: [
-                { text: "Continuous", label: "Continuous", color: "#2980b9", desc: "Typhoid, pneumonia" },
-                { text: "Intermittent (spikes then normal)", label: "Intermittent", color: "#e67e22", desc: "Classic for malaria" },
-                { text: "Remittent (fluctuates, never normal)", label: "Remittent", color: "#8e44ad", desc: "TB, viral infections" }
-            ] },
-            { q: "Are there chills or rigors?", hint: "True rigors = uncontrollable shaking", clues: [
-                { text: "Yes — rigors", label: "Rigors present", color: "#c0392b", desc: "Malaria or bacteraemia" },
-                { text: "Mild chills only", label: "Chills only", color: "#e67e22", desc: "Less specific" },
-                { text: "No", label: "No rigors", color: "#27ae60", desc: "Doesn't exclude malaria in young children" }
-            ] },
-            { q: "Any associated symptoms?", hint: "Localise the source", clues: [
-                { text: "Cough + fast breathing", label: "→ Pneumonia", color: "#2980b9", desc: "Count RR" },
-                { text: "Rash", label: "→ Measles / meningococcaemia", color: "#c0392b", desc: "Non-blanching = emergency" },
-                { text: "Vomiting + headache + neck stiffness", label: "→ Meningitis", color: "#c0392b", desc: "LP if safe" },
-                { text: "Dysuria / frequency", label: "→ UTI", color: "#8e44ad", desc: "Urine dipstick" }
-            ] },
-            { q: "What treatments have been tried at home?", hint: "Track prior antibiotic use", clues: [
-                { text: "Paracetamol given", label: "Antipyretic used", color: "#27ae60", desc: "Ask if temperature came down" },
-                { text: "Antimalarials without RDT", label: "Empiric antimalarial", color: "#e67e22", desc: "Resistance possible" },
-                { text: "Traditional herbs", label: "Traditional treatment", color: "#8e44ad", desc: "Document — may mask symptoms" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Fever + altered consciousness → cerebral malaria or meningitis",
-            "🚨 Fever + non-blanching rash → meningococcaemia",
-            "🚨 Fever + convulsions → treat seizure first",
-            "🚨 Fever + inability to drink → severe illness"
-        ],
-        tips: [
-            "Always test for malaria (RDT or smear) first.",
-            "Children with HIV are at higher risk.",
-            "Fever without focus in a child < 3 months = sepsis until proven."
-        ]
-    },
-    cough: {
-        title: "🤧 Cough",
-        intro: "Cough is the second most common pediatric complaint. Duration and character are key.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 409",
-        questions: [
-            { q: "How long has the child been coughing?", hint: "Duration is the single most important classifier", clues: [
-                { text: "< 2 weeks", label: "Acute", color: "#27ae60", desc: "Viral URTI, pneumonia" },
-                { text: "2–8 weeks", label: "Subacute", color: "#e67e22", desc: "Pertussis, early TB" },
-                { text: "> 8 weeks", label: "Chronic", color: "#c0392b", desc: "TB, asthma, HIV-related" }
-            ] },
-            { q: "Is the cough productive? Sputum appearance?", hint: "Sputum character indicates pathogen", clues: [
-                { text: "Dry / non-productive", label: "Dry cough", color: "#2980b9", desc: "Viral, early pneumonia, TB" },
-                { text: "Yellow / green sputum", label: "Purulent", color: "#e67e22", desc: "Bacterial pneumonia" },
-                { text: "Blood-stained", label: "Haemoptysis", color: "#c0392b", desc: "TB until proven otherwise" }
-            ] },
-            { q: "Is the cough worse at any particular time?", hint: "Timing reveals mechanism", clues: [
-                { text: "Worse at night / early morning", label: "Nocturnal", color: "#8e44ad", desc: "Asthma, post-nasal drip" },
-                { text: "With feeding / lying flat", label: "Positional", color: "#e67e22", desc: "GORD, aspiration" },
-                { text: "Paroxysmal (whooping)", label: "Paroxysmal", color: "#c0392b", desc: "Pertussis" }
-            ] },
-            { q: "Is there fast or difficult breathing?", hint: "Fast breathing = pneumonia by IMCI", clues: [
-                { text: "RR > 60/min (<2m)", label: "Tachypnoea — neonate", color: "#c0392b", desc: "Severe pneumonia" },
-                { text: "RR > 50/min (2–12m)", label: "Tachypnoea — infant", color: "#c0392b", desc: "Pneumonia" },
-                { text: "RR > 40/min (1–5y)", label: "Tachypnoea — child", color: "#e67e22", desc: "Pneumonia" }
-            ] },
-            { q: "Any choking history or playing with small objects?", hint: "Foreign body peaks 6m–3y", clues: [
-                { text: "Sudden onset while playing/eating", label: "Foreign body likely", color: "#c0392b", desc: "CXR + bronchoscopy" },
-                { text: "No choking history", label: "Less likely", color: "#27ae60", desc: "Still ask about coins, groundnuts" }
-            ] },
-            { q: "Any TB contact or household chronic cough?", hint: "TB contact is a major risk factor", clues: [
-                { text: "Close contact with TB case", label: "TB contact", color: "#c0392b", desc: "TST, CXR, sputum" },
-                { text: "No known contact", label: "No contact", color: "#27ae60", desc: "TB still possible" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Cough + fast breathing + chest indrawing → severe pneumonia",
-            "🚨 Cough + stridor → upper airway obstruction",
-            "🚨 Cough + haemoptysis → TB until proven",
-            "🚨 Sudden onset in toddler → inhaled foreign body"
-        ],
-        tips: [
-            "TB is the most important cause of chronic cough in Uganda.",
-            "Wheeze in infant is more likely bronchiolitis than asthma.",
-            "Count RR for a full 60 seconds."
-        ]
-    },
-    diarrhea: {
-        title: "💩 Diarrhoea / Vomiting",
-        intro: "Diarrhoea is a leading cause of child mortality in Uganda. Dehydration assessment is critical.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 354",
-        questions: [
-            { q: "How long has the child had diarrhoea?", hint: "Duration changes diagnosis", clues: [
-                { text: "< 14 days", label: "Acute", color: "#27ae60", desc: "Infectious: rotavirus, ETEC" },
-                { text: "14 days – 1 month", label: "Persistent", color: "#e67e22", desc: "Giardia, cryptosporidium" },
-                { text: "> 1 month", label: "Chronic", color: "#c0392b", desc: "HIV, TB, malabsorption" }
-            ] },
-            { q: "How many stools/day? Appearance?", hint: "Frequency and character localise", clues: [
-                { text: "Watery, large volume, no blood", label: "Secretory", color: "#2980b9", desc: "Cholera, rotavirus" },
-                { text: "Small volume, bloody, mucus", label: "Dysentery", color: "#c0392b", desc: "Shigella, Campylobacter" },
-                { text: "Fatty, foul-smelling, floats", label: "Steatorrhoea", color: "#8e44ad", desc: "Giardia, coeliac" }
-            ] },
-            { q: "Is there vomiting? Describe it.", hint: "Vomiting pattern helps", clues: [
-                { text: "Vomiting with diarrhoea", label: "Gastroenteritis", color: "#e67e22", desc: "Viral" },
-                { text: "Projectile, no diarrhoea", label: "Pyloric stenosis", color: "#c0392b", desc: "Olive mass" },
-                { text: "Bile-stained", label: "Bilious vomiting", color: "#c0392b", desc: "Intestinal obstruction" }
-            ] },
-            { q: "Assess dehydration signs", hint: "Determines treatment (ORS vs IV)", clues: [
-                { text: "Drinking normally, no signs", label: "No dehydration — Plan A", color: "#27ae60", desc: "ORS at home" },
-                { text: "Restless, sunken eyes, drinks eagerly", label: "Some dehydration — Plan B", color: "#e67e22", desc: "ORS 75 ml/kg over 4h" },
-                { text: "Lethargic, unable to drink", label: "Severe dehydration — Plan C", color: "#c0392b", desc: "IV Ringer's lactate" }
-            ] },
-            { q: "Blood in stool?", hint: "Blood = dysentery", clues: [
-                { text: "Yes — fresh blood/mucus", label: "Dysentery", color: "#c0392b", desc: "Ciprofloxacin" },
-                { text: "No blood", label: "Non-dysenteric", color: "#27ae60", desc: "Antibiotics not indicated" }
-            ] },
-            { q: "Is the child able to drink/breastfeed?", hint: "Inability to drink is a danger sign", clues: [
-                { text: "Drinking well", label: "Safe at home", color: "#27ae60", desc: "ORS + zinc" },
-                { text: "Unable to drink", label: "DANGER SIGN", color: "#c0392b", desc: "Admit, IV access" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Severe dehydration → IV Ringer's lactate",
-            "🚨 Bloody diarrhoea + fever → dysentery, ciprofloxacin",
-            "🚨 Inability to drink → danger sign, do not send home",
-            "🚨 Rice-water stool → suspect cholera"
-        ],
-        tips: [
-            "Zinc 20 mg/day for 10 days reduces severity.",
-            "Rotavirus vaccine is in EPI schedule — check card.",
-            "Do not give antibiotics routinely."
-        ]
-    },
-    "poor feeding": {
-        title: "🍼 Poor Feeding",
-        intro: "Poor feeding in infants is a non-specific but serious symptom. May be the first sign of sepsis, cardiac disease, or neurological problems.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 51",
-        questions: [
-            { q: "How long has the child been feeding poorly?", hint: "Acute vs chronic", clues: [
-                { text: "Acute onset (hours–days)", label: "Acute", color: "#c0392b", desc: "Sepsis, meningitis, severe dehydration" },
-                { text: "Gradual over weeks", label: "Subacute/chronic", color: "#e67e22", desc: "Cardiac failure, HIV, malnutrition" }
-            ] },
-            { q: "Describe the feeding (breast/formula)", hint: "Breastfeeding problems are common", clues: [
-                { text: "Weak suck, doesn't sustain", label: "Weak suck", color: "#e67e22", desc: "Sepsis, neurological, hypoglycaemia" },
-                { text: "Refuses breast entirely", label: "Refusing feeds", color: "#c0392b", desc: "Danger sign in neonate" },
-                { text: "Tires easily, stops", label: "Tires easily", color: "#8e44ad", desc: "Congenital heart disease" }
-            ] },
-            { q: "Is there vomiting after feeds?", hint: "Vomiting pattern helps", clues: [
-                { text: "Posseting (small amounts)", label: "Normal", color: "#27ae60", desc: "Reassure parents" },
-                { text: "Large volume regurgitation", label: "GORD", color: "#e67e22", desc: "Check weight gain" },
-                { text: "Projectile vomiting", label: "Pyloric stenosis", color: "#c0392b", desc: "Olive mass, surgical" }
-            ] },
-            { q: "Weight loss or failure to gain?", hint: "Weight trend is objective", clues: [
-                { text: "Weight loss documented", label: "Weight loss", color: "#c0392b", desc: "Investigate urgently" },
-                { text: "Weight plateaued", label: "Failure to thrive", color: "#e67e22", desc: "Malnutrition, chronic infection" },
-                { text: "Weight gain adequate", label: "Growing well", color: "#27ae60", desc: "Reassuring" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Unable to feed at all → admit immediately",
-            "🚨 Poor feeding + lethargy + fever in neonate → sepsis",
-            "🚨 Poor feeding + projectile vomiting → pyloric stenosis",
-            "🚨 Poor feeding + rapid breathing → congenital heart disease"
-        ],
-        tips: [
-            "In neonates, poor feeding is sepsis until proven.",
-            "Always check blood glucose — hypoglycaemia is missed.",
-            "Ask mother to demonstrate breastfeeding — poor latch is common."
-        ]
-    },
-    convulsions: {
-        title: "⚠️ Convulsions",
-        intro: "Convulsions in children require rapid assessment. In Uganda, the most common causes are febrile seizures and cerebral malaria. Always check blood glucose.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 193",
-        questions: [
-            { q: "How long did the seizure last?", hint: "Duration determines if status epilepticus", clues: [
-                { text: "< 5 minutes", label: "Brief", color: "#27ae60", desc: "Febrile seizure likely" },
-                { text: "5–30 minutes", label: "Prolonged", color: "#e67e22", desc: "Give diazepam" },
-                { text: "> 30 minutes or recurring", label: "Status epilepticus", color: "#c0392b", desc: "EMERGENCY" }
-            ] },
-            { q: "What type of movement?", hint: "Semiology localises", clues: [
-                { text: "Generalised tonic-clonic", label: "Generalised", color: "#e67e22", desc: "Febrile, cerebral malaria" },
-                { text: "One limb or one side", label: "Focal", color: "#c0392b", desc: "Structural lesion" },
-                { text: "Staring / lapse", label: "Absence-like", color: "#8e44ad", desc: "Absence epilepsy" }
-            ] },
-            { q: "Fever at the time?", hint: "Febrile seizure vs serious CNS infection", clues: [
-                { text: "Fever present", label: "Febrile possible", color: "#e67e22", desc: "Exclude malaria, meningitis" },
-                { text: "Fever + focal signs/altered consciousness", label: "Complicated", color: "#c0392b", desc: "Cerebral malaria, meningitis" },
-                { text: "No fever", label: "Afebrile", color: "#8e44ad", desc: "Epilepsy, hypoglycaemia" }
-            ] },
-            { q: "Post-ictal state?", hint: "Recovery pattern", clues: [
-                { text: "Back to normal within 30 min", label: "Normal", color: "#27ae60", desc: "Simple febrile seizure" },
-                { text: "Drowsy > 1 hour", label: "Prolonged post-ictal", color: "#e67e22", desc: "Cerebral malaria" },
-                { text: "Unresponsive", label: "Reduced consciousness", color: "#c0392b", desc: "Emergency" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Seizure > 5 minutes → diazepam IV/PR",
-            "🚨 Seizure + fever + altered consciousness → cerebral malaria/meningitis",
-            "🚨 Afebrile seizure → check blood glucose immediately",
-            "🚨 Focal seizure → structural lesion"
-        ],
-        tips: [
-            "Check bedside glucose in every child with a seizure.",
-            "Cerebral malaria is the most dangerous cause in Uganda.",
-            "Diazepam PR is as effective as IV when IV access is not yet established."
-        ]
-    },
-    rash: {
-        title: "🔴 Skin Rash",
-        intro: "Rash ranges from trivial viral exanthems to life-threatening meningococcaemia. The glass test is critical.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 252",
-        questions: [
-            { q: "Does the rash blanch on pressure?", hint: "Blanching vs non-blanching", clues: [
-                { text: "Blanches", label: "Blanching", color: "#27ae60", desc: "Viral, inflammatory" },
-                { text: "Does NOT blanch", label: "Non-blanching — URGENT", color: "#c0392b", desc: "Petechiae/purpura = meningococcaemia" }
-            ] },
-            { q: "Describe the type of rash", hint: "Morphology narrows differential", clues: [
-                { text: "Flat red spots", label: "Macular", color: "#2980b9", desc: "Viral exanthem, measles" },
-                { text: "Raised red spots", label: "Papular", color: "#2980b9", desc: "Drug reaction, scabies" },
-                { text: "Fluid-filled blisters", label: "Vesicular", color: "#8e44ad", desc: "Chickenpox" },
-                { text: "Pinpoint red dots", label: "Petechiae", color: "#c0392b", desc: "Meningococcaemia, ITP" }
-            ] },
-            { q: "Where did it start and spread?", hint: "Distribution and direction are diagnostic", clues: [
-                { text: "Face → downward", label: "Centrifugal", color: "#e67e22", desc: "Measles" },
-                { text: "Trunk → outward", label: "Centripetal", color: "#2980b9", desc: "Chickenpox, roseola" },
-                { text: "Flexures, between fingers", label: "Flexural", color: "#8e44ad", desc: "Scabies" }
-            ] },
-            { q: "Fever with rash?", hint: "Sequence is important", clues: [
-                { text: "Rash as fever rises", label: "Concurrent", color: "#e67e22", desc: "Measles, scarlet fever" },
-                { text: "Rash after fever breaks", label: "Post-febrile", color: "#27ae60", desc: "Roseola" },
-                { text: "No fever", label: "Afebrile", color: "#27ae60", desc: "Allergic, contact dermatitis" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Non-blanching rash + fever → benzylpenicillin immediately",
-            "🚨 Rash + altered consciousness → meningitis/cerebral malaria",
-            "🚨 Widespread purpura → DIC, leukaemia",
-            "🚨 Measles rash in malnourished child → vitamin A immediately"
-        ],
-        tips: [
-            "Always use the glass test for non-blanching rash.",
-            "Measles is still common due to incomplete coverage.",
-            "Scabies is very common in crowded housing."
-        ]
-    },
-    jaundice: {
-        title: "🟡 Jaundice",
-        intro: "Jaundice must be classified by age of onset and type (unconjugated vs conjugated).",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 368",
-        questions: [
-            { q: "At what age did jaundice appear?", hint: "Age of onset classifies", clues: [
-                { text: "< 24 hours", label: "Pathological — URGENT", color: "#c0392b", desc: "Haemolytic disease" },
-                { text: "Day 2–7", label: "Physiological possible", color: "#e67e22", desc: "Peaks day 3–5" },
-                { text: "> 14 days (term)", label: "Prolonged", color: "#c0392b", desc: "Biliary atresia, hepatitis" }
-            ] },
-            { q: "Stool and urine colour?", hint: "Differentiates unconjugated vs conjugated", clues: [
-                { text: "Normal stool, normal urine", label: "Unconjugated", color: "#e67e22", desc: "Haemolysis, physiological" },
-                { text: "Pale/clay stools + dark urine", label: "Conjugated — URGENT", color: "#c0392b", desc: "Biliary obstruction" }
-            ] },
-            { q: "Fever or systemic illness?", hint: "Points to infectious causes", clues: [
-                { text: "Fever + jaundice + pallor", label: "Haemolytic crisis", color: "#c0392b", desc: "G6PD, malaria" },
-                { text: "Fever + jaundice + hepatomegaly", label: "Hepatitis/malaria", color: "#e67e22", desc: "Viral hepatitis" }
-            ] },
-            { q: "Pallor alongside jaundice?", hint: "Pallor + jaundice = haemolysis", clues: [
-                { text: "Yes — pale + jaundiced", label: "Haemolytic anaemia", color: "#c0392b", desc: "Check FBC, film, retics" },
-                { text: "No pallor", label: "Less likely haemolytic", color: "#27ae60", desc: "Hepatic or obstructive" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Jaundice < 24 hours → haemolytic disease, phototherapy",
-            "🚨 Pale stools + dark urine → conjugated jaundice, urgent referral",
-            "🚨 Jaundice + severe pallor + dark urine → G6PD crisis",
-            "🚨 Jaundice + altered consciousness → kernicterus, exchange transfusion"
-        ],
-        tips: [
-            "Biliary atresia — Kasai procedure before 8 weeks.",
-            "G6PD deficiency is common in Uganda — avoid trigger drugs.",
-            "Transcutaneous bilirubinometry unreliable in pigmented skin."
-        ]
-    },
-    pain: {
-        title: "🩺 Pain — SOCRATES",
-        intro: "Use SOCRATES framework. Use age-appropriate pain scales (Wong-Baker faces).",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 22",
-        questions: [
-            { q: "S — Site: Where exactly is the pain?", hint: "Localisation narrows differential", clues: [
-                { text: "Right iliac fossa", label: "→ Appendicitis", color: "#c0392b", desc: "Rebound tenderness, migration" },
-                { text: "Periumbilical → RIF", label: "Classic migration", color: "#c0392b", desc: "Appendicitis" },
-                { text: "Loin/flank", label: "→ UTI/renal colic", color: "#8e44ad", desc: "CVA tenderness" }
-            ] },
-            { q: "O — Onset: How did it start?", hint: "Onset speed is a red flag", clues: [
-                { text: "Sudden, severe", label: "Acute/surgical", color: "#c0392b", desc: "Appendicitis, torsion" },
-                { text: "Gradual over hours–days", label: "Subacute", color: "#e67e22", desc: "Mesenteric adenitis" },
-                { text: "Recurrent episodic", label: "Recurrent", color: "#8e44ad", desc: "Intussusception, constipation" }
-            ] },
-            { q: "C — Character: What does it feel like?", hint: "Mechanism", clues: [
-                { text: "Colicky (waves)", label: "Colic/obstruction", color: "#e67e22", desc: "Intestinal obstruction" },
-                { text: "Constant, dull ache", label: "Visceral", color: "#e67e22", desc: "Appendicitis early" },
-                { text: "Sharp, worse on movement", label: "Peritoneal", color: "#c0392b", desc: "Peritonitis" }
-            ] },
-            { q: "R — Radiation: Does it move?", hint: "Classic patterns", clues: [
-                { text: "Periumbilical → RIF", label: "Appendicitis", color: "#c0392b", desc: "Highly specific" },
-                { text: "Loin → groin → testicle", label: "Renal colic/torsion", color: "#e67e22", desc: "Examine testis" },
-                { text: "Shoulder tip", label: "Diaphragmatic irritation", color: "#8e44ad", desc: "Hepatic abscess" }
-            ] },
-            { q: "S — Severity (0–10, faces scale)", hint: "Use Wong-Baker faces", clues: [
-                { text: "Mild (1–3/10)", label: "Mild", color: "#27ae60", desc: "Paracetamol" },
-                { text: "Moderate (4–6/10)", label: "Moderate", color: "#e67e22", desc: "Ibuprofen" },
-                { text: "Severe (7–10/10)", label: "Severe", color: "#c0392b", desc: "Surgical emergency" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Severe abdominal pain + guarding + rebound → surgical abdomen",
-            "🚨 Colicky pain + red currant jelly stool → intussusception",
-            "🚨 Pain + scrotal swelling → testicular torsion (6-hour window)",
-            "🚨 Pain + fever + jaundice → ascending cholangitis"
-        ],
-        tips: [
-            "Give analgesia before examination — pain relief does not mask peritonism.",
-            "Functional abdominal pain is a diagnosis of exclusion.",
-            "Malaria commonly causes abdominal pain with hepatosplenomegaly."
-        ]
-    },
-    "difficulty breathing": {
-        title: "💨 Difficulty Breathing",
-        intro: "Respiratory distress is a common emergency. Count RR for a full 60 seconds.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 409",
-        questions: [
-            { q: "How quickly did it come on?", hint: "Speed of onset", clues: [
-                { text: "Sudden (seconds–minutes)", label: "Acute/obstructive", color: "#c0392b", desc: "Foreign body, anaphylaxis" },
-                { text: "Hours to a day", label: "Subacute", color: "#e67e22", desc: "Pneumonia, croup" },
-                { text: "Gradual over days–weeks", label: "Chronic", color: "#8e44ad", desc: "TB, cardiac failure" }
-            ] },
-            { q: "What sounds does the breathing make?", hint: "Localise obstruction", clues: [
-                { text: "Stridor (inspiratory)", label: "Stridor — upper airway", color: "#c0392b", desc: "Croup, epiglottitis" },
-                { text: "Wheeze (expiratory)", label: "Wheeze — lower airway", color: "#e67e22", desc: "Asthma, bronchiolitis" },
-                { text: "Grunting", label: "Grunting", color: "#c0392b", desc: "Neonatal RDS, severe pneumonia" }
-            ] },
-            { q: "What does the chest look like?", hint: "Work of breathing indicates severity", clues: [
-                { text: "Chest indrawing", label: "Chest indrawing", color: "#c0392b", desc: "Severe pneumonia, admit" },
-                { text: "Nasal flaring + accessory muscles", label: "Severe distress", color: "#c0392b", desc: "Respiratory failure" },
-                { text: "Head nodding", label: "Head bobbing", color: "#c0392b", desc: "Extreme effort" }
-            ] },
-            { q: "SpO₂?", hint: "Determines urgency of oxygen", clues: [
-                { text: "≥ 95%", label: "Normal", color: "#27ae60", desc: "Reassuring" },
-                { text: "90–94%", label: "Mild hypoxaemia", color: "#e67e22", desc: "Give oxygen" },
-                { text: "< 90%", label: "Severe hypoxaemia", color: "#c0392b", desc: "High-flow oxygen, emergency" }
-            ] },
-            { q: "Difficulty feeding?", hint: "Feeding difficulty reflects severity", clues: [
-                { text: "Feeding normally", label: "Mild", color: "#27ae60", desc: "Monitor" },
-                { text: "Unable to feed", label: "Severe — DANGER SIGN", color: "#c0392b", desc: "Admit, NG tube, oxygen" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Stridor + drooling + tripod → epiglottitis, do NOT examine throat",
-            "🚨 SpO₂ < 90% → high-flow oxygen",
-            "🚨 Chest indrawing + inability to feed → severe pneumonia",
-            "🚨 Silent chest in asthma → near-fatal asthma"
-        ],
-        tips: [
-            "Count RR for a full 60 seconds — 15s count ×4 is inaccurate.",
-            "Most common cause of respiratory distress in Uganda is pneumonia.",
-            "Pulse oximetry is the fifth vital sign."
-        ]
-    },
-    pallor: {
-        title: "🩸 Pallor (Anaemia)",
-        intro: "Pallor indicates anaemia. In Uganda, most common causes: malaria, iron deficiency, sickle cell.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 462",
-        questions: [
-            { q: "How long has pallor been present?", hint: "Acute vs chronic", clues: [
-                { text: "Sudden (hours–days)", label: "Acute anaemia", color: "#c0392b", desc: "Haemolysis, acute blood loss" },
-                { text: "Gradual (weeks–months)", label: "Chronic anaemia", color: "#e67e22", desc: "Iron deficiency, chronic infection" }
-            ] },
-            { q: "Dark or cola-coloured urine?", hint: "Intravascular haemolysis", clues: [
-                { text: "Yes — dark urine", label: "Haemoglobinaemia", color: "#c0392b", desc: "Malaria, G6PD crisis" },
-                { text: "No", label: "Less likely haemolysis", color: "#27ae60", desc: "Iron deficiency, chronic disease" }
-            ] },
-            { q: "Jaundice with pallor?", hint: "Pallor + jaundice = haemolysis", clues: [
-                { text: "Yes — pallor + jaundice", label: "Haemolytic anaemia", color: "#c0392b", desc: "Sickle cell, G6PD, malaria" },
-                { text: "No jaundice", label: "Less likely haemolytic", color: "#e67e22", desc: "Iron deficiency" }
-            ] },
-            { q: "Diet and pica?", hint: "Dietary history", clues: [
-                { text: "Poor diet, no meat/veg", label: "Iron deficiency likely", color: "#e67e22", desc: "Microcytic anaemia" },
-                { text: "Pica (eating soil)", label: "Iron deficiency / lead", color: "#e67e22", desc: "Check lead" }
-            ] },
-            { q: "Family history of anaemia?", hint: "Genetic conditions", clues: [
-                { text: "Sickle cell in family", label: "Sickle cell trait/disease", color: "#c0392b", desc: "Hb electrophoresis" },
-                { text: "No family history", label: "Acquired likely", color: "#27ae60", desc: "Malaria, iron deficiency" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Severe pallor + lethargy + RR > 40 → severe anaemia, transfuse",
-            "🚨 Pallor + dark urine + fever → blackwater fever / G6PD crisis",
-            "🚨 Pallor + splenomegaly + acute collapse in sickle cell → splenic sequestration",
-            "🚨 Pallor + petechiae + lymphadenopathy → leukaemia"
-        ],
-        tips: [
-            "Always do malaria RDT/smear in any anaemic child.",
-            "Hb electrophoresis for unexplained haemolytic anaemia.",
-            "Never transfuse in cardiac failure without a diuretic."
-        ]
-    },
-    "neck stiffness": {
-        title: "🦟 Neck Stiffness",
-        intro: "Neck stiffness in a febrile child is meningitis until proven otherwise. Do not delay antibiotics.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 193",
-        questions: [
-            { q: "Fever with neck stiffness?", hint: "Fever + neck stiffness = meningitis", clues: [
-                { text: "Yes — fever + neck stiffness", label: "Meningitis — URGENT", color: "#c0392b", desc: "Ceftriaxone IV" },
-                { text: "No fever", label: "Non-infectious", color: "#e67e22", desc: "Torticollis, drug reaction" }
-            ] },
-            { q: "Rash present?", hint: "Non-blanching rash = meningococcaemia", clues: [
-                { text: "Non-blanching petechiae/purpura", label: "Meningococcaemia", color: "#c0392b", desc: "Benzylpenicillin immediately" },
-                { text: "Blanching rash", label: "Viral meningitis", color: "#e67e22", desc: "Enterovirus" }
-            ] },
-            { q: "Level of consciousness?", hint: "Altered consciousness = raised ICP", clues: [
-                { text: "Alert", label: "GCS 15", color: "#27ae60", desc: "Proceed to LP" },
-                { text: "Confused/drowsy", label: "Reduced", color: "#c0392b", desc: "Do NOT do LP, CT first" },
-                { text: "Unresponsive", label: "Severe", color: "#c0392b", desc: "ABC first, antibiotics" }
-            ] },
-            { q: "TB or meningitis contact?", hint: "Contact history is critical", clues: [
-                { text: "TB contact", label: "TB meningitis", color: "#c0392b", desc: "Anti-TB + dexamethasone" },
-                { text: "Meningitis contact", label: "Bacterial spread", color: "#e67e22", desc: "Prophylaxis" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Neck stiffness + fever → ceftriaxone IV immediately",
-            "🚨 Non-blanching rash + neck stiffness → benzylpenicillin",
-            "🚨 Neck stiffness + reduced consciousness → raised ICP, do NOT do LP",
-            "🚨 TB contact + subacute onset → TB meningitis"
-        ],
-        tips: [
-            "In children < 18 months, neck stiffness may be absent — bulging fontanelle is equivalent.",
-            "Cryptococcal meningitis is common in HIV-positive children.",
-            "Give first dose of antibiotics before LP if LP will be delayed."
-        ]
-    },
-    "ear discharge": {
-        title: "👂 Ear Discharge",
-        intro: "Ear discharge is usually acute otitis media with perforation (AOMP). Leading cause of preventable hearing loss in Uganda.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 221",
-        questions: [
-            { q: "How long has there been discharge?", hint: "Duration classifies otitis", clues: [
-                { text: "< 2 weeks", label: "Acute (AOMP)", color: "#e67e22", desc: "Amoxicillin" },
-                { text: "> 12 weeks", label: "CSOM", color: "#c0392b", desc: "Chronic, risk of hearing loss" }
-            ] },
-            { q: "Discharge appearance?", hint: "Character identifies organism", clues: [
-                { text: "Purulent, odourless", label: "Acute bacterial", color: "#e67e22", desc: "Streptococcus, H. influenzae" },
-                { text: "Foul-smelling, thick", label: "CSOM / Pseudomonas", color: "#c0392b", desc: "Topical ciprofloxacin" },
-                { text: "Blood-stained", label: "Trauma / cholesteatoma", color: "#c0392b", desc: "ENT referral" }
-            ] },
-            { q: "Ear pain (otalgia)?", hint: "Pain before and after discharge", clues: [
-                { text: "Severe pain relieved when discharge started", label: "TM perforation", color: "#e67e22", desc: "Classic AOMP" },
-                { text: "Pain ongoing despite discharge", label: "Mastoiditis", color: "#c0392b", desc: "Mastoid tenderness" }
-            ] },
-            { q: "Tenderness behind ear?", hint: "Mastoid tenderness = mastoiditis", clues: [
-                { text: "Yes — mastoid tenderness", label: "Mastoiditis", color: "#c0392b", desc: "Admit, IV ceftriaxone" },
-                { text: "No", label: "Less likely", color: "#27ae60", desc: "Oral antibiotics, dry mopping" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Ear discharge + mastoid tenderness → mastoiditis, admit for IV antibiotics",
-            "🚨 Ear discharge + headache + fever + altered consciousness → intracranial extension",
-            "🚨 Blood-stained discharge after head trauma → CSF leak, neurosurgical emergency",
-            "🚨 Chronic foul-smelling discharge + hearing loss → cholesteatoma"
-        ],
-        tips: [
-            "Dry mopping (not syringing) is correct for CSOM.",
-            "CSOM is a leading cause of preventable hearing loss.",
-            "Amoxicillin 80–90 mg/kg/day for 5–7 days is first-line for AOMP."
-        ]
-    },
-    oedema: {
-        title: "💧 Oedema (including Kwashiorkor)",
-        intro: "Oedema in a Ugandan child: first think of severe acute malnutrition (kwashiorkor). Also cardiac, renal, hepatic.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 535",
-        questions: [
-            { q: "Where is the oedema? Symmetrical?", hint: "Distribution narrows cause", clues: [
-                { text: "Bilateral lower limbs, ascends", label: "Hypoalbuminaemic/cardiac", color: "#e67e22", desc: "Kwashiorkor, nephrotic" },
-                { text: "Face (periorbital) + lower limbs", label: "Nephrotic syndrome", color: "#e67e22", desc: "Frothy urine" },
-                { text: "One limb only", label: "Local", color: "#8e44ad", desc: "DVT, cellulitis" }
-            ] },
-            { q: "Pitting or non-pitting?", hint: "Pitting vs non-pitting", clues: [
-                { text: "Pits on pressure", label: "Pitting oedema", color: "#e67e22", desc: "Low oncotic pressure" },
-                { text: "Does not pit", label: "Non-pitting", color: "#8e44ad", desc: "Lymphoedema, myxoedema" }
-            ] },
-            { q: "Nutritional history? Diet?", hint: "Protein intake is key for kwashiorkor", clues: [
-                { text: "Low protein diet (posho, cassava)", label: "Kwashiorkor likely", color: "#c0392b", desc: "Oedema + skin changes + misery" },
-                { text: "Adequate diet, weight loss", label: "Cardiac/renal/hepatic", color: "#e67e22", desc: "Echo, urine protein, LFTs" }
-            ] },
-            { q: "Frothy urine or reduced output?", hint: "Renal cause", clues: [
-                { text: "Frothy urine", label: "Proteinuria → nephrotic", color: "#e67e22", desc: "Urine dipstick 3+" },
-                { text: "Reduced urine output", label: "Renal failure", color: "#c0392b", desc: "Acute kidney injury" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Oedema + severe wasting + hypothermia → complicated SAM, F-75 milk",
-            "🚨 Oedema + anuria → acute kidney injury",
-            "🚨 Oedema + orthopnoea + gallop rhythm → cardiac failure, furosemide",
-            "🚨 Oedema + flaky paint skin + hair changes → kwashiorkor"
-        ],
-        tips: [
-            "Always check for kwashiorkor first in Uganda.",
-            "Never use ReSoMal in kwashiorkor with oedema — worsens sodium overload.",
-            "MUAC < 11.5 cm + bilateral pitting oedema = SAM, admit to nutrition unit."
-        ]
-    },
-    swelling: {
-        title: "💧 Swelling / Lump",
-        intro: "Systematically characterise: location, pain, duration, consistency. Painless lumps need urgent investigation.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 471",
-        questions: [
-            { q: "Where exactly is the swelling?", hint: "Location narrows differential", clues: [
-                { text: "Neck", label: "Cervical node/thyroid/cyst", color: "#2980b9", desc: "Reactive, TB, lymphoma" },
-                { text: "Abdomen", label: "Organomegaly/mass/hernia", color: "#e67e22", desc: "Wilms, Burkitt, malaria" },
-                { text: "Groin/scrotum", label: "Hernia/hydrocele/torsion", color: "#c0392b", desc: "Incarcerated hernia = surgery" },
-                { text: "Limb/bone", label: "Soft tissue/bony mass", color: "#8e44ad", desc: "Abscess, Ewing's, Burkitt's jaw" }
-            ] },
-            { q: "Is it painful?", hint: "Pain suggests inflammation or rapid growth", clues: [
-                { text: "Yes — tender, hot, red", label: "Inflammatory/infective", color: "#c0392b", desc: "Abscess, cellulitis" },
-                { text: "Painless", label: "Non-inflammatory", color: "#e67e22", desc: "Lymphoma, Wilms, Burkitt's" }
-            ] },
-            { q: "How long has it been present?", hint: "Duration affects urgency", clues: [
-                { text: "Days — rapidly growing", label: "Acute/malignancy", color: "#c0392b", desc: "Burkitt's lymphoma" },
-                { text: "Weeks–months, slowly enlarging", label: "TB/lymphoma", color: "#e67e22", desc: "FNA/biopsy" }
-            ] },
-            { q: "Fluctuant (fluid-filled) or hard?", hint: "Consistency guides management", clues: [
-                { text: "Soft, fluctuant", label: "Abscess/cyst/hydrocele", color: "#e67e22", desc: "Drainage if abscess" },
-                { text: "Hard/stony hard", label: "Bony/lymphoma/calcified", color: "#c0392b", desc: "Urgent FNA/biopsy" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Rapidly enlarging painless jaw/abdominal mass → Burkitt's lymphoma, oncology referral",
-            "🚨 Groin swelling + pain + unable to reduce → incarcerated hernia, surgical emergency",
-            "🚨 Painless abdominal mass in child < 5 years → Wilms' tumour, abdominal USS",
-            "🚨 Neck swelling + fever + difficulty swallowing → retropharyngeal abscess"
-        ],
-        tips: [
-            "Burkitt's lymphoma is endemic in Uganda — rapidly growing mass requires urgent referral.",
-            "Painless, rubbery, non-tender cervical node > 2 cm for > 4 weeks warrants FNA.",
-            "Transillumination differentiates hydrocele (transilluminates) from hernia (does not)."
-        ]
-    },
-    lethargy: {
-        title: "😴 Lethargy / Irritability",
-        intro: "Lethargy is always a serious symptom. May be the only presenting feature of sepsis, cerebral malaria, or meningitis in young children.",
-        chapter: "Nelson Textbook of Pediatrics, Ch. 177",
-        questions: [
-            { q: "How severe is the altered behaviour?", hint: "Severity determines urgency", clues: [
-                { text: "Quieter, less playful", label: "Mild", color: "#e67e22", desc: "Viral illness, early sepsis" },
-                { text: "Very drowsy, wakes with effort", label: "Moderate — AVPU: V", color: "#c0392b", desc: "Cerebral malaria, meningitis" },
-                { text: "Unresponsive", label: "Severe — AVPU: P/U", color: "#c0392b", desc: "Emergency — airway, glucose, malaria treatment" },
-                { text: "Inconsolable crying, high-pitched", label: "Irritability", color: "#c0392b", desc: "Meningeal irritation" }
-            ] },
-            { q: "Fever present?", hint: "Lethargy + fever = CNS infection", clues: [
-                { text: "Yes — fever + lethargy", label: "Infectious cause", color: "#c0392b", desc: "Malaria, meningitis, sepsis" },
-                { text: "No fever", label: "Metabolic/toxic", color: "#e67e22", desc: "Hypoglycaemia, poisoning, DKA" }
-            ] },
-            { q: "Any convulsions?", hint: "Convulsions + lethargy = CNS involvement", clues: [
-                { text: "Yes — post-ictal lethargy", label: "Post-ictal or ongoing", color: "#c0392b", desc: "Should improve in 30 min — if not, investigate" },
-                { text: "No convulsions", label: "Non-epileptic", color: "#e67e22", desc: "Sepsis, metabolic" }
-            ] },
-            { q: "Check blood glucose — what is it?", hint: "Hypoglycaemia is common and lethal if missed", clues: [
-                { text: "< 2.5 mmol/L", label: "Hypoglycaemia — treat NOW", color: "#c0392b", desc: "2 ml/kg 10% dextrose IV" },
-                { text: "2.5–6.0 mmol/L", label: "Normal", color: "#27ae60", desc: "Exclude other causes" },
-                { text: "> 11 mmol/L", label: "Hyperglycaemia", color: "#e67e22", desc: "DKA or stress" }
-            ] },
-            { q: "Recent medication or traditional remedies?", hint: "Toxic causes are common", clues: [
-                { text: "Medications given", label: "Drug toxicity", color: "#c0392b", desc: "Paracetamol overdose, chloroquine" },
-                { text: "Traditional herbs", label: "Herbal toxicity", color: "#c0392b", desc: "Hepatotoxins, convulsants" }
-            ] }
-        ],
-        redFlags: [
-            "🚨 Unable to wake the child → ABC first",
-            "🚨 Lethargy + fever → cerebral malaria or meningitis — treat both empirically",
-            "🚨 Glucose < 2.5 mmol/L → 10% dextrose 2 ml/kg IV immediately",
-            "🚨 Lethargy + bulging fontanelle → raised ICP, do NOT do LP yet"
-        ],
-        tips: [
-            "Always check bedside glucose in any lethargic child — takes 30 seconds.",
-            "Cerebral malaria is the most common cause of severe lethargy with fever in Uganda.",
-            "A high-pitched cry in an infant is meningism — treat as meningitis until LP proves otherwise."
-        ]
-    }
-};
+    const pediatricSymptomGuides = {
+        fever: {
+            title: "🌡️ Fever",
+            intro: "Fever is the most common pediatric presentation in Uganda. Always exclude malaria first — it is the leading cause of fever in children under 5.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 275",
+            questions: [
+                { q: "How long has the child had fever?", hint: "Duration helps classify urgency", clues: [
+                    { text: "< 7 days", label: "Acute", color: "#e67e22", desc: "Think: malaria, viral URTI, pneumonia, UTI" },
+                    { text: "7–14 days", label: "Subacute", color: "#8e44ad", desc: "Think: typhoid, TB, brucellosis, EBV" },
+                    { text: "> 14 days", label: "Prolonged / PUO", color: "#c0392b", desc: "Think: TB, HIV, lymphoma, endocarditis" }
+                ] },
+                { q: "What is the highest temperature recorded?", hint: "Measure axillary or rectal", clues: [
+                    { text: "37.5–38.4°C", label: "Low-grade", color: "#27ae60", desc: "May be viral" },
+                    { text: "38.5–39.4°C", label: "Moderate", color: "#e67e22", desc: "Treat with paracetamol" },
+                    { text: "≥ 39.5°C", label: "High-grade", color: "#c0392b", desc: "Risk of febrile convulsions" }
+                ] },
+                { q: "What is the pattern of the fever?", hint: "Pattern is a powerful clue", clues: [
+                    { text: "Continuous", label: "Continuous", color: "#2980b9", desc: "Typhoid, pneumonia" },
+                    { text: "Intermittent (spikes then normal)", label: "Intermittent", color: "#e67e22", desc: "Classic for malaria" },
+                    { text: "Remittent (fluctuates, never normal)", label: "Remittent", color: "#8e44ad", desc: "TB, viral infections" }
+                ] },
+                { q: "Are there chills or rigors?", hint: "True rigors = uncontrollable shaking", clues: [
+                    { text: "Yes — rigors", label: "Rigors present", color: "#c0392b", desc: "Malaria or bacteraemia" },
+                    { text: "Mild chills only", label: "Chills only", color: "#e67e22", desc: "Less specific" },
+                    { text: "No", label: "No rigors", color: "#27ae60", desc: "Doesn't exclude malaria in young children" }
+                ] },
+                { q: "Any associated symptoms?", hint: "Localise the source", clues: [
+                    { text: "Cough + fast breathing", label: "→ Pneumonia", color: "#2980b9", desc: "Count RR" },
+                    { text: "Rash", label: "→ Measles / meningococcaemia", color: "#c0392b", desc: "Non-blanching = emergency" },
+                    { text: "Vomiting + headache + neck stiffness", label: "→ Meningitis", color: "#c0392b", desc: "LP if safe" },
+                    { text: "Dysuria / frequency", label: "→ UTI", color: "#8e44ad", desc: "Urine dipstick" }
+                ] },
+                { q: "What treatments have been tried at home?", hint: "Track prior antibiotic use", clues: [
+                    { text: "Paracetamol given", label: "Antipyretic used", color: "#27ae60", desc: "Ask if temperature came down" },
+                    { text: "Antimalarials without RDT", label: "Empiric antimalarial", color: "#e67e22", desc: "Resistance possible" },
+                    { text: "Traditional herbs", label: "Traditional treatment", color: "#8e44ad", desc: "Document — may mask symptoms" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Fever + altered consciousness → cerebral malaria or meningitis",
+                "🚨 Fever + non-blanching rash → meningococcaemia",
+                "🚨 Fever + convulsions → treat seizure first",
+                "🚨 Fever + inability to drink → severe illness"
+            ],
+            tips: [
+                "Always test for malaria (RDT or smear) first.",
+                "Children with HIV are at higher risk.",
+                "Fever without focus in a child < 3 months = sepsis until proven."
+            ]
+        },
+        cough: {
+            title: "🤧 Cough",
+            intro: "Cough is the second most common pediatric complaint. Duration and character are key.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 409",
+            questions: [
+                { q: "How long has the child been coughing?", hint: "Duration is the single most important classifier", clues: [
+                    { text: "< 2 weeks", label: "Acute", color: "#27ae60", desc: "Viral URTI, pneumonia" },
+                    { text: "2–8 weeks", label: "Subacute", color: "#e67e22", desc: "Pertussis, early TB" },
+                    { text: "> 8 weeks", label: "Chronic", color: "#c0392b", desc: "TB, asthma, HIV-related" }
+                ] },
+                { q: "Is the cough productive? Sputum appearance?", hint: "Sputum character indicates pathogen", clues: [
+                    { text: "Dry / non-productive", label: "Dry cough", color: "#2980b9", desc: "Viral, early pneumonia, TB" },
+                    { text: "Yellow / green sputum", label: "Purulent", color: "#e67e22", desc: "Bacterial pneumonia" },
+                    { text: "Blood-stained", label: "Haemoptysis", color: "#c0392b", desc: "TB until proven otherwise" }
+                ] },
+                { q: "Is the cough worse at any particular time?", hint: "Timing reveals mechanism", clues: [
+                    { text: "Worse at night / early morning", label: "Nocturnal", color: "#8e44ad", desc: "Asthma, post-nasal drip" },
+                    { text: "With feeding / lying flat", label: "Positional", color: "#e67e22", desc: "GORD, aspiration" },
+                    { text: "Paroxysmal (whooping)", label: "Paroxysmal", color: "#c0392b", desc: "Pertussis" }
+                ] },
+                { q: "Is there fast or difficult breathing?", hint: "Fast breathing = pneumonia by IMCI", clues: [
+                    { text: "RR > 60/min (<2m)", label: "Tachypnoea — neonate", color: "#c0392b", desc: "Severe pneumonia" },
+                    { text: "RR > 50/min (2–12m)", label: "Tachypnoea — infant", color: "#c0392b", desc: "Pneumonia" },
+                    { text: "RR > 40/min (1–5y)", label: "Tachypnoea — child", color: "#e67e22", desc: "Pneumonia" }
+                ] },
+                { q: "Any choking history or playing with small objects?", hint: "Foreign body peaks 6m–3y", clues: [
+                    { text: "Sudden onset while playing/eating", label: "Foreign body likely", color: "#c0392b", desc: "CXR + bronchoscopy" },
+                    { text: "No choking history", label: "Less likely", color: "#27ae60", desc: "Still ask about coins, groundnuts" }
+                ] },
+                { q: "Any TB contact or household chronic cough?", hint: "TB contact is a major risk factor", clues: [
+                    { text: "Close contact with TB case", label: "TB contact", color: "#c0392b", desc: "TST, CXR, sputum" },
+                    { text: "No known contact", label: "No contact", color: "#27ae60", desc: "TB still possible" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Cough + fast breathing + chest indrawing → severe pneumonia",
+                "🚨 Cough + stridor → upper airway obstruction",
+                "🚨 Cough + haemoptysis → TB until proven",
+                "🚨 Sudden onset in toddler → inhaled foreign body"
+            ],
+            tips: [
+                "TB is the most important cause of chronic cough in Uganda.",
+                "Wheeze in infant is more likely bronchiolitis than asthma.",
+                "Count RR for a full 60 seconds."
+            ]
+        },
+        diarrhea: {
+            title: "💩 Diarrhoea / Vomiting",
+            intro: "Diarrhoea is a leading cause of child mortality in Uganda. Dehydration assessment is critical.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 354",
+            questions: [
+                { q: "How long has the child had diarrhoea?", hint: "Duration changes diagnosis", clues: [
+                    { text: "< 14 days", label: "Acute", color: "#27ae60", desc: "Infectious: rotavirus, ETEC" },
+                    { text: "14 days – 1 month", label: "Persistent", color: "#e67e22", desc: "Giardia, cryptosporidium" },
+                    { text: "> 1 month", label: "Chronic", color: "#c0392b", desc: "HIV, TB, malabsorption" }
+                ] },
+                { q: "How many stools/day? Appearance?", hint: "Frequency and character localise", clues: [
+                    { text: "Watery, large volume, no blood", label: "Secretory", color: "#2980b9", desc: "Cholera, rotavirus" },
+                    { text: "Small volume, bloody, mucus", label: "Dysentery", color: "#c0392b", desc: "Shigella, Campylobacter" },
+                    { text: "Fatty, foul-smelling, floats", label: "Steatorrhoea", color: "#8e44ad", desc: "Giardia, coeliac" }
+                ] },
+                { q: "Is there vomiting? Describe it.", hint: "Vomiting pattern helps", clues: [
+                    { text: "Vomiting with diarrhoea", label: "Gastroenteritis", color: "#e67e22", desc: "Viral" },
+                    { text: "Projectile, no diarrhoea", label: "Pyloric stenosis", color: "#c0392b", desc: "Olive mass" },
+                    { text: "Bile-stained", label: "Bilious vomiting", color: "#c0392b", desc: "Intestinal obstruction" }
+                ] },
+                { q: "Assess dehydration signs", hint: "Determines treatment (ORS vs IV)", clues: [
+                    { text: "Drinking normally, no signs", label: "No dehydration — Plan A", color: "#27ae60", desc: "ORS at home" },
+                    { text: "Restless, sunken eyes, drinks eagerly", label: "Some dehydration — Plan B", color: "#e67e22", desc: "ORS 75 ml/kg over 4h" },
+                    { text: "Lethargic, unable to drink", label: "Severe dehydration — Plan C", color: "#c0392b", desc: "IV Ringer's lactate" }
+                ] },
+                { q: "Blood in stool?", hint: "Blood = dysentery", clues: [
+                    { text: "Yes — fresh blood/mucus", label: "Dysentery", color: "#c0392b", desc: "Ciprofloxacin" },
+                    { text: "No blood", label: "Non-dysenteric", color: "#27ae60", desc: "Antibiotics not indicated" }
+                ] },
+                { q: "Is the child able to drink/breastfeed?", hint: "Inability to drink is a danger sign", clues: [
+                    { text: "Drinking well", label: "Safe at home", color: "#27ae60", desc: "ORS + zinc" },
+                    { text: "Unable to drink", label: "DANGER SIGN", color: "#c0392b", desc: "Admit, IV access" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Severe dehydration → IV Ringer's lactate",
+                "🚨 Bloody diarrhoea + fever → dysentery, ciprofloxacin",
+                "🚨 Inability to drink → danger sign, do not send home",
+                "🚨 Rice-water stool → suspect cholera"
+            ],
+            tips: [
+                "Zinc 20 mg/day for 10 days reduces severity.",
+                "Rotavirus vaccine is in EPI schedule — check card.",
+                "Do not give antibiotics routinely."
+            ]
+        },
+        "poor feeding": {
+            title: "🍼 Poor Feeding",
+            intro: "Poor feeding in infants is a non-specific but serious symptom. May be the first sign of sepsis, cardiac disease, or neurological problems.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 51",
+            questions: [
+                { q: "How long has the child been feeding poorly?", hint: "Acute vs chronic", clues: [
+                    { text: "Acute onset (hours–days)", label: "Acute", color: "#c0392b", desc: "Sepsis, meningitis, severe dehydration" },
+                    { text: "Gradual over weeks", label: "Subacute/chronic", color: "#e67e22", desc: "Cardiac failure, HIV, malnutrition" }
+                ] },
+                { q: "Describe the feeding (breast/formula)", hint: "Breastfeeding problems are common", clues: [
+                    { text: "Weak suck, doesn't sustain", label: "Weak suck", color: "#e67e22", desc: "Sepsis, neurological, hypoglycaemia" },
+                    { text: "Refuses breast entirely", label: "Refusing feeds", color: "#c0392b", desc: "Danger sign in neonate" },
+                    { text: "Tires easily, stops", label: "Tires easily", color: "#8e44ad", desc: "Congenital heart disease" }
+                ] },
+                { q: "Is there vomiting after feeds?", hint: "Vomiting pattern helps", clues: [
+                    { text: "Posseting (small amounts)", label: "Normal", color: "#27ae60", desc: "Reassure parents" },
+                    { text: "Large volume regurgitation", label: "GORD", color: "#e67e22", desc: "Check weight gain" },
+                    { text: "Projectile vomiting", label: "Pyloric stenosis", color: "#c0392b", desc: "Olive mass, surgical" }
+                ] },
+                { q: "Weight loss or failure to gain?", hint: "Weight trend is objective", clues: [
+                    { text: "Weight loss documented", label: "Weight loss", color: "#c0392b", desc: "Investigate urgently" },
+                    { text: "Weight plateaued", label: "Failure to thrive", color: "#e67e22", desc: "Malnutrition, chronic infection" },
+                    { text: "Weight gain adequate", label: "Growing well", color: "#27ae60", desc: "Reassuring" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Unable to feed at all → admit immediately",
+                "🚨 Poor feeding + lethargy + fever in neonate → sepsis",
+                "🚨 Poor feeding + projectile vomiting → pyloric stenosis",
+                "🚨 Poor feeding + rapid breathing → congenital heart disease"
+            ],
+            tips: [
+                "In neonates, poor feeding is sepsis until proven.",
+                "Always check blood glucose — hypoglycaemia is missed.",
+                "Ask mother to demonstrate breastfeeding — poor latch is common."
+            ]
+        },
+        convulsions: {
+            title: "⚠️ Convulsions",
+            intro: "Convulsions in children require rapid assessment. In Uganda, the most common causes are febrile seizures and cerebral malaria. Always check blood glucose.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 193",
+            questions: [
+                { q: "How long did the seizure last?", hint: "Duration determines if status epilepticus", clues: [
+                    { text: "< 5 minutes", label: "Brief", color: "#27ae60", desc: "Febrile seizure likely" },
+                    { text: "5–30 minutes", label: "Prolonged", color: "#e67e22", desc: "Give diazepam" },
+                    { text: "> 30 minutes or recurring", label: "Status epilepticus", color: "#c0392b", desc: "EMERGENCY" }
+                ] },
+                { q: "What type of movement?", hint: "Semiology localises", clues: [
+                    { text: "Generalised tonic-clonic", label: "Generalised", color: "#e67e22", desc: "Febrile, cerebral malaria" },
+                    { text: "One limb or one side", label: "Focal", color: "#c0392b", desc: "Structural lesion" },
+                    { text: "Staring / lapse", label: "Absence-like", color: "#8e44ad", desc: "Absence epilepsy" }
+                ] },
+                { q: "Fever at the time?", hint: "Febrile seizure vs serious CNS infection", clues: [
+                    { text: "Fever present", label: "Febrile possible", color: "#e67e22", desc: "Exclude malaria, meningitis" },
+                    { text: "Fever + focal signs/altered consciousness", label: "Complicated", color: "#c0392b", desc: "Cerebral malaria, meningitis" },
+                    { text: "No fever", label: "Afebrile", color: "#8e44ad", desc: "Epilepsy, hypoglycaemia" }
+                ] },
+                { q: "Post-ictal state?", hint: "Recovery pattern", clues: [
+                    { text: "Back to normal within 30 min", label: "Normal", color: "#27ae60", desc: "Simple febrile seizure" },
+                    { text: "Drowsy > 1 hour", label: "Prolonged post-ictal", color: "#e67e22", desc: "Cerebral malaria" },
+                    { text: "Unresponsive", label: "Reduced consciousness", color: "#c0392b", desc: "Emergency" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Seizure > 5 minutes → diazepam IV/PR",
+                "🚨 Seizure + fever + altered consciousness → cerebral malaria/meningitis",
+                "🚨 Afebrile seizure → check blood glucose immediately",
+                "🚨 Focal seizure → structural lesion"
+            ],
+            tips: [
+                "Check bedside glucose in every child with a seizure.",
+                "Cerebral malaria is the most dangerous cause in Uganda.",
+                "Diazepam PR is as effective as IV when IV access is not yet established."
+            ]
+        },
+        rash: {
+            title: "🔴 Skin Rash",
+            intro: "Rash ranges from trivial viral exanthems to life-threatening meningococcaemia. The glass test is critical.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 252",
+            questions: [
+                { q: "Does the rash blanch on pressure?", hint: "Blanching vs non-blanching", clues: [
+                    { text: "Blanches", label: "Blanching", color: "#27ae60", desc: "Viral, inflammatory" },
+                    { text: "Does NOT blanch", label: "Non-blanching — URGENT", color: "#c0392b", desc: "Petechiae/purpura = meningococcaemia" }
+                ] },
+                { q: "Describe the type of rash", hint: "Morphology narrows differential", clues: [
+                    { text: "Flat red spots", label: "Macular", color: "#2980b9", desc: "Viral exanthem, measles" },
+                    { text: "Raised red spots", label: "Papular", color: "#2980b9", desc: "Drug reaction, scabies" },
+                    { text: "Fluid-filled blisters", label: "Vesicular", color: "#8e44ad", desc: "Chickenpox" },
+                    { text: "Pinpoint red dots", label: "Petechiae", color: "#c0392b", desc: "Meningococcaemia, ITP" }
+                ] },
+                { q: "Where did it start and spread?", hint: "Distribution and direction are diagnostic", clues: [
+                    { text: "Face → downward", label: "Centrifugal", color: "#e67e22", desc: "Measles" },
+                    { text: "Trunk → outward", label: "Centripetal", color: "#2980b9", desc: "Chickenpox, roseola" },
+                    { text: "Flexures, between fingers", label: "Flexural", color: "#8e44ad", desc: "Scabies" }
+                ] },
+                { q: "Fever with rash?", hint: "Sequence is important", clues: [
+                    { text: "Rash as fever rises", label: "Concurrent", color: "#e67e22", desc: "Measles, scarlet fever" },
+                    { text: "Rash after fever breaks", label: "Post-febrile", color: "#27ae60", desc: "Roseola" },
+                    { text: "No fever", label: "Afebrile", color: "#27ae60", desc: "Allergic, contact dermatitis" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Non-blanching rash + fever → benzylpenicillin immediately",
+                "🚨 Rash + altered consciousness → meningitis/cerebral malaria",
+                "🚨 Widespread purpura → DIC, leukaemia",
+                "🚨 Measles rash in malnourished child → vitamin A immediately"
+            ],
+            tips: [
+                "Always use the glass test for non-blanching rash.",
+                "Measles is still common due to incomplete coverage.",
+                "Scabies is very common in crowded housing."
+            ]
+        },
+        jaundice: {
+            title: "🟡 Jaundice",
+            intro: "Jaundice must be classified by age of onset and type (unconjugated vs conjugated).",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 368",
+            questions: [
+                { q: "At what age did jaundice appear?", hint: "Age of onset classifies", clues: [
+                    { text: "< 24 hours", label: "Pathological — URGENT", color: "#c0392b", desc: "Haemolytic disease" },
+                    { text: "Day 2–7", label: "Physiological possible", color: "#e67e22", desc: "Peaks day 3–5" },
+                    { text: "> 14 days (term)", label: "Prolonged", color: "#c0392b", desc: "Biliary atresia, hepatitis" }
+                ] },
+                { q: "Stool and urine colour?", hint: "Differentiates unconjugated vs conjugated", clues: [
+                    { text: "Normal stool, normal urine", label: "Unconjugated", color: "#e67e22", desc: "Haemolysis, physiological" },
+                    { text: "Pale/clay stools + dark urine", label: "Conjugated — URGENT", color: "#c0392b", desc: "Biliary obstruction" }
+                ] },
+                { q: "Fever or systemic illness?", hint: "Points to infectious causes", clues: [
+                    { text: "Fever + jaundice + pallor", label: "Haemolytic crisis", color: "#c0392b", desc: "G6PD, malaria" },
+                    { text: "Fever + jaundice + hepatomegaly", label: "Hepatitis/malaria", color: "#e67e22", desc: "Viral hepatitis" }
+                ] },
+                { q: "Pallor alongside jaundice?", hint: "Pallor + jaundice = haemolysis", clues: [
+                    { text: "Yes — pale + jaundiced", label: "Haemolytic anaemia", color: "#c0392b", desc: "Check FBC, film, retics" },
+                    { text: "No pallor", label: "Less likely haemolytic", color: "#27ae60", desc: "Hepatic or obstructive" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Jaundice < 24 hours → haemolytic disease, phototherapy",
+                "🚨 Pale stools + dark urine → conjugated jaundice, urgent referral",
+                "🚨 Jaundice + severe pallor + dark urine → G6PD crisis",
+                "🚨 Jaundice + altered consciousness → kernicterus, exchange transfusion"
+            ],
+            tips: [
+                "Biliary atresia — Kasai procedure before 8 weeks.",
+                "G6PD deficiency is common in Uganda — avoid trigger drugs.",
+                "Transcutaneous bilirubinometry unreliable in pigmented skin."
+            ]
+        },
+        pain: {
+            title: "🩺 Pain — SOCRATES",
+            intro: "Use SOCRATES framework. Use age-appropriate pain scales (Wong-Baker faces).",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 22",
+            questions: [
+                { q: "S — Site: Where exactly is the pain?", hint: "Localisation narrows differential", clues: [
+                    { text: "Right iliac fossa", label: "→ Appendicitis", color: "#c0392b", desc: "Rebound tenderness, migration" },
+                    { text: "Periumbilical → RIF", label: "Classic migration", color: "#c0392b", desc: "Appendicitis" },
+                    { text: "Loin/flank", label: "→ UTI/renal colic", color: "#8e44ad", desc: "CVA tenderness" }
+                ] },
+                { q: "O — Onset: How did it start?", hint: "Onset speed is a red flag", clues: [
+                    { text: "Sudden, severe", label: "Acute/surgical", color: "#c0392b", desc: "Appendicitis, torsion" },
+                    { text: "Gradual over hours–days", label: "Subacute", color: "#e67e22", desc: "Mesenteric adenitis" },
+                    { text: "Recurrent episodic", label: "Recurrent", color: "#8e44ad", desc: "Intussusception, constipation" }
+                ] },
+                { q: "C — Character: What does it feel like?", hint: "Mechanism", clues: [
+                    { text: "Colicky (waves)", label: "Colic/obstruction", color: "#e67e22", desc: "Intestinal obstruction" },
+                    { text: "Constant, dull ache", label: "Visceral", color: "#e67e22", desc: "Appendicitis early" },
+                    { text: "Sharp, worse on movement", label: "Peritoneal", color: "#c0392b", desc: "Peritonitis" }
+                ] },
+                { q: "R — Radiation: Does it move?", hint: "Classic patterns", clues: [
+                    { text: "Periumbilical → RIF", label: "Appendicitis", color: "#c0392b", desc: "Highly specific" },
+                    { text: "Loin → groin → testicle", label: "Renal colic/torsion", color: "#e67e22", desc: "Examine testis" },
+                    { text: "Shoulder tip", label: "Diaphragmatic irritation", color: "#8e44ad", desc: "Hepatic abscess" }
+                ] },
+                { q: "S — Severity (0–10, faces scale)", hint: "Use Wong-Baker faces", clues: [
+                    { text: "Mild (1–3/10)", label: "Mild", color: "#27ae60", desc: "Paracetamol" },
+                    { text: "Moderate (4–6/10)", label: "Moderate", color: "#e67e22", desc: "Ibuprofen" },
+                    { text: "Severe (7–10/10)", label: "Severe", color: "#c0392b", desc: "Surgical emergency" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Severe abdominal pain + guarding + rebound → surgical abdomen",
+                "🚨 Colicky pain + red currant jelly stool → intussusception",
+                "🚨 Pain + scrotal swelling → testicular torsion (6-hour window)",
+                "🚨 Pain + fever + jaundice → ascending cholangitis"
+            ],
+            tips: [
+                "Give analgesia before examination — pain relief does not mask peritonism.",
+                "Functional abdominal pain is a diagnosis of exclusion.",
+                "Malaria commonly causes abdominal pain with hepatosplenomegaly."
+            ]
+        },
+        "difficulty breathing": {
+            title: "💨 Difficulty Breathing",
+            intro: "Respiratory distress is a common emergency. Count RR for a full 60 seconds.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 409",
+            questions: [
+                { q: "How quickly did it come on?", hint: "Speed of onset", clues: [
+                    { text: "Sudden (seconds–minutes)", label: "Acute/obstructive", color: "#c0392b", desc: "Foreign body, anaphylaxis" },
+                    { text: "Hours to a day", label: "Subacute", color: "#e67e22", desc: "Pneumonia, croup" },
+                    { text: "Gradual over days–weeks", label: "Chronic", color: "#8e44ad", desc: "TB, cardiac failure" }
+                ] },
+                { q: "What sounds does the breathing make?", hint: "Localise obstruction", clues: [
+                    { text: "Stridor (inspiratory)", label: "Stridor — upper airway", color: "#c0392b", desc: "Croup, epiglottitis" },
+                    { text: "Wheeze (expiratory)", label: "Wheeze — lower airway", color: "#e67e22", desc: "Asthma, bronchiolitis" },
+                    { text: "Grunting", label: "Grunting", color: "#c0392b", desc: "Neonatal RDS, severe pneumonia" }
+                ] },
+                { q: "What does the chest look like?", hint: "Work of breathing indicates severity", clues: [
+                    { text: "Chest indrawing", label: "Chest indrawing", color: "#c0392b", desc: "Severe pneumonia, admit" },
+                    { text: "Nasal flaring + accessory muscles", label: "Severe distress", color: "#c0392b", desc: "Respiratory failure" },
+                    { text: "Head nodding", label: "Head bobbing", color: "#c0392b", desc: "Extreme effort" }
+                ] },
+                { q: "SpO₂?", hint: "Determines urgency of oxygen", clues: [
+                    { text: "≥ 95%", label: "Normal", color: "#27ae60", desc: "Reassuring" },
+                    { text: "90–94%", label: "Mild hypoxaemia", color: "#e67e22", desc: "Give oxygen" },
+                    { text: "< 90%", label: "Severe hypoxaemia", color: "#c0392b", desc: "High-flow oxygen, emergency" }
+                ] },
+                { q: "Difficulty feeding?", hint: "Feeding difficulty reflects severity", clues: [
+                    { text: "Feeding normally", label: "Mild", color: "#27ae60", desc: "Monitor" },
+                    { text: "Unable to feed", label: "Severe — DANGER SIGN", color: "#c0392b", desc: "Admit, NG tube, oxygen" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Stridor + drooling + tripod → epiglottitis, do NOT examine throat",
+                "🚨 SpO₂ < 90% → high-flow oxygen",
+                "🚨 Chest indrawing + inability to feed → severe pneumonia",
+                "🚨 Silent chest in asthma → near-fatal asthma"
+            ],
+            tips: [
+                "Count RR for a full 60 seconds — 15s count ×4 is inaccurate.",
+                "Most common cause of respiratory distress in Uganda is pneumonia.",
+                "Pulse oximetry is the fifth vital sign."
+            ]
+        },
+        pallor: {
+            title: "🩸 Pallor (Anaemia)",
+            intro: "Pallor indicates anaemia. In Uganda, most common causes: malaria, iron deficiency, sickle cell.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 462",
+            questions: [
+                { q: "How long has pallor been present?", hint: "Acute vs chronic", clues: [
+                    { text: "Sudden (hours–days)", label: "Acute anaemia", color: "#c0392b", desc: "Haemolysis, acute blood loss" },
+                    { text: "Gradual (weeks–months)", label: "Chronic anaemia", color: "#e67e22", desc: "Iron deficiency, chronic infection" }
+                ] },
+                { q: "Dark or cola-coloured urine?", hint: "Intravascular haemolysis", clues: [
+                    { text: "Yes — dark urine", label: "Haemoglobinaemia", color: "#c0392b", desc: "Malaria, G6PD crisis" },
+                    { text: "No", label: "Less likely haemolysis", color: "#27ae60", desc: "Iron deficiency, chronic disease" }
+                ] },
+                { q: "Jaundice with pallor?", hint: "Pallor + jaundice = haemolysis", clues: [
+                    { text: "Yes — pallor + jaundice", label: "Haemolytic anaemia", color: "#c0392b", desc: "Sickle cell, G6PD, malaria" },
+                    { text: "No jaundice", label: "Less likely haemolytic", color: "#e67e22", desc: "Iron deficiency" }
+                ] },
+                { q: "Diet and pica?", hint: "Dietary history", clues: [
+                    { text: "Poor diet, no meat/veg", label: "Iron deficiency likely", color: "#e67e22", desc: "Microcytic anaemia" },
+                    { text: "Pica (eating soil)", label: "Iron deficiency / lead", color: "#e67e22", desc: "Check lead" }
+                ] },
+                { q: "Family history of anaemia?", hint: "Genetic conditions", clues: [
+                    { text: "Sickle cell in family", label: "Sickle cell trait/disease", color: "#c0392b", desc: "Hb electrophoresis" },
+                    { text: "No family history", label: "Acquired likely", color: "#27ae60", desc: "Malaria, iron deficiency" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Severe pallor + lethargy + RR > 40 → severe anaemia, transfuse",
+                "🚨 Pallor + dark urine + fever → blackwater fever / G6PD crisis",
+                "🚨 Pallor + splenomegaly + acute collapse in sickle cell → splenic sequestration",
+                "🚨 Pallor + petechiae + lymphadenopathy → leukaemia"
+            ],
+            tips: [
+                "Always do malaria RDT/smear in any anaemic child.",
+                "Hb electrophoresis for unexplained haemolytic anaemia.",
+                "Never transfuse in cardiac failure without a diuretic."
+            ]
+        },
+        "neck stiffness": {
+            title: "🦟 Neck Stiffness",
+            intro: "Neck stiffness in a febrile child is meningitis until proven otherwise. Do not delay antibiotics.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 193",
+            questions: [
+                { q: "Fever with neck stiffness?", hint: "Fever + neck stiffness = meningitis", clues: [
+                    { text: "Yes — fever + neck stiffness", label: "Meningitis — URGENT", color: "#c0392b", desc: "Ceftriaxone IV" },
+                    { text: "No fever", label: "Non-infectious", color: "#e67e22", desc: "Torticollis, drug reaction" }
+                ] },
+                { q: "Rash present?", hint: "Non-blanching rash = meningococcaemia", clues: [
+                    { text: "Non-blanching petechiae/purpura", label: "Meningococcaemia", color: "#c0392b", desc: "Benzylpenicillin immediately" },
+                    { text: "Blanching rash", label: "Viral meningitis", color: "#e67e22", desc: "Enterovirus" }
+                ] },
+                { q: "Level of consciousness?", hint: "Altered consciousness = raised ICP", clues: [
+                    { text: "Alert", label: "GCS 15", color: "#27ae60", desc: "Proceed to LP" },
+                    { text: "Confused/drowsy", label: "Reduced", color: "#c0392b", desc: "Do NOT do LP, CT first" },
+                    { text: "Unresponsive", label: "Severe", color: "#c0392b", desc: "ABC first, antibiotics" }
+                ] },
+                { q: "TB or meningitis contact?", hint: "Contact history is critical", clues: [
+                    { text: "TB contact", label: "TB meningitis", color: "#c0392b", desc: "Anti-TB + dexamethasone" },
+                    { text: "Meningitis contact", label: "Bacterial spread", color: "#e67e22", desc: "Prophylaxis" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Neck stiffness + fever → ceftriaxone IV immediately",
+                "🚨 Non-blanching rash + neck stiffness → benzylpenicillin",
+                "🚨 Neck stiffness + reduced consciousness → raised ICP, do NOT do LP",
+                "🚨 TB contact + subacute onset → TB meningitis"
+            ],
+            tips: [
+                "In children < 18 months, neck stiffness may be absent — bulging fontanelle is equivalent.",
+                "Cryptococcal meningitis is common in HIV-positive children.",
+                "Give first dose of antibiotics before LP if LP will be delayed."
+            ]
+        },
+        "ear discharge": {
+            title: "👂 Ear Discharge",
+            intro: "Ear discharge is usually acute otitis media with perforation (AOMP). Leading cause of preventable hearing loss in Uganda.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 221",
+            questions: [
+                { q: "How long has there been discharge?", hint: "Duration classifies otitis", clues: [
+                    { text: "< 2 weeks", label: "Acute (AOMP)", color: "#e67e22", desc: "Amoxicillin" },
+                    { text: "> 12 weeks", label: "CSOM", color: "#c0392b", desc: "Chronic, risk of hearing loss" }
+                ] },
+                { q: "Discharge appearance?", hint: "Character identifies organism", clues: [
+                    { text: "Purulent, odourless", label: "Acute bacterial", color: "#e67e22", desc: "Streptococcus, H. influenzae" },
+                    { text: "Foul-smelling, thick", label: "CSOM / Pseudomonas", color: "#c0392b", desc: "Topical ciprofloxacin" },
+                    { text: "Blood-stained", label: "Trauma / cholesteatoma", color: "#c0392b", desc: "ENT referral" }
+                ] },
+                { q: "Ear pain (otalgia)?", hint: "Pain before and after discharge", clues: [
+                    { text: "Severe pain relieved when discharge started", label: "TM perforation", color: "#e67e22", desc: "Classic AOMP" },
+                    { text: "Pain ongoing despite discharge", label: "Mastoiditis", color: "#c0392b", desc: "Mastoid tenderness" }
+                ] },
+                { q: "Tenderness behind ear?", hint: "Mastoid tenderness = mastoiditis", clues: [
+                    { text: "Yes — mastoid tenderness", label: "Mastoiditis", color: "#c0392b", desc: "Admit, IV ceftriaxone" },
+                    { text: "No", label: "Less likely", color: "#27ae60", desc: "Oral antibiotics, dry mopping" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Ear discharge + mastoid tenderness → mastoiditis, admit for IV antibiotics",
+                "🚨 Ear discharge + headache + fever + altered consciousness → intracranial extension",
+                "🚨 Blood-stained discharge after head trauma → CSF leak, neurosurgical emergency",
+                "🚨 Chronic foul-smelling discharge + hearing loss → cholesteatoma"
+            ],
+            tips: [
+                "Dry mopping (not syringing) is correct for CSOM.",
+                "CSOM is a leading cause of preventable hearing loss.",
+                "Amoxicillin 80–90 mg/kg/day for 5–7 days is first-line for AOMP."
+            ]
+        },
+        oedema: {
+            title: "💧 Oedema (including Kwashiorkor)",
+            intro: "Oedema in a Ugandan child: first think of severe acute malnutrition (kwashiorkor). Also cardiac, renal, hepatic.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 535",
+            questions: [
+                { q: "Where is the oedema? Symmetrical?", hint: "Distribution narrows cause", clues: [
+                    { text: "Bilateral lower limbs, ascends", label: "Hypoalbuminaemic/cardiac", color: "#e67e22", desc: "Kwashiorkor, nephrotic" },
+                    { text: "Face (periorbital) + lower limbs", label: "Nephrotic syndrome", color: "#e67e22", desc: "Frothy urine" },
+                    { text: "One limb only", label: "Local", color: "#8e44ad", desc: "DVT, cellulitis" }
+                ] },
+                { q: "Pitting or non-pitting?", hint: "Pitting vs non-pitting", clues: [
+                    { text: "Pits on pressure", label: "Pitting oedema", color: "#e67e22", desc: "Low oncotic pressure" },
+                    { text: "Does not pit", label: "Non-pitting", color: "#8e44ad", desc: "Lymphoedema, myxoedema" }
+                ] },
+                { q: "Nutritional history? Diet?", hint: "Protein intake is key for kwashiorkor", clues: [
+                    { text: "Low protein diet (posho, cassava)", label: "Kwashiorkor likely", color: "#c0392b", desc: "Oedema + skin changes + misery" },
+                    { text: "Adequate diet, weight loss", label: "Cardiac/renal/hepatic", color: "#e67e22", desc: "Echo, urine protein, LFTs" }
+                ] },
+                { q: "Frothy urine or reduced output?", hint: "Renal cause", clues: [
+                    { text: "Frothy urine", label: "Proteinuria → nephrotic", color: "#e67e22", desc: "Urine dipstick 3+" },
+                    { text: "Reduced urine output", label: "Renal failure", color: "#c0392b", desc: "Acute kidney injury" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Oedema + severe wasting + hypothermia → complicated SAM, F-75 milk",
+                "🚨 Oedema + anuria → acute kidney injury",
+                "🚨 Oedema + orthopnoea + gallop rhythm → cardiac failure, furosemide",
+                "🚨 Oedema + flaky paint skin + hair changes → kwashiorkor"
+            ],
+            tips: [
+                "Always check for kwashiorkor first in Uganda.",
+                "Never use ReSoMal in kwashiorkor with oedema — worsens sodium overload.",
+                "MUAC < 11.5 cm + bilateral pitting oedema = SAM, admit to nutrition unit."
+            ]
+        },
+        swelling: {
+            title: "💧 Swelling / Lump",
+            intro: "Systematically characterise: location, pain, duration, consistency. Painless lumps need urgent investigation.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 471",
+            questions: [
+                { q: "Where exactly is the swelling?", hint: "Location narrows differential", clues: [
+                    { text: "Neck", label: "Cervical node/thyroid/cyst", color: "#2980b9", desc: "Reactive, TB, lymphoma" },
+                    { text: "Abdomen", label: "Organomegaly/mass/hernia", color: "#e67e22", desc: "Wilms, Burkitt, malaria" },
+                    { text: "Groin/scrotum", label: "Hernia/hydrocele/torsion", color: "#c0392b", desc: "Incarcerated hernia = surgery" },
+                    { text: "Limb/bone", label: "Soft tissue/bony mass", color: "#8e44ad", desc: "Abscess, Ewing's, Burkitt's jaw" }
+                ] },
+                { q: "Is it painful?", hint: "Pain suggests inflammation or rapid growth", clues: [
+                    { text: "Yes — tender, hot, red", label: "Inflammatory/infective", color: "#c0392b", desc: "Abscess, cellulitis" },
+                    { text: "Painless", label: "Non-inflammatory", color: "#e67e22", desc: "Lymphoma, Wilms, Burkitt's" }
+                ] },
+                { q: "How long has it been present?", hint: "Duration affects urgency", clues: [
+                    { text: "Days — rapidly growing", label: "Acute/malignancy", color: "#c0392b", desc: "Burkitt's lymphoma" },
+                    { text: "Weeks–months, slowly enlarging", label: "TB/lymphoma", color: "#e67e22", desc: "FNA/biopsy" }
+                ] },
+                { q: "Fluctuant (fluid-filled) or hard?", hint: "Consistency guides management", clues: [
+                    { text: "Soft, fluctuant", label: "Abscess/cyst/hydrocele", color: "#e67e22", desc: "Drainage if abscess" },
+                    { text: "Hard/stony hard", label: "Bony/lymphoma/calcified", color: "#c0392b", desc: "Urgent FNA/biopsy" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Rapidly enlarging painless jaw/abdominal mass → Burkitt's lymphoma, oncology referral",
+                "🚨 Groin swelling + pain + unable to reduce → incarcerated hernia, surgical emergency",
+                "🚨 Painless abdominal mass in child < 5 years → Wilms' tumour, abdominal USS",
+                "🚨 Neck swelling + fever + difficulty swallowing → retropharyngeal abscess"
+            ],
+            tips: [
+                "Burkitt's lymphoma is endemic in Uganda — rapidly growing mass requires urgent referral.",
+                "Painless, rubbery, non-tender cervical node > 2 cm for > 4 weeks warrants FNA.",
+                "Transillumination differentiates hydrocele (transilluminates) from hernia (does not)."
+            ]
+        },
+        lethargy: {
+            title: "😴 Lethargy / Irritability",
+            intro: "Lethargy is always a serious symptom. May be the only presenting feature of sepsis, cerebral malaria, or meningitis in young children.",
+            chapter: "Nelson Textbook of Pediatrics, Ch. 177",
+            questions: [
+                { q: "How severe is the altered behaviour?", hint: "Severity determines urgency", clues: [
+                    { text: "Quieter, less playful", label: "Mild", color: "#e67e22", desc: "Viral illness, early sepsis" },
+                    { text: "Very drowsy, wakes with effort", label: "Moderate — AVPU: V", color: "#c0392b", desc: "Cerebral malaria, meningitis" },
+                    { text: "Unresponsive", label: "Severe — AVPU: P/U", color: "#c0392b", desc: "Emergency — airway, glucose, malaria treatment" },
+                    { text: "Inconsolable crying, high-pitched", label: "Irritability", color: "#c0392b", desc: "Meningeal irritation" }
+                ] },
+                { q: "Fever present?", hint: "Lethargy + fever = CNS infection", clues: [
+                    { text: "Yes — fever + lethargy", label: "Infectious cause", color: "#c0392b", desc: "Malaria, meningitis, sepsis" },
+                    { text: "No fever", label: "Metabolic/toxic", color: "#e67e22", desc: "Hypoglycaemia, poisoning, DKA" }
+                ] },
+                { q: "Any convulsions?", hint: "Convulsions + lethargy = CNS involvement", clues: [
+                    { text: "Yes — post-ictal lethargy", label: "Post-ictal or ongoing", color: "#c0392b", desc: "Should improve in 30 min — if not, investigate" },
+                    { text: "No convulsions", label: "Non-epileptic", color: "#e67e22", desc: "Sepsis, metabolic" }
+                ] },
+                { q: "Check blood glucose — what is it?", hint: "Hypoglycaemia is common and lethal if missed", clues: [
+                    { text: "< 2.5 mmol/L", label: "Hypoglycaemia — treat NOW", color: "#c0392b", desc: "2 ml/kg 10% dextrose IV" },
+                    { text: "2.5–6.0 mmol/L", label: "Normal", color: "#27ae60", desc: "Exclude other causes" },
+                    { text: "> 11 mmol/L", label: "Hyperglycaemia", color: "#e67e22", desc: "DKA or stress" }
+                ] },
+                { q: "Recent medication or traditional remedies?", hint: "Toxic causes are common", clues: [
+                    { text: "Medications given", label: "Drug toxicity", color: "#c0392b", desc: "Paracetamol overdose, chloroquine" },
+                    { text: "Traditional herbs", label: "Herbal toxicity", color: "#c0392b", desc: "Hepatotoxins, convulsants" }
+                ] }
+            ],
+            redFlags: [
+                "🚨 Unable to wake the child → ABC first",
+                "🚨 Lethargy + fever → cerebral malaria or meningitis — treat both empirically",
+                "🚨 Glucose < 2.5 mmol/L → 10% dextrose 2 ml/kg IV immediately",
+                "🚨 Lethargy + bulging fontanelle → raised ICP, do NOT do LP yet"
+            ],
+            tips: [
+                "Always check bedside glucose in any lethargic child — takes 30 seconds.",
+                "Cerebral malaria is the most common cause of severe lethargy with fever in Uganda.",
+                "A high-pitched cry in an infant is meningism — treat as meningitis until LP proves otherwise."
+            ]
+        }
+    };
 
-function displayQuestions(symptom) {
-    const guide = pediatricSymptomGuides[symptom];
-    const container = document.getElementById('dynamicQuestions');
-    if (!container) return;
-    if (guide) {
-        let html = `<div style="background:#f0f7ff; padding:20px; border-radius:16px;">
-                        <h4>${guide.title}</h4>
-                        <small>${guide.chapter}</small>
-                        <div style="margin-top:12px; font-style:italic; background:#e6f7f0; padding:8px; border-radius:12px;">💡 ${guide.intro}</div>`;
-        guide.questions.forEach((item, idx) => {
-            const cluePills = item.clues.map((clue, cidx) => {
-                const selectedClass = (symptomDetails[symptom] && symptomDetails[symptom][`q${idx}`] === clue.label) ? 'selected' : '';
-                return `<span class="clue-pill ${selectedClass}" data-question="${idx}" data-value="${clue.label}" onclick="toggleCluePill(this, '${symptom}', ${idx}, '${clue.label}')" style="border-left-color: ${clue.color}; border-left-width: 4px;">${clue.label}</span>`;
-            }).join('');
-            html += `<div style="margin-bottom:20px; border-top:1px solid #cbd5e1; padding-top:12px;">
-                        <label style="font-weight:700;">${item.q}</label>
-                        <div class="ros-hint">${item.hint}</div>
-                        <div style="margin:8px 0;">${cluePills}</div>
-                     </div>`;
-        });
-        html += `</div>`;
-        container.innerHTML = html;
-    } else {
-        container.innerHTML = `<div class="alert">Please describe the symptom in detail below.</div>`;
+    function displayQuestions(symptom) {
+        const guide = pediatricSymptomGuides[symptom];
+        const container = document.getElementById('dynamicQuestions');
+        if (!container) return;
+        if (guide) {
+            let html = `<div style="background:#f0f7ff; padding:20px; border-radius:16px;">
+                            <h4>${guide.title}</h4>
+                            <small>${guide.chapter}</small>
+                            <div style="margin-top:12px; font-style:italic; background:#e6f7f0; padding:8px; border-radius:12px;">💡 ${guide.intro}</div>`;
+            guide.questions.forEach((item, idx) => {
+                const cluePills = item.clues.map((clue, cidx) => {
+                    const selectedClass = (symptomDetails[symptom] && symptomDetails[symptom][`q${idx}`] === clue.label) ? 'selected' : '';
+                    return `<span class="clue-pill ${selectedClass}" data-question="${idx}" data-value="${clue.label}" onclick="toggleCluePill(this, '${symptom}', ${idx}, '${clue.label}')" style="border-left-color: ${clue.color}; border-left-width: 4px;">${clue.label}</span>`;
+                }).join('');
+                const extraNoteValue = (symptomDetails[symptom] && symptomDetails[symptom][`q${idx}_note`]) || '';
+                html += `<div style="margin-bottom:20px; border-top:1px solid #cbd5e1; padding-top:12px;">
+                            <label style="font-weight:700;">${item.q}</label>
+                            <div class="ros-hint">${item.hint}</div>
+                            <div style="margin:8px 0;">${cluePills}</div>
+                            <textarea class="symptom-extra-note" data-question="${idx}" placeholder="Additional notes (e.g., exact duration, associated factors, treatments tried...)" oninput="saveExtraNote(this, '${symptom}', ${idx})">${escapeHtml(extraNoteValue)}</textarea>
+                         </div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = `<div class="alert">Please describe the symptom in detail below.</div>`;
+        }
     }
-}
 
-function toggleCluePill(el, symptom, qIndex, value) {
-    const parent = el.parentElement;
-    const pills = parent.querySelectorAll('.clue-pill');
-    pills.forEach(p => p.classList.remove('selected'));
-    el.classList.add('selected');
-    if (!symptomDetails[symptom]) symptomDetails[symptom] = {};
-    symptomDetails[symptom][`q${qIndex}`] = value;
-    updateProgress();
-}
+    function saveExtraNote(textarea, symptom, qIndex) {
+        if (!symptomDetails[symptom]) symptomDetails[symptom] = {};
+        symptomDetails[symptom][`q${qIndex}_note`] = textarea.value;
+        updateProgress();
+    }
 
-function setSymptom(btn, symptom) {
-    currentSymptom = symptom;
-    // Remove active class from all symptom buttons
-    document.querySelectorAll('.symptom-btn').forEach(button => button.classList.remove('active'));
-    // Add active class to the clicked button
-    btn.classList.add('active');
-    document.getElementById('customSymptom').value = '';
-    displayQuestions(symptom);
-    const guide = pediatricSymptomGuides[symptom];
-    let guidanceHtml = '';
-    if (guide) {
-        let questionsList = '';
-        guide.questions.forEach(q => { questionsList += `<li>${q.q}</li>`; });
-        guidanceHtml = `
-            <div class="guidance-tip"><strong>📖 ${guide.title}</strong><br>${guide.chapter}</div>
-            <div class="guidance-tip"><strong>🎯 Key questions</strong><ul style="margin-top:8px; margin-left:20px;">${questionsList}</ul></div>
-            <div class="guidance-tip"><strong>💡 Intro</strong><br>${guide.intro}</div>
-            <div class="alert warning"><strong>🚨 RED FLAGS</strong><br>${guide.redFlags.join('<br>')}</div>
-            <div class="guidance-tip"><strong>💎 Clinical Tips</strong><br>${guide.tips.join('<br>')}</div>
-        `;
-    } else {
-        guidanceHtml = `<div class="guidance-tip"><strong>Presenting Complaint</strong><br>Document the symptom in detail below.</div>`;
+    function toggleCluePill(el, symptom, qIndex, value) {
+        const parent = el.parentElement;
+        const pills = parent.querySelectorAll('.clue-pill');
+        pills.forEach(p => p.classList.remove('selected'));
+        el.classList.add('selected');
+        if (!symptomDetails[symptom]) symptomDetails[symptom] = {};
+        symptomDetails[symptom][`q${qIndex}`] = value;
+        updateProgress();
     }
-    const guidanceDiv = document.getElementById('guidanceContent');
-    if (guidanceDiv) {
-        guidanceDiv.style.opacity = '0';
-        setTimeout(() => {
-            guidanceDiv.innerHTML = guidanceHtml;
-            guidanceDiv.style.opacity = '1';
-        }, 150);
+
+    function findMatchingSymptom(input) {
+        const inputLower = input.toLowerCase().trim();
+        const keys = Object.keys(pediatricSymptomGuides);
+        if (keys.includes(inputLower)) return inputLower;
+        for (let key of keys) {
+            if (inputLower.includes(key) || key.includes(inputLower)) return key;
+        }
+        return null;
     }
-}
-function setCustomSymptom() {
-    const custom = document.getElementById('customSymptom').value.toLowerCase().trim();
-    if (custom) {
-        currentSymptom = custom;
-        document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('dynamicQuestions').innerHTML = `<div class="alert">Please document this symptom fully in the HPC section below.</div>`;
+
+    function setCustomSymptom() {
+        const custom = document.getElementById('customSymptom').value.toLowerCase().trim();
+        if (custom) {
+            const matched = findMatchingSymptom(custom);
+            if (matched) {
+                const btn = Array.from(document.querySelectorAll('.symptom-btn')).find(b => b.textContent.toLowerCase().includes(matched));
+                if (btn) {
+                    setSymptom(btn, matched);
+                } else {
+                    currentSymptom = matched;
+                    displayQuestions(matched);
+                    const guide = pediatricSymptomGuides[matched];
+                    let guidanceHtml = '';
+                    if (guide) {
+                        let questionsList = '';
+                        guide.questions.forEach(q => { questionsList += `<li>${q.q}</li>`; });
+                        guidanceHtml = `<div class="guidance-tip"><strong>📖 ${guide.title}</strong><br>${guide.chapter}</div>
+                                        <div class="guidance-tip"><strong>🎯 Key questions</strong><ul style="margin-top:8px; margin-left:20px;">${questionsList}</ul></div>
+                                        <div class="guidance-tip"><strong>💡 Intro</strong><br>${guide.intro}</div>
+                                        <div class="alert warning"><strong>🚨 RED FLAGS</strong><br>${guide.redFlags.join('<br>')}</div>
+                                        <div class="guidance-tip"><strong>💎 Clinical Tips</strong><br>${guide.tips.join('<br>')}</div>`;
+                        const guidanceDiv = document.getElementById('guidanceContent');
+                        if (guidanceDiv) {
+                            guidanceDiv.style.opacity = '0';
+                            setTimeout(() => {
+                                guidanceDiv.innerHTML = guidanceHtml;
+                                guidanceDiv.style.opacity = '1';
+                            }, 150);
+                        }
+                    }
+                    showToast(`Matched symptom: ${matched}`, '#8e44ad');
+                }
+                document.getElementById('customSymptom').value = '';
+            } else {
+                currentSymptom = custom;
+                document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('dynamicQuestions').innerHTML = `<div class="alert">Please document this symptom fully in the HPC section below.</div>`;
+                const guidanceDiv = document.getElementById('guidanceContent');
+                if (guidanceDiv) {
+                    guidanceDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        guidanceDiv.innerHTML = `<div class="guidance-tip"><strong>Custom symptom: ${custom}</strong><br>Take a thorough history: onset, progression, associated symptoms, treatments.</div>`;
+                        guidanceDiv.style.opacity = '1';
+                    }, 150);
+                }
+            }
+        }
+    }
+
+    function setSymptom(btn, symptom) {
+        currentSymptom = symptom;
+        document.querySelectorAll('.symptom-btn').forEach(button => button.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('customSymptom').value = '';
+        displayQuestions(symptom);
+        const guide = pediatricSymptomGuides[symptom];
+        let guidanceHtml = '';
+        if (guide) {
+            let questionsList = '';
+            guide.questions.forEach(q => { questionsList += `<li>${q.q}</li>`; });
+            guidanceHtml = `
+                <div class="guidance-tip"><strong>📖 ${guide.title}</strong><br>${guide.chapter}</div>
+                <div class="guidance-tip"><strong>🎯 Key questions</strong><ul style="margin-top:8px; margin-left:20px;">${questionsList}</ul></div>
+                <div class="guidance-tip"><strong>💡 Intro</strong><br>${guide.intro}</div>
+                <div class="alert warning"><strong>🚨 RED FLAGS</strong><br>${guide.redFlags.join('<br>')}</div>
+                <div class="guidance-tip"><strong>💎 Clinical Tips</strong><br>${guide.tips.join('<br>')}</div>
+            `;
+        } else {
+            guidanceHtml = `<div class="guidance-tip"><strong>Presenting Complaint</strong><br>Document the symptom in detail below.</div>`;
+        }
         const guidanceDiv = document.getElementById('guidanceContent');
         if (guidanceDiv) {
             guidanceDiv.style.opacity = '0';
             setTimeout(() => {
-                guidanceDiv.innerHTML = `<div class="guidance-tip"><strong>Custom symptom: ${custom}</strong><br>Take a thorough history: onset, progression, associated symptoms, treatments.</div>`;
+                guidanceDiv.innerHTML = guidanceHtml;
                 guidanceDiv.style.opacity = '1';
             }, 150);
         }
     }
-}
 
-function savePCResponse(idx, value) {
-    // kept for compatibility but not used with clue pills
-}
-
-
-
-
-
-    
-    // ==================== Context-aware Guidance (updated for General & Vitals) ====================
-    const sectionGuidance = {
-        'presenting-complaint': [
-            "Select the main presenting symptom to get structured question prompts.",
-            "In children, always ask the parent/guardian — and the child if old enough.",
-            "Use open questions first: 'What brought you to hospital today?'"
-        ],
-        'hpc': [
-            "Document chronologically: when did it start → how has it progressed → what makes it better/worse",
-            "Always ask about: treatments tried at home, traditional medicines, previous hospital visits for same complaint",
-            "Impact on feeding and activity level is essential in children",
-            "Hutchison tip: Let the parent tell the story first before asking structured questions"
-        ],
-        'birth': [
-            "Antenatal: gestational age, ANC attendance, infections (malaria, syphilis, HIV), medications, complications",
-            "Delivery: SVD or C-section, place of delivery (hospital/home/TBA), who attended, need for resuscitation",
-            "Birth weight: <2.5kg = low birth weight; <1.5kg = very low birth weight",
-            "Neonatal period: jaundice (phototherapy?), sepsis, seizures, NICU admission, feeding difficulties",
-            "Hutchison tip: Birth history is often overlooked but critical for understanding the child's baseline"
-        ],
-        'milestones': [
-            "Use the WHO developmental milestones as a guide — but always compare to parental report",
-            "Gross motor: head control (3m), sitting (6-8m), standing (9-12m), walking (12-18m)",
-            "Fine motor: reaching (4m), pincer grip (9m), drawing (18m+)",
-            "Language: cooing (2m), babbling (6m), single words (12m), two-word phrases (24m)",
-            "Social: social smile (6-8 weeks), stranger anxiety (8m), parallel play (2y)",
-            "⚠️ Regression (loss of previously achieved milestones) is always a red flag"
-        ],
-        'immunizations': [
-            "Uganda EPI schedule: BCG + OPV0 at birth, then 6/10/14 weeks (DPT-HepB-Hib, PCV, Rota), 9 months (Measles + Yellow Fever), 18 months (Measles 2)",
-            "Always check the child's immunization card (yellow card) — do not rely on parent memory alone",
-            "If a vaccine was missed: note which one and at what age — refer to immunization clinic",
-            "Ask about reactions to previous vaccines"
-        ],
-        'nutrition': [
-            "MUAC: <11.5cm = SAM (severe acute malnutrition), 11.5-12.4cm = MAM, ≥12.5cm = normal (for 6-59 months)",
-            "Always plot weight on WHO growth chart — a single weight means nothing without context",
-            "Ask about exclusive breastfeeding (recommended for first 6 months), complementary feeding from 6 months",
-            "Kwashiorkor = protein deficiency (oedema, skin changes, hair changes); Marasmus = calorie deficiency (wasting)",
-            "Hutchison tip: Nutritional assessment is one of the most important parts of any pediatric examination in Uganda"
-        ],
-        'danger-signs': [
-            "These are WHO IMCI danger signs — if ANY is present, the child needs urgent assessment",
-            "🚨 Lethargy/unconscious → check blood glucose, treat for cerebral malaria/sepsis",
-            "🚨 Convulsions → give diazepam, check glucose, treat fever",
-            "🚨 Unable to drink/breastfeed → IV access immediately",
-            "🚨 Vomiting everything → risk of aspiration and dehydration",
-            "🚨 Stridor → upper airway obstruction — do NOT examine throat if epiglottitis suspected",
-            "🚨 Fast breathing: >60/min (0-2m), >50/min (2-12m), >40/min (1-5y)"
-        ],
-        'ros': [
-            "ROS in children should be systematic — use it to find symptoms the parent forgot to mention",
-            "Ask about each system even if the complaint seems isolated",
-            "Hutchison tip: 'The history is 80% of the diagnosis' — a thorough ROS often reveals the diagnosis before examination",
-            "Common Uganda patterns: fever + cough → malaria + pneumonia co-infection; diarrhoea + poor feeding → dehydration + malnutrition"
-        ],
-        'exam-general': [
-            "Always start with general inspection before touching the child",
-            "General appearance: Is the child well or ill? Toxic? Comfortable or distressed?",
-            "Nutritional status: Look for wasting (muscle loss), oedema (kwashiorkor), pallor, jaundice",
-            "Hydration: skin turgor, sunken eyes, dry mucous membranes, capillary refill",
-            "Hutchison: 'Look at the patient as a whole before examining any part'",
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            "📊 <strong>Vital Signs – Age‑Specific Normal Ranges</strong>",
-            "<strong>Heart Rate (HR):</strong> Neonate 120-160, Infant 100-160, Toddler 90-150, School 70-120 bpm",
-            "<strong>Respiratory Rate (RR):</strong> Neonate 30-60, Infant 25-40, Toddler 20-30, School 15-25/min",
-            "<strong>Temperature:</strong> Normal axillary 36.5-37.5°C; fever >38°C",
-            "<strong>SpO₂:</strong> >95% is normal; <90% is severe hypoxaemia",
-            "<strong>Blood pressure:</strong> Use age‑appropriate centiles; hypertension common in nephrotic, renal disease",
-            "💡 Tip: Count RR for a full 60 seconds in children — tachypnoea is an early sign of pneumonia or metabolic acidosis."
-        ],
-        'exam-respiratory': [
-            "Inspection: count RR for 60 seconds. Look for chest indrawing, nasal flaring, tracheal tug, use of accessory muscles, grunting (alveolar collapse)",
-            "Palpation: tracheal position (deviated in effusion/pneumothorax), chest expansion, tactile fremitus (increased = consolidation, reduced = effusion)",
-            "Percussion: dull = consolidation/effusion; stony dull = effusion; hyperresonant = pneumothorax",
-            "Auscultation: listen in all zones. Bronchial breathing = consolidation; crackles = pneumonia/pulmonary oedema; wheeze = asthma/bronchiolitis",
-            "Hutchison tip: In infants, auscultate before percussion — they cry less if you haven't disturbed them yet"
-        ],
-        'exam-cardiovascular': [
-            "Inspection: central vs peripheral cyanosis, precordial bulge (cardiomegaly), scars (previous surgery), oedema",
-            "Palpation: apex beat (displaced in cardiomegaly), heave (RV pressure overload), thrill (palpable murmur ≥ grade 4), pulses (all 4 limbs in neonates — coarctation)",
-            "Auscultation: identify S1 (mitral/tricuspid closure) and S2 (aortic/pulmonary closure). S2 split widens on inspiration. Murmurs: time in cycle, grade (1-6), location, radiation",
-            "Hutchison tip: Innocent murmurs are common in children — they are soft (≤ grade 2), systolic, vary with position, no thrill"
-        ],
-        'exam-abdomen': [
-            "Inspection: ask child to take deep breath — look for movement with respiration (peritonitis = no movement). Distension? Visible peristalsis (obstruction)?",
-            "Palpation: start away from the area of pain. Use warm hands. Watch the child's face, not your hand. Feel for organomegaly in all quadrants",
-            "Liver: percuss upper border first. Measure size in cm below right costal margin in mid-clavicular line",
-            "Spleen: palpate from RIF towards LUQ. Measure in cm below left costal margin",
-            "Percussion: shifting dullness for ascites — dull in flanks when supine, moves when patient turned",
-            "Auscultation: listen before palpating. Absent bowel sounds = ileus/peritonitis; tinkling = obstruction",
-            "Hutchison tip: Hepatosplenomegaly in Uganda = malaria until proven otherwise"
-        ],
-        'exam-neurological': [
-            "Inspection: level of consciousness (AVPU or GCS), posture, involuntary movements, fontanelle in infants (<18 months)",
-            "AVPU: Alert, Voice responsive, Pain responsive, Unresponsive — rapid bedside scale",
-            "Fontanelle: bulging = raised ICP (meningitis, hydrocephalus); sunken = dehydration",
-            "Meningeal signs: neck stiffness (passive flexion resisted), Kernig's (inability to extend knee with hip flexed), Brudzinski's (hip flexion on neck flexion)",
-            "Motor: tone (resistance to passive movement), power (age-appropriate testing), reflexes (biceps C5/6, knee L3/4, ankle S1/2)",
-            "Hutchison tip: In children <2 years, Babinski (upgoing plantars) can be normal — interpret in context",
-            "GCS in children: use paediatric GCS — verbal response scored differently for pre-verbal children"
-        ],
-        'exam-skin': [
-            "Inspect in good light. Describe rash: morphology (macule, papule, vesicle, pustule, purpura), distribution, blanching",
-            "Non-blanching rash (petechiae/purpura) = meningococcaemia until proven otherwise — emergency",
-            "Pallor: look at conjunctivae, palms, tongue. Correlates better with Hb than skin colour",
-            "Flaky paint dermatosis + oedema + hair changes = kwashiorkor",
-            "Hutchison tip: Always examine the skin last — but document it systematically, not as an afterthought"
-        ],
-        'exam-ent': [
-            "Ears: use otoscope — look for perforated TM, congested TM (ASOM), discharge, mastoid tenderness",
-            "Nose: discharge (clear = viral, purulent = bacterial), nasal polyps, foreign body in young children",
-            "Throat: use good light and tongue depressor. Grade tonsils: 1 (within pillars), 2 (at pillars), 3 (touching uvula), 4 (kissing)",
-            "Koplik's spots (white spots on buccal mucosa opposite molars) = measles — look before the rash appears",
-            "Oral thrush in older child (not neonate) → consider HIV",
-            "Hutchison tip: Leave throat examination until last — children hate it and will cry, making the rest of the exam harder"
-        ],
-        'social': [
-            "Living conditions: crowded housing → TB, meningitis risk; poor sanitation → diarrhoeal disease",
-            "Smoke exposure in home → recurrent respiratory infections, asthma",
-            "Family history: TB (close contact?), HIV (maternal status, breastfeeding), sickle cell, epilepsy, congenital conditions",
-            "School attendance: chronic illness affects schooling — a useful functional marker",
-            "Hutchison tip: Social history in Uganda must include access to clean water, latrine use, and food security"
-        ],
-        'plan': [
-            "State your working diagnosis first, then differentials in order of likelihood",
-            "Investigations: FBC, malaria RDT/smear, blood culture, urinalysis, CXR as indicated",
-            "Uganda treatment guidelines: use Uganda Clinical Guidelines (UCG) — check antibiotic choices and doses by weight",
-            "Always document: admission/discharge decision, follow-up plan, parent counselling given",
-            "Hutchison tip: 'Treat the patient, not the investigation result' — clinical judgment comes first"
-        ]
-    };
-
-    function updateGuidancePanel(sectionKey) {
-        const contentDiv = document.getElementById('guidanceContent');
-        contentDiv.style.opacity = '0';
-        setTimeout(() => {
-            let items = sectionGuidance[sectionKey];
-            if (!items) {
-                items = ["Select a section to see relevant guidance."];
-            }
-            contentDiv.innerHTML = items.map(tip => `<div class="guidance-tip">${tip}</div>`).join('');
-            contentDiv.style.opacity = '1';
-        }, 150);
-    }
-
-    function highlightActiveSection(element) {
-        const section = element.closest('[data-section]');
-        if (!section) return;
-        document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active-section'));
-        section.classList.add('active-section');
-        const sectionKey = section.getAttribute('data-section');
-        updateGuidancePanel(sectionKey);
-    }
-
-    // Event delegation
-    const clerkingPanel = document.getElementById('clerkingPanel');
-    clerkingPanel.addEventListener('focusin', (e) => {
-        const target = e.target;
-        const section = target.closest('[data-section]');
-        if (section) highlightActiveSection(target);
-    });
-    clerkingPanel.addEventListener('click', (e) => {
-        const target = e.target;
-        if (target.classList && target.classList.contains('toggle-pill')) {
-            const section = target.closest('[data-section]');
-            if (section) highlightActiveSection(target);
-        }
-        if (target.classList && target.classList.contains('exam-card-header')) {
-            const card = target.closest('.exam-card');
-            if (card) {
-                const examKey = card.getAttribute('data-exam');
-                if (examKey) {
-                    const sectionMap = {
-                        'general': 'exam-general',
-                        'respiratory': 'exam-respiratory',
-                        'cardiovascular': 'exam-cardiovascular',
-                        'abdomen': 'exam-abdomen',
-                        'neurological': 'exam-neurological',
-                        'skin': 'exam-skin',
-                        'ent': 'exam-ent'
-                    };
-                    const mapped = sectionMap[examKey];
-                    if (mapped) updateGuidancePanel(mapped);
-                    const sectionDiv = card.closest('[data-section]');
-                    if (sectionDiv) highlightActiveSection(card);
-                }
-            }
-        }
-        if (target.classList && target.classList.contains('symptom-btn')) {
-            const section = target.closest('[data-section]');
-            if (section) highlightActiveSection(target);
-        }
-    });
+    // ==================== HIV Toggle ====================
+    function toggleHIVDetails() { document.getElementById('hivDetails').classList.toggle('active'); }
+    function toggleARTDetails() { document.getElementById('artDetails').style.display = document.getElementById('hivOnArt').value === 'yes' ? 'block' : 'none'; }
 
     // ==================== Capture / Restore Form Data ====================
     function captureFormData() {
@@ -1726,6 +1651,9 @@ function savePCResponse(idx, value) {
             });
         }
         const examData = captureExamData();
+
+        const oiList = Array.from(document.querySelectorAll('#hivDetails input[type="checkbox"]:checked')).map(cb => cb.value);
+
         return {
             childName: document.getElementById('childName').value,
             childAge: document.getElementById('childAge').value,
@@ -1739,6 +1667,27 @@ function savePCResponse(idx, value) {
             referralReason: document.getElementById('referralReason').value,
             currentSymptom, pcResponses,
             hpc: document.getElementById('hpc').value,
+            pmh: document.getElementById('pmh').value,
+            medications: document.getElementById('medications').value,
+            allergies: document.getElementById('allergies').value,
+            hivStatus: document.getElementById('hivStatus').value,
+            hivDiagnosisDate: document.getElementById('hivDiagnosisDate').value,
+            hivDiagnosisMethod: document.getElementById('hivDiagnosisMethod').value,
+            hivWhoStage: document.getElementById('hivWhoStage').value,
+            hivOnArt: document.getElementById('hivOnArt').value,
+            hivArtStartDate: document.getElementById('hivArtStartDate').value,
+            hivArtRegimen: document.getElementById('hivArtRegimen').value,
+            hivAdherence: document.getElementById('hivAdherence').value,
+            hivMissedDoses: document.getElementById('hivMissedDoses').value,
+            hivAdherenceBarriers: document.getElementById('hivAdherenceBarriers').value,
+            hivCd4: document.getElementById('hivCd4').value,
+            hivCd4Date: document.getElementById('hivCd4Date').value,
+            hivViralLoad: document.getElementById('hivViralLoad').value,
+            hivVlDate: document.getElementById('hivVlDate').value,
+            hivOpportunisticInfections: oiList,
+            hivIpt: document.getElementById('hivIpt').value,
+            hivCpt: document.getElementById('hivCpt').value,
+            hivPartnerStatus: document.getElementById('hivPartnerStatus').value,
             antenatal: document.getElementById('antenatal').value,
             delivery: document.getElementById('delivery').value,
             birthWeight: document.getElementById('birthWeight').value,
@@ -1771,6 +1720,33 @@ function savePCResponse(idx, value) {
         document.getElementById('referralFrom').value = data.referralFrom || '';
         document.getElementById('referralReason').value = data.referralReason || '';
         document.getElementById('hpc').value = data.hpc || '';
+        document.getElementById('pmh').value = data.pmh || '';
+        document.getElementById('medications').value = data.medications || '';
+        document.getElementById('allergies').value = data.allergies || '';
+        document.getElementById('hivStatus').value = data.hivStatus || '';
+        document.getElementById('hivDiagnosisDate').value = data.hivDiagnosisDate || '';
+        document.getElementById('hivDiagnosisMethod').value = data.hivDiagnosisMethod || '';
+        document.getElementById('hivWhoStage').value = data.hivWhoStage || '';
+        document.getElementById('hivOnArt').value = data.hivOnArt || '';
+        document.getElementById('hivArtStartDate').value = data.hivArtStartDate || '';
+        document.getElementById('hivArtRegimen').value = data.hivArtRegimen || '';
+        document.getElementById('hivAdherence').value = data.hivAdherence || '';
+        document.getElementById('hivMissedDoses').value = data.hivMissedDoses || '';
+        document.getElementById('hivAdherenceBarriers').value = data.hivAdherenceBarriers || '';
+        document.getElementById('hivCd4').value = data.hivCd4 || '';
+        document.getElementById('hivCd4Date').value = data.hivCd4Date || '';
+        document.getElementById('hivViralLoad').value = data.hivViralLoad || '';
+        document.getElementById('hivVlDate').value = data.hivVlDate || '';
+        if (data.hivOpportunisticInfections) {
+            document.querySelectorAll('#hivDetails input[type="checkbox"]').forEach(cb => {
+                cb.checked = data.hivOpportunisticInfections.includes(cb.value);
+            });
+        }
+        document.getElementById('hivIpt').value = data.hivIpt || '';
+        document.getElementById('hivCpt').value = data.hivCpt || '';
+        document.getElementById('hivPartnerStatus').value = data.hivPartnerStatus || '';
+        if (data.hivOnArt === 'yes') document.getElementById('artDetails').style.display = 'block';
+        else document.getElementById('artDetails').style.display = 'none';
         document.getElementById('antenatal').value = data.antenatal || '';
         document.getElementById('delivery').value = data.delivery || '';
         document.getElementById('birthWeight').value = data.birthWeight || '';
@@ -1783,19 +1759,16 @@ function savePCResponse(idx, value) {
         document.getElementById('socialHistory').value = data.socialHistory || '';
         document.getElementById('familyHistory').value = data.familyHistory || '';
         document.getElementById('managementPlan').value = data.managementPlan || '';
-        // milestones
         document.querySelectorAll('#milestonesContainer .toggle-pill').forEach(pill => {
             const val = pill.getAttribute('data-value');
             if (data.milestones && data.milestones.includes(val)) pill.classList.add('active');
             else pill.classList.remove('active');
         });
-        // danger signs
         document.querySelectorAll('#dangerSignsContainer .toggle-pill').forEach(pill => {
             const val = pill.getAttribute('data-value');
             if (data.redFlags && data.redFlags.includes(val)) pill.classList.add('active');
             else pill.classList.remove('active');
         });
-        // immunizations
         if (data.immunizations) {
             document.querySelectorAll('.vaccine-item').forEach(item => {
                 const vaccine = item.querySelector('.vaccine-cb').dataset.vaccine;
@@ -1806,7 +1779,6 @@ function savePCResponse(idx, value) {
                 else { cb.checked = false; dateInput.value = ''; dateInput.disabled = true; }
             });
         }
-        // ROS
         for (const [key, ros] of Object.entries(data.rosData || {})) {
             const pillsContainer = document.getElementById(`ros-pills-${key}`);
             if (pillsContainer) {
@@ -1832,9 +1804,11 @@ function savePCResponse(idx, value) {
                 });
             }
         }
+        if (data.symptomDetails) symptomDetails = data.symptomDetails;
         updateMuac(); updateGrowthChart(); checkVitals(); checkMilestoneWarnings(); updateProgress();
         if (data.referralStatus && data.referralStatus !== 'Self‑referred') document.getElementById('referralDetails').style.display = 'grid';
         else document.getElementById('referralDetails').style.display = 'none';
+        if (data.hivStatus || data.hivDiagnosisDate || data.hivWhoStage) document.getElementById('hivDetails').classList.add('active');
     }
 
     function resetForm() {
@@ -1863,91 +1837,104 @@ function savePCResponse(idx, value) {
 
     function newPatient() { resetForm(); }
 
-async function savePatient() {
-    const name = document.getElementById('childName').value.trim();
-
-    const referralStatus = document.getElementById('referralStatus').value;
-    const referralFrom = document.getElementById('referralFrom').value.trim();
-    if (referralStatus !== 'Self‑referred' && !referralFrom) {
-        showToast('Please enter the referring facility name', '#e67e22');
-        return;
-    }
-
-    if (!name) { showToast('Enter child name', '#e67e22'); return; }
-
-    // 1. Capture form data
-    const formData = captureFormData();
-
-    // 2. Save to Supabase (if logged in)
-    const user = window._sb?.auth?.user() || currentUser;
-    if (user && window._sb) {
-        try {
-            const { error } = await window._sb
-                .from('pediatric_encounters')
-                .insert({
-                    user_id: user.id,
-                    child_name: formData.childName,
-                    child_age: formData.childAge,
-                    child_sex: formData.childSex,
-                    guardian: formData.guardian,
-                    contact: formData.contact,
-                    address: formData.address,
-                    nearest_hc: formData.nearestHc,
-                    referral_status: formData.referralStatus,
-                    referral_from: formData.referralFrom,
-                    referral_reason: formData.referralReason,
-                    current_symptom: formData.currentSymptom,
-                    hpc: formData.hpc,
-                    antenatal: formData.antenatal,
-                    delivery: formData.delivery,
-                    birth_weight: formData.birthWeight,
-                    neonatal_complications: formData.neonatalComp,
-                    milestones: formData.milestones,
-                    milestone_notes: formData.milestoneNotes,
-                    immunizations: formData.immunizations,
-                    feeding_history: formData.feedingHistory,
-                    weight: formData.weight,
-                    height: formData.height,
-                    muac: formData.muac,
-                    danger_signs: formData.redFlags,
-                    ros_data: formData.rosData,
-                    exam_data: formData.examData,
-                    social_history: formData.socialHistory,
-                    family_history: formData.familyHistory,
-                    management_plan: formData.managementPlan,
-                    created_at: new Date().toISOString()
-                });
-            if (error) {
-                console.warn('Supabase insert failed:', error);
-                showToast('Saved locally only (cloud sync failed)', '#e67e22');
-            } else {
-                showToast('Record saved to cloud + local', '#2c6e49');
-            }
-        } catch (err) {
-            console.warn('Supabase error:', err);
-            showToast('Saved locally only (offline mode)', '#e67e22');
+    async function savePatient() {
+        const name = document.getElementById('childName').value.trim();
+        const referralStatus = document.getElementById('referralStatus').value;
+        const referralFrom = document.getElementById('referralFrom').value.trim();
+        if (referralStatus !== 'Self‑referred' && !referralFrom) {
+            showToast('Please enter the referring facility name', '#e67e22');
+            return;
         }
-    } else {
-        showToast('You are offline – saved locally only', '#e67e22');
+        if (!name) { showToast('Enter child name', '#e67e22'); return; }
+
+        const formData = captureFormData();
+        const user = window._sb?.auth?.user() || currentUser;
+        if (user && window._sb) {
+            try {
+                const { error } = await window._sb
+                    .from('pediatric_encounters')
+                    .insert({
+                        user_id: user.id,
+                        child_name: formData.childName,
+                        child_age: formData.childAge,
+                        child_sex: formData.childSex,
+                        guardian: formData.guardian,
+                        contact: formData.contact,
+                        address: formData.address,
+                        nearest_hc: formData.nearestHc,
+                        referral_status: formData.referralStatus,
+                        referral_from: formData.referralFrom,
+                        referral_reason: formData.referralReason,
+                        current_symptom: formData.currentSymptom,
+                        hpc: formData.hpc,
+                        pmh: formData.pmh,
+                        medications: formData.medications,
+                        allergies: formData.allergies,
+                        hiv_status: formData.hivStatus,
+                        hiv_diagnosis_date: formData.hivDiagnosisDate,
+                        hiv_diagnosis_method: formData.hivDiagnosisMethod,
+                        hiv_who_stage: formData.hivWhoStage,
+                        hiv_on_art: formData.hivOnArt,
+                        hiv_art_start_date: formData.hivArtStartDate,
+                        hiv_art_regimen: formData.hivArtRegimen,
+                        hiv_adherence: formData.hivAdherence,
+                        hiv_missed_doses: formData.hivMissedDoses,
+                        hiv_adherence_barriers: formData.hivAdherenceBarriers,
+                        hiv_cd4: formData.hivCd4,
+                        hiv_cd4_date: formData.hivCd4Date,
+                        hiv_viral_load: formData.hivViralLoad,
+                        hiv_vl_date: formData.hivVlDate,
+                        hiv_ois: formData.hivOpportunisticInfections,
+                        hiv_ipt: formData.hivIpt,
+                        hiv_cpt: formData.hivCpt,
+                        hiv_partner_status: formData.hivPartnerStatus,
+                        antenatal: formData.antenatal,
+                        delivery: formData.delivery,
+                        birth_weight: formData.birthWeight,
+                        neonatal_complications: formData.neonatalComp,
+                        milestones: formData.milestones,
+                        milestone_notes: formData.milestoneNotes,
+                        immunizations: formData.immunizations,
+                        feeding_history: formData.feedingHistory,
+                        weight: formData.weight,
+                        height: formData.height,
+                        muac: formData.muac,
+                        danger_signs: formData.redFlags,
+                        ros_data: formData.rosData,
+                        exam_data: formData.examData,
+                        social_history: formData.socialHistory,
+                        family_history: formData.familyHistory,
+                        management_plan: formData.managementPlan,
+                        created_at: new Date().toISOString()
+                    });
+                if (error) {
+                    console.warn('Supabase insert failed:', error);
+                    showToast('Saved locally only (cloud sync failed)', '#e67e22');
+                } else {
+                    showToast('Record saved to cloud + local', '#2c6e49');
+                }
+            } catch (err) {
+                console.warn('Supabase error:', err);
+                showToast('Saved locally only (offline mode)', '#e67e22');
+            }
+        } else {
+            showToast('You are offline – saved locally only', '#e67e22');
+        }
+
+        const records = getRecords();
+        const localStorageUser = localStorage.getItem('easemed_user') || 'unknown';
+        const existingIdx = records.findIndex(r => r.childName.toLowerCase() === name.toLowerCase() && r.user === localStorageUser);
+        const record = {
+            id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
+            savedAt: new Date().toISOString(),
+            user: localStorageUser,
+            ...formData
+        };
+        if (existingIdx >= 0) records[existingIdx] = record;
+        else records.unshift(record);
+        saveRecords(records);
+        generateClinicalSummary();
     }
-
-    // 3. Save to localStorage (existing code)
-    const records = getRecords();
-    const localStorageUser = localStorage.getItem('easemed_user') || 'unknown';
-    const existingIdx = records.findIndex(r => r.childName.toLowerCase() === name.toLowerCase() && r.user === localStorageUser);
-    const record = {
-        id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
-        savedAt: new Date().toISOString(),
-        user: localStorageUser,
-        ...formData
-    };
-    if (existingIdx >= 0) records[existingIdx] = record;
-    else records.unshift(record);
-    saveRecords(records);
-
-    // 4. Refresh summary
-    generateClinicalSummary();
-}
 
     function loadPatient(id) {
         const record = getRecords().find(r => r.id === id);
@@ -1957,6 +1944,88 @@ async function savePatient() {
         generateClinicalSummary();
         window.scrollTo(0,0);
         showToast(`Loaded ${record.childName}`, '#2980b9');
+    }
+
+    function exportToWord() {
+        const formData = captureFormData();
+        const patientName = formData.childName || 'Unnamed';
+        const date = new Date().toLocaleString();
+
+        const docHtml = `<!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"><title>EaseMed Pediatric Record - ${patientName}</title>
+        <style>
+            body { font-family: 'Times New Roman', Times, serif; margin: 2cm; line-height: 1.4; color: #000; }
+            h1 { color: #1b7e6b; font-size: 24pt; margin-bottom: 5px; }
+            h2 { color: #1b7e6b; font-size: 18pt; border-bottom: 1px solid #aaa; margin-top: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .section { margin-bottom: 20px; }
+            .label { font-weight: bold; display: inline-block; min-width: 180px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        </style>
+        </head>
+        <body>
+        <div class="header"><h1>EaseMed Pediatric Clerking Record</h1><p>Generated: ${date}</p></div>
+        <div class="section"><h2>Child Demographics</h2><div class="grid">
+            <div><span class="label">Full Name:</span> ${escapeHtml(formData.childName)}</div>
+            <div><span class="label">Age:</span> ${escapeHtml(formData.childAge)}</div>
+            <div><span class="label">Sex:</span> ${escapeHtml(formData.childSex)}</div>
+            <div><span class="label">Guardian:</span> ${escapeHtml(formData.guardian)}</div>
+            <div><span class="label">Contact:</span> ${escapeHtml(formData.contact)}</div>
+            <div><span class="label">Address:</span> ${escapeHtml(formData.address)}</div>
+            <div><span class="label">Nearest Health Centre:</span> ${escapeHtml(formData.nearestHc)}</div>
+            <div><span class="label">Referral Status:</span> ${escapeHtml(formData.referralStatus)}</div>
+            <div><span class="label">Referred from:</span> ${escapeHtml(formData.referralFrom)}</div>
+            <div><span class="label">Reason:</span> ${escapeHtml(formData.referralReason)}</div>
+        </div></div>
+        <div class="section"><h2>Presenting Complaint</h2><div><span class="label">Main Symptom:</span> ${escapeHtml(formData.currentSymptom)}</div>
+        <div><span class="label">HPC:</span><br>${escapeHtml(formData.hpc).replace(/\n/g, '<br>')}</div></div>
+        <div class="section"><h2>Past Medical History</h2><div><span class="label">Past illnesses:</span> ${escapeHtml(formData.pmh)}</div>
+        <div><span class="label">Current medications:</span> ${escapeHtml(formData.medications)}</div>
+        <div><span class="label">Allergies:</span> ${escapeHtml(formData.allergies)}</div>
+        <div><span class="label">HIV Status:</span> ${escapeHtml(formData.hivStatus)}</div>
+        <div><span class="label">CD4:</span> ${escapeHtml(formData.hivCd4)} (${escapeHtml(formData.hivCd4Date)})</div>
+        <div><span class="label">Viral Load:</span> ${escapeHtml(formData.hivViralLoad)} (${escapeHtml(formData.hivVlDate)})</div>
+        <div><span class="label">ART Regimen:</span> ${escapeHtml(formData.hivArtRegimen)}</div>
+        <div><span class="label">Adherence:</span> ${escapeHtml(formData.hivAdherence)}</div></div>
+        <div class="section"><h2>Birth History</h2><div><span class="label">Antenatal:</span> ${escapeHtml(formData.antenatal)}</div>
+        <div><span class="label">Delivery:</span> ${escapeHtml(formData.delivery)}</div>
+        <div><span class="label">Birth weight:</span> ${escapeHtml(formData.birthWeight)} kg</div>
+        <div><span class="label">Neonatal complications:</span> ${escapeHtml(formData.neonatalComp)}</div></div>
+        <div class="section"><h2>Developmental Milestones</h2><div><span class="label">Achieved:</span> ${escapeHtml(formData.milestones?.join(', ') || 'None')}</div>
+        <div><span class="label">Notes:</span> ${escapeHtml(formData.milestoneNotes)}</div></div>
+        <div class="section"><h2>Immunizations (Uganda EPI)</h2><ul>${formData.immunizations?.map(i => `<li>${i.vaccine} – ${i.date || 'date not recorded'}</li>`).join('') || '<li>None recorded</li>'}</ul></div>
+        <div class="section"><h2>Nutrition & Growth</h2><div><span class="label">Feeding history:</span> ${escapeHtml(formData.feedingHistory)}</div>
+        <div><span class="label">Weight:</span> ${escapeHtml(formData.weight)} kg</div>
+        <div><span class="label">Height:</span> ${escapeHtml(formData.height)} cm</div>
+        <div><span class="label">MUAC:</span> ${escapeHtml(formData.muac)} cm</div></div>
+        <div class="section"><h2>Danger Signs</h2><div>${escapeHtml(formData.redFlags?.join(', ') || 'None')}</div></div>
+        <div class="section"><h2>Review of Systems</h2>${Object.entries(pedsROS).map(([key, sys]) => {
+            const ros = formData.rosData?.[key] || { selected: [], narrative: '' };
+            return `<div><strong>${sys.name}:</strong> ${ros.selected.join(', ')} ${ros.narrative}</div>`;
+        }).join('')}</div>
+        <div class="section"><h2>Physical Examination</h2>${(() => {
+            const vitals = formData.examData?.vitals || {};
+            return `<div><strong>Vitals:</strong> HR ${vitals.hr}, RR ${vitals.rr}, Temp ${vitals.temp}°C, SpO2 ${vitals.spo2}%, BP ${vitals.bp}, GCS ${vitals.gcs}</div>`;
+        })()}${Object.entries(examSystems).map(([key, sys]) => {
+            const exam = formData.examData?.[key] || { pills: [], notes: '' };
+            return `<div><strong>${sys.name}:</strong> ${exam.pills.join(', ')}<br>${exam.notes}</div>`;
+        }).join('')}</div>
+        <div class="section"><h2>Social & Family History</h2><div>${escapeHtml(formData.socialHistory)}</div><div>${escapeHtml(formData.familyHistory)}</div></div>
+        <div class="section"><h2>Assessment & Plan</h2><div>${escapeHtml(formData.managementPlan)}</div></div>
+        <footer style="margin-top:40px; font-size:9pt; text-align:center; color:gray;">EaseMed Clinical Clerk System – based on Uganda Clinical Guidelines & Nelson Textbook of Pediatrics</footer>
+        </body></html>`;
+
+        const blob = new Blob([docHtml], { type: 'application/msword' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = `EaseMed_${patientName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,19)}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('Word document exported', '#2c6e49');
     }
 
     function exportRecords() {
@@ -1993,7 +2062,6 @@ async function savePatient() {
         event.target.value = '';
     }
 
-    // ==================== Clinical Summary ====================
     function generateClinicalSummary() {
         const data = captureFormData();
         const redFlagsList = data.redFlags.join(', ') || 'None';
@@ -2037,6 +2105,7 @@ async function savePatient() {
             <div><strong>Referral:</strong> ${data.referralStatus} ${data.referralFrom ? 'from '+data.referralFrom : ''} ${data.referralReason ? '('+data.referralReason+')' : ''}</div>
             <div><strong>Presenting complaint:</strong> ${data.currentSymptom || 'Not specified'}<br>${pcHtml}</div>
             <div><strong>HPC:</strong> ${data.hpc || 'Not documented'}</div>
+            <div><strong>Past Medical History:</strong> PMH: ${data.pmh || 'None'}, Medications: ${data.medications || 'None'}, Allergies: ${data.allergies || 'None'}<br>HIV: ${data.hivStatus || 'Not documented'} | CD4: ${data.hivCd4 || '--'} | Viral Load: ${data.hivViralLoad || '--'}</div>
             <div><strong>Birth:</strong> ${data.antenatal} | ${data.delivery} | BW ${data.birthWeight}kg | complications: ${data.neonatalComp}</div>
             <div><strong>Milestones:</strong> ${milestonesAchieved} | Notes: ${data.milestoneNotes}</div>
             <div><strong>Immunizations:</strong> ${immunizationsGiven}</div>
@@ -2050,7 +2119,7 @@ async function savePatient() {
         document.getElementById('clinicalSummary').innerHTML = summaryHtml;
 
         const referralInfo = (data.referralStatus !== 'Self‑referred' && data.referralFrom) ? ` (Referred from ${data.referralFrom})` : '';
-        const wardHtml = `<ol><li><strong>Patient:</strong> ${data.childName}, ${data.childAge}, ${data.childSex}, guardian ${data.guardian}</li><li><strong>Presenting & danger signs:</strong> ${data.currentSymptom || 'None'} | ${redFlagsList}</li><li><strong>Major positives:</strong> ${milestonesAchieved !== 'None' ? 'Milestones: '+milestonesAchieved : ''} ${data.weight ? 'Weight '+data.weight+'kg' : ''}</li><li><strong>Key negatives/background:</strong> ${data.milestoneNotes || ''} ${data.socialHistory}</li><li><strong>Working diagnosis & plan:</strong> ${data.managementPlan || 'Awaiting review'}</li></ol>`;
+        const wardHtml = `<ol><li><strong>Patient:</strong> ${data.childName}, ${data.childAge}, ${data.childSex}, guardian ${data.guardian}</li><li><strong>Presenting & danger signs:</strong> ${data.currentSymptom || 'None'} | ${redFlagsList}${referralInfo}</li><li><strong>Major positives:</strong> ${milestonesAchieved !== 'None' ? 'Milestones: '+milestonesAchieved : ''} ${data.weight ? 'Weight '+data.weight+'kg' : ''}</li><li><strong>Key negatives/background:</strong> ${data.milestoneNotes || ''} ${data.socialHistory}</li><li><strong>Working diagnosis & plan:</strong> ${data.managementPlan || 'Awaiting review'}</li></ol>`;
         document.getElementById('wardRoundSummary').innerHTML = wardHtml;
         document.getElementById('summarySection').style.display = 'block';
         updateProgress();
@@ -2073,7 +2142,6 @@ async function savePatient() {
     }
     function escapeHtml(str) { return String(str || '').replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
-    // ==================== Immunization Grid ====================
     const vaccineList = [
         { name: "BCG", due: "Birth" }, { name: "OPV0", due: "Birth" },
         { name: "DPT-HepB-Hib1", due: "6 weeks" }, { name: "PCV1", due: "6 weeks" }, { name: "Rota1", due: "6 weeks" },
@@ -2095,7 +2163,7 @@ async function savePatient() {
         });
     }
 
-    // ==================== Initialization ====================
+    // Initialization
     buildTogglePills();
     buildImmunizationGrid();
     buildROS();
