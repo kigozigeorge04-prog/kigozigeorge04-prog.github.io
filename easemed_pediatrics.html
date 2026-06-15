@@ -311,11 +311,15 @@
             </div>
         </div>
 
-        <div class="form-section" style="display: flex; gap: 12px;">
-            <button class="btn-generate" onclick="generateClinicalSummary()">Generate Summary + Ward Round</button>
-            <button class="btn-generate" onclick="savePatient()" style="background:#2c6e49;">Save Record</button>
-            <button class="btn-generate" onclick="resetForm()" style="background:#e67e22;">Reset Form</button>
-        </div>
+     <div class="form-section" style="display: flex; gap: 12px; flex-wrap: wrap;">
+    <button class="btn-generate" onclick="generateClinicalSummary()">Generate Summary + Ward Round</button>
+         <button class="btn-generate" onclick="openDifferentials()" style="background:#8e44ad;">
+  🧠 AI Differentials
+</button>
+    <button class="btn-generate" onclick="savePatient()" style="background:#2c6e49;">Save Record</button>
+    <button class="btn-generate" onclick="resetForm()" style="background:#e67e22;">Reset Form</button>
+    <button class="btn-generate" onclick="openDifferentials()" style="background:#8e44ad;">🧠 AI Differentials</button>
+</div>
     </div>
 
     <div class="guidance-panel">
@@ -1349,6 +1353,15 @@
     window.addEventListener('input', updateProgress);
     document.querySelectorAll('.toggle-pill').forEach(p => p.addEventListener('click', updateProgress));
     document.getElementById('milestonesContainer').addEventListener('click', (e) => { if (e.target.classList && e.target.classList.contains('toggle-pill')) checkMilestoneWarnings(); });
+
+function openDifferentials() {
+    const popup = window.open('easemed_differentials.html', 'differentials',
+        'width=960,height=860,scrollbars=yes,resizable=yes');
+    popup.addEventListener('load', () => {
+        popup.currentSymptom = currentSymptom;
+    });
+}
+
 </script>
 </body>
 </html>
