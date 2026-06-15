@@ -1862,28 +1862,91 @@ function savePCResponse(idx, value) {
 
     function newPatient() { resetForm(); }
 
-    function savePatient() {
-        const name = document.getElementById('childName').value.trim();
+async function savePatient() {
+    const name = document.getElementById('childName').value.trim();
 
-        const referralStatus = document.getElementById('referralStatus').value;
-const referralFrom = document.getElementById('referralFrom').value.trim();
-if (referralStatus !== 'Self‑referred' && !referralFrom) {
-    showToast('Please enter the referring facility name', '#e67e22');
-    return;
-}
-        
-        if (!name) { showToast('Enter child name', '#e67e22'); return; }
-        const records = getRecords();
-        const user = localStorage.getItem('easemed_user') || 'unknown';
-        const existingIdx = records.findIndex(r => r.childName.toLowerCase() === name.toLowerCase() && r.user === user);
-        const formData = captureFormData();
-        const record = { id: existingIdx >= 0 ? records[existingIdx].id : Date.now(), savedAt: new Date().toISOString(), user, ...formData };
-        if (existingIdx >= 0) records[existingIdx] = record;
-        else records.unshift(record);
-        saveRecords(records);
-        showToast('Record saved', '#2c6e49');
-        generateClinicalSummary();
+    const referralStatus = document.getElementById('referralStatus').value;
+    const referralFrom = document.getElementById('referralFrom').value.trim();
+    if (referralStatus !== 'Self‑referred' && !referralFrom) {
+        showToast('Please enter the referring facility name', '#e67e22');
+        return;
     }
+
+    if (!name) { showToast('Enter child name', '#e67e22'); return; }
+
+    // 1. Capture form data
+    const formData = captureFormData();
+
+    // 2. Save to Supabase (if logged in)
+    const user = window._sb?.auth?.user() || currentUser;
+    if (user && window._sb) {
+        try {
+            const { error } = await window._sb
+                .from('pediatric_encounters')
+                .insert({
+                    user_id: user.id,
+                    child_name: formData.childName,
+                    child_age: formData.childAge,
+                    child_sex: formData.childSex,
+                    guardian: formData.guardian,
+                    contact: formData.contact,
+                    address: formData.address,
+                    nearest_hc: formData.nearestHc,
+                    referral_status: formData.referralStatus,
+                    referral_from: formData.referralFrom,
+                    referral_reason: formData.referralReason,
+                    current_symptom: formData.currentSymptom,
+                    hpc: formData.hpc,
+                    antenatal: formData.antenatal,
+                    delivery: formData.delivery,
+                    birth_weight: formData.birthWeight,
+                    neonatal_complications: formData.neonatalComp,
+                    milestones: formData.milestones,
+                    milestone_notes: formData.milestoneNotes,
+                    immunizations: formData.immunizations,
+                    feeding_history: formData.feedingHistory,
+                    weight: formData.weight,
+                    height: formData.height,
+                    muac: formData.muac,
+                    danger_signs: formData.redFlags,
+                    ros_data: formData.rosData,
+                    exam_data: formData.examData,
+                    social_history: formData.socialHistory,
+                    family_history: formData.familyHistory,
+                    management_plan: formData.managementPlan,
+                    created_at: new Date().toISOString()
+                });
+            if (error) {
+                console.warn('Supabase insert failed:', error);
+                showToast('Saved locally only (cloud sync failed)', '#e67e22');
+            } else {
+                showToast('Record saved to cloud + local', '#2c6e49');
+            }
+        } catch (err) {
+            console.warn('Supabase error:', err);
+            showToast('Saved locally only (offline mode)', '#e67e22');
+        }
+    } else {
+        showToast('You are offline – saved locally only', '#e67e22');
+    }
+
+    // 3. Save to localStorage (existing code)
+    const records = getRecords();
+    const localStorageUser = localStorage.getItem('easemed_user') || 'unknown';
+    const existingIdx = records.findIndex(r => r.childName.toLowerCase() === name.toLowerCase() && r.user === localStorageUser);
+    const record = {
+        id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
+        savedAt: new Date().toISOString(),
+        user: localStorageUser,
+        ...formData
+    };
+    if (existingIdx >= 0) records[existingIdx] = record;
+    else records.unshift(record);
+    saveRecords(records);
+
+    // 4. Refresh summary
+    generateClinicalSummary();
+}
 
     function loadPatient(id) {
         const record = getRecords().find(r => r.id === id);
