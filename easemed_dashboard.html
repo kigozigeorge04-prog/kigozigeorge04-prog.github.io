@@ -1575,6 +1575,107 @@
                 grid-template-columns: repeat(2, 1fr)
             }
         }
+
+        /* ===== MODULE CARDS STYLES ===== */
+        .module-card {
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .module-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+        .module-card .module-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .module-card .module-icon {
+            font-size: 2rem;
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+        .module-card .module-icon.peds {
+            background: #b2dfdb;
+            color: #1b5e4a;
+        }
+        .module-card .module-icon.surgery {
+            background: #d4e4f7;
+            color: #1e3c72;
+        }
+        .module-card .module-text h3 {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+        .module-card .module-text p {
+            margin: 2px 0 0;
+            font-size: 0.85rem;
+            opacity: 0.75;
+        }
+        .module-card .module-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .module-card .module-btn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        .module-card.peds-card {
+            background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+            border-left: 5px solid #1b7e6b;
+        }
+        .module-card.peds-card .module-text h3 {
+            color: #1b5e4a;
+        }
+        .module-card.peds-card .module-btn {
+            background: linear-gradient(135deg, #1b7e6b, #1a5a4a);
+            color: white;
+        }
+        .module-card.surgery-card {
+            background: linear-gradient(135deg, #e8f0fe 0%, #d4e4f7 100%);
+            border-left: 5px solid #1e3c72;
+        }
+        .module-card.surgery-card .module-text h3 {
+            color: #1e3c72;
+        }
+        .module-card.surgery-card .module-btn {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .module-card {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .module-card .module-left {
+                flex-direction: column;
+            }
+            .module-card .module-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1592,19 +1693,37 @@
                 <p>Comprehensive history taking & physical examination guide | Based on Hutchison's Clinical Methods</p>
             </div>
 
-            <!-- Pediatric Module Link -->
-            <div class="form-section" style="background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%); border-radius: 16px; margin-bottom: 16px; padding: 16px 20px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <i class="fas fa-child" style="font-size: 2rem; color: #1b7e6b;"></i>
-                        <div>
-                            <h3 style="margin: 0; color: #1b5e4a;">Pediatric Clerking Module</h3>
-                            <p style="margin: 4px 0 0; font-size: 0.85rem; color: #2d6a4f;">Birth history, milestones, immunisations, growth charts & red flags</p>
-                        </div>
+            <!-- ============================================================ -->
+            <!-- MODULE CARDS: Surgery Clerking + Pediatric Clerking            -->
+            <!-- ============================================================ -->
+            
+            <!-- Surgery Clerking Module -->
+            <div class="module-card surgery-card">
+                <div class="module-left">
+                    <div class="module-icon surgery">🔪</div>
+                    <div class="module-text">
+                        <h3>Surgery Clerking Module</h3>
+                        <p>Comprehensive surgical history taking: PC, HPC, PMH, ROS, Physical Examination &amp; Assessment</p>
                     </div>
-                    <a href="easemed_pediatrics.html" class="btn-generate" style="width: auto; padding: 10px 24px; margin: 0; text-decoration: none; display: inline-block;">👶 Go to Pediatric Module →</a>
                 </div>
+                <a href="surgery-clerking.html" class="module-btn">🔪 Go to Surgery Module →</a>
             </div>
+
+            <!-- Pediatric Clerking Module -->
+            <div class="module-card peds-card">
+                <div class="module-left">
+                    <div class="module-icon peds">👶</div>
+                    <div class="module-text">
+                        <h3>Pediatric Clerking Module</h3>
+                        <p>Birth history, milestones, immunisations, growth charts &amp; red flags</p>
+                    </div>
+                </div>
+                <a href="easemed_pediatrics.html" class="module-btn">👶 Go to Pediatric Module →</a>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- END OF MODULE CARDS                                           -->
+            <!-- ============================================================ -->
 
             <!-- Demographics -->
             <div class="form-section">
@@ -2453,7 +2572,7 @@
             event.target.value = '';
         }
 
-        // ==================== SAVE PATIENT (FIXED) ====================
+        // ==================== SAVE PATIENT ====================
         async function savePatient() {
             const name = (document.getElementById('fullName').value || '').trim();
             if (!name) {
@@ -3017,9 +3136,13 @@
         // Also fix after a delay to ensure everything is loaded
         setTimeout(fixSymptomButtons, 1000);
 
+        // Initialize XP Physical Examination
+        xpInit();
+
         console.log('EaseMed Clinical Clerk System loaded successfully');
         console.log('💡 Tip: Use SOCRATES only for pain complaints');
         console.log('📖 Based on Hutchison\'s Clinical Methods, 25th Edition');
+        console.log('🔪 Surgery Clerking Module available at: surgery-clerking.html');
     </script>
 </body>
 </html>
