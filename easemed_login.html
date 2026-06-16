@@ -779,6 +779,14 @@ let sb; // global Supabase client — set once SDK is ready
         );
         if (session) {
             setOverlayStatus('✅ Session found! Redirecting...');
+            // Save user info to localStorage before redirecting
+            const user = session.user;
+            localStorage.setItem('easemed_user', user.email);
+            localStorage.setItem('easemed_user_name', 
+                user.user_metadata?.full_name || 
+                user.user_metadata?.name || 
+                user.email
+            );
             window.location.href = DASHBOARD_URL;
             return; // stop here — page is navigating away
         }
@@ -876,12 +884,14 @@ async function handleLogin() {
         return;
     }
 
-    // ✅ Login successful
-    localStorage.setItem('easemed_user', data.user.email);
-    localStorage.setItem('easemed_user_name',
-        data.user.user_metadata?.full_name ||
-        data.user.user_metadata?.name      ||
-        data.user.email);
+    // ✅ Login successful — SAVE TO LOCALSTORAGE
+    const user = data.user;
+    const fullName = user.user_metadata?.full_name || 
+                     user.user_metadata?.name || 
+                     user.email;
+    
+    localStorage.setItem('easemed_user', user.email);
+    localStorage.setItem('easemed_user_name', fullName);
 
     showAlert('✅ Welcome back! Redirecting to dashboard...', 'success');
     setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
@@ -957,8 +967,10 @@ async function handleSignup() {
 
     if (data.session) {
         // Auto-confirm is ON — session exists right away
-        localStorage.setItem('easemed_user',      email);
+        // SAVE TO LOCALSTORAGE for instant display on dashboard
+        localStorage.setItem('easemed_user', email);
         localStorage.setItem('easemed_user_name', name);
+        
         showAlert(`✅ Account created! Welcome, ${name}! Redirecting to dashboard...`, 'success');
         setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
     } else {
