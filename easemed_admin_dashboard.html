@@ -6,7 +6,7 @@
     <title>EaseMed Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* (your existing styles – unchanged) */
+        /* ========== ALL ORIGINAL STYLES – UNCHANGED ========== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: "Segoe UI", Arial, sans-serif; color: #20313f; background: radial-gradient(circle at 12% 10%, rgba(42,157,143,0.22), transparent 28%), radial-gradient(circle at 86% 12%, rgba(244,211,94,0.18), transparent 25%), linear-gradient(135deg, #0f2027 0%, #203a43 48%, #2c5364 100%); padding: 22px; }
         .shell { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: 270px 1fr; gap: 22px; }
@@ -73,6 +73,7 @@
         .admin-tab { background: rgba(255,255,255,0.9); border: none; padding: 8px 18px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #1e3c72; }
         .admin-tab.active { background: #2a9d8f; color: white; box-shadow: 0 4px 12px rgba(42,157,143,0.3); }
         .alert-info { background: #e6f7ff; color: #0c5460; border-left: 5px solid #17a2b8; padding: 15px; border-radius: 12px; margin: 15px 20px; font-size: 0.9rem; }
+        .alert-error { background: #f8d7da; color: #721c24; border-left: 5px solid #e53e3e; padding: 15px; border-radius: 12px; margin: 15px 20px; font-size: 0.9rem; }
         @media (max-width:1050px){ .shell, .content-grid { grid-template-columns:1fr; } .sidebar { position: static; min-height: auto; } .metrics, .quick-actions { grid-template-columns: repeat(2, minmax(0,1fr)); } }
         @media (max-width:640px){ body { padding:14px; } .metrics, .quick-actions { grid-template-columns:1fr; } .hero-top, .panel-title { align-items:flex-start; flex-direction: column; } table { min-width:680px; } .table-scroll { overflow-x: auto; } }
     </style>
@@ -123,8 +124,8 @@
                 </div>
 
                 <div class="tabs">
-                    <button id="tabPediatric" class="admin-tab active" onclick="switchTable('pediatric')">👶 Pediatric Encounters</button>
-                    <button id="tabAdult" class="admin-tab" onclick="switchTable('adult')">🧑 Adult Encounters</button>
+                    <button id="tabPediatric" class="admin-tab active" onclick="switchTable('pediatric')">👶 Pediatric</button>
+                    <button id="tabAdult" class="admin-tab" onclick="switchTable('adult')">🧑 Adult</button>
                 </div>
 
                 <div id="dashboardMessage" class="alert-info" style="display:none;"></div>
@@ -133,22 +134,22 @@
                     <div class="card accent-teal">
                         <div class="metric-label">Clerked Patients</div>
                         <div class="metric-value" id="totalPatientsValue">--</div>
-                        <div class="metric-sub">Total encounters recorded</div>
+                        <div class="metric-sub">Total encounters</div>
                     </div>
                     <div class="card accent-blue">
                         <div class="metric-label">Active Students</div>
                         <div class="metric-value" id="activeStudentsValue">--</div>
-                        <div class="metric-sub">Students who have clerked</div>
+                        <div class="metric-sub">Students who clerked</div>
                     </div>
                     <div class="card accent-gold">
                         <div class="metric-label">Ward Round Ready</div>
                         <div class="metric-value" id="completePercentValue">--%</div>
-                        <div class="metric-sub">Cases with management plan</div>
+                        <div class="metric-sub">With management plan</div>
                     </div>
                     <div class="card accent-red">
                         <div class="metric-label">Needs Review</div>
                         <div class="metric-value" id="needsReviewValue">--</div>
-                        <div class="metric-sub">Missing HPC or exam data</div>
+                        <div class="metric-sub">Missing HPC/exam</div>
                     </div>
                 </div>
             </section>
@@ -167,7 +168,7 @@
                     </div>
                     <div class="table-scroll">
                         <table>
-                            <thead><tr><th>Patient</th><th>Student (Clerked by)</th><th>Main Complaint</th><th>Management Plan</th><th>Status</th></tr></thead>
+                            <thead><tr><th>Patient</th><th>Student</th><th>Complaint</th><th>Plan</th><th>Status</th></tr></thead>
                             <tbody id="recentPatientsBody"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
                         </table>
                     </div>
@@ -199,9 +200,7 @@
             const el = document.getElementById('dashboardMessage');
             if (!el) return;
             el.style.display = 'block';
-            el.style.background = isError ? '#f8d7da' : '#e6f7ff';
-            el.style.color = isError ? '#721c24' : '#0c5460';
-            el.style.borderLeftColor = isError ? '#e53e3e' : '#17a2b8';
+            el.className = isError ? 'alert-error' : 'alert-info';
             el.innerHTML = msg;
         }
 
@@ -213,11 +212,15 @@
                     return false;
                 }
                 return true;
-            } catch (e) { return false; }
+            } catch (e) {
+                console.warn('tableExists error:', e);
+                return false;
+            }
         }
 
         // ==================== Load data ====================
         async function loadDashboardStats() {
+            console.log('loadDashboardStats called for table:', currentTable);
             const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
             const exists = await tableExists(tableName);
             if (!exists) {
@@ -230,11 +233,17 @@
             }
 
             try {
-                // Use a simpler query that doesn't depend on specific columns for count
+                // Total count
                 const { count: total, error: totalErr } = await adminSupabase
                     .from(tableName)
                     .select('id', { count: 'exact', head: true });
-                if (totalErr) throw totalErr;
+                if (totalErr) {
+                    if (totalErr.code === 'PGRST301' || totalErr.message.includes('permission')) {
+                        showMessage(`🔒 Permission denied (403). Row Level Security (RLS) is blocking access to <strong>${tableName}</strong>. Run: <code>ALTER TABLE ${tableName} DISABLE ROW LEVEL SECURITY;</code>`, true);
+                        throw totalErr;
+                    }
+                    throw totalErr;
+                }
 
                 // Distinct students
                 const { data: studentsData, error: studentsErr } = await adminSupabase
@@ -245,7 +254,7 @@
                     activeStudents = new Set(studentsData.map(s => s.user_id)).size;
                 }
 
-                // Management plan not empty – try different column names
+                // Management plan not empty
                 let complete = 0;
                 try {
                     const { count: c, error: ce } = await adminSupabase
@@ -273,9 +282,12 @@
                 document.getElementById('completePercentValue').innerHTML = `${percentReady}%`;
                 document.getElementById('needsReviewValue').innerText = missing;
                 showMessage('', false);
+                console.log('Stats loaded successfully');
             } catch (err) {
                 console.error('Error loading dashboard stats:', err);
-                showMessage(`❌ Error loading stats: ${err.message}`, true);
+                if (!err.message.includes('permission')) {
+                    showMessage(`❌ Error loading stats: ${err.message}`, true);
+                }
                 document.getElementById('totalPatientsValue').innerText = 'Error';
                 document.getElementById('activeStudentsValue').innerText = 'Error';
                 document.getElementById('completePercentValue').innerHTML = 'Error';
@@ -284,6 +296,7 @@
         }
 
         async function loadRecentPatients() {
+            console.log('loadRecentPatients called for table:', currentTable);
             const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
             const tbody = document.getElementById('recentPatientsBody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
@@ -295,7 +308,6 @@
             }
 
             try {
-                // Try to fetch with the correct column names – if one fails, try alternatives
                 let selectFields;
                 if (currentTable === 'pediatric') {
                     selectFields = 'child_name, user_id, current_symptom, management_plan, created_at';
@@ -309,7 +321,7 @@
                     .order('created_at', { ascending: false })
                     .limit(10);
                 if (error) {
-                    // If column missing, try a simpler query
+                    // If column missing, try simpler query
                     if (error.message.includes('column') && error.message.includes('does not exist')) {
                         const fallbackFields = currentTable === 'pediatric' ? 'child_name, user_id, created_at' : 'full_name, user_id, created_at';
                         const { data: fallbackData, error: fallbackErr } = await adminSupabase
@@ -322,7 +334,6 @@
                             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found</td></tr>';
                             return;
                         }
-                        // Render with limited fields
                         const userIds = [...new Set(fallbackData.map(r => r.user_id))];
                         const { data: profiles } = await adminSupabase.from('profiles').select('id, name, email').in('id', userIds);
                         const userMap = new Map();
@@ -373,14 +384,18 @@
                     const statusText = hasPlan ? 'Ready' : 'Pending';
                     row.insertCell(4).innerHTML = `<span class="status ${statusClass}">${statusText}</span>`;
                 }
+                console.log('Recent patients loaded successfully');
             } catch (err) {
                 console.error('Error loading recent patients:', err);
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Failed to load data</td></tr>';
-                showMessage(`❌ Error loading patients: ${err.message}`, true);
+                if (!err.message.includes('permission')) {
+                    showMessage(`❌ Error loading patients: ${err.message}`, true);
+                }
             }
         }
 
         async function loadRecentActivity() {
+            console.log('loadRecentActivity called for table:', currentTable);
             const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
             const activityContainer = document.getElementById('activityList');
             activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Loading activity...</strong><span>Please wait</span></div></div>';
@@ -420,6 +435,7 @@
                     div.innerHTML = `<div class="dot"></div><div><strong>New patient record</strong><span>${patientName || 'Unnamed'} clerked by ${studentName} on ${date}</span></div>`;
                     activityContainer.appendChild(div);
                 }
+                console.log('Activity loaded successfully');
             } catch (err) {
                 console.error('Error loading activity:', err);
                 activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Could not load activity</strong><span>Please refresh the page</span></div></div>';
@@ -427,6 +443,7 @@
         }
 
         function switchTable(table) {
+            console.log('switchTable to:', table);
             currentTable = table;
             document.getElementById('tabPediatric').classList.toggle('active', table === 'pediatric');
             document.getElementById('tabAdult').classList.toggle('active', table === 'adult');
