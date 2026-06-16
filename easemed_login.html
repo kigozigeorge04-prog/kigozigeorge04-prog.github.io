@@ -857,6 +857,20 @@ async function handleLogin() {
             sb.auth.signInWithPassword({ email, password }),
             10000, 'Login'
         ));
+// Record login session
+try {
+    const ipResponse = await fetch('https://api.ipify.org?format=json');
+    const ipData = await ipResponse.json();
+    const ip = ipData.ip || 'unknown';
+    await sb.from('user_sessions').insert({
+        user_id: data.user.id,
+        email: data.user.email,
+        ip_address: ip,
+        user_agent: navigator.userAgent || 'unknown',
+        session_active: true
+    });
+} catch (e) { console.warn('Session record failed:', e); }
+        
     } catch (e) {
         // Timeout or network error
         setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Login to EaseMed');
@@ -896,22 +910,6 @@ async function handleLogin() {
     showAlert('✅ Welcome back! Redirecting to dashboard...', 'success');
     setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
 }
-// After successful login (inside the `if (!error)` block)
-// Insert session record
-try {
-    const ip = await fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => d.ip).catch(() => 'unknown');
-    const userAgent = navigator.userAgent || 'unknown';
-    const { error: sessionError } = await sb
-        .from('user_sessions')
-        .insert({
-            user_id: data.user.id,
-            email: data.user.email,
-            ip_address: ip,
-            user_agent: userAgent,
-            session_active: true
-        });
-    if (sessionError) console.warn('Session record failed:', sessionError);
-} catch (e) { console.warn('Session recording error:', e); }
 
     
 // ── EMAIL / PASSWORD SIGNUP ───────────────────────────────────
