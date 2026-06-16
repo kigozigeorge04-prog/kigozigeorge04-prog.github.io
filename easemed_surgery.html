@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EaseMed – Surgery Clerkship</title>
+  <style>
+    :root {
+      --bg: #f7f9fb; --surface: #ffffff; --border: #dde3ea;
+      --primary: #1a5f7a; --primary-light: #e8f4f8; --accent: #e05c2a;
+      --text: #1c2b36; --muted: #6b7f8c; --danger: #c0392b; --success: #1a7a4a;
+      --warn-bg: #fffbea; --warn-border: #f0c050;
+      --radius: 10px; --shadow: 0 2px 12px rgba(26,95,122,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .topbar { background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.5rem; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .topbar-brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.5px; }
+    .topbar-brand span { color: #9fd8f0; }
+    .topbar-subtitle { font-size: 0.8rem; opacity: 0.8; margin-top: 1px; }
+    .topbar-right { display: flex; gap: 0.75rem; }
+    .btn-outline-white { background: transparent; border: 1.5px solid rgba(255,255,255,0.5); color: #fff; padding: 0.35rem 0.9rem; border-radius: 6px; font-size: 0.82rem; cursor: pointer; transition: background 0.15s; }
+    .btn-outline-white:hover { background: rgba(255,255,255,0.12); }
+
+    .progress-bar-wrap { background: #d0e7f0; height: 4px; }
+    .progress-bar-fill { height: 4px; background: var(--accent); transition: width 0.4s ease; }
+
+    .main-wrap { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem 5rem; }
+
+    .section-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; margin-top: 1.5rem; }
+    .section-badge { background: var(--primary); color: #fff; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 0.25rem 0.7rem; border-radius: 20px; white-space: nowrap; }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.4rem; margin-bottom: 1.1rem; box-shadow: var(--shadow); }
+    .card-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 0.9rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+
+    .field-group { margin-bottom: 1rem; }
+    .field-group:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem; }
+    label .req { color: var(--danger); margin-left: 2px; }
+    .hint { font-size: 0.76rem; color: var(--muted); margin-bottom: 0.4rem; font-style: italic; }
+
+    input[type="text"], input[type="number"], input[type="date"], input[type="tel"], select, textarea {
+      width: 100%; padding: 0.55rem 0.75rem; border: 1.5px solid var(--border); border-radius: 7px;
+      font-size: 0.9rem; color: var(--text); background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,95,122,0.1); }
+    textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+    .inline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+    @media (max-width: 560px) { .inline-row { grid-template-columns: 1fr; } }
+
+    .radio-group, .checkbox-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.2rem; }
+    .radio-group label, .checkbox-group label { font-weight: 400; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; background: var(--bg); border: 1.5px solid var(--border); border-radius: 6px; padding: 0.35rem 0.75rem; font-size: 0.86rem; transition: border-color 0.15s, background 0.15s; margin-bottom: 0; }
+    .radio-group input[type="radio"], .checkbox-group input[type="checkbox"] { width: auto; accent-color: var(--primary); }
+    .radio-group label:has(input:checked), .checkbox-group label:has(input:checked) { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 600; }
+
+    .complaint-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .tag-btn { background: var(--bg); border: 1.5px solid var(--border); border-radius: 20px; padding: 0.35rem 0.9rem; font-size: 0.84rem; cursor: pointer; color: var(--text); transition: all 0.15s; }
+    .tag-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+    .tag-btn.selected { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+    .tag-btn.other { border-style: dashed; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1.2rem 0; }
+
+    .callout { background: var(--primary-light); border-left: 4px solid var(--primary); border-radius: 0 7px 7px 0; padding: 0.7rem 1rem; font-size: 0.83rem; color: var(--primary); margin-bottom: 1rem; }
+    .callout strong { font-weight: 700; }
+
+    /* Hint panels */
+    .hint-panel { display: none; background: var(--warn-bg); border: 1.5px solid var(--warn-border); border-radius: var(--radius); padding: 1rem 1.2rem; margin-top: 1rem; }
+    .hint-panel.visible { display: block; }
+    .hint-panel-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #b07800; margin-bottom: 0.7rem; }
+    .hint-panel ul { padding-left: 1.2rem; }
+    .hint-panel ul li { font-size: 0.84rem; color: #5a4000; margin-bottom: 0.35rem; line-height: 1.45; }
+    .hint-panel .red-flags { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--warn-border); }
+    .hint-panel .red-flags-title { font-size: 0.78rem; font-weight: 700; color: var(--danger); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; }
+    .hint-panel .red-flags ul li { color: var(--danger); }
+
+    /* ROS banner */
+    #ros-pc-banner { border-left: 6px solid var(--accent); background: #fff8f5; }
+    #ros-pc-banner .card-title { color: var(--accent); border-bottom-color: #f0d0c0; }
+
+    .sym-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .sym-chip { border: 1.5px solid var(--border); border-radius: 20px; padding: 0.3rem 0.75rem; font-size: 0.82rem; cursor: pointer; background: var(--bg); color: var(--muted); user-select: none; transition: all 0.15s; }
+    .sym-chip:hover { border-color: var(--primary); color: var(--text); }
+    .sym-chip.present { background: #e6f6ee; border-color: var(--success); color: var(--success); font-weight: 700; }
+    .sym-chip.present::before { content: '✓ '; }
+    .sym-chip.absent { background: #fdecea; border-color: var(--danger); color: var(--danger); font-weight: 700; }
+    .sym-chip.absent::before { content: '✗ '; }
+
+    .footer-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.5rem; box-shadow: 0 -2px 10px rgba(0,0,0,0.06); z-index: 100; }
+    .step-indicator { font-size: 0.8rem; color: var(--muted); }
+    .step-indicator strong { color: var(--text); }
+    .btn-primary { background: var(--primary); color: #fff; border: none; padding: 0.6rem 1.5rem; border-radius: 8px; font-size: 0.92rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+    .btn-primary:hover { background: #154f67; }
+    .sys-notes { margin-top: 0.6rem; min-height: 50px; font-size: 0.84rem; }
+
+    /* Assessment specific */
+    .dx-item { background: var(--bg); border-radius: 7px; padding: 0.7rem 0.9rem; margin-bottom: 0.6rem; border-left: 4px solid var(--primary); }
+    .dx-item input, .dx-item textarea { margin-top: 0.3rem; }
+
+    /* Collapsible PE - with persistent hints outside textboxes */
+    .pe-toggle { cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between; padding: 0.3rem 0; }
+    .pe-toggle .chevron { font-size: 0.9rem; transition: transform 0.2s; }
+    .pe-toggle.open .chevron { transform: rotate(180deg); }
+    .pe-body { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+    .pe-body.open { max-height: 5000px; }
+    .pe-section { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; margin-bottom: 0.8rem; background: var(--bg); }
+    .pe-section-title { font-weight: 700; font-size: 0.85rem; color: var(--primary); margin-bottom: 0.3rem; }
+    .pe-hint-box { background: #fff; border: 1px dashed var(--border); border-radius: 6px; padding: 0.5rem 0.8rem; margin-bottom: 0.5rem; font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    .pe-hint-box strong { color: var(--text); }
+    .pe-sub textarea { background: #fff; }
+
+    /* Generated DDx styling */
+    .gen-ddx-badge { background: var(--primary-light); color: var(--primary); font-size: 0.7rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 12px; margin-left: 0.5rem; }
+    .dx-item.generated { border-left-color: var(--accent); background: #fff8f5; }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div>
+    <div class="topbar-brand">Ease<span>Med</span></div>
+    <div class="topbar-subtitle">Surgery Clerkship</div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-outline-white">Save Draft</button>
+    <button class="btn-outline-white">← Exit</button>
+  </div>
+</nav>
+<div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:45%"></div></div>
+
+<div class="main-wrap">
+
+  <!-- ============================================
+       SECTION 1 — DEMOGRAPHICS (abridged)
+  ============================================ -->
+  <div class="section-header" style="margin-top:0.5rem;">
+    <span class="section-badge">1</span>
+    <span class="section-title">Demographics</span>
+  </div>
+  <div class="card">
+    <div class="card-title">🪪 Patient Identifiers</div>
+    <div class="field-group">
+      <label>Full Name <span class="req">*</span></label>
+      <input type="text" id="patientName" placeholder="e.g. Nakato Sarah" />
+    </div>
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Age <span class="req">*</span></label>
+        <input type="number" id="age" placeholder="Years" min="0" max="120" oninput="checkAge(); generateDifferentials()" />
+      </div>
+      <div class="field-group">
+        <label>Sex <span class="req">*</span></label>
+        <select id="sex" onchange="generateDifferentials()">
+          <option value="">— Select —</option>
+          <option>Male</option><option>Female</option>
+        </select>
+      </div>
+    </div>
+    <div id="paedFlag" style="display:none; background:#fffbea; border:1.5px solid var(--warn-border); border-radius:8px; padding:0.65rem 1rem; margin-top:0.5rem; color:#7a5500;">
+      ⚠️ <strong>Paediatric patient (&lt;18 yrs):</strong> Ensure parent/guardian present.
+    </div>
+    <div class="inline-row" style="margin-top:1rem;">
+      <div class="field-group">
+        <label>IP / OP Number</label>
+        <input type="text" id="ipNumber" placeholder="e.g. MUH-2025-00421" />
+      </div>
+      <div class="field-group">
+        <label>Date of Admission</label>
+        <input type="date" id="admissionDate" />
+      </div>
+    </div>
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Ward / Unit</label>
+        <select id="ward">
+          <option value="">— Select —</option>
+          <option>General Surgery</option><option>Orthopaedics</option><option>Urology</option>
+          <option>Neurosurgery</option><option>Paediatric Surgery</option><option>ENT</option>
+          <option>Gynaecology</option><option>Cardiothoracic</option><option>Emergency</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Clinician / Clerk</label>
+        <input type="text" id="clerkedBy" placeholder="Your name / reg number" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Social & referral (short) -->
+  <div class="card">
+    <div class="card-title">👤 Social & Referral</div>
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Marital Status</label>
+        <select id="maritalStatus">
+          <option value="">— Select —</option>
+          <option>Single</option><option>Married</option><option>Cohabiting</option>
+          <option>Widowed</option><option>Divorced</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Religion</label>
+        <select id="religion">
+          <option value="">— Select —</option>
+          <option>Catholic</option><option>Protestant</option><option>Muslim</option>
+          <option>Pentecostal</option><option>SDA</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Was the patient referred? <span class="req">*</span></label>
+      <div class="radio-group">
+        <label><input type="radio" name="referred" value="yes" onchange="toggleReferral(true)" /> Yes</label>
+        <label><input type="radio" name="referred" value="no" onchange="toggleReferral(false)" /> No</label>
+        <label><input type="radio" name="referred" value="transferred" onchange="toggleReferral(true)" /> Transferred</label>
+      </div>
+    </div>
+    <div id="referralDetails" style="display:none;">
+      <div class="inline-row">
+        <div class="field-group">
+          <label>Referring Facility</label>
+          <input type="text" id="referralFacility" placeholder="e.g. Entebbe Hospital" />
+        </div>
+        <div class="field-group">
+          <label>Level</label>
+          <select id="referralLevel">
+            <option value="">— Select —</option>
+            <option>HC II</option><option>HC III</option><option>HC IV</option>
+            <option>General Hospital</option><option>Regional Referral</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Reason for Referral</label>
+        <textarea id="referralReason" placeholder="Reason for referral..." style="min-height:60px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ============================================
+       SECTION 2 — PRESENTING COMPLAINT (with hints)
+  ============================================ -->
+  <div class="section-header">
+    <span class="section-badge">2</span>
+    <span class="section-title">Presenting Complaint</span>
+  </div>
+  <div class="callout">
+    <strong>Tip:</strong> Write the complaint in the patient's own words first. Select a category below — this reveals guided clinical prompts.
+  </div>
+  <div class="card">
+    <div class="card-title">📝 Chief Complaint</div>
+    <div class="field-group">
+      <label>Complaint in patient's own words <span class="req">*</span></label>
+      <div class="hint">Quote the patient directly — e.g. "My stomach has been paining me for 3 days"</div>
+      <textarea id="complaintVerbatim" placeholder="Write exactly what the patient says..."></textarea>
+    </div>
+    <div class="field-group">
+      <label>Duration <span class="req">*</span></label>
+      <div class="inline-row">
+        <input type="number" id="durationValue" placeholder="e.g. 3" min="0" />
+        <select id="durationUnit">
+          <option value="">— Unit —</option>
+          <option>Minutes</option><option>Hours</option><option>Days</option>
+          <option>Weeks</option><option>Months</option><option>Years</option>
+        </select>
+      </div>
+    </div>
+    <hr class="divider" />
+    <div class="field-group">
+      <label>Complaint Category <span class="req">*</span></label>
+      <div class="hint">Pick the closest match — clinical prompts will appear below.</div>
+      <div class="complaint-tags">
+        <button class="tag-btn" data-cat="abdo-pain" onclick="selectTag(this)">🔴 Abdominal pain</button>
+        <button class="tag-btn" data-cat="abdo-swelling" onclick="selectTag(this)">🔵 Abdominal swelling</button>
+        <button class="tag-btn" data-cat="vomiting" onclick="selectTag(this)">🟡 Nausea / Vomiting</button>
+        <button class="tag-btn" data-cat="bowel" onclick="selectTag(this)">🟤 Bowel change</button>
+        <button class="tag-btn" data-cat="rectal-bleed" onclick="selectTag(this)">🔴 Rectal bleeding</button>
+        <button class="tag-btn" data-cat="jaundice" onclick="selectTag(this)">🟡 Jaundice</button>
+        <button class="tag-btn" data-cat="haematuria" onclick="selectTag(this)">🔴 Haematuria</button>
+        <button class="tag-btn" data-cat="urinary-sx" onclick="selectTag(this)">🔵 Urinary symptoms</button>
+        <button class="tag-btn" data-cat="scrotal" onclick="selectTag(this)">🟢 Scrotal</button>
+        <button class="tag-btn" data-cat="swelling-surface" onclick="selectTag(this)">🟢 Surface swelling</button>
+        <button class="tag-btn" data-cat="wound" onclick="selectTag(this)">🟠 Wound / ulcer</button>
+        <button class="tag-btn" data-cat="trauma" onclick="selectTag(this)">⚠️ Trauma</button>
+        <button class="tag-btn" data-cat="ortho-pain" onclick="selectTag(this)">🦴 Bone/joint pain</button>
+        <button class="tag-btn" data-cat="fracture" onclick="selectTag(this)">🦴 Fracture</button>
+        <button class="tag-btn" data-cat="breast" onclick="selectTag(this)">🩷 Breast</button>
+        <button class="tag-btn" data-cat="neck" onclick="selectTag(this)">🔵 Neck/thyroid</button>
+        <button class="tag-btn other" data-cat="other" onclick="selectTag(this)">＋ Other</button>
+      </div>
+      <input type="hidden" id="complaintCategory" value="" />
+    </div>
+    <div class="field-group" id="otherComplaintWrap" style="display:none;">
+      <label>Describe the complaint</label>
+      <input type="text" id="otherComplaint" placeholder="Describe the presenting complaint..." />
+    </div>
+    <!-- Hint panels (abridged) -->
+    <div class="hint-panel" id="hint-abdo-pain"><div class="hint-panel-title">💡 Abdominal Pain</div><ul><li>Site, onset, character, radiation, severity, timing, exacerbating/relieving, associated features.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Sudden onset, rigidity, obstruction, instability.</li></ul></div></div>
+    <div class="hint-panel" id="hint-abdo-swelling"><div class="hint-panel-title">💡 Abdominal Swelling</div><ul><li>Location, onset, size change, associated weight loss, hernia screen, pulsatility.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Rapid growth, irreducible hernia, AAA.</li></ul></div></div>
+    <div class="hint-panel" id="hint-vomiting"><div class="hint-panel-title">💡 Nausea / Vomiting</div><ul><li>Content, timing, projectile, volume, dehydration.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Haematemesis, faeculent, dehydration.</li></ul></div></div>
+    <div class="hint-panel" id="hint-bowel"><div class="hint-panel-title">💡 Bowel Change</div><ul><li>Nature, stool character, absolute constipation, blood, tenesmus.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Absolute constipation, PR bleed + weight loss.</li></ul></div></div>
+    <div class="hint-panel" id="hint-rectal-bleed"><div class="hint-panel-title">💡 Rectal Bleeding</div><ul><li>Colour, relation to stool, volume, pain, mucus.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Melaena, large volume, weight loss.</li></ul></div></div>
+    <div class="hint-panel" id="hint-jaundice"><div class="hint-panel-title">💡 Jaundice</div><ul><li>Type, dark urine/pale stool, pain, fever, alcohol risk.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Charcot's triad, Reynolds' pentad, painless progressive.</li></ul></div></div>
+    <div class="hint-panel" id="hint-haematuria"><div class="hint-panel-title">💡 Haematuria</div><ul><li>Timing, clots, pain, associated LUTS, schistosomiasis.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Painless total, flank mass, clot retention.</li></ul></div></div>
+    <div class="hint-panel" id="hint-urinary-sx"><div class="hint-panel-title">💡 Urinary Symptoms</div><ul><li>Obstructive/irritative, retention, discharge.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Acute retention, haematuria + weight loss, neurological.</li></ul></div></div>
+    <div class="hint-panel" id="hint-scrotal"><div class="hint-panel-title">💡 Scrotal</div><ul><li>Age context, onset, tenderness, transillumination.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Sudden pain in adolescent, hard mass, irreducible hernia.</li></ul></div></div>
+    <div class="hint-panel" id="hint-swelling-surface"><div class="hint-panel-title">💡 Surface Swelling</div><ul><li>Site, depth, growth, consistency, tenderness, skin changes.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Rapid growth, matted nodes, pulsatile.</li></ul></div></div>
+    <div class="hint-panel" id="hint-wound"><div class="hint-panel-title">💡 Wound / Ulcer</div><ul><li>Duration, edge, base, discharge, pain, diabetes, tropical causes.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Necrotising fasciitis, Marjolin's ulcer, joint involvement.</li></ul></div></div>
+    <div class="hint-panel" id="hint-trauma"><div class="hint-panel-title">💡 Trauma</div><ul><li>Mechanism, time, LOC, regions, bleeding, neurovascular, tetanus.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Instability, tension pneumothorax, spinal injury, open fracture.</li></ul></div></div>
+    <div class="hint-panel" id="hint-ortho-pain"><div class="hint-panel-title">💡 Bone/Joint Pain</div><ul><li>Site, onset, swelling, fever, function, TB, sickle.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Septic joint, bone pain + weight loss, cauda equina.</li></ul></div></div>
+    <div class="hint-panel" id="hint-fracture"><div class="hint-panel-title">💡 Fracture</div><ul><li>Mechanism, open/closed, deformity, neurovascular, compartment.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Open, absent pulse, compartment syndrome, spinal.</li></ul></div></div>
+    <div class="hint-panel" id="hint-breast"><div class="hint-panel-title">💡 Breast</div><ul><li>Lump, discharge, pain, risk factors, axillary nodes.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Hard irregular lump, bloody discharge, peau d'orange.</li></ul></div></div>
+    <div class="hint-panel" id="hint-neck"><div class="hint-panel-title">💡 Neck/Thyroid</div><ul><li>Location, swallowing, thyroid status, compressive symptoms, TB.</li></ul><div class="red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul><li>Hoarseness, stridor, hard fixed mass.</li></ul></div></div>
+    <div class="hint-panel" id="hint-other"><div class="hint-panel-title">💡 General</div><ul><li>SOCRATES, lump characteristics, systemic features, function.</li></ul></div>
+    <hr class="divider" />
+    <div class="field-group">
+      <label>Mode of Onset</label>
+      <div class="radio-group">
+        <label><input type="radio" name="onset" value="sudden" /> Sudden</label>
+        <label><input type="radio" name="onset" value="gradual" /> Gradual</label>
+        <label><input type="radio" name="onset" value="unknown" /> Unknown</label>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Course since onset</label>
+      <div class="radio-group">
+        <label><input type="radio" name="course" value="worse" /> Worse</label>
+        <label><input type="radio" name="course" value="static" /> Static</label>
+        <label><input type="radio" name="course" value="improving" /> Improving</label>
+        <label><input type="radio" name="course" value="intermittent" /> Intermittent</label>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ============================================
+       SECTION 3 — HPC
+  ============================================ -->
+  <div class="section-header">
+    <span class="section-badge">3</span>
+    <span class="section-title">History of Presenting Complaint (HPC)</span>
+  </div>
+  <div class="card">
+    <div class="card-title">📖 Full Narrative of HPC</div>
+    <div class="field-group">
+      <label>Full history in your own words <span class="req">*</span></label>
+      <textarea id="hpcNarrative" placeholder="e.g. Mr. Okello is a 45-year-old male with a 3-day history of right iliac fossa pain…" style="min-height:160px;"></textarea>
+    </div>
+  </div>
+  <div class="card" style="padding:0.9rem 1.1rem;">
+    <div class="card-title" style="margin-bottom:0.6rem;">🔍 SOCRATES Quick Reference</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem;">
+      <div><label style="font-size:0.78rem; margin-bottom:0.2rem;">Site</label><input type="text" id="hpcSite" placeholder="e.g. RIF" style="padding:0.35rem 0.6rem; font-size:0.82rem;" /></div>
+      <div><label style="font-size:0.78rem; margin-bottom:0.2rem;">Onset</label><input type="text" id="hpcOnset" placeholder="e.g. Sudden" style="padding:0.35rem 0.6rem; font-size:0.82rem;" /></div>
+      <div><label style="font-size:0.78rem; margin-bottom:0.2rem;">Character</label><input type="text" id="hpcCharacter" placeholder="e.g. Colicky" style="padding:0.35rem 0.6rem; font-size:0.82rem;" /></div>
+      <div><label style="font-size:0.78rem; margin-bottom:0.2rem;">Radiation</label><input type="text" id="hpcRadiation" placeholder="e.g. To groin" style="padding:0.35rem 0.6rem; font-size:0.82rem;" /></div>
+      <div><label style="font-size:0.78rem; margin-bottom:0.2rem;">Severity (0–10)</label><input type="number" id="hpcSeverity" min="0" max="10" placeholder="7" style="padding:0.35rem 0.6rem; font-size:0.82rem;" /></div>
+      <div><label style="font-size:0.78rem; margin-bottom:0.2rem;">Time course</label><input type="text" id="hpcTime" placeholder="e.g. Constant" style="padding:0.35rem 0.6rem; font-size:0.82rem;" /></div>
+      <div><label style="font-size:0.78rem; margin-bottom:0.2rem;">Exacerbating</label><input type="text" id="hpcExacerbating" placeholder="e.g. Movement" style="padding:0.35rem 0.6rem; font-size:0.82rem;" /></div>
+      <div><label style="font-size:0.78rem; margin-bottom:0.2rem;">Relieving</label><input type="text" id="hpcRelieving" placeholder="e.g. Lying still" style="padding:0.35rem 0.6rem; font-size:0.82rem;" /></div>
+      <div><label style="font-size:0.78rem; margin-bottom:0.2rem;">Associations</label><input type="text" id="hpcAssociations" placeholder="e.g. Fever, nausea" style="padding:0.35rem 0.6rem; font-size:0.82rem;" /></div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ============================================
+       SECTION 4 — REVIEW OF SYSTEMS (abridged)
+  ============================================ -->
+  <div class="section-header">
+    <span class="section-badge">4</span>
+    <span class="section-title">Review of Other Systems</span>
+  </div>
+  <div class="callout">
+    <strong>How to use:</strong> Tap each symptom to toggle — <span style="color:var(--success);font-weight:700;">✓ Present</span> · <span style="color:var(--danger);font-weight:700;">✗ Absent</span> · grey = not asked.
+  </div>
+  <div id="ros-pc-banner" style="display:none;" class="card">
+    <div class="card-title" id="ros-pc-title" style="color:var(--accent);">🎯 Presenting System</div>
+    <div id="ros-pc-chips" class="sym-chips"></div>
+    <textarea class="sys-notes" placeholder="Additional notes on the presenting system..." style="min-height:50px;"></textarea>
+  </div>
+  <div class="card" id="ros-card-cvs"><div class="card-title">❤️ Cardiovascular</div><div class="sym-chips" id="chips-cvs"></div><textarea class="sys-notes" placeholder="Additional CVS notes..." style="min-height:50px;"></textarea></div>
+  <div class="card" id="ros-card-resp"><div class="card-title">🫁 Respiratory</div><div class="sym-chips" id="chips-resp"></div><textarea class="sys-notes" placeholder="Additional respiratory notes..." style="min-height:50px;"></textarea></div>
+  <div class="card" id="ros-card-git"><div class="card-title">🫃 Gastrointestinal</div><div class="sym-chips" id="chips-git"></div><textarea class="sys-notes" placeholder="Additional GIT notes..." style="min-height:50px;"></textarea></div>
+  <div class="card" id="ros-card-uro"><div class="card-title">💧 Genitourinary</div><div class="sym-chips" id="chips-uro"></div><textarea class="sys-notes" placeholder="Additional GU notes..." style="min-height:50px;"></textarea></div>
+  <div class="card" id="ros-card-neuro"><div class="card-title">🧠 Neurological</div><div class="sym-chips" id="chips-neuro"></div><textarea class="sys-notes" placeholder="Additional neuro notes..." style="min-height:50px;"></textarea></div>
+  <div class="card" id="ros-card-msk"><div class="card-title">🦴 Musculoskeletal</div><div class="sym-chips" id="chips-msk"></div><textarea class="sys-notes" placeholder="Additional MSK notes..." style="min-height:50px;"></textarea></div>
+  <div class="card" id="ros-card-endo"><div class="card-title">⚗️ Endocrine</div><div class="sym-chips" id="chips-endo"></div><textarea class="sys-notes" placeholder="Additional endocrine notes..." style="min-height:50px;"></textarea></div>
+
+  <hr class="divider" />
+
+  <!-- ============================================
+       SECTION 5 — PAST MEDICAL & SURGICAL HISTORY
+  ============================================ -->
+  <div class="section-header">
+    <span class="section-badge">5</span>
+    <span class="section-title">Past Medical & Surgical History</span>
+  </div>
+  <div class="card">
+    <div class="card-title">🩺 Past Medical History</div>
+    <div class="field-group">
+      <label>Significant past illnesses</label>
+      <div class="hint">e.g. Hypertension, Diabetes, TB, HIV, Sickle cell, Heart disease, etc.</div>
+      <textarea id="pastMedical" placeholder="List all significant past medical conditions with approximate dates if known..." style="min-height:80px;"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Chronic medications taken prior to admission</label>
+      <textarea id="chronicMeds" placeholder="e.g. Metformin, Amlodipine, ARVs..." style="min-height:60px;"></textarea>
+    </div>
+    <div class="divider"></div>
+    <div class="card-title" style="margin-top:0.5rem;">🔪 Past Surgical History</div>
+    <div class="field-group">
+      <label>Previous surgeries / procedures</label>
+      <div class="hint">Include type, year, and any complications if known.</div>
+      <textarea id="pastSurgical" placeholder="e.g. Appendicectomy (2015), Caesarean section (2020)..." style="min-height:80px;"></textarea>
+    </div>
+    <div class="field-group">
+      <label>History of blood transfusion</label>
+      <div class="radio-group">
+        <label><input type="radio" name="transfusion" value="yes" /> Yes</label>
+        <label><input type="radio" name="transfusion" value="no" /> No</label>
+        <label><input type="radio" name="transfusion" value="unknown" /> Unknown</label>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Obstetric history (if female)</label>
+      <div class="hint">Gravida / Para / Abortions / Living children</div>
+      <input type="text" id="obstetricHx" placeholder="e.g. G3 P2 A1 L2" />
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ============================================
+       SECTION 6 — DRUG HISTORY & ALLERGIES
+  ============================================ -->
+  <div class="section-header">
+    <span class="section-badge">6</span>
+    <span class="section-title">Drug History & Allergies</span>
+  </div>
+  <div class="card">
+    <div class="card-title">💊 Current / Recent Medications</div>
+    <div class="field-group">
+      <label>List all current medications (name, dose, frequency)</label>
+      <textarea id="currentMeds" placeholder="e.g. Paracetamol 1g TDS, Amoxicillin 500mg BD..." style="min-height:80px;"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Over-the-counter / herbal / traditional medicines</label>
+      <textarea id="herbalMeds" placeholder="e.g. Herbal teas, traditional remedies..." style="min-height:60px;"></textarea>
+    </div>
+    <div class="divider"></div>
+    <div class="card-title" style="margin-top:0.5rem;">⚠️ Allergies & Adverse Reactions</div>
+    <div class="field-group">
+      <label>Known allergies</label>
+      <div class="hint">Specify drug, food, or other allergens and the type of reaction.</div>
+      <textarea id="allergies" placeholder="e.g. Penicillin – rash, NSAIDs – gastric upset..." style="min-height:60px;"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Any other significant adverse drug reactions</label>
+      <textarea id="adr" placeholder="e.g. Previous anaphylaxis, severe GI bleed with NSAIDs..." style="min-height:50px;"></textarea>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ============================================
+       SECTION 7 — FAMILY & SOCIAL HISTORY
+  ============================================ -->
+  <div class="section-header">
+    <span class="section-badge">7</span>
+    <span class="section-title">Family & Social History</span>
+  </div>
+  <div class="card">
+    <div class="card-title">👪 Family History</div>
+    <div class="field-group">
+      <label>Family history of significant illness</label>
+      <div class="hint">e.g. Diabetes, hypertension, cancer (breast, colon, prostate), sickle cell, TB.</div>
+      <textarea id="familyHistory" placeholder="e.g. Mother – diabetes, Father – hypertension, Brother – sickle cell..." style="min-height:70px;"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Family history of surgical disease</label>
+      <input type="text" id="familySurgical" placeholder="e.g. Gallstones, hernias, colorectal cancer..." />
+    </div>
+    <div class="divider"></div>
+    <div class="card-title" style="margin-top:0.5rem;">🏡 Social History</div>
+    <div class="field-group">
+      <label>Occupation & daily activities</label>
+      <textarea id="socialOccupation" placeholder="e.g. Farmer – physically demanding, lives in rural area..." style="min-height:50px;"></textarea>
+    </div>
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Smoking history</label>
+        <div class="radio-group">
+          <label><input type="radio" name="smoking" value="never" /> Never</label>
+          <label><input type="radio" name="smoking" value="current" /> Current</label>
+          <label><input type="radio" name="smoking" value="former" /> Former</label>
+        </div>
+        <input type="text" id="smokingDetail" placeholder="Pack-years / duration" style="margin-top:0.3rem;" />
+      </div>
+      <div class="field-group">
+        <label>Alcohol consumption</label>
+        <div class="radio-group">
+          <label><input type="radio" name="alcohol" value="never" /> Never</label>
+          <label><input type="radio" name="alcohol" value="current" /> Current</label>
+          <label><input type="radio" name="alcohol" value="former" /> Former</label>
+        </div>
+        <input type="text" id="alcoholDetail" placeholder="Units/week / type" style="margin-top:0.3rem;" />
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Living situation & support</label>
+      <textarea id="livingSituation" placeholder="e.g. Lives with family, has access to clean water, pit latrine, electricity..." style="min-height:50px;"></textarea>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ============================================
+       SECTION 8 — PHYSICAL EXAMINATION (DETAILED)
+  ============================================ -->
+  <div class="section-header">
+    <span class="section-badge">8</span>
+    <span class="section-title">Physical Examination</span>
+  </div>
+  <div class="callout">
+    <strong>Collapsible sections:</strong> Click the header to expand/collapse. Each system is broken down by <strong>Inspection, Palpation, Percussion, and Auscultation</strong> where appropriate. <strong>Hints are shown outside the text boxes</strong> so you can always refer to them while typing.
+  </div>
+
+  <div class="card">
+    <!-- General appearance & Vitals -->
+    <div class="pe-toggle" onclick="togglePE(this)">
+      <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🩺 General Appearance & Vitals</div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="pe-body open">
+      <div class="field-group">
+        <label>General appearance / level of consciousness</label>
+        <div class="pe-hint-box"><strong>Look for:</strong> Well/unwell, distressed, pale, jaundiced, cachectic, alert, confused, toxic appearance, dehydration, respiratory distress.</div>
+        <textarea id="peGeneral" placeholder="Describe your findings..." style="min-height:60px;"></textarea>
+      </div>
+      <div class="inline-row">
+        <div class="field-group"><label>BP (mmHg)</label><input type="text" id="peBP" placeholder="e.g. 120/80" /></div>
+        <div class="field-group"><label>HR (bpm)</label><input type="text" id="peHR" placeholder="e.g. 72" /></div>
+        <div class="field-group"><label>RR (breaths/min)</label><input type="text" id="peRR" placeholder="e.g. 18" /></div>
+        <div class="field-group"><label>Temp (°C)</label><input type="text" id="peTemp" placeholder="e.g. 37.2" /></div>
+        <div class="field-group"><label>SpO2 (%)</label><input type="text" id="peSpO2" placeholder="e.g. 98" /></div>
+        <div class="field-group"><label>BMI / Weight</label><input type="text" id="peBMI" placeholder="e.g. 24.5" /></div>
+      </div>
+    </div>
+
+    <!-- CVS -->
+    <div class="pe-toggle" onclick="togglePE(this)">
+      <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">❤️ Cardiovascular Examination</div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="pe-body open">
+      <div class="pe-section">
+        <div class="pe-section-title">🔍 Inspection</div>
+        <div class="pe-hint-box"><strong>Look for:</strong> Jugular venous pressure (JVP), visible pulsations, scars, chest wall deformity, peripheral oedema, cyanosis, clubbing.</div>
+        <textarea placeholder="Inspection findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">🖐 Palpation</div>
+        <div class="pe-hint-box"><strong>Feel for:</strong> Apex beat (position, character), heaves, thrills, peripheral pulses (radial, brachial, femoral, dorsalis pedis) – rate, rhythm, volume, symmetry. Capillary refill time.</div>
+        <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">👂 Auscultation</div>
+        <div class="pe-hint-box"><strong>Listen for:</strong> Heart sounds (S1, S2), added sounds (S3, S4), murmurs (timing, location, radiation, intensity), bruits over carotids, femorals, renal arteries.</div>
+        <textarea placeholder="Auscultation findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="field-group"><label>Additional CVS notes</label><textarea id="peCVS" placeholder="Any other findings e.g. pericardial rub, signs of heart failure..." style="min-height:40px;"></textarea></div>
+    </div>
+
+    <!-- Respiratory -->
+    <div class="pe-toggle" onclick="togglePE(this)">
+      <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🫁 Respiratory Examination</div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="pe-body open">
+      <div class="pe-section">
+        <div class="pe-section-title">🔍 Inspection</div>
+        <div class="pe-hint-box"><strong>Look for:</strong> Respiratory rate, pattern, use of accessory muscles, tracheal position, chest symmetry, scars, deformities (kyphosis, scoliosis), colour of skin.</div>
+        <textarea placeholder="Inspection findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">🖐 Palpation</div>
+        <div class="pe-hint-box"><strong>Feel for:</strong> Tracheal deviation, chest expansion (symmetry), tactile fremitus/vocal fremitus, tenderness, lumps.</div>
+        <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">👂 Percussion</div>
+        <div class="pe-hint-box"><strong>Listen for:</strong> Percussion note – resonant, hyperresonant, dull, stony dull. Compare both sides.</div>
+        <textarea placeholder="Percussion findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">👂 Auscultation</div>
+        <div class="pe-hint-box"><strong>Listen for:</strong> Breath sounds (vesicular, bronchial), added sounds – crackles, wheeze, rhonchi, pleural rub. Vocal resonance.</div>
+        <textarea placeholder="Auscultation findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="field-group"><label>Additional respiratory notes</label><textarea id="peResp" placeholder="Any other findings..." style="min-height:40px;"></textarea></div>
+    </div>
+
+    <!-- Abdominal -->
+    <div class="pe-toggle" onclick="togglePE(this)">
+      <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🫃 Abdominal Examination</div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="pe-body open">
+      <div class="pe-section">
+        <div class="pe-section-title">🔍 Inspection</div>
+        <div class="pe-hint-box"><strong>Look for:</strong> Shape, symmetry, scars, striae, veins (caput medusae), visible peristalsis, hernias, distension, masses.</div>
+        <textarea placeholder="Inspection findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">👂 Auscultation</div>
+        <div class="pe-hint-box"><strong>Listen for:</strong> Bowel sounds (normal, absent, hyperactive, tinkling), bruits (aortic, renal, iliac).</div>
+        <textarea placeholder="Auscultation findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">🖐 Palpation</div>
+        <div class="pe-hint-box"><strong>Feel for:</strong> Superficial (tenderness, guarding, rigidity), deep (masses, organomegaly – liver, spleen, kidneys), hernia orifices, cough impulse.</div>
+        <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">👂 Percussion</div>
+        <div class="pe-hint-box"><strong>Listen for:</strong> Dullness (liver span, splenic dullness, ascites – shifting dullness), tympany.</div>
+        <textarea placeholder="Percussion findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="field-group"><label>Additional abdominal notes</label><textarea id="peAbdo" placeholder="e.g. Ascites, fluid thrill..." style="min-height:40px;"></textarea></div>
+    </div>
+
+    <!-- Genitourinary with DRE -->
+    <div class="pe-toggle" onclick="togglePE(this)">
+      <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">💧 Genitourinary Examination</div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="pe-body open">
+      <div class="pe-section">
+        <div class="pe-section-title">🔍 Inspection</div>
+        <div class="pe-hint-box"><strong>Look for:</strong> External genitalia – penis, urethral meatus, scrotum, testicles, skin changes, swelling, discharge.</div>
+        <textarea placeholder="Inspection findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">🖐 Palpation</div>
+        <div class="pe-hint-box"><strong>Feel for:</strong> Testicular size, consistency, tenderness, masses, epididymis, spermatic cord, hernias.</div>
+        <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">👂 Percussion</div>
+        <div class="pe-hint-box"><strong>Listen for:</strong> Suprapubic dullness (bladder distension).</div>
+        <textarea placeholder="Percussion findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section" style="border-left: 4px solid var(--accent);">
+        <div class="pe-section-title">🖐 Digital Rectal Examination (DRE)</div>
+        <div class="pe-hint-box"><strong>Assess:</strong> Sphincter tone, prostate (males) – size, consistency, nodules, tenderness; rectal masses, blood on finger (glove), stool colour/consistency. In females – assess posterior vaginal wall, cervix, uterosacral ligaments.</div>
+        <textarea placeholder="DRE findings..." style="min-height:50px;"></textarea>
+      </div>
+      <div class="field-group"><label>Additional GU notes</label><textarea id="peGU" placeholder="e.g. Transillumination of scrotal swelling, Prehn's sign..." style="min-height:40px;"></textarea></div>
+    </div>
+
+    <!-- Neurological -->
+    <div class="pe-toggle" onclick="togglePE(this)">
+      <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🧠 Neurological Examination</div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="pe-body open">
+      <div class="pe-section">
+        <div class="pe-section-title">🔍 Inspection & Mental Status</div>
+        <div class="pe-hint-box"><strong>Assess:</strong> GCS (E/V/M), pupil size & reaction, speech, level of consciousness, posture.</div>
+        <textarea placeholder="Findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">🖐 Motor & Sensory</div>
+        <div class="pe-hint-box"><strong>Test:</strong> Power (MRC grade), tone (spastic/rigid/flaccid), coordination (finger-nose, heel-shin), sensation (light touch, pain, proprioception), reflexes (biceps, triceps, knee, ankle, plantar response).</div>
+        <textarea placeholder="Findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">🖐 Cranial Nerves</div>
+        <div class="pe-hint-box"><strong>Test:</strong> Olfactory to hypoglossal – as clinically indicated.</div>
+        <textarea placeholder="Cranial nerve findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="field-group"><label>Additional neuro notes</label><textarea id="peNeuro" placeholder="e.g. Signs of meningism, cerebellar signs..." style="min-height:40px;"></textarea></div>
+    </div>
+
+    <!-- Musculoskeletal -->
+    <div class="pe-toggle" onclick="togglePE(this)">
+      <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🦴 Musculoskeletal Examination</div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="pe-body open">
+      <div class="pe-section">
+        <div class="pe-section-title">🔍 Inspection</div>
+        <div class="pe-hint-box"><strong>Look for:</strong> Deformity, swelling, discolouration, muscle wasting, limb length discrepancy, skin changes (ulcers, scars).</div>
+        <textarea placeholder="Inspection findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">🖐 Palpation</div>
+        <div class="pe-hint-box"><strong>Feel for:</strong> Tenderness, warmth, crepitus, joint effusion, bone alignment, peripheral pulses, capillary refill, sensation distal to injury.</div>
+        <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">🔄 Range of Motion</div>
+        <div class="pe-hint-box"><strong>Assess:</strong> Active and passive ROM; pain, restriction, instability.</div>
+        <textarea placeholder="ROM findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="field-group"><label>Additional MSK notes</label><textarea id="peMSK" placeholder="e.g. Special tests – Lachman, anterior drawer, Ottawa ankle rules..." style="min-height:40px;"></textarea></div>
+    </div>
+
+    <!-- Wound Examination -->
+    <div class="pe-toggle" onclick="togglePE(this)">
+      <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🩹 Wound / Ulcer Examination</div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="pe-body open">
+      <div class="pe-section">
+        <div class="pe-section-title">🔍 Inspection</div>
+        <div class="pe-hint-box"><strong>Look for:</strong> Site, size (measure in cm), number of wounds. Edge: sloping (healing), punched-out (trophic), undermined (TB), everted (carcinoma), rolled (BCC). Base: slough, granulation, pale/ischaemic, exposed bone/tendon. Discharge: serous, purulent, haemorrhagic, watery. Surrounding skin: erythema, warmth, induration, cellulitis.</div>
+        <textarea placeholder="Inspection findings..." style="min-height:50px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">🖐 Palpation</div>
+        <div class="pe-hint-box"><strong>Feel for:</strong> Tenderness, temperature, subcutaneous emphysema (crepitus), deep extension, sinus tracts, regional lymphadenopathy. Assess for distal pulses and sensation if on a limb.</div>
+        <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="pe-section">
+        <div class="pe-section-title">👂 Auscultation / Special</div>
+        <div class="pe-hint-box"><strong>Listen for:</strong> Bruits over a vascular ulcer. Probe for sinus tracts using a sterile probe (if appropriate).</div>
+        <textarea placeholder="Auscultation/special findings..." style="min-height:40px;"></textarea>
+      </div>
+      <div class="field-group"><label>Additional wound notes</label><textarea id="peWound" placeholder="e.g. Odour, presence of foreign body, wound swab taken, photograph..." style="min-height:40px;"></textarea></div>
+    </div>
+
+    <!-- Other -->
+    <div class="pe-toggle" onclick="togglePE(this)">
+      <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">➕ Other Systems (Skin, Breast, Neck, Lymphatics)</div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="pe-body open">
+      <div class="pe-section">
+        <div class="pe-section-title">🔍 Inspection & Palpation</div>
+        <div class="pe-hint-box"><strong>Look and feel for:</strong> Skin: rashes, pigmentation, ulcers, surgical scars, pressure areas. Lymph nodes: cervical, axillary, inguinal – size, consistency, tenderness, mobility. Breast: inspection (symmetry, peau d'orange, nipple retraction), palpation (quadrants, axillary tail). Thyroid: inspection, palpation (size, consistency, nodules, tracheal deviation), auscultation for bruit.</div>
+        <textarea placeholder="Findings..." style="min-height:60px;"></textarea>
+      </div>
+      <div class="field-group"><label>Additional notes</label><textarea id="peOther" placeholder="Any other findings..." style="min-height:40px;"></textarea></div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ============================================
+       SECTION 9 — SUMMARY / CLERK'S ASSESSMENT
+       With auto-generated differentials based on complaint
+  ============================================ -->
+  <div class="section-header">
+    <span class="section-badge">9</span>
+    <span class="section-title">Summary / Clerk's Assessment</span>
+  </div>
+  <div class="callout">
+    <strong>Clinical reasoning:</strong> Synthesise the history and examination into a concise summary, differential diagnosis, and initial plan. <strong>Differentials are auto-generated</strong> based on the presenting complaint category, age, and sex — you can edit, add, or remove them.
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Summary of History & Examination</div>
+    <div class="field-group">
+      <label>Concise summary (1–2 paragraphs)</label>
+      <textarea id="summary" placeholder="e.g. This is a 45-year-old male with a 3-day history of right iliac fossa pain, anorexia, and fever. On examination, tenderness and guarding in the RIF…" style="min-height:120px;"></textarea>
+    </div>
+    <div class="divider"></div>
+    <div class="card-title" style="margin-top:0.5rem;">🧠 Differential Diagnosis <span class="gen-ddx-badge">auto-generated</span></div>
+    <div class="field-group">
+      <label>List possible diagnoses in order of likelihood</label>
+      <div class="hint">Differentials are generated from the complaint category, age, and sex. You can edit the text or add more.</div>
+      <div id="differentialList">
+        <!-- Generated items will be inserted here -->
+        <div class="dx-item generated">
+          <input type="text" placeholder="Differential diagnosis 1" style="font-weight:600;" value="Acute appendicitis" />
+          <textarea placeholder="Justification / supporting features..." style="min-height:40px; margin-top:0.3rem;">Classic migratory RIF pain, anorexia, fever, tenderness in RIF.</textarea>
+        </div>
+        <div class="dx-item generated">
+          <input type="text" placeholder="Differential diagnosis 2" style="font-weight:600;" value="Mesenteric adenitis" />
+          <textarea placeholder="Justification / supporting features..." style="min-height:40px; margin-top:0.3rem;">Often preceded by URTI, tenderness may be more diffuse, younger age group.</textarea>
+        </div>
+        <div class="dx-item generated">
+          <input type="text" placeholder="Differential diagnosis 3" style="font-weight:600;" value="Acute gastroenteritis" />
+          <textarea placeholder="Justification / supporting features..." style="min-height:40px; margin-top:0.3rem;">Diarrhoea, vomiting, crampy abdominal pain, usually self-limiting.</textarea>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top:0.5rem; padding:0.3rem 1rem; font-size:0.8rem;" onclick="addDifferential()">+ Add manual differential</button>
+      <button class="btn-primary" style="margin-top:0.5rem; padding:0.3rem 1rem; font-size:0.8rem; background:var(--accent);" onclick="generateDifferentials()">⟳ Regenerate Differentials</button>
+    </div>
+    <div class="divider"></div>
+    <div class="card-title" style="margin-top:0.5rem;">📋 Initial Management Plan</div>
+    <div class="field-group">
+      <label>Investigations to be done</label>
+      <div class="hint">List relevant labs, imaging, or special studies.</div>
+      <textarea id="investigations" placeholder="e.g. FBC, U&Es, CRP, Abdominal ultrasound, CT scan..." style="min-height:60px;"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Treatment / interventions</label>
+      <div class="hint">Medical, surgical, or supportive measures.</div>
+      <textarea id="treatmentPlan" placeholder="e.g. IV fluids, antibiotics (Ceftriaxone + Metronidazole), analgesia, NBM, surgical review..." style="min-height:60px;"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Referrals / follow-up</label>
+      <textarea id="referrals" placeholder="e.g. General surgery team, anaesthesia, ICU, dietician..." style="min-height:50px;"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Clerk's signature & date</label>
+      <div class="inline-row">
+        <input type="text" id="clerkSignature" placeholder="Your name / reg number" />
+        <input type="date" id="clerkDate" />
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-wrap -->
+
+<div class="footer-nav">
+  <div class="step-indicator">Steps <strong>1–9</strong> complete — Demographics · PC · HPC · ROS · PMH · Drugs · Family/Social · PE · Assessment</div>
+  <button class="btn-primary" onclick="goNext()">Finish & Submit</button>
+</div>
+
+<script>
+  // ========== HELPERS ==========
+  function checkAge() {
+    const age = parseInt(document.getElementById('age').value);
+    document.getElementById('paedFlag').style.display = (!isNaN(age) && age < 18) ? 'block' : 'none';
+  }
+  function toggleReferral(show) {
+    document.getElementById('referralDetails').style.display = show ? 'block' : 'none';
+  }
+
+  // ========== COMPLAINT → SYSTEM ==========
+  const COMPLAINT_SYSTEM = {
+    'abdo-pain':'git','abdo-swelling':'git','vomiting':'git','bowel':'git','rectal-bleed':'git','jaundice':'git',
+    'haematuria':'uro','urinary-sx':'uro','scrotal':'uro',
+    'ortho-pain':'msk','fracture':'msk','trauma':'msk',
+    'breast':null,'neck':'endo','swelling-surface':null,'wound':null,'other':null
+  };
+  const SYS_LABELS = {
+    cvs:'❤️ Cardiovascular', resp:'🫁 Respiratory', git:'🫃 Gastrointestinal',
+    uro:'💧 Genitourinary', neuro:'🧠 Neurological', msk:'🦴 Musculoskeletal', endo:'⚗️ Endocrine'
+  };
+  const SYS_SYMPTOMS = {
+    cvs:['Chest pain','Palpitations','Dyspnoea on exertion','Orthopnoea','PND','Ankle swelling','Syncope','Claudication'],
+    resp:['Cough','Productive cough','Haemoptysis','Shortness of breath','Wheeze','Stridor','Pleuritic chest pain','Night sweats'],
+    git:['Dysphagia','Heartburn','Nausea','Vomiting','Haematemesis','Abdominal pain','Distension','PR bleeding','Melaena','Change in bowel habit','Constipation','Diarrhoea','Jaundice','Weight loss','Anorexia'],
+    uro:['Dysuria','Frequency','Urgency','Nocturia','Haematuria','Poor stream','Hesitancy','Terminal dribbling','Urethral discharge','Scrotal swelling','Loin pain'],
+    neuro:['Headache','Dizziness','Seizures','Limb weakness','Numbness','Visual disturbance','Speech difficulty','LOC','Confusion','Incontinence'],
+    msk:['Joint pain','Joint swelling','Back pain','Limb deformity','Muscle weakness','Bone pain','Limited ROM','Morning stiffness'],
+    endo:['Polyuria','Polydipsia','Weight gain','Weight loss','Heat intolerance','Cold intolerance','Tremor','Excessive sweating','Known diabetic','Thyroid symptoms']
+  };
+  const chipState = {};
+
+  function buildAllChips() {
+    Object.entries(SYS_SYMPTOMS).forEach(([sys, symptoms]) => {
+      const container = document.getElementById('chips-' + sys);
+      if (!container) return;
+      symptoms.forEach(sym => {
+        const key = sys + ':' + sym;
+        chipState[key] = '';
+        const chip = document.createElement('span');
+        chip.className = 'sym-chip';
+        chip.textContent = sym;
+        chip.dataset.key = key;
+        chip.addEventListener('click', () => {
+          const cur = chipState[key];
+          chipState[key] = cur === '' ? 'present' : cur === 'present' ? 'absent' : '';
+          chip.className = 'sym-chip' + (chipState[key] ? ' ' + chipState[key] : '');
+          chip.textContent = sym;
+          const bannerChip = document.querySelector(`#ros-pc-chips [data-key="${key}"]`);
+          if (bannerChip) { bannerChip.className = chip.className; bannerChip.textContent = sym; }
+        });
+        container.appendChild(chip);
+      });
+    });
+  }
+  buildAllChips();
+
+  let activePCSystem = null;
+
+  function selectTag(btn) {
+    document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    const cat = btn.dataset.cat;
+    document.getElementById('complaintCategory').value = cat;
+    document.querySelectorAll('.hint-panel').forEach(p => p.classList.remove('visible'));
+    const panel = document.getElementById('hint-' + cat);
+    if (panel) panel.classList.add('visible');
+    document.getElementById('otherComplaintWrap').style.display = cat === 'other' ? 'block' : 'none';
+    if (activePCSystem) {
+      const prevCard = document.getElementById('ros-card-' + activePCSystem);
+      if (prevCard) prevCard.style.display = '';
+    }
+    const sys = COMPLAINT_SYSTEM[cat] || null;
+    activePCSystem = sys;
+    const banner = document.getElementById('ros-pc-banner');
+    const pcChips = document.getElementById('ros-pc-chips');
+    const pcTitle = document.getElementById('ros-pc-title');
+    if (sys) {
+      const sysCard = document.getElementById('ros-card-' + sys);
+      if (sysCard) sysCard.style.display = 'none';
+      pcTitle.textContent = '🎯 ' + SYS_LABELS[sys] + ' — Presenting System (covered via PC)';
+      pcChips.innerHTML = '';
+      (SYS_SYMPTOMS[sys] || []).forEach(sym => {
+        const key = sys + ':' + sym;
+        if (!(key in chipState)) chipState[key] = '';
+        const chip = document.createElement('span');
+        chip.className = 'sym-chip' + (chipState[key] ? ' ' + chipState[key] : '');
+        chip.textContent = sym;
+        chip.dataset.key = key;
+        chip.addEventListener('click', () => {
+          const cur = chipState[key];
+          chipState[key] = cur === '' ? 'present' : cur === 'present' ? 'absent' : '';
+          chip.className = 'sym-chip' + (chipState[key] ? ' ' + chipState[key] : '');
+          chip.textContent = sym;
+          const orig = document.querySelector(`#chips-${sys} [data-key="${key}"]`);
+          if (orig) { orig.className = chip.className; orig.textContent = sym; }
+        });
+        pcChips.appendChild(chip);
+      });
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+    // Regenerate differentials when complaint category changes
+    generateDifferentials();
+  }
+
+  // ========== PE TOGGLE ==========
+  function togglePE(headerEl) {
+    const body = headerEl.nextElementSibling;
+    if (!body || !body.classList.contains('pe-body')) return;
+    body.classList.toggle('open');
+    headerEl.classList.toggle('open');
+  }
+
+  // ========== DIFFERENTIAL GENERATOR (based on complaint) ==========
+  function generateDifferentials() {
+    const cat = document.getElementById('complaintCategory').value;
+    const age = parseInt(document.getElementById('age').value) || 30;
+    const sex = document.getElementById('sex').value || 'Male';
+    const isPaed = age < 18;
+    const isFemale = sex === 'Female';
+
+    // Comprehensive differential knowledge base indexed by complaint category
+    const DDX_MAP = {
+      'abdo-pain': {
+        common: ['Acute appendicitis', 'Acute gastroenteritis', 'Mesenteric adenitis', 'Peptic ulcer disease', 'Biliary colic / cholecystitis', 'Pancreatitis'],
+        adult: ['Diverticulitis', 'Renal colic', 'Bowel obstruction', 'Ischaemic bowel', 'AAA (ruptured/expanding)'],
+        paed: ['Intussusception', 'Meckel\'s diverticulitis', 'Constipation', 'Urinary tract infection', 'Pyloric stenosis'],
+        female: ['Ectopic pregnancy', 'Ovarian cyst torsion', 'Pelvic inflammatory disease', 'Mittelschmerz', 'Endometriosis']
+      },
+      'abdo-swelling': {
+        common: ['Inguinal hernia', 'Umbilical hernia', 'Lipoma', 'Abdominal wall abscess', 'Ovarian cyst', 'Uterine fibroid'],
+        adult: ['Hepatomegaly (malignancy/cirrhosis)', 'Splenomegaly', 'Renal cyst', 'Ascites', 'Colorectal carcinoma'],
+        paed: ['Nephroblastoma (Wilms tumour)', 'Neuroblastoma', 'Hydronephrosis', 'Meconium ileus'],
+        female: ['Ovarian cyst', 'Uterine fibroid', 'Ectopic pregnancy', 'Ovarian carcinoma']
+      },
+      'vomiting': {
+        common: ['Acute gastroenteritis', 'Food poisoning', 'Migraine', 'Biliary colic', 'Pancreatitis'],
+        adult: ['Bowel obstruction', 'Diabetic ketoacidosis', 'Raised ICP', 'Alcoholic gastritis'],
+        paed: ['Pyloric stenosis', 'Gastroenteritis', 'Intussusception', 'UTI with vomiting'],
+        female: ['Hyperemesis gravidarum', 'Ectopic pregnancy', 'PID']
+      },
+      'bowel': {
+        common: ['Irritable bowel syndrome', 'Acute gastroenteritis', 'Constipation', 'Diverticular disease'],
+        adult: ['Colorectal carcinoma', 'Inflammatory bowel disease', 'Bowel obstruction', 'Ischaemic colitis'],
+        paed: ['Hirschsprung disease', 'Constipation', 'Intussusception', 'Coeliac disease'],
+        female: ['Endometriosis', 'Ovarian torsion']
+      },
+      'rectal-bleed': {
+        common: ['Haemorrhoids', 'Anal fissure', 'Constipation-related tear', 'Diverticular disease'],
+        adult: ['Colorectal carcinoma', 'Inflammatory bowel disease', 'Angiodysplasia', 'Upper GI bleed (melaena)'],
+        paed: ['Anal fissure', 'Meckel\'s diverticulum', 'Juvenile polyp', 'Intussusception'],
+        female: ['Endometriosis', 'Rectal endometriosis']
+      },
+      'jaundice': {
+        common: ['Viral hepatitis', 'Malaria (haemolytic)', 'Choledocholithiasis', 'Alcoholic liver disease'],
+        adult: ['Pancreatic carcinoma', 'Cholangiocarcinoma', 'Cirrhosis', 'Drug-induced hepatitis'],
+        paed: ['Biliary atresia', 'Neonatal jaundice (physiological/pathological)', 'G6PD deficiency'],
+        female: ['Cholestasis of pregnancy', 'Primary biliary cholangitis']
+      },
+      'haematuria': {
+        common: ['Urinary tract infection', 'Ureteric colic (stone)', 'Schistosomiasis (common in Uganda)', 'Nephrolithiasis'],
+        adult: ['Bladder carcinoma', 'Renal cell carcinoma', 'Benign prostatic hyperplasia', 'Glomerulonephritis'],
+        paed: ['Glomerulonephritis', 'UTI', 'Hydronephrosis', 'Wilms tumour'],
+        female: ['UTI', 'Endometriosis', 'Cyclical haematuria']
+      },
+      'urinary-sx': {
+        common: ['UTI', 'Benign prostatic hyperplasia', 'Urethritis', 'Overactive bladder'],
+        adult: ['Bladder carcinoma', 'Prostate carcinoma', 'Urethral stricture', 'Neurogenic bladder'],
+        paed: ['UTI', 'Vesicoureteric reflux', 'Posterior urethral valves'],
+        female: ['Stress incontinence', 'Pelvic organ prolapse', 'Interstitial cystitis']
+      },
+      'scrotal': {
+        common: ['Hydrocele', 'Varicocele', 'Epididymitis', 'Inguinal hernia'],
+        adult: ['Testicular torsion', 'Testicular carcinoma', 'Fournier\'s gangrene'],
+        paed: ['Testicular torsion (emergency)', 'Hydrocele', 'Hernia', 'Torsion of testicular appendage'],
+        female: [] // not applicable
+      },
+      'swelling-surface': {
+        common: ['Lipoma', 'Sebaceous cyst', 'Abscess', 'Lymphadenopathy', 'Dermatofibroma'],
+        adult: ['Squamous cell carcinoma', 'Basal cell carcinoma', 'Melanoma', 'Sarcoma', 'Metastasis', 'Neurofibroma'],
+        paed: ['Haemangioma', 'Dermoid cyst', 'Neurofibroma', 'Lymphangioma'],
+        female: ['Breast lump', 'Axillary lymphadenopathy', 'Gardner cyst']
+      },
+      'wound': {
+        common: ['Traumatic wound', 'Surgical wound', 'Abscess', 'Cellulitis', 'Venous ulcer'],
+        adult: ['Diabetic foot ulcer', 'Arterial ulcer', 'Squamous cell carcinoma (Marjolin\'s)', 'Necrotising fasciitis'],
+        paed: ['Burns', 'Lacerations', 'Buruli ulcer', 'Impetigo'],
+        female: ['Breast ulcer', 'Vulval ulcer', 'Pressure ulcer']
+      },
+      'trauma': {
+        common: ['Soft tissue injury', 'Fracture (closed/open)', 'Laceration', 'Head injury (concussion)'],
+        adult: ['Fracture (rib, long bone, spine)', 'Chest trauma (haemothorax, pneumothorax)', 'Abdominal trauma (solid organ injury)', 'Spinal injury'],
+        paed: ['Fracture (greenstick, torus)', 'Head injury', 'Burns', 'Child abuse (non-accidental injury)'],
+        female: ['Pelvic fracture', 'Obstetric trauma']
+      },
+      'ortho-pain': {
+        common: ['Osteoarthritis', 'Tendonitis', 'Bursitis', 'Gout', 'Septic arthritis'],
+        adult: ['Rheumatoid arthritis', 'Fracture', 'Osteomyelitis', 'Pathological fracture (malignancy)'],
+        paed: ['Septic arthritis (emergency)', 'Transient synovitis', 'Perthes disease', 'Sickle cell crisis (dactylitis)'],
+        female: ['Osteoporosis fracture', 'Fibromyalgia']
+      },
+      'fracture': {
+        common: ['Closed fracture', 'Open fracture', 'Stress fracture', 'Greenstick fracture (paeds)'],
+        adult: ['Pathological fracture (malignancy, Paget\'s)', 'Osteoporotic fracture', 'Fracture with vascular injury', 'Fracture with compartment syndrome'],
+        paed: ['Greenstick fracture', 'Torus fracture', 'Salter-Harris fracture', 'Buckle fracture'],
+        female: ['Osteoporotic fracture', 'Insufficiency fracture']
+      },
+      'breast': {
+        common: ['Fibrocystic disease', 'Fibroadenoma', 'Mastitis', 'Breast abscess'],
+        adult: ['Breast carcinoma', 'Intraductal papilloma', 'Phyllodes tumour', 'Inflammatory breast cancer'],
+        paed: ['Fibroadenoma', 'Juvenile breast hypertrophy', 'Galactocele'],
+        female: ['Breast carcinoma', 'Mastitis', 'Abscess', 'Paget\'s disease']
+      },
+      'neck': {
+        common: ['Cervical lymphadenitis', 'Goitre (simple)', 'Thyroid nodule', 'Branchial cyst'],
+        adult: ['Thyroid carcinoma', 'Lymphoma', 'Carotid body tumour', 'Pharyngeal pouch'],
+        paed: ['Cervical lymphadenitis', 'Thyroglossal cyst', 'Haemangioma', 'Torticollis'],
+        female: ['Thyroid carcinoma', 'Hashimoto\'s thyroiditis', 'Graves\' disease']
+      },
+      'other': {
+        common: ['Surgical infection', 'Abscess', 'Cellulitis', 'Lymphadenopathy'],
+        adult: ['Malignancy', 'Surgical emergency', 'Foreign body', 'Systemic infection'],
+        paed: ['Congenital anomaly', 'Infection', 'Foreign body'],
+        female: ['Gynaecological pathology', 'Pelvic mass']
+      }
+    };
+
+    const ddx = DDX_MAP[cat] || DDX_MAP['other'];
+    let list = [];
+
+    // Start with common
+    if (ddx.common) list = list.concat(ddx.common);
+
+    // Add adult-specific
+    if (!isPaed && ddx.adult) list = list.concat(ddx.adult);
+
+    // Add paediatric-specific
+    if (isPaed && ddx.paed) list = list.concat(ddx.paed);
+
+    // Add female-specific
+    if (isFemale && ddx.female) list = list.concat(ddx.female);
+
+    // Remove duplicates
+    list = [...new Set(list)];
+
+    // If list is empty, fallback
+    if (list.length === 0) list = ['Surgical infection', 'Abscess', 'Cellulitis', 'Malignancy'];
+
+    // Limit to top 6
+    list = list.slice(0, 6);
+
+    // Now update the DOM
+    const container = document.getElementById('differentialList');
+    container.innerHTML = '';
+
+    list.forEach((dx, index) => {
+      const div = document.createElement('div');
+      div.className = 'dx-item generated';
+      div.innerHTML = `
+        <input type="text" placeholder="Differential diagnosis ${index+1}" style="font-weight:600;" value="${dx}" />
+        <textarea placeholder="Justification / supporting features..." style="min-height:40px; margin-top:0.3rem;">Clinical features consistent with ${dx.toLowerCase()} – correlate with history and examination findings.</textarea>
+      `;
+      container.appendChild(div);
+    });
+
+    // Add one empty manual slot for user to add their own
+    const manualDiv = document.createElement('div');
+    manualDiv.className = 'dx-item';
+    manualDiv.style.borderLeftColor = 'var(--muted)';
+    manualDiv.innerHTML = `
+      <input type="text" placeholder="Add your own differential..." style="font-weight:600;" />
+      <textarea placeholder="Justification..." style="min-height:40px; margin-top:0.3rem;"></textarea>
+    `;
+    container.appendChild(manualDiv);
+  }
+
+  // ========== ADD DIFFERENTIAL (manual) ==========
+  function addDifferential() {
+    const container = document.getElementById('differentialList');
+    const div = document.createElement('div');
+    div.className = 'dx-item';
+    div.innerHTML = `
+      <input type="text" placeholder="Manual differential" style="font-weight:600;" />
+      <textarea placeholder="Justification / supporting features..." style="min-height:40px; margin-top:0.3rem;"></textarea>
+    `;
+    container.appendChild(div);
+  }
+
+  // ========== FINISH ==========
+  function goNext() {
+    const name = document.getElementById('patientName').value.trim();
+    const age = document.getElementById('age').value;
+    const sex = document.getElementById('sex').value;
+    const complaint = document.getElementById('complaintVerbatim').value.trim();
+    const durVal = document.getElementById('durationValue').value;
+    const durUnit = document.getElementById('durationUnit').value;
+    const cat = document.getElementById('complaintCategory').value;
+    const hpc = document.getElementById('hpcNarrative').value.trim();
+    const summary = document.getElementById('summary').value.trim();
+    if (!name || !age || !sex) { alert('Please complete required demographics: Name, Age, and Sex.'); return; }
+    if (!complaint || !durVal || !durUnit || !cat) { alert('Please complete the presenting complaint.'); return; }
+    if (!hpc) { alert('Please write the History of Presenting Complaint narrative.'); return; }
+    if (!summary) { alert('Please write a summary in the Clerk\'s Assessment section.'); return; }
+    alert('✅ All sections complete. Wire your Supabase save + submission logic here.');
+  }
+
+  // Auto-generate on load if category is already set
+  document.addEventListener('DOMContentLoaded', function() {
+    checkAge();
+    setTimeout(generateDifferentials, 100);
+  });
+</script>
+</body>
+</html>
