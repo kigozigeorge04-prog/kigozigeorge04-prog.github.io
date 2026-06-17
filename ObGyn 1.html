@@ -1,0 +1,2432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EaseMed – ObGyn Clerkship</title>
+  <style>
+    :root {
+      --bg: #f7f9fb; --surface: #ffffff; --border: #dde3ea;
+      --primary: #1a5f7a; --primary-light: #e8f4f8; --accent: #e05c2a;
+      --text: #1c2b36; --muted: #6b7f8c; --danger: #c0392b; --success: #1a7a4a;
+      --warn-bg: #fffbea; --warn-border: #f0c050;
+      --obs-color: #6a3d9a; --obs-light: #f3eeff;
+      --gyn-color: #b5006e; --gyn-light: #ffeef7;
+      --menstrual-color: #008080; --menstrual-light: #e6f5f5;
+      --contraceptive-color: #2e7d32; --contraceptive-light: #e8f5e9;
+      --pmh-color: #c0392b; --pmh-light: #fde8e8;
+      --social-color: #d4a017; --social-light: #fdf5e6;
+      --family-color: #6c3483; --family-light: #f4ecf7;
+      --ros-color: #1a7a4a; --ros-light: #e8f5e9;
+      --radius: 10px; --shadow: 0 2px 12px rgba(26,95,122,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .topbar { background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.5rem; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .topbar-brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.5px; }
+    .topbar-brand span { color: #9fd8f0; }
+    .topbar-subtitle { font-size: 0.8rem; opacity: 0.8; margin-top: 1px; }
+    .topbar-right { display: flex; gap: 0.75rem; }
+    .btn-outline-white { background: transparent; border: 1.5px solid rgba(255,255,255,0.5); color: #fff; padding: 0.35rem 0.9rem; border-radius: 6px; font-size: 0.82rem; cursor: pointer; transition: background 0.15s; }
+    .btn-outline-white:hover { background: rgba(255,255,255,0.12); }
+
+    .progress-bar-wrap { background: #d0e7f0; height: 4px; }
+    .progress-bar-fill { height: 4px; background: var(--accent); transition: width 0.4s ease; }
+
+    .main-wrap { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem 5rem; }
+
+    .section-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; margin-top: 1.5rem; }
+    .section-badge { background: var(--primary); color: #fff; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 0.25rem 0.7rem; border-radius: 20px; white-space: nowrap; }
+    .section-badge.gyn { background: var(--gyn-color); }
+    .section-badge.obs { background: var(--obs-color); }
+    .section-badge.menstrual { background: var(--menstrual-color); }
+    .section-badge.contraceptive { background: var(--contraceptive-color); }
+    .section-badge.pmh { background: var(--pmh-color); }
+    .section-badge.social { background: var(--social-color); }
+    .section-badge.family { background: var(--family-color); }
+    .section-badge.ros { background: var(--ros-color); }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.4rem; margin-bottom: 1.1rem; box-shadow: var(--shadow); }
+    .card.gyn-card { border-left: 3px solid var(--gyn-color); }
+    .card.obs-card { border-left: 3px solid var(--obs-color); }
+    .card.menstrual-card { border-left: 3px solid var(--menstrual-color); }
+    .card.contraceptive-card { border-left: 3px solid var(--contraceptive-color); }
+    .card.pmh-card { border-left: 3px solid var(--pmh-color); }
+    .card.social-card { border-left: 3px solid var(--social-color); }
+    .card.family-card { border-left: 3px solid var(--family-color); }
+    .card.ros-card { border-left: 3px solid var(--ros-color); }
+    .card-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 0.9rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+
+    .field-group { margin-bottom: 1rem; }
+    .field-group:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem; }
+    label .req { color: var(--danger); margin-left: 2px; }
+    .hint { font-size: 0.76rem; color: var(--muted); margin-bottom: 0.4rem; font-style: italic; }
+    .hint-sm { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; font-style: italic; }
+
+    input[type="text"], input[type="number"], input[type="date"], input[type="tel"], select, textarea {
+      width: 100%; padding: 0.55rem 0.75rem; border: 1.5px solid var(--border); border-radius: 7px;
+      font-size: 0.9rem; color: var(--text); background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,95,122,0.1); }
+    textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+    .inline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+    .inline-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.9rem; }
+    @media (max-width: 560px) { .inline-row, .inline-row-3 { grid-template-columns: 1fr; } }
+
+    .radio-group, .checkbox-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.2rem; }
+    .radio-group label, .checkbox-group label { font-weight: 400; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; background: var(--bg); border: 1.5px solid var(--border); border-radius: 6px; padding: 0.35rem 0.75rem; font-size: 0.86rem; transition: border-color 0.15s, background 0.15s; margin-bottom: 0; }
+    .radio-group input[type="radio"], .checkbox-group input[type="checkbox"] { width: auto; accent-color: var(--primary); }
+    .radio-group label:has(input:checked), .checkbox-group label:has(input:checked) { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 600; }
+
+    .complaint-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .tag-btn { background: var(--bg); border: 1.5px solid var(--border); border-radius: 20px; padding: 0.35rem 0.9rem; font-size: 0.84rem; cursor: pointer; color: var(--text); transition: all 0.15s; }
+    .tag-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+    .tag-btn.selected { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+    .tag-btn.other { border-style: dashed; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1.2rem 0; }
+
+    .callout { background: var(--primary-light); border-left: 4px solid var(--primary); border-radius: 0 7px 7px 0; padding: 0.7rem 1rem; font-size: 0.83rem; color: var(--primary); margin-bottom: 1rem; }
+    .callout strong { font-weight: 700; }
+
+    .hint-panel { display: none; background: var(--warn-bg); border: 1.5px solid var(--warn-border); border-radius: var(--radius); padding: 1rem 1.2rem; margin-top: 1rem; }
+    .hint-panel.visible { display: block; }
+    .hint-panel-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #b07800; margin-bottom: 0.7rem; }
+    .hint-panel ul { padding-left: 1.2rem; }
+    .hint-panel ul li { font-size: 0.84rem; color: #5a4000; margin-bottom: 0.35rem; line-height: 1.45; }
+    .hint-panel .red-flags { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--warn-border); }
+    .hint-panel .red-flags-title { font-size: 0.78rem; font-weight: 700; color: var(--danger); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; }
+    .hint-panel .red-flags ul li { color: var(--danger); }
+    .hint-panel .key-questions { background: #f0f7ff; border-radius: 6px; padding: 0.5rem 0.75rem; margin-top: 0.5rem; border-left: 3px solid var(--primary); }
+    .hint-panel .key-questions-title { font-size: 0.78rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem; }
+    .hint-panel .key-questions ul li { color: var(--text); }
+    .hint-panel .key-questions ul li::before { content: "❓ "; }
+
+    .paed-flag { background: var(--warn-bg); border: 1.5px solid var(--warn-border); border-radius: 8px; padding: 0.65rem 1rem; font-size: 0.83rem; color: #7a5500; margin-top: 0.5rem; display: none; }
+    .paed-flag.visible { display: block; }
+
+    .socrates-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
+    @media (max-width:560px) { .socrates-grid { grid-template-columns: 1fr 1fr; } }
+    .socrates-grid label { font-size: 0.78rem; margin-bottom: 0.2rem; }
+    .socrates-grid input { padding: 0.35rem 0.6rem; font-size: 0.82rem; }
+
+    .calc-hint { background: var(--primary-light); border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.78rem; color: var(--primary); margin-top: 0.3rem; border-left: 3px solid var(--primary); }
+    .calc-hint ul { margin: 0.3rem 0 0 1rem; padding-left: 0.5rem; }
+
+    .anc-entry { background: var(--bg); border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem; border: 1px solid var(--border); }
+    .anc-entry:last-child { margin-bottom: 0; }
+    .anc-entry .inline-row { margin-bottom: 0.5rem; }
+    .anc-entry .inline-row:last-child { margin-bottom: 0; }
+
+    .footer-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.5rem; box-shadow: 0 -2px 10px rgba(0,0,0,0.06); z-index: 100; }
+    .step-indicator { font-size: 0.8rem; color: var(--muted); }
+    .step-indicator strong { color: var(--text); }
+    .btn-primary { background: var(--primary); color: #fff; border: none; padding: 0.6rem 1.5rem; border-radius: 8px; font-size: 0.92rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+    .btn-primary:hover { background: #154f67; }
+    .btn-secondary { background: var(--border); color: var(--text); border: none; padding: 0.6rem 1.5rem; border-radius: 8px; font-size: 0.92rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+    .btn-secondary:hover { background: #cbd5e0; }
+
+    .hidden { display: none !important; }
+
+    .hint-outside { font-size: 0.76rem; color: var(--muted); margin-bottom: 0.35rem; font-style: italic; }
+    
+    .symptom-guide { background: #f8f9fa; border-radius: 6px; padding: 0.6rem 0.8rem; margin: 0.5rem 0; border-left: 3px solid var(--primary-light); }
+    .symptom-guide-title { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.2rem; }
+    .symptom-guide ul { padding-left: 1.2rem; margin: 0.2rem 0; }
+    .symptom-guide ul li { font-size: 0.82rem; color: var(--text); line-height: 1.5; }
+
+    /* ROS Styles - Color Button Design */
+    .ros-system { border: 1.5px solid var(--border); border-radius: 8px; margin-bottom: 0.8rem; overflow: hidden; }
+    .ros-system:last-child { margin-bottom: 0; }
+    .ros-header { background: var(--bg); padding: 0.7rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; user-select: none; }
+    .ros-header:hover { background: var(--primary-light); }
+    .ros-header h3 { font-size: 0.9rem; font-weight: 600; color: var(--text); margin: 0; display: flex; align-items: center; gap: 0.5rem; }
+    .ros-header .ros-icon { font-size: 1.1rem; }
+    .ros-header .ros-toggle { font-size: 0.8rem; color: var(--muted); transition: transform 0.3s; }
+    .ros-header .ros-toggle.open { transform: rotate(180deg); }
+    .ros-body { padding: 0 1rem 1rem 1rem; display: none; }
+    .ros-body.open { display: block; }
+    
+    .ros-buttons { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.3rem 0 0.5rem 0; }
+    .ros-btn { background: var(--bg); border: 2px solid var(--border); border-radius: 20px; padding: 0.25rem 0.7rem; font-size: 0.78rem; cursor: pointer; transition: all 0.15s; color: var(--text); white-space: nowrap; }
+    .ros-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+    .ros-btn.active { background: var(--danger); border-color: var(--danger); color: #fff; font-weight: 600; }
+    .ros-btn.active-present { background: var(--success); border-color: var(--success); color: #fff; font-weight: 600; }
+    .ros-btn.active-absent { background: #95a5a6; border-color: #95a5a6; color: #fff; font-weight: 600; }
+    .ros-btn .ros-status { font-size: 0.65rem; margin-left: 0.2rem; }
+    .ros-other { margin-top: 0.5rem; }
+    .ros-other input { font-size: 0.84rem; padding: 0.35rem 0.6rem; }
+  </style>
+</head>
+<body>
+
+<!-- Topbar -->
+<nav class="topbar">
+  <div>
+    <div class="topbar-brand">Ease<span>Med</span></div>
+    <div class="topbar-subtitle" id="topbarSubtitle">ObGyn Clerkship</div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-outline-white">Save Draft</button>
+    <button class="btn-outline-white">← Exit</button>
+  </div>
+</nav>
+<div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:12%;"></div></div>
+
+<div class="main-wrap">
+
+  <!-- ══════════════════════════════════
+       SECTION 1 — DEMOGRAPHICS
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge" id="badge-demo">1</span>
+    <span class="section-title">Patient Demographics</span>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🪪 Patient Identification</div>
+    
+    <div class="field-group">
+      <label>Full Name <span class="req">*</span></label>
+      <input type="text" id="patientName" placeholder="e.g. Nakato Sarah" />
+    </div>
+    
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Age <span class="req">*</span></label>
+        <input type="number" id="age" placeholder="Years" min="0" max="120" oninput="checkAge()" />
+        <div class="paed-flag" id="paedFlag" style="margin-top:0.3rem;">
+          ⚠️ <strong>Patient under 18:</strong> Ensure parent/guardian is present and consent obtained.
+        </div>
+      </div>
+      <div class="field-group">
+        <label>IP / OP Number</label>
+        <input type="text" id="ipNumber" placeholder="e.g. MUH-2025-00421" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Address / Village</label>
+      <input type="text" id="address" placeholder="e.g. Kira Town Council, Wakiso District" />
+    </div>
+
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Occupation</label>
+        <input type="text" id="occupation" placeholder="e.g. Farmer, Teacher, Business" />
+      </div>
+      <div class="field-group">
+        <label>Tribe / Ethnicity</label>
+        <input type="text" id="tribe" placeholder="e.g. Muganda, Acholi" />
+      </div>
+    </div>
+
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Religion</label>
+        <select id="religion" onchange="toggleOtherReligion(this.value)">
+          <option value="">— Select —</option>
+          <option>Catholic</option>
+          <option>Protestant / Anglican</option>
+          <option>Muslim</option>
+          <option>Pentecostal / Born Again</option>
+          <option>SDA</option>
+          <option>Traditional / None</option>
+          <option>Other</option>
+        </select>
+        <input type="text" id="religionOther" placeholder="Please specify religion..." style="display:none; margin-top:0.5rem;" />
+      </div>
+      <div class="field-group">
+        <label>Education Level</label>
+        <select id="education">
+          <option value="">— Select —</option>
+          <option>None / Not attended</option>
+          <option>Primary (P1–P7)</option>
+          <option>Secondary (S1–S6)</option>
+          <option>Tertiary / Vocational</option>
+          <option>University / Degree+</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Date of Admission</label>
+      <input type="date" id="admissionDate" />
+    </div>
+  </div>
+
+  <!-- Next of Kin -->
+  <div class="card">
+    <div class="card-title">👤 Next of Kin</div>
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Next of Kin — Name</label>
+        <input type="text" id="nokName" placeholder="Full name" />
+      </div>
+      <div class="field-group">
+        <label>Relationship to Patient</label>
+        <select id="nokRelationship">
+          <option value="">— Select —</option>
+          <option>Spouse / Partner</option>
+          <option>Parent</option>
+          <option>Child</option>
+          <option>Sibling</option>
+          <option>Guardian</option>
+          <option>Friend</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Next of Kin — Contact</label>
+      <input type="tel" id="nokContact" placeholder="e.g. 0700 000 000" />
+    </div>
+  </div>
+
+  <!-- LNMP, EDD, WOA, Gravidity, Parity -->
+  <div class="card">
+    <div class="card-title">📅 Obstetric Dates & History</div>
+    
+    <div class="field-group">
+      <label>Last Normal Menstrual Period (LNMP) <span class="req">*</span></label>
+      <input type="date" id="lnmp" onchange="calculateEDDandWOA()" />
+      <div class="calc-hint">
+        <strong>💡 How LNMP is used:</strong> 
+        <ul>
+          <li>EDD = LNMP + 280 days (or 40 weeks) — <strong>Nägele's Rule:</strong> Add 7 days to LNMP, subtract 3 months</li>
+          <li>WOA (Weeks of Amenorrhea) = Today's date − LNMP (in weeks)</li>
+          <li>Used to calculate gestational age, plan ANC visits, and determine EDD</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Estimated Due Date (EDD)</label>
+        <input type="date" id="edd" readonly style="background:#edf2f7;" />
+        <div class="hint-sm">Automatically calculated: LNMP + 280 days</div>
+      </div>
+      <div class="field-group">
+        <label>Weeks of Amenorrhea (WOA)</label>
+        <input type="text" id="woa" readonly placeholder="e.g. 24 weeks" style="background:#edf2f7;" />
+        <div class="hint-sm">Automatically calculated: Today − LNMP</div>
+      </div>
+    </div>
+
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Gravida (G) <span class="req">*</span></label>
+        <input type="number" id="gravida" placeholder="Total pregnancies" min="0" />
+        <div class="hint-sm">Total number of pregnancies (including current)</div>
+      </div>
+      <div class="field-group">
+        <label>Parity (P) <span class="req">*</span></label>
+        <input type="text" id="parity" placeholder="e.g. P2+0 (2 term, 0 preterm)" />
+        <div class="hint-sm">Format: Term + Preterm + Abortions + Living (e.g. P3+1)</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Nearest Health Centre (home area)</label>
+      <input type="text" id="nearestFacility" placeholder="e.g. Kira Health Centre IV" />
+    </div>
+  </div>
+
+  <!-- Referral Status -->
+  <div class="card">
+    <div class="card-title">🔀 Referral Status</div>
+    <div class="field-group">
+      <label>Was the patient referred? <span class="req">*</span></label>
+      <div class="radio-group">
+        <label><input type="radio" name="referred" value="yes" onchange="toggleReferral(true)" /> Yes — referred</label>
+        <label><input type="radio" name="referred" value="no" onchange="toggleReferral(false)" /> No — self-presented</label>
+        <label><input type="radio" name="referred" value="transferred" onchange="toggleReferral(true)" /> Transferred in</label>
+      </div>
+    </div>
+    <div id="referralDetails" style="display:none;">
+      <div class="inline-row">
+        <div class="field-group">
+          <label>Referring Facility</label>
+          <input type="text" id="referralFacility" placeholder="e.g. Entebbe Hospital" />
+        </div>
+        <div class="field-group">
+          <label>Level of Facility</label>
+          <select id="referralLevel">
+            <option value="">— Select —</option>
+            <option>HC II</option>
+            <option>HC III</option>
+            <option>HC IV</option>
+            <option>General Hospital</option>
+            <option>Regional Referral Hospital</option>
+            <option>Private Clinic / Hospital</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Reason for Referral</label>
+        <textarea id="referralReason" placeholder="e.g. Referred for management of severe pre-eclampsia..." style="min-height:60px;"></textarea>
+      </div>
+      <div class="field-group">
+        <label>Treatment given before referral</label>
+        <textarea id="referralTreatment" placeholder="e.g. Magnesium sulphate loading dose given, IV fluids..." style="min-height:55px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- PMTCT Status -->
+  <div class="card">
+    <div class="card-title">🩺 PMTCT Status</div>
+    <div class="field-group">
+      <label>HIV Status in this pregnancy <span class="req">*</span></label>
+      <div class="radio-group">
+        <label><input type="radio" name="hivStatus" value="negative" /> Negative</label>
+        <label><input type="radio" name="hivStatus" value="positive" /> Positive (on ARVs)</label>
+        <label><input type="radio" name="hivStatus" value="unknown" /> Not tested / Unknown</label>
+        <label><input type="radio" name="hivStatus" value="declined" /> Declined testing</label>
+      </div>
+    </div>
+    <div class="field-group" id="arvDetails" style="display:none;">
+      <label>ARV Regimen / Details</label>
+      <input type="text" id="arvRegimen" placeholder="e.g. TLD, AZT/3TC/NVP" />
+    </div>
+    <div class="field-group">
+      <label>Partner HIV Status</label>
+      <div class="radio-group">
+        <label><input type="radio" name="partnerHiv" value="negative" /> Negative</label>
+        <label><input type="radio" name="partnerHiv" value="positive" /> Positive</label>
+        <label><input type="radio" name="partnerHiv" value="unknown" /> Unknown</label>
+        <label><input type="radio" name="partnerHiv" value="not_tested" /> Not tested</label>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════
+       SECTION 2 — PRESENTING COMPLAINT
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge" id="badge-pc">2</span>
+    <span class="section-title">Presenting Complaint</span>
+  </div>
+
+  <div class="callout">
+    <strong>Tip:</strong> Write the complaint in the patient's own words first, then select the category to reveal guided clinical prompts and key questions to ask.
+  </div>
+
+  <div class="card">
+    <div class="card-title">📝 Chief Complaint</div>
+
+    <div class="field-group">
+      <label>Complaint in patient's own words <span class="req">*</span></label>
+      <div class="hint">Quote directly — e.g. "I have been bleeding for 3 days"</div>
+      <textarea id="complaintVerbatim" placeholder="Write exactly what the patient says..."></textarea>
+    </div>
+
+    <div class="field-group">
+      <label>Duration <span class="req">*</span></label>
+      <div class="inline-row">
+        <input type="number" id="durationValue" placeholder="e.g. 3" min="0" />
+        <select id="durationUnit">
+          <option value="">— Unit —</option>
+          <option>Minutes</option>
+          <option>Hours</option>
+          <option>Days</option>
+          <option>Weeks</option>
+          <option>Months</option>
+          <option>Years</option>
+        </select>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="field-group">
+      <label>Complaint Category <span class="req">*</span></label>
+      <div class="hint">Select the best match — reveals guided clinical prompts and key questions below.</div>
+      <div class="complaint-tags" id="complaintTags">
+        <button class="tag-btn" data-cat="gyn-pv-bleed" onclick="selectTag(this)">🔴 PV bleeding</button>
+        <button class="tag-btn" data-cat="gyn-pelvic-pain" onclick="selectTag(this)">🔴 Pelvic / lower abdo pain</button>
+        <button class="tag-btn" data-cat="gyn-discharge" onclick="selectTag(this)">🟡 Vaginal discharge</button>
+        <button class="tag-btn" data-cat="gyn-amenorrhoea" onclick="selectTag(this)">🔵 Amenorrhoea / missed period</button>
+        <button class="tag-btn" data-cat="gyn-mass" onclick="selectTag(this)">🟢 Pelvic / abdominal mass</button>
+        <button class="tag-btn" data-cat="gyn-infertility" onclick="selectTag(this)">🟣 Infertility / subfertility</button>
+        <button class="tag-btn" data-cat="gyn-prolapse" onclick="selectTag(this)">🟤 Prolapse / something coming out PV</button>
+        <button class="tag-btn" data-cat="gyn-pcb" onclick="selectTag(this)">🔴 Post-coital bleeding</button>
+        <button class="tag-btn" data-cat="gyn-pmb" onclick="selectTag(this)">🔴 Post-menopausal bleeding</button>
+        <button class="tag-btn" data-cat="gyn-itch" onclick="selectTag(this)">🟠 Vulval itch / soreness</button>
+        <button class="tag-btn" data-cat="gyn-urinary" onclick="selectTag(this)">🔵 Urinary symptoms</button>
+        <button class="tag-btn" data-cat="obs-labour" onclick="selectTag(this)">🔴 Labour pains / contractions</button>
+        <button class="tag-btn" data-cat="obs-bleeding" onclick="selectTag(this)">🔴 Bleeding in pregnancy (APH)</button>
+        <button class="tag-btn" data-cat="obs-rfm" onclick="selectTag(this)">🟡 Reduced fetal movement</button>
+        <button class="tag-btn" data-cat="obs-rom" onclick="selectTag(this)">💧 Rupture of membranes / liquor draining</button>
+        <button class="tag-btn" data-cat="obs-htn" onclick="selectTag(this)">🔴 Hypertension / headache / swelling</button>
+        <button class="tag-btn" data-cat="obs-vomiting" onclick="selectTag(this)">🟡 Nausea / vomiting in pregnancy</button>
+        <button class="tag-btn" data-cat="obs-abdo-pain" onclick="selectTag(this)">🔴 Abdominal pain in pregnancy</button>
+        <button class="tag-btn" data-cat="obs-dysuria" onclick="selectTag(this)">🔵 Urinary symptoms in pregnancy</button>
+        <button class="tag-btn" data-cat="obs-pph" onclick="selectTag(this)">🔴 Postpartum haemorrhage (PPH)</button>
+        <button class="tag-btn" data-cat="obs-fever" onclick="selectTag(this)">🟠 Fever / sepsis in pregnancy</button>
+        <button class="tag-btn" data-cat="obs-anc" onclick="selectTag(this)">🟢 Routine ANC / no complaint</button>
+        <button class="tag-btn" data-cat="obs-preterm" onclick="selectTag(this)">⚠️ Preterm labor signs</button>
+        <button class="tag-btn" data-cat="obs-preeclampsia" onclick="selectTag(this)">⚠️ Preeclampsia / severe features</button>
+        <button class="tag-btn" data-cat="obs-placental" onclick="selectTag(this)">🔴 Placental abruption / previa</button>
+        <button class="tag-btn" data-cat="obs-ectopic" onclick="selectTag(this)">🔴 Ectopic pregnancy signs</button>
+        <button class="tag-btn" data-cat="obs-molar" onclick="selectTag(this)">🟣 Molar pregnancy signs</button>
+        <button class="tag-btn" data-cat="obs-diabetes" onclick="selectTag(this)">🟡 Gestational diabetes symptoms</button>
+        <button class="tag-btn" data-cat="obs-cholestasis" onclick="selectTag(this)">🟠 Obstetric cholestasis</button>
+        <button class="tag-btn" data-cat="obs-psych" onclick="selectTag(this)">🧠 Mental health concern (perinatal)</button>
+        <button class="tag-btn other" data-cat="other" onclick="selectTag(this)">＋ Other</button>
+      </div>
+      <input type="hidden" id="complaintCategory" value="" />
+    </div>
+
+    <div class="field-group" id="otherComplaintWrap" style="display:none;">
+      <label>Describe the complaint</label>
+      <input type="text" id="otherComplaint" placeholder="Describe the presenting complaint..." />
+    </div>
+
+    <!-- HINT PANELS (shortened for space - kept from previous version) -->
+    <div class="hint-panel" id="hint-gyn-pv-bleed">
+      <div class="hint-panel-title">🔴 PV Bleeding — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions to Ask</div>
+        <ul>
+          <li><strong>Amount:</strong> How many pads per day? Are you soaking through? Any clots (size)?</li>
+          <li><strong>Duration:</strong> How many days has this been going on? Continuous or on and off?</li>
+          <li><strong>Colour:</strong> Is it bright red, dark red, brown, or black?</li>
+          <li><strong>Timing:</strong> Is it related to your periods? Between periods? After sex?</li>
+          <li><strong>Pregnancy:</strong> Could you be pregnant? When was your last period?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Positive pregnancy test + PV bleed + pain → ECTOPIC PREGNANCY</strong></li>
+          <li><strong>Post-menopausal bleeding → ENDOMETRIAL CARCINOMA</strong></li>
+          <li>Heavy bleeding + dizziness + pallor → haemorrhagic shock</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-gyn-pelvic-pain">
+      <div class="hint-panel-title">🔴 Pelvic Pain — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions — SOCRATES</div>
+        <ul>
+          <li><strong>Site:</strong> Where exactly? Left, right, middle, both sides?</li>
+          <li><strong>Onset:</strong> Sudden or gradual?</li>
+          <li><strong>Character:</strong> Sharp, dull, crampy, colicky, or constant?</li>
+          <li><strong>Radiation:</strong> To shoulder tip? Back? Thigh?</li>
+          <li><strong>Severity:</strong> 0-10 scale? Stops normal activities?</li>
+          <li><strong>Timing:</strong> Related to periods? Sex? Bowel movements?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Sudden severe unilateral pain + instability → RUPTURED ECTOPIC</strong></li>
+          <li><strong>Shoulder tip pain + peritonism → HAEMOPERITONEUM</strong></li>
+          <li>Fever + bilateral pain + discharge → PID</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-gyn-discharge">
+      <div class="hint-panel-title">🟡 Vaginal Discharge — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Colour:</strong> White? Yellow? Green? Grey? Blood-stained?</li>
+          <li><strong>Smell:</strong> Fishy? Offensive? Any odour?</li>
+          <li><strong>Amount:</strong> Light, moderate, or heavy?</li>
+          <li><strong>Itch:</strong> Any itching? Burning? Soreness?</li>
+          <li><strong>Timing:</strong> Related to cycle? Sex? Antibiotics?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Blood-stained offensive discharge + weight loss → MALIGNANCY</strong></li>
+          <li><strong>Mucopurulent discharge + pelvic pain + fever → PID</strong></li>
+          <li>Post-menopausal discharge → endometrial carcinoma</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-gyn-amenorrhoea">
+      <div class="hint-panel-title">🔵 Amenorrhoea — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Primary vs secondary:</strong> Have you ever had a period?</li>
+          <li><strong>Duration:</strong> How many months/cycles missed?</li>
+          <li><strong>Pregnancy:</strong> Any chance? Done a test?</li>
+          <li><strong>Lifestyle:</strong> Stress? Weight loss? Excessive exercise?</li>
+          <li><strong>Hormonal:</strong> Hair growth? Acne? Hot flushes? Galactorrhoea?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Positive pregnancy test → MANAGE AS PREGNANCY</strong></li>
+          <li><strong>Cyclical pain + no periods → HAEMATOCOLPOS</strong></li>
+          <li>Galactorrhoea + amenorrhoea → PROLACTINOMA</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-gyn-mass">
+      <div class="hint-panel-title">🟢 Pelvic Mass — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Discovery:</strong> When and how noticed?</li>
+          <li><strong>Growth:</strong> Growing? Slowly or rapidly?</li>
+          <li><strong>Pain:</strong> Any pain? Sudden pain (think torsion)?</li>
+          <li><strong>Pressure:</strong> Difficulty passing urine? Constipation?</li>
+          <li><strong>Systemic:</strong> Weight loss? Loss of appetite?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Rapid growth + weight loss + ascites → OVARIAN MALIGNANCY</strong></li>
+          <li><strong>Post-menopausal mass → CARCINOMA</strong></li>
+          <li>Sudden pain in known mass → TORSION</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-gyn-infertility">
+      <div class="hint-panel-title">🟣 Infertility — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Duration:</strong> How long trying to conceive?</li>
+          <li><strong>Type:</strong> Primary or secondary?</li>
+          <li><strong>Menstrual history:</strong> Regular cycles? Painful periods?</li>
+          <li><strong>STI history:</strong> PID, gonorrhoea, chlamydia?</li>
+          <li><strong>Partner:</strong> Been investigated?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Infertility + galactorrhoea → PROLACTINOMA</strong></li>
+          <li><strong>Age >35 with >6 months infertility → EARLY INVESTIGATION</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-gyn-prolapse">
+      <div class="hint-panel-title">🟤 Prolapse — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>What comes out:</strong> Can you describe it?</li>
+          <li><strong>When:</strong> Coughing, sneezing, lifting, standing?</li>
+          <li><strong>Reducibility:</strong> Does it go back on its own?</li>
+          <li><strong>Urinary:</strong> Leaking urine? Difficulty emptying?</li>
+          <li><strong>Bowel:</strong> Difficulty passing stool?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Irreducible / ulcerated prolapse → URGENT SURGICAL REVIEW</strong></li>
+          <li><strong>Urinary retention → CATHETERISE</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-gyn-pcb">
+      <div class="hint-panel-title">🔴 Post-Coital Bleeding — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Amount:</strong> Spot or enough for a pad?</li>
+          <li><strong>Frequency:</strong> Every time? How long?</li>
+          <li><strong>Discharge:</strong> Any odour? Colour change?</li>
+          <li><strong>Pain:</strong> During or after sex?</li>
+          <li><strong>Smear:</strong> When was your last Pap smear?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>PCB + offensive discharge + weight loss → CERVICAL CARCINOMA</strong></li>
+          <li><strong>PCB + abnormal smear → URGENT COLPOSCOPY</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-gyn-pmb">
+      <div class="hint-panel-title">🔴 Post-Menopausal Bleeding — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Definition:</strong> Any bleeding >12 months after last period</li>
+          <li><strong>Amount:</strong> Spotting or heavy?</li>
+          <li><strong>Duration:</strong> One episode or multiple?</li>
+          <li><strong>Associated:</strong> Pelvic pain? Weight loss?</li>
+          <li><strong>HRT:</strong> On hormone replacement therapy?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>ANY post-menopausal bleeding → ENDOMETRIAL CARCINOMA</strong></li>
+          <li><strong>Associated pelvic mass → UTERINE/OVARIAN MALIGNANCY</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-gyn-itch">
+      <div class="hint-panel-title">🟠 Vulval Itch — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Duration:</strong> Acute or chronic?</li>
+          <li><strong>Severity:</strong> Keeping you awake at night?</li>
+          <li><strong>Discharge:</strong> White curdy? Grey fishy? Yellow-green?</li>
+          <li><strong>Skin changes:</strong> Redness? White patches? Ulcers?</li>
+          <li><strong>Diabetes / HIV:</strong> Any history?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Chronic itch + white thickened skin → LICHEN SCLEROSUS / VIN / CARCINOMA</strong></li>
+          <li><strong>Vulval ulcer + lymphadenopathy → SYPHILIS / CARCINOMA</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-gyn-urinary">
+      <div class="hint-panel-title">🔵 Urinary Symptoms — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Stress incontinence:</strong> Leak when coughing, sneezing?</li>
+          <li><strong>Urge incontinence:</strong> Sudden urge + leak?</li>
+          <li><strong>Frequency:</strong> How often? Waking at night?</li>
+          <li><strong>Dysuria:</strong> Pain/burning when passing urine?</li>
+          <li><strong>Fistula:</strong> Continuous PV leaking?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Continuous PV leaking → VESICOVAGINAL FISTULA</strong></li>
+          <li><strong>Urinary retention → CATHETERISE</strong></li>
+          <li>Haematuria + weight loss → RENAL MALIGNANCY</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- OBS HINT PANELS (shortened) -->
+    <div class="hint-panel" id="hint-obs-labour">
+      <div class="hint-panel-title">🔴 Labour Pains — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Gestational age:</strong> How many weeks?</li>
+          <li><strong>Contractions:</strong> How often? Getting stronger?</li>
+          <li><strong>Show:</strong> Any blood-stained mucus?</li>
+          <li><strong>ROM:</strong> Any liquor draining? Colour?</li>
+          <li><strong>Previous CS:</strong> Any previous caesarean sections?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Preterm labour (<37 wks) → TOCOLYSIS, STEROIDS</strong></li>
+          <li><strong>Previous CS + strong contractions → SCAR RUPTURE</strong></li>
+          <li><strong>Meconium-stained liquor → FETAL DISTRESS</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-bleeding">
+      <div class="hint-panel-title">🔴 APH — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Amount:</strong> Spotting, moderate, or heavy?</li>
+          <li><strong>Pain:</strong> Painful (abruption) or painless (previa)?</li>
+          <li><strong>Placenta:</strong> Any previous scan showing low-lying placenta?</li>
+          <li><strong>Fetal movement:</strong> Still feeling baby?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Painless APH → PLACENTA PRAEVIA — DO NOT EXAMINE VAGINALLY</strong></li>
+          <li><strong>Painful APH + rigid abdomen → PLACENTAL ABRUPTION</strong></li>
+          <li><strong>Haemodynamic instability → RESUSCITATE</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-rfm">
+      <div class="hint-panel-title">🟡 Reduced Fetal Movement — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Normal pattern:</strong> What is normal for your baby?</li>
+          <li><strong>Duration:</strong> How long has movement been reduced?</li>
+          <li><strong>Kick counting:</strong> <10 movements in 12 hours is concerning</li>
+          <li><strong>Risk factors:</strong> Diabetes? Hypertension? IUGR?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Absent fetal movement → URGENT CTG / USS</strong></li>
+          <li><strong>RFM + no fetal heart → INTRAUTERINE FETAL DEATH</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-rom">
+      <div class="hint-panel-title">💧 Rupture of Membranes — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Time:</strong> When did your waters break?</li>
+          <li><strong>Colour:</strong> Clear? Green/meconium? Offensive?</li>
+          <li><strong>Amount:</strong> Gush or trickle?</li>
+          <li><strong>Gestational age:</strong> Term or preterm?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>ROM + cord felt → CORD PROLAPSE (emergency)</strong></li>
+          <li><strong>Offensive liquor + fever → CHORIOAMNIONITIS</strong></li>
+          <li><strong>PPROM <34 wks → STEROIDS + ANTIBIOTICS</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-htn">
+      <div class="hint-panel-title">🔴 Hypertension / Pre-eclampsia — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Headache:</strong> Frontal/occipital? Severe? Persistent?</li>
+          <li><strong>Visual:</strong> Blurring? Flashing lights?</li>
+          <li><strong>Epigastric pain:</strong> RUQ pain (HELLP)?</li>
+          <li><strong>Swelling:</strong> Sudden facial/hand oedema?</li>
+          <li><strong>Fits:</strong> Any convulsions?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags — Severe Features</div>
+        <ul>
+          <li><strong>Fits → ECLAMPSIA (MgSO₄ immediately)</strong></li>
+          <li><strong>BP ≥160/110 + symptoms → SEVERE PRE-ECLAMPSIA</strong></li>
+          <li><strong>Epigastric pain + ↑LFTs + thrombocytopaenia → HELLP</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-vomiting">
+      <div class="hint-panel-title">🟡 Nausea / Vomiting — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Severity:</strong> Can you keep food/fluids down?</li>
+          <li><strong>Frequency:</strong> How many times per day?</li>
+          <li><strong>Weight loss:</strong> How much?</li>
+          <li><strong>Dehydration:</strong> Dry mouth? Reduced urine?</li>
+          <li><strong>Jaundice:</strong> Yellowing of skin/eyes?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Inability to keep anything down + weight loss → HYPEREMESIS</strong></li>
+          <li><strong>Vomiting + jaundice → ACUTE FATTY LIVER / HEPATITIS</strong></li>
+          <li><strong>Vomiting + severe headache + hypertension → PRE-ECLAMPSIA</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-abdo-pain">
+      <div class="hint-panel-title">🔴 Abdominal Pain in Pregnancy — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Character:</strong> Constant or intermittent?</li>
+          <li><strong>Site:</strong> Lower abdo, RIF, RUQ, loin?</li>
+          <li><strong>PV bleeding:</strong> Any bleeding?</li>
+          <li><strong>Fever:</strong> Any fever?</li>
+          <li><strong>Previous CS:</strong> Scar tenderness?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Constant severe pain + rigid uterus + bleeding → ABRUPTION</strong></li>
+          <li><strong>Scar tenderness + fetal distress → UTERINE RUPTURE</strong></li>
+          <li><strong>RIF pain + fever → APPENDICITIS</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-dysuria">
+      <div class="hint-panel-title">🔵 Urinary Symptoms in Pregnancy — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Dysuria:</strong> Burning on micturition?</li>
+          <li><strong>Loin pain + fever:</strong> Pyelonephritis?</li>
+          <li><strong>Frequency:</strong> More than usual?</li>
+          <li><strong>Haematuria:</strong> Blood in urine?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Fever + loin pain + rigors → PYELONEPHRITIS</strong></li>
+          <li><strong>Asymptomatic bacteriuria → TREAT</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-pph">
+      <div class="hint-panel-title">🔴 PPH — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Timing:</strong> Primary (<24 hrs) or secondary (24 hrs–6 weeks)?</li>
+          <li><strong>Amount:</strong> How much blood loss?</li>
+          <li><strong>4 Ts:</strong> Tone, Trauma, Tissue, Thrombin?</li>
+          <li><strong>Placenta:</strong> Delivered completely?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>PPH + haemodynamic collapse → MASSIVE HAEMORRHAGE PROTOCOL</strong></li>
+          <li><strong>Atony not responding → MISOPROSTOL, CARBOPROST</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-fever">
+      <div class="hint-panel-title">🟠 Fever / Sepsis — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Malaria:</strong> Always screen in Uganda</li>
+          <li><strong>Chorioamnionitis:</strong> Fever + offensive liquor</li>
+          <li><strong>Endometritis:</strong> Fever + offensive lochia</li>
+          <li><strong>Pyelonephritis:</strong> Loin pain + fever + rigors</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Malaria → IV ARTESUNATE if severe</strong></li>
+          <li><strong>Septic shock → SEPSIS-6 BUNDLE</strong></li>
+          <li><strong>Chorioamnionitis → DELIVER</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-anc">
+      <div class="hint-panel-title">🟢 Routine ANC Visit — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>ANC visits:</strong> How many? Uganda MoH recommends 8</li>
+          <li><strong>Fetal movement:</strong> Feeling baby move well?</li>
+          <li><strong>Danger signs:</strong> Headache? Visual changes? Bleeding? RFM?</li>
+          <li><strong>Medications:</strong> Iron? Folic acid? IPTp?</li>
+          <li><strong>HIV:</strong> On PMTCT? Adherence?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Danger Signs</div>
+        <ul>
+          <li><strong>Severe headache, visual changes → PRE-ECLAMPSIA</strong></li>
+          <li><strong>PV bleeding → APH</strong></li>
+          <li><strong>Reduced fetal movement → FETAL DISTRESS</strong></li>
+          <li><strong>Fever → MALARIA / INFECTION</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-preterm">
+      <div class="hint-panel-title">⚠️ Preterm Labor — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Gestational age:</strong> Between 24+0 and 36+6 weeks</li>
+          <li><strong>Contractions:</strong> Regular? Painful?</li>
+          <li><strong>Risk factors:</strong> Previous preterm birth? Multiple pregnancy? UTI?</li>
+          <li><strong>Infection:</strong> Any fever? Offensive discharge?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Cervical dilatation ≥3 cm → ESTABLISH LABOUR CARE</strong></li>
+          <li><strong>Preterm labour + infection → EXPEDITE DELIVERY</strong></li>
+          <li><strong>Steroids if <34 wks → ADMINISTER</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-preeclampsia">
+      <div class="hint-panel-title">⚠️ Preeclampsia — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>BP:</strong> ≥140/90 mmHg</li>
+          <li><strong>Severe features:</strong> BP ≥160/110, headache, visual disturbance</li>
+          <li><strong>Previous:</strong> PET in previous pregnancy?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Eclampsia → MgSO₄ 4g IV BOLUS</strong></li>
+          <li><strong>HELLP → URGENT DELIVERY</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-placental">
+      <div class="hint-panel-title">🔴 Placental Abruption / Previa — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Abruption:</strong> Painful bleeding, tender uterus</li>
+          <li><strong>Previa:</strong> Painless bleeding — DO NOT examine vaginally</li>
+          <li><strong>Risk factors:</strong> Previous CS, smoking, hypertension</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Abruption with fetal distress → EMERGENCY CS</strong></li>
+          <li><strong>Previa with heavy bleeding → EMERGENCY CS</strong></li>
+          <li><strong>DIC in abruption → CHECK PLATELETS, FIBRINOGEN</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-ectopic">
+      <div class="hint-panel-title">🔴 Ectopic Pregnancy — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Risk factors:</strong> Previous ectopic, PID, IUD use</li>
+          <li><strong>Classic triad:</strong> Amenorrhoea, pain, bleeding</li>
+          <li><strong>Shoulder tip:</strong> Diaphragmatic irritation</li>
+          <li><strong>Collapse:</strong> Any fainting? Dizziness?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Ruptured ectopic → EMERGENCY SURGERY</strong></li>
+          <li><strong>Haemodynamically unstable → DO NOT WAIT FOR TESTS</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-molar">
+      <div class="hint-panel-title">🟣 Molar Pregnancy — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Classic:</strong> Bleeding, uterus larger than dates</li>
+          <li><strong>Hyperemesis:</strong> Very high βHCG</li>
+          <li><strong>USS:</strong> 'Snowstorm' appearance</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Excessive bleeding → URGENT EVACUATION</strong></li>
+          <li><strong>Persistent βHCG → FOLLOW-UP FOR GTD</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-diabetes">
+      <div class="hint-panel-title">🟡 Gestational Diabetes — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Risk factors:</strong> BMI >30, previous GDM, family history</li>
+          <li><strong>OGTT:</strong> Fasting ≥5.1, 2-hr ≥8.5 mmol/L</li>
+          <li><strong>Management:</strong> Diet, exercise; metformin or insulin</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Polyhydramnios + large for dates → CHECK GDM</strong></li>
+          <li><strong>Poorly controlled GDM → RISK OF STILLBIRTH</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-cholestasis">
+      <div class="hint-panel-title">🟠 Obstetric Cholestasis — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Itching:</strong> Generalised (palms and soles) without rash</li>
+          <li><strong>LFTs:</strong> Elevated bile acids and transaminases</li>
+          <li><strong>Treatment:</strong> Ursodeoxycholic acid</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Bile acids >40 μmol/L → INCREASED STILLBIRTH RISK</strong></li>
+          <li><strong>Plan induction at 37–38 weeks</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-obs-psych">
+      <div class="hint-panel-title">🧠 Perinatal Mental Health — Clinical Guide</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Key Questions</div>
+        <ul>
+          <li><strong>Depression:</strong> Low mood, loss of interest, sleep disturbance</li>
+          <li><strong>Anxiety:</strong> Excessive worry about baby, panic attacks</li>
+          <li><strong>Psychosis:</strong> Hallucinations, delusions (emergency)</li>
+          <li><strong>Suicidal thoughts:</strong> Thoughts of harming self or baby?</li>
+        </ul>
+      </div>
+      <div class="red-flags">
+        <div class="red-flags-title">🚨 Red Flags</div>
+        <ul>
+          <li><strong>Suicidal ideation → IMMEDIATE PSYCHIATRIC REFERRAL</strong></li>
+          <li><strong>Psychosis → URGENT PERINATAL PSYCHIATRY</strong></li>
+          <li><strong>Thoughts of harming baby → EMERGENCY ASSESSMENT</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hint-panel" id="hint-other">
+      <div class="hint-panel-title">💡 General Clinical Prompts</div>
+      <div class="symptom-guide">
+        <div class="symptom-guide-title">📋 Always Remember</div>
+        <ul>
+          <li>Always establish LMP, pregnancy status, and obstetric history</li>
+          <li>For pain: use SOCRATES</li>
+          <li>In Uganda: always screen for malaria</li>
+          <li>Red flags are medical emergencies — don't delay referral</li>
+        </ul>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="field-group">
+      <label>Mode of Onset</label>
+      <div class="radio-group">
+        <label><input type="radio" name="onset" value="sudden" /> Sudden</label>
+        <label><input type="radio" name="onset" value="gradual" /> Gradual</label>
+        <label><input type="radio" name="onset" value="unknown" /> Unknown</label>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Course since onset</label>
+      <div class="radio-group">
+        <label><input type="radio" name="course" value="worse" /> Getting worse</label>
+        <label><input type="radio" name="course" value="static" /> Static</label>
+        <label><input type="radio" name="course" value="improving" /> Improving</label>
+        <label><input type="radio" name="course" value="intermittent" /> Intermittent</label>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Additional complaints</label>
+      <textarea id="associatedComplaints" placeholder="e.g. fever, vomiting..." style="min-height:55px;"></textarea>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════
+       SECTION 3 — HPC
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge" id="badge-hpc">3</span>
+    <span class="section-title">History of Presenting Complaint</span>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📖 HPC Narrative</div>
+    <div class="field-group">
+      <label>Full narrative <span class="req">*</span></label>
+      <div class="hint">Write in chronological prose as you would in the notes.</div>
+      <textarea id="hpcNarrative" placeholder="e.g. Mrs Nakato is a 28-year-old P2+0 married woman who presents with..." style="min-height:140px;"></textarea>
+    </div>
+  </div>
+
+  <div class="card" style="padding:0.9rem 1.1rem;">
+    <div class="card-title" style="margin-bottom:0.6rem;">🔍 SOCRATES Quick Capture</div>
+    <div class="socrates-grid">
+      <div><label>Site</label><input type="text" id="hpcSite" placeholder="e.g. Lower abdomen" /></div>
+      <div><label>Onset</label><input type="text" id="hpcOnset" placeholder="e.g. Sudden" /></div>
+      <div><label>Character</label><input type="text" id="hpcCharacter" placeholder="e.g. Crampy" /></div>
+      <div><label>Radiation</label><input type="text" id="hpcRadiation" placeholder="e.g. To shoulder tip" /></div>
+      <div><label>Severity (0–10)</label><input type="number" id="hpcSeverity" min="0" max="10" placeholder="7" /></div>
+      <div><label>Time course</label><input type="text" id="hpcTime" placeholder="e.g. Constant, 3 days" /></div>
+      <div><label>Exacerbating</label><input type="text" id="hpcExacerbating" placeholder="e.g. Movement" /></div>
+      <div><label>Relieving</label><input type="text" id="hpcRelieving" placeholder="e.g. Rest" /></div>
+      <div><label>Associations</label><input type="text" id="hpcAssociations" placeholder="e.g. Fever, discharge" /></div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════
+       SECTION 4 — REVIEW OF SYSTEMS (MOVED HERE AFTER HPC)
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge ros">4</span>
+    <span class="section-title">Review of Systems</span>
+  </div>
+
+  <div class="card ros-card">
+    <div class="card-title">🩺 Review of Systems</div>
+    <div class="callout" style="margin-bottom:1rem; font-size:0.85rem;">
+      <strong>📋 Instructions:</strong> Click on each system to expand. Click the symptom buttons to toggle between <span style="color:var(--success);font-weight:700;">Present</span>, <span style="color:#95a5a6;font-weight:700;">Absent</span>, or <span style="color:var(--text);font-weight:700;">Not Asked</span>. Use the "Other" field for symptoms not listed.
+    </div>
+
+    <!-- SYSTEM 1: GIT -->
+    <div class="ros-system">
+      <div class="ros-header" onclick="toggleROS('ros-git')">
+        <h3><span class="ros-icon">🍽️</span> Gastrointestinal System</h3>
+        <span class="ros-toggle" id="ros-git-toggle">▼</span>
+      </div>
+      <div class="ros-body" id="ros-git">
+        <div class="ros-buttons" data-system="git">
+          <button class="ros-btn" data-symptom="Nausea" onclick="toggleRosButton(this)">Nausea</button>
+          <button class="ros-btn" data-symptom="Vomiting" onclick="toggleRosButton(this)">Vomiting</button>
+          <button class="ros-btn" data-symptom="Heartburn" onclick="toggleRosButton(this)">Heartburn</button>
+          <button class="ros-btn" data-symptom="Abdominal pain" onclick="toggleRosButton(this)">Abdominal pain</button>
+          <button class="ros-btn" data-symptom="Bloating" onclick="toggleRosButton(this)">Bloating</button>
+          <button class="ros-btn" data-symptom="Constipation" onclick="toggleRosButton(this)">Constipation</button>
+          <button class="ros-btn" data-symptom="Diarrhoea" onclick="toggleRosButton(this)">Diarrhoea</button>
+          <button class="ros-btn" data-symptom="Blood in stool" onclick="toggleRosButton(this)">Blood in stool</button>
+          <button class="ros-btn" data-symptom="Mucus in stool" onclick="toggleRosButton(this)">Mucus in stool</button>
+          <button class="ros-btn" data-symptom="Appetite changes" onclick="toggleRosButton(this)">Appetite changes</button>
+          <button class="ros-btn" data-symptom="Weight loss" onclick="toggleRosButton(this)">Weight loss</button>
+          <button class="ros-btn" data-symptom="Weight gain" onclick="toggleRosButton(this)">Weight gain</button>
+          <button class="ros-btn" data-symptom="Jaundice" onclick="toggleRosButton(this)">Jaundice</button>
+          <button class="ros-btn" data-symptom="Dysphagia" onclick="toggleRosButton(this)">Dysphagia</button>
+        </div>
+        <div class="ros-other">
+          <label>Other GI symptoms:</label>
+          <input type="text" id="rosGitOther" placeholder="Specify any other GI symptoms..." />
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM 2: URINOGENITAL -->
+    <div class="ros-system">
+      <div class="ros-header" onclick="toggleROS('ros-urinogenital')">
+        <h3><span class="ros-icon">🚽</span> Urinogenital System</h3>
+        <span class="ros-toggle" id="ros-urinogenital-toggle">▼</span>
+      </div>
+      <div class="ros-body" id="ros-urinogenital">
+        <div class="ros-buttons" data-system="urinogenital">
+          <button class="ros-btn" data-symptom="Dysuria" onclick="toggleRosButton(this)">Dysuria</button>
+          <button class="ros-btn" data-symptom="Frequency" onclick="toggleRosButton(this)">Frequency</button>
+          <button class="ros-btn" data-symptom="Nocturia" onclick="toggleRosButton(this)">Nocturia</button>
+          <button class="ros-btn" data-symptom="Urgency" onclick="toggleRosButton(this)">Urgency</button>
+          <button class="ros-btn" data-symptom="Haematuria" onclick="toggleRosButton(this)">Haematuria</button>
+          <button class="ros-btn" data-symptom="Stress incontinence" onclick="toggleRosButton(this)">Stress incontinence</button>
+          <button class="ros-btn" data-symptom="Urge incontinence" onclick="toggleRosButton(this)">Urge incontinence</button>
+          <button class="ros-btn" data-symptom="Continuous incontinence" onclick="toggleRosButton(this)">Continuous incontinence</button>
+          <button class="ros-btn" data-symptom="Vaginal discharge" onclick="toggleRosButton(this)">Vaginal discharge</button>
+          <button class="ros-btn" data-symptom="Vaginal itching" onclick="toggleRosButton(this)">Vaginal itching</button>
+          <button class="ros-btn" data-symptom="Dyspareunia" onclick="toggleRosButton(this)">Dyspareunia</button>
+          <button class="ros-btn" data-symptom="Post-coital bleeding" onclick="toggleRosButton(this)">Post-coital bleeding</button>
+          <button class="ros-btn" data-symptom="Pelvic pressure" onclick="toggleRosButton(this)">Pelvic pressure</button>
+          <button class="ros-btn" data-symptom="Urinary retention" onclick="toggleRosButton(this)">Urinary retention</button>
+        </div>
+        <div class="ros-other">
+          <label>Other Urinogenital symptoms:</label>
+          <input type="text" id="rosUrinogenitalOther" placeholder="Specify any other urinogenital symptoms..." />
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM 3: RESPIRATORY -->
+    <div class="ros-system">
+      <div class="ros-header" onclick="toggleROS('ros-respiratory')">
+        <h3><span class="ros-icon">🫁</span> Respiratory System</h3>
+        <span class="ros-toggle" id="ros-respiratory-toggle">▼</span>
+      </div>
+      <div class="ros-body" id="ros-respiratory">
+        <div class="ros-buttons" data-system="respiratory">
+          <button class="ros-btn" data-symptom="Cough" onclick="toggleRosButton(this)">Cough</button>
+          <button class="ros-btn" data-symptom="Productive cough" onclick="toggleRosButton(this)">Productive cough</button>
+          <button class="ros-btn" data-symptom="Haemoptysis" onclick="toggleRosButton(this)">Haemoptysis</button>
+          <button class="ros-btn" data-symptom="Shortness of breath" onclick="toggleRosButton(this)">Shortness of breath</button>
+          <button class="ros-btn" data-symptom="Wheezing" onclick="toggleRosButton(this)">Wheezing</button>
+          <button class="ros-btn" data-symptom="Chest pain" onclick="toggleRosButton(this)">Chest pain</button>
+          <button class="ros-btn" data-symptom="Fever" onclick="toggleRosButton(this)">Fever</button>
+          <button class="ros-btn" data-symptom="Night sweats" onclick="toggleRosButton(this)">Night sweats</button>
+          <button class="ros-btn" data-symptom="Sputum colour" onclick="toggleRosButton(this)">Sputum colour</button>
+        </div>
+        <div class="ros-other">
+          <label>Other Respiratory symptoms:</label>
+          <input type="text" id="rosRespiratoryOther" placeholder="Specify any other respiratory symptoms..." />
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM 4: CARDIOVASCULAR -->
+    <div class="ros-system">
+      <div class="ros-header" onclick="toggleROS('ros-cardiovascular')">
+        <h3><span class="ros-icon">❤️</span> Cardiovascular System</h3>
+        <span class="ros-toggle" id="ros-cardiovascular-toggle">▼</span>
+      </div>
+      <div class="ros-body" id="ros-cardiovascular">
+        <div class="ros-buttons" data-system="cardiovascular">
+          <button class="ros-btn" data-symptom="Chest pain" onclick="toggleRosButton(this)">Chest pain</button>
+          <button class="ros-btn" data-symptom="Palpitations" onclick="toggleRosButton(this)">Palpitations</button>
+          <button class="ros-btn" data-symptom="Shortness of breath" onclick="toggleRosButton(this)">Shortness of breath</button>
+          <button class="ros-btn" data-symptom="Oedema" onclick="toggleRosButton(this)">Oedema</button>
+          <button class="ros-btn" data-symptom="Dizziness" onclick="toggleRosButton(this)">Dizziness</button>
+          <button class="ros-btn" data-symptom="Syncope" onclick="toggleRosButton(this)">Syncope</button>
+          <button class="ros-btn" data-symptom="Orthopnoea" onclick="toggleRosButton(this)">Orthopnoea</button>
+          <button class="ros-btn" data-symptom="PND" onclick="toggleRosButton(this)">PND</button>
+          <button class="ros-btn" data-symptom="Cyanosis" onclick="toggleRosButton(this)">Cyanosis</button>
+          <button class="ros-btn" data-symptom="Claudication" onclick="toggleRosButton(this)">Claudication</button>
+        </div>
+        <div class="ros-other">
+          <label>Other Cardiovascular symptoms:</label>
+          <input type="text" id="rosCardiovascularOther" placeholder="Specify any other cardiovascular symptoms..." />
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM 5: MUSCULOSKELETAL -->
+    <div class="ros-system">
+      <div class="ros-header" onclick="toggleROS('ros-musculoskeletal')">
+        <h3><span class="ros-icon">🦴</span> Musculoskeletal System</h3>
+        <span class="ros-toggle" id="ros-musculoskeletal-toggle">▼</span>
+      </div>
+      <div class="ros-body" id="ros-musculoskeletal">
+        <div class="ros-buttons" data-system="musculoskeletal">
+          <button class="ros-btn" data-symptom="Joint pain" onclick="toggleRosButton(this)">Joint pain</button>
+          <button class="ros-btn" data-symptom="Joint swelling" onclick="toggleRosButton(this)">Joint swelling</button>
+          <button class="ros-btn" data-symptom="Joint stiffness" onclick="toggleRosButton(this)">Joint stiffness</button>
+          <button class="ros-btn" data-symptom="Back pain" onclick="toggleRosButton(this)">Back pain</button>
+          <button class="ros-btn" data-symptom="Muscle weakness" onclick="toggleRosButton(this)">Muscle weakness</button>
+          <button class="ros-btn" data-symptom="Muscle aches" onclick="toggleRosButton(this)">Muscle aches</button>
+          <button class="ros-btn" data-symptom="Limited mobility" onclick="toggleRosButton(this)">Limited mobility</button>
+          <button class="ros-btn" data-symptom="Bone pain" onclick="toggleRosButton(this)">Bone pain</button>
+        </div>
+        <div class="ros-other">
+          <label>Other Musculoskeletal symptoms:</label>
+          <input type="text" id="rosMusculoskeletalOther" placeholder="Specify any other musculoskeletal symptoms..." />
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM 6: ENDOCRINE -->
+    <div class="ros-system">
+      <div class="ros-header" onclick="toggleROS('ros-endocrine')">
+        <h3><span class="ros-icon">🧬</span> Endocrine System</h3>
+        <span class="ros-toggle" id="ros-endocrine-toggle">▼</span>
+      </div>
+      <div class="ros-body" id="ros-endocrine">
+        <div class="ros-buttons" data-system="endocrine">
+          <button class="ros-btn" data-symptom="Heat intolerance" onclick="toggleRosButton(this)">Heat intolerance</button>
+          <button class="ros-btn" data-symptom="Cold intolerance" onclick="toggleRosButton(this)">Cold intolerance</button>
+          <button class="ros-btn" data-symptom="Palpitations" onclick="toggleRosButton(this)">Palpitations</button>
+          <button class="ros-btn" data-symptom="Tremors" onclick="toggleRosButton(this)">Tremors</button>
+          <button class="ros-btn" data-symptom="Hair loss" onclick="toggleRosButton(this)">Hair loss</button>
+          <button class="ros-btn" data-symptom="Hirsutism" onclick="toggleRosButton(this)">Hirsutism</button>
+          <button class="ros-btn" data-symptom="Galactorrhoea" onclick="toggleRosButton(this)">Galactorrhoea</button>
+          <button class="ros-btn" data-symptom="Polyuria" onclick="toggleRosButton(this)">Polyuria</button>
+          <button class="ros-btn" data-symptom="Polydipsia" onclick="toggleRosButton(this)">Polydipsia</button>
+          <button class="ros-btn" data-symptom="Weight changes" onclick="toggleRosButton(this)">Weight changes</button>
+          <button class="ros-btn" data-symptom="Fatigue" onclick="toggleRosButton(this)">Fatigue</button>
+          <button class="ros-btn" data-symptom="Goitre" onclick="toggleRosButton(this)">Goitre</button>
+        </div>
+        <div class="ros-other">
+          <label>Other Endocrine symptoms:</label>
+          <input type="text" id="rosEndocrineOther" placeholder="Specify any other endocrine symptoms..." />
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM 7: CNS -->
+    <div class="ros-system">
+      <div class="ros-header" onclick="toggleROS('ros-cns')">
+        <h3><span class="ros-icon">🧠</span> Central Nervous System</h3>
+        <span class="ros-toggle" id="ros-cns-toggle">▼</span>
+      </div>
+      <div class="ros-body" id="ros-cns">
+        <div class="ros-buttons" data-system="cns">
+          <button class="ros-btn" data-symptom="Headache" onclick="toggleRosButton(this)">Headache</button>
+          <button class="ros-btn" data-symptom="Dizziness" onclick="toggleRosButton(this)">Dizziness</button>
+          <button class="ros-btn" data-symptom="Visual changes" onclick="toggleRosButton(this)">Visual changes</button>
+          <button class="ros-btn" data-symptom="Hearing loss" onclick="toggleRosButton(this)">Hearing loss</button>
+          <button class="ros-btn" data-symptom="Tinnitus" onclick="toggleRosButton(this)">Tinnitus</button>
+          <button class="ros-btn" data-symptom="Seizures" onclick="toggleRosButton(this)">Seizures</button>
+          <button class="ros-btn" data-symptom="Fainting" onclick="toggleRosButton(this)">Fainting</button>
+          <button class="ros-btn" data-symptom="Numbness" onclick="toggleRosButton(this)">Numbness</button>
+          <button class="ros-btn" data-symptom="Tingling" onclick="toggleRosButton(this)">Tingling</button>
+          <button class="ros-btn" data-symptom="Weakness" onclick="toggleRosButton(this)">Weakness</button>
+          <button class="ros-btn" data-symptom="Paralysis" onclick="toggleRosButton(this)">Paralysis</button>
+          <button class="ros-btn" data-symptom="Memory changes" onclick="toggleRosButton(this)">Memory changes</button>
+          <button class="ros-btn" data-symptom="Mood changes" onclick="toggleRosButton(this)">Mood changes</button>
+          <button class="ros-btn" data-symptom="Sleep disturbance" onclick="toggleRosButton(this)">Sleep disturbance</button>
+          <button class="ros-btn" data-symptom="Speech difficulties" onclick="toggleRosButton(this)">Speech difficulties</button>
+          <button class="ros-btn" data-symptom="Swallowing difficulties" onclick="toggleRosButton(this)">Swallowing difficulties</button>
+        </div>
+        <div class="ros-other">
+          <label>Other CNS symptoms:</label>
+          <input type="text" id="rosCnsOther" placeholder="Specify any other CNS symptoms..." />
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════
+       SECTION 5 — OBSTETRIC HISTORY
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge obs">5</span>
+    <span class="section-title">Obstetric History</span>
+  </div>
+
+  <div class="card obs-card">
+    <div class="card-title">🤰 Obstetric History</div>
+
+    <div class="field-group">
+      <label>Previous Pregnancies Summary</label>
+      <div class="hint">List previous pregnancies chronologically: year, gestation, mode of delivery, outcome, complications</div>
+      <textarea id="prevPregnancies" placeholder="e.g. 2019 — SVD at term, live baby, no complications. 2021 — LSCS for fetal distress..." style="min-height:80px;"></textarea>
+    </div>
+
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Previous Caesarean Sections</label>
+        <select id="prevCS">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3+">3+</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Previous Miscarriages / Abortions</label>
+        <input type="number" id="prevAbortions" placeholder="Number" min="0" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Previous Obstetric Complications</label>
+      <input type="text" id="prevObsComplications" placeholder="e.g. PPH, Pre-eclampsia, GDM, Preterm birth" />
+    </div>
+
+    <hr class="divider" />
+
+    <div class="field-group">
+      <label style="font-size:1rem; font-weight:700; color:var(--obs-color);">📋 Antenatal Care (ANC) Details</label>
+      <div class="hint">Record all ANC visits for this pregnancy</div>
+    </div>
+
+    <div class="field-group">
+      <label>Total ANC Visits So Far</label>
+      <input type="number" id="ancTotalVisits" placeholder="e.g. 4" min="0" />
+    </div>
+
+    <div class="field-group">
+      <label>First ANC Visit — Gestational Age</label>
+      <div class="inline-row">
+        <input type="number" id="ancFirstWeeks" placeholder="Weeks" min="0" max="42" />
+        <input type="number" id="ancFirstDays" placeholder="Days (0–6)" min="0" max="6" />
+      </div>
+      <div class="hint-sm">When did she first attend ANC? (e.g. 12 weeks)</div>
+    </div>
+
+    <div class="field-group">
+      <label>ANC Facility / Where Booked</label>
+      <input type="text" id="ancFacility" placeholder="e.g. Kawempe HC IV" />
+    </div>
+
+    <div class="field-group">
+      <label>ANC Visit Details</label>
+      <div class="hint">Record each ANC visit with date, gestational age, findings, and interventions</div>
+      
+      <div id="ancEntries">
+        <div class="anc-entry" id="ancEntry1">
+          <div class="inline-row-3">
+            <div class="field-group">
+              <label style="font-size:0.8rem;">Visit Date</label>
+              <input type="date" id="ancDate1" />
+            </div>
+            <div class="field-group">
+              <label style="font-size:0.8rem;">GA (weeks)</label>
+              <input type="number" id="ancGaWeeks1" placeholder="Weeks" min="0" max="42" />
+            </div>
+            <div class="field-group">
+              <label style="font-size:0.8rem;">GA (days)</label>
+              <input type="number" id="ancGaDays1" placeholder="Days" min="0" max="6" />
+            </div>
+          </div>
+          <div class="inline-row">
+            <div class="field-group">
+              <label style="font-size:0.8rem;">BP (mmHg)</label>
+              <input type="text" id="ancBp1" placeholder="e.g. 120/80" />
+            </div>
+            <div class="field-group">
+              <label style="font-size:0.8rem;">Urine Protein</label>
+              <select id="ancUrine1">
+                <option value="">— —</option>
+                <option>Negative</option>
+                <option>Trace</option>
+                <option>+1</option>
+                <option>+2</option>
+                <option>+3</option>
+                <option>+4</option>
+              </select>
+            </div>
+          </div>
+          <div class="inline-row">
+            <div class="field-group">
+              <label style="font-size:0.8rem;">Weight (kg)</label>
+              <input type="number" id="ancWeight1" placeholder="Weight" step="0.1" />
+            </div>
+            <div class="field-group">
+              <label style="font-size:0.8rem;">Fundal Height (cm)</label>
+              <input type="number" id="ancFundal1" placeholder="Fundal height" step="0.5" />
+            </div>
+          </div>
+          <div class="field-group">
+            <label style="font-size:0.8rem;">Interventions / Notes</label>
+            <input type="text" id="ancNotes1" placeholder="e.g. IPTp given, ferrous sulphate started" />
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:0.5rem;">
+        <button type="button" class="btn-secondary" onclick="addAncEntry()" style="font-size:0.8rem; padding:0.35rem 1rem;">＋ Add ANC Visit</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>ANC Medications Received</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="ancFerrous" /> Ferrous sulphate</label>
+        <label><input type="checkbox" id="ancFolic" /> Folic acid</label>
+        <label><input type="checkbox" id="ancIptp" /> IPTp (SP)</label>
+        <label><input type="checkbox" id="ancMebendazole" /> Mebendazole</label>
+        <label><input type="checkbox" id="ancTt" /> TT vaccine</label>
+        <label><input type="checkbox" id="ancArvs" /> ARVs (PMTCT)</label>
+        <label><input type="checkbox" id="ancCalcium" /> Calcium</label>
+        <label><input type="checkbox" id="ancAspirin" /> Aspirin (for PET risk)</label>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>ANC Findings / Problems Noted</label>
+      <textarea id="ancFindings" placeholder="e.g. Anaemia noted at 28 wks (Hb 8.5 g/dL), started on ferrous sulphate..." style="min-height:70px;"></textarea>
+    </div>
+
+    <div class="field-group">
+      <label>Ultrasound Findings</label>
+      <textarea id="ancUltrasound" placeholder="e.g. EDD confirmed, placental position, fetal anatomy scan results..." style="min-height:60px;"></textarea>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════
+       SECTION 6 — GYNECOLOGICAL HISTORY
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge gyn">6</span>
+    <span class="section-title">Gynecological History</span>
+  </div>
+
+  <div class="card gyn-card">
+    <div class="card-title">🩺 Gynecological History</div>
+
+    <div class="field-group">
+      <label>Last Cervical Smear / HPV Screening</label>
+      <input type="text" id="lastSmear" placeholder="e.g. Never done / 2023 — normal result" />
+    </div>
+
+    <div class="field-group">
+      <label>Sexual History (relevant)</label>
+      <div class="hint">New partner, STI history, dyspareunia, number of partners if relevant to complaint</div>
+      <textarea id="sexualHistory" placeholder="e.g. Monogamous, husband only. No history of STIs..." style="min-height:60px;"></textarea>
+    </div>
+
+    <div class="field-group">
+      <label>Previous Gynecological Surgeries</label>
+      <input type="text" id="gynSurgeries" placeholder="e.g. Myomectomy, Ovarian cystectomy, D&C" />
+    </div>
+
+    <div class="field-group">
+      <label>Previous Gynecological Conditions</label>
+      <input type="text" id="gynConditions" placeholder="e.g. Fibroids, PCOS, Endometriosis, PID" />
+    </div>
+
+    <div class="field-group">
+      <label>Family History of Gynecological Conditions</label>
+      <input type="text" id="gynFamilyHistory" placeholder="e.g. Breast cancer in mother, ovarian cancer in sister" />
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════
+       SECTION 7 — MENSTRUAL HISTORY
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge menstrual">7</span>
+    <span class="section-title">Menstrual History</span>
+  </div>
+
+  <div class="card menstrual-card">
+    <div class="card-title">🩸 Menstrual History</div>
+
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Age at Menarche</label>
+        <input type="number" id="menarche" placeholder="e.g. 13" min="8" max="20" />
+        <div class="hint-sm">Age when periods first started</div>
+      </div>
+      <div class="field-group">
+        <label>Last Menstrual Period (LMP)</label>
+        <input type="date" id="lmpDate" />
+        <div class="hint-sm">First day of last period</div>
+      </div>
+    </div>
+
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Cycle Length</label>
+        <input type="text" id="cycleLength" placeholder="e.g. 28 days" />
+        <div class="hint-sm">Number of days between periods</div>
+      </div>
+      <div class="field-group">
+        <label>Duration of Flow</label>
+        <input type="text" id="flowDuration" placeholder="e.g. 4–5 days" />
+        <div class="hint-sm">How many days does bleeding last?</div>
+      </div>
+    </div>
+
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Flow Amount</label>
+        <select id="flowAmount">
+          <option value="">— Select —</option>
+          <option>Light (1–2 pads/day)</option>
+          <option>Normal (3–4 pads/day)</option>
+          <option>Heavy (5+ pads/day, clots)</option>
+          <option>Flooding / soaking clothes</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Dysmenorrhoea (painful periods)</label>
+        <select id="dysmenorrhoea">
+          <option value="">— Select —</option>
+          <option>None</option>
+          <option>Mild</option>
+          <option>Moderate</option>
+          <option>Severe (limits activity)</option>
+          <option>Secondary (worsening over time)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Menstrual Status</label>
+      <div class="radio-group">
+        <label><input type="radio" name="menstrualStatus" value="Regular" /> Regular</label>
+        <label><input type="radio" name="menstrualStatus" value="Irregular" /> Irregular</label>
+        <label><input type="radio" name="menstrualStatus" value="Amenorrhea" /> Amenorrhea</label>
+        <label><input type="radio" name="menstrualStatus" value="Perimenopausal" /> Perimenopausal</label>
+        <label><input type="radio" name="menstrualStatus" value="Postmenopausal" /> Postmenopausal</label>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Menstrual History Notes</label>
+      <textarea id="menstrualNotes" placeholder="Any other relevant menstrual history..." style="min-height:55px;"></textarea>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════
+       SECTION 8 — CONTRACEPTIVE HISTORY
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge contraceptive">8</span>
+    <span class="section-title">Contraceptive History</span>
+  </div>
+
+  <div class="card contraceptive-card">
+    <div class="card-title">💊 Contraceptive History</div>
+
+    <div class="field-group">
+      <label>Current Contraceptive Method</label>
+      <div class="checkbox-group" id="contraceptionGroup">
+        <label><input type="checkbox" value="None" checked /> None</label>
+        <label><input type="checkbox" value="Oral Contraceptive Pill" /> Oral Contraceptive Pill</label>
+        <label><input type="checkbox" value="IUD" /> IUD</label>
+        <label><input type="checkbox" value="Implant" /> Implant</label>
+        <label><input type="checkbox" value="Injection" /> Injection</label>
+        <label><input type="checkbox" value="Condoms" /> Condoms</label>
+        <label><input type="checkbox" value="Natural/Fertility Awareness" /> Natural/Fertility Awareness</label>
+        <label><input type="checkbox" value="Emergency Contraception" /> Emergency Contraception</label>
+        <label><input type="checkbox" value="Permanent (Sterilization)" /> Permanent (Sterilization)</label>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Previous Contraceptive Methods Used</label>
+      <textarea id="previousContraception" placeholder="e.g. Used Depo-Provera for 2 years, previously on OCP..." style="min-height:55px;"></textarea>
+    </div>
+
+    <div class="field-group">
+      <label>Contraceptive History Notes</label>
+      <textarea id="contraceptiveNotes" placeholder="Any issues with previous methods, side effects, reasons for switching..." style="min-height:55px;"></textarea>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════
+       SECTION 9 — PAST MEDICAL & SURGICAL HISTORY
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge pmh">9</span>
+    <span class="section-title">Past Medical & Surgical History</span>
+  </div>
+
+  <div class="card pmh-card">
+    <div class="card-title">🏥 Past Medical History</div>
+
+    <div class="field-group">
+      <label>Chronic Medical Conditions</label>
+      <div class="hint">List all chronic illnesses the patient has been diagnosed with</div>
+      <textarea id="chronicConditions" placeholder="e.g. Hypertension (diagnosed 2019), Diabetes type 2, Asthma..." style="min-height:60px;"></textarea>
+    </div>
+
+    <div class="field-group">
+      <label>Medications (Current & Recent)</label>
+      <div class="hint">Include drug name, dose, frequency, and indication</div>
+      <textarea id="currentMeds" placeholder="e.g. Methyldopa 250mg BD for hypertension..." style="min-height:60px;"></textarea>
+    </div>
+
+    <div class="field-group">
+      <label>Allergies</label>
+      <div class="hint">Drugs, food, or other substances the patient is allergic to</div>
+      <input type="text" id="allergies" placeholder="e.g. Penicillin (rash), None known" />
+    </div>
+
+    <div class="field-group">
+      <label>Blood Transfusion History</label>
+      <input type="text" id="transfusionHistory" placeholder="e.g. Never / 2020 for PPH" />
+    </div>
+
+    <hr class="divider" />
+
+    <div class="card-title" style="margin-top:0.5rem;">🔪 Past Surgical History</div>
+
+    <div class="field-group">
+      <label>Previous Surgeries</label>
+      <div class="hint">List all previous surgical procedures with approximate dates</div>
+      <textarea id="previousSurgeries" placeholder="e.g. Appendicectomy (2015), LSCS (2019)..." style="min-height:60px;"></textarea>
+    </div>
+
+    <div class="field-group">
+      <label>Any Complications from Previous Surgeries</label>
+      <input type="text" id="surgeryComplications" placeholder="e.g. Post-op infection, None" />
+    </div>
+
+    <div class="field-group">
+      <label>Anaesthetic History</label>
+      <div class="hint">Any known reactions to anaesthesia</div>
+      <input type="text" id="anaestheticHistory" placeholder="e.g. No problems / Malignant hyperthermia risk" />
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════
+       SECTION 10 — SOCIAL HISTORY
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge social">10</span>
+    <span class="section-title">Social History</span>
+  </div>
+
+  <div class="card social-card">
+    <div class="card-title">🏠 Social History</div>
+
+    <div class="field-group">
+      <label>Living Situation</label>
+      <div class="hint">Who does the patient live with? Housing type and conditions</div>
+      <input type="text" id="livingSituation" placeholder="e.g. Lives with husband and 2 children in rented house" />
+    </div>
+
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Source of Water</label>
+        <input type="text" id="waterSource" placeholder="e.g. Piped water, Borehole" />
+      </div>
+      <div class="field-group">
+        <label>Type of Toilet</label>
+        <input type="text" id="toiletType" placeholder="e.g. Flush toilet, Pit latrine" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Smoking History</label>
+      <div class="radio-group">
+        <label><input type="radio" name="smoking" value="never" onchange="toggleSmokingDetails()" /> Never smoked</label>
+        <label><input type="radio" name="smoking" value="former" onchange="toggleSmokingDetails()" /> Former smoker</label>
+        <label><input type="radio" name="smoking" value="current" onchange="toggleSmokingDetails()" /> Current smoker</label>
+      </div>
+      <div id="smokingDetailsWrap" style="display:none; margin-top:0.5rem;">
+        <div class="inline-row">
+          <div class="field-group">
+            <label>Pack Years</label>
+            <div class="hint">(Packs per day) × (Years smoked)</div>
+            <input type="text" id="smokingPackYears" placeholder="e.g. 10 pack-years" />
+          </div>
+          <div class="field-group">
+            <label>Quit Date (if former smoker)</label>
+            <input type="date" id="smokingQuitDate" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Additional Smoking Details</label>
+          <input type="text" id="smokingDetails" placeholder="e.g. Started at 18, smokes 1 pack/day" />
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Alcohol Consumption</label>
+      <div class="radio-group">
+        <label><input type="radio" name="alcohol" value="never" onchange="toggleAlcoholDetails()" /> Never</label>
+        <label><input type="radio" name="alcohol" value="social" onchange="toggleAlcoholDetails()" /> Social / Occasional</label>
+        <label><input type="radio" name="alcohol" value="moderate" onchange="toggleAlcoholDetails()" /> Moderate</label>
+        <label><input type="radio" name="alcohol" value="heavy" onchange="toggleAlcoholDetails()" /> Heavy</label>
+      </div>
+      <div id="alcoholDetailsWrap" style="display:none; margin-top:0.5rem;">
+        <div class="inline-row">
+          <div class="field-group">
+            <label>Units per week</label>
+            <div class="hint">1 unit = 8g alcohol (e.g. 1 small beer, 1 glass of wine)</div>
+            <input type="text" id="alcoholUnits" placeholder="e.g. 14 units/week" />
+          </div>
+          <div class="field-group">
+            <label>Type of Alcohol</label>
+            <input type="text" id="alcoholType" placeholder="e.g. Beer, Wine, Spirits" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Additional Alcohol Details</label>
+          <input type="text" id="alcoholDetails" placeholder="e.g. Started at 20, drinks on weekends" />
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Recreational Drug Use</label>
+      <input type="text" id="drugUse" placeholder="e.g. None / Marijuana occasionally" />
+    </div>
+
+    <div class="field-group">
+      <label>Occupation Details</label>
+      <div class="hint">Specific job role, exposure to hazards, physical demands</div>
+      <textarea id="occupationDetails" placeholder="e.g. Farmer — handles chemicals, heavy lifting. Works 6 days/week..." style="min-height:50px;"></textarea>
+    </div>
+
+    <div class="field-group">
+      <label>Social Support System</label>
+      <textarea id="socialSupport" placeholder="e.g. Has supportive husband and extended family. No intimate partner violence..." style="min-height:50px;"></textarea>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════
+       SECTION 11 — FAMILY HISTORY
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge family">11</span>
+    <span class="section-title">Family History</span>
+  </div>
+
+  <div class="card family-card">
+    <div class="card-title">🧬 Family History</div>
+
+    <div class="field-group">
+      <label>Family History of Medical Conditions</label>
+      <div class="hint">Conditions in blood relatives (parents, siblings, children)</div>
+      <textarea id="familyConditions" placeholder="e.g. Mother has hypertension and diabetes (diagnosed at 55). Father died of stroke at 68..." style="min-height:70px;"></textarea>
+    </div>
+
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Family History of Gynecological Cancers</label>
+        <input type="text" id="familyGynCancer" placeholder="e.g. Mother had breast cancer at 50" />
+        <div class="hint-sm">Breast, ovarian, endometrial, cervical cancer</div>
+      </div>
+      <div class="field-group">
+        <label>Family History of Other Cancers</label>
+        <input type="text" id="familyOtherCancer" placeholder="e.g. Colon cancer in grandfather" />
+      </div>
+    </div>
+
+    <div class="inline-row">
+      <div class="field-group">
+        <label>Family History of Blood Disorders</label>
+        <input type="text" id="familyBloodDisorders" placeholder="e.g. Sickle cell disease in cousin" />
+      </div>
+      <div class="field-group">
+        <label>Family History of Mental Health Conditions</label>
+        <input type="text" id="familyMentalHealth" placeholder="e.g. Depression in mother" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Family History of Infertility or Multiple Miscarriages</label>
+      <input type="text" id="familyInfertility" placeholder="e.g. Sister had recurrent miscarriages" />
+    </div>
+  </div>
+
+</div><!-- /main-wrap -->
+
+<!-- Footer -->
+<div class="footer-nav">
+  <div class="step-indicator">Step <strong id="stepNum">1</strong> of 11 — <span id="stepLabel">Demographics & History</span></div>
+  <button class="btn-primary" onclick="goNext()">Complete History →</button>
+</div>
+
+<script>
+  // ============================================================
+  // 1. RELIGION "OTHER" TOGGLE
+  // ============================================================
+  function toggleOtherReligion(value) {
+    const otherInput = document.getElementById('religionOther');
+    if (value === 'Other') {
+      otherInput.style.display = 'block';
+      otherInput.required = true;
+      otherInput.focus();
+    } else {
+      otherInput.style.display = 'none';
+      otherInput.required = false;
+      otherInput.value = '';
+    }
+  }
+
+  // ============================================================
+  // 2. EDD AND WOA CALCULATION
+  // ============================================================
+  function calculateEDDandWOA() {
+    const lnmp = document.getElementById('lnmp').value;
+    if (!lnmp) {
+      document.getElementById('edd').value = '';
+      document.getElementById('woa').value = '';
+      return;
+    }
+    
+    const lnmpDate = new Date(lnmp);
+    const eddDate = new Date(lnmpDate);
+    eddDate.setDate(eddDate.getDate() + 280);
+    document.getElementById('edd').value = eddDate.toISOString().split('T')[0];
+    
+    const today = new Date();
+    const diffTime = today.getTime() - lnmpDate.getTime();
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    const weeks = Math.floor(diffDays / 7);
+    const days = Math.floor(diffDays % 7);
+    document.getElementById('woa').value = `${weeks} weeks ${days} days (${Math.floor(diffDays)} days)`;
+  }
+
+  // ============================================================
+  // 3. COMPLAINT TAGS
+  // ============================================================
+  function selectTag(btn) {
+    document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    
+    const cat = btn.dataset.cat;
+    document.getElementById('complaintCategory').value = cat;
+
+    document.querySelectorAll('.hint-panel').forEach(p => p.classList.remove('visible'));
+    const panel = document.getElementById('hint-' + cat);
+    if (panel) {
+      panel.classList.add('visible');
+      setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+    }
+    
+    document.getElementById('otherComplaintWrap').style.display = 
+      (cat === 'other') ? 'block' : 'none';
+  }
+
+  // ============================================================
+  // 4. ROS BUTTON TOGGLE (3-state: off → present → absent → off)
+  // ============================================================
+  function toggleRosButton(btn) {
+    // Cycle through states: off → present (green) → absent (grey) → off
+    if (btn.classList.contains('active-present')) {
+      // Present → Absent
+      btn.classList.remove('active-present');
+      btn.classList.add('active-absent');
+      btn.innerHTML = btn.innerHTML.replace(' ✓', ' ✗');
+    } else if (btn.classList.contains('active-absent')) {
+      // Absent → Off
+      btn.classList.remove('active-absent');
+      btn.innerHTML = btn.innerHTML.replace(' ✗', '');
+    } else {
+      // Off → Present
+      btn.classList.add('active-present');
+      btn.innerHTML = btn.innerHTML + ' ✓';
+    }
+  }
+
+  // ============================================================
+  // 5. ROS TOGGLE FUNCTION
+  // ============================================================
+  function toggleROS(systemId) {
+    const body = document.getElementById(systemId);
+    const toggle = document.getElementById(systemId + '-toggle');
+    if (body.classList.contains('open')) {
+      body.classList.remove('open');
+      toggle.classList.remove('open');
+    } else {
+      body.classList.add('open');
+      toggle.classList.add('open');
+    }
+  }
+
+  // ============================================================
+  // 6. CONTRACEPTION "NONE" EXCLUSIVE
+  // ============================================================
+  document.addEventListener('DOMContentLoaded', function() {
+    const contraGroup = document.getElementById('contraceptionGroup');
+    if (contraGroup) {
+      const checkboxes = contraGroup.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+          if (this.value === 'None' && this.checked) {
+            checkboxes.forEach(other => {
+              if (other.value !== 'None') other.checked = false;
+            });
+          } else if (this.value !== 'None' && this.checked) {
+            const noneCb = contraGroup.querySelector('input[value="None"]');
+            if (noneCb) noneCb.checked = false;
+          }
+        });
+      });
+    }
+
+    // HIV status ARV details toggle
+    document.querySelectorAll('input[name="hivStatus"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        document.getElementById('arvDetails').style.display = 
+          this.value === 'positive' ? 'block' : 'none';
+      });
+    });
+
+    // Smoking toggle
+    document.querySelectorAll('input[name="smoking"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        toggleSmokingDetails();
+      });
+    });
+
+    // Alcohol toggle
+    document.querySelectorAll('input[name="alcohol"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        toggleAlcoholDetails();
+      });
+    });
+  });
+
+  // ============================================================
+  // 7. SMOKING TOGGLE
+  // ============================================================
+  function toggleSmokingDetails() {
+    const selected = document.querySelector('input[name="smoking"]:checked');
+    const wrap = document.getElementById('smokingDetailsWrap');
+    if (selected && selected.value !== 'never') {
+      wrap.style.display = 'block';
+    } else {
+      wrap.style.display = 'none';
+      document.getElementById('smokingPackYears').value = '';
+      document.getElementById('smokingQuitDate').value = '';
+      document.getElementById('smokingDetails').value = '';
+    }
+  }
+
+  // ============================================================
+  // 8. ALCOHOL TOGGLE
+  // ============================================================
+  function toggleAlcoholDetails() {
+    const selected = document.querySelector('input[name="alcohol"]:checked');
+    const wrap = document.getElementById('alcoholDetailsWrap');
+    if (selected && selected.value !== 'never') {
+      wrap.style.display = 'block';
+    } else {
+      wrap.style.display = 'none';
+      document.getElementById('alcoholUnits').value = '';
+      document.getElementById('alcoholType').value = '';
+      document.getElementById('alcoholDetails').value = '';
+    }
+  }
+
+  // ============================================================
+  // 9. ADD ANC ENTRY
+  // ============================================================
+  let ancEntryCount = 1;
+
+  function addAncEntry() {
+    ancEntryCount++;
+    const container = document.getElementById('ancEntries');
+    const entry = document.createElement('div');
+    entry.className = 'anc-entry';
+    entry.id = `ancEntry${ancEntryCount}`;
+    entry.innerHTML = `
+      <div class="inline-row-3">
+        <div class="field-group">
+          <label style="font-size:0.8rem;">Visit Date</label>
+          <input type="date" id="ancDate${ancEntryCount}" />
+        </div>
+        <div class="field-group">
+          <label style="font-size:0.8rem;">GA (weeks)</label>
+          <input type="number" id="ancGaWeeks${ancEntryCount}" placeholder="Weeks" min="0" max="42" />
+        </div>
+        <div class="field-group">
+          <label style="font-size:0.8rem;">GA (days)</label>
+          <input type="number" id="ancGaDays${ancEntryCount}" placeholder="Days" min="0" max="6" />
+        </div>
+      </div>
+      <div class="inline-row">
+        <div class="field-group">
+          <label style="font-size:0.8rem;">BP (mmHg)</label>
+          <input type="text" id="ancBp${ancEntryCount}" placeholder="e.g. 120/80" />
+        </div>
+        <div class="field-group">
+          <label style="font-size:0.8rem;">Urine Protein</label>
+          <select id="ancUrine${ancEntryCount}">
+            <option value="">— —</option>
+            <option>Negative</option>
+            <option>Trace</option>
+            <option>+1</option>
+            <option>+2</option>
+            <option>+3</option>
+            <option>+4</option>
+          </select>
+        </div>
+      </div>
+      <div class="inline-row">
+        <div class="field-group">
+          <label style="font-size:0.8rem;">Weight (kg)</label>
+          <input type="number" id="ancWeight${ancEntryCount}" placeholder="Weight" step="0.1" />
+        </div>
+        <div class="field-group">
+          <label style="font-size:0.8rem;">Fundal Height (cm)</label>
+          <input type="number" id="ancFundal${ancEntryCount}" placeholder="Fundal height" step="0.5" />
+        </div>
+      </div>
+      <div class="field-group">
+        <label style="font-size:0.8rem;">Interventions / Notes</label>
+        <input type="text" id="ancNotes${ancEntryCount}" placeholder="e.g. IPTp given, ferrous sulphate started" />
+      </div>
+      <div style="margin-top:0.5rem;">
+        <button type="button" class="btn-secondary" onclick="removeAncEntry(${ancEntryCount})" style="font-size:0.7rem; padding:0.2rem 0.8rem; background:#f8d7da; color:#721c24;">✕ Remove</button>
+      </div>
+    `;
+    container.appendChild(entry);
+  }
+
+  function removeAncEntry(id) {
+    const entry = document.getElementById(`ancEntry${id}`);
+    if (entry && document.querySelectorAll('.anc-entry').length > 1) {
+      entry.remove();
+    } else {
+      alert('You need at least one ANC entry.');
+    }
+  }
+
+  // ============================================================
+  // 10. OTHER UTILITY FUNCTIONS
+  // ============================================================
+  function toggleReferral(show) {
+    document.getElementById('referralDetails').style.display = show ? 'block' : 'none';
+  }
+
+  function checkAge() {
+    const age = parseInt(document.getElementById('age').value);
+    document.getElementById('paedFlag').style.display = (!isNaN(age) && age < 18) ? 'block' : 'none';
+  }
+
+  // ============================================================
+  // 11. GET ANC DATA
+  // ============================================================
+  function getAncData() {
+    const entries = [];
+    const count = document.querySelectorAll('.anc-entry').length;
+    for (let i = 1; i <= count; i++) {
+      const date = document.getElementById(`ancDate${i}`);
+      const gaWeeks = document.getElementById(`ancGaWeeks${i}`);
+      const gaDays = document.getElementById(`ancGaDays${i}`);
+      const bp = document.getElementById(`ancBp${i}`);
+      const urine = document.getElementById(`ancUrine${i}`);
+      const weight = document.getElementById(`ancWeight${i}`);
+      const fundal = document.getElementById(`ancFundal${i}`);
+      const notes = document.getElementById(`ancNotes${i}`);
+      if (date && date.value) {
+        entries.push({
+          date: date.value,
+          gestationalAge: {
+            weeks: gaWeeks ? gaWeeks.value : '',
+            days: gaDays ? gaDays.value : ''
+          },
+          bp: bp ? bp.value : '',
+          urineProtein: urine ? urine.value : '',
+          weight: weight ? weight.value : '',
+          fundalHeight: fundal ? fundal.value : '',
+          notes: notes ? notes.value : ''
+        });
+      }
+    }
+    return entries;
+  }
+
+  // ============================================================
+  // 12. GET ROS DATA
+  // ============================================================
+  function getRosData() {
+    const systems = ['git', 'urinogenital', 'respiratory', 'cardiovascular', 'musculoskeletal', 'endocrine', 'cns'];
+    const rosData = {};
+    systems.forEach(sys => {
+      const buttons = document.querySelectorAll(`.ros-buttons[data-system="${sys}"] .ros-btn`);
+      const present = [];
+      const absent = [];
+      buttons.forEach(btn => {
+        if (btn.classList.contains('active-present')) {
+          present.push(btn.dataset.symptom);
+        } else if (btn.classList.contains('active-absent')) {
+          absent.push(btn.dataset.symptom);
+        }
+      });
+      const otherField = document.getElementById(`ros${sys.charAt(0).toUpperCase() + sys.slice(1)}Other`);
+      rosData[sys] = {
+        present: present,
+        absent: absent,
+        other: otherField ? otherField.value : ''
+      };
+    });
+    return rosData;
+  }
+
+  // ============================================================
+  // 13. FORM DATA COLLECTION
+  // ============================================================
+  function getFormData() {
+    const complaintCategory = document.getElementById('complaintCategory').value;
+    const contraChecks = document.querySelectorAll('#contraceptionGroup input[type="checkbox"]:checked');
+    const contraception = Array.from(contraChecks).map(cb => cb.value);
+    const hivStatus = document.querySelector('input[name="hivStatus"]:checked');
+    const partnerHiv = document.querySelector('input[name="partnerHiv"]:checked');
+    const referred = document.querySelector('input[name="referred"]:checked');
+    const menstrualStatus = document.querySelector('input[name="menstrualStatus"]:checked');
+    const smoking = document.querySelector('input[name="smoking"]:checked');
+    const alcohol = document.querySelector('input[name="alcohol"]:checked');
+    
+    const ancMeds = [];
+    if (document.getElementById('ancFerrous').checked) ancMeds.push('Ferrous sulphate');
+    if (document.getElementById('ancFolic').checked) ancMeds.push('Folic acid');
+    if (document.getElementById('ancIptp').checked) ancMeds.push('IPTp (SP)');
+    if (document.getElementById('ancMebendazole').checked) ancMeds.push('Mebendazole');
+    if (document.getElementById('ancTt').checked) ancMeds.push('TT vaccine');
+    if (document.getElementById('ancArvs').checked) ancMeds.push('ARVs (PMTCT)');
+    if (document.getElementById('ancCalcium').checked) ancMeds.push('Calcium');
+    if (document.getElementById('ancAspirin').checked) ancMeds.push('Aspirin');
+
+    return {
+      // Demographics
+      patientName: document.getElementById('patientName').value,
+      age: document.getElementById('age').value,
+      ipNumber: document.getElementById('ipNumber').value,
+      address: document.getElementById('address').value,
+      occupation: document.getElementById('occupation').value,
+      tribe: document.getElementById('tribe').value,
+      religion: document.getElementById('religion').value === 'Other' 
+        ? document.getElementById('religionOther').value 
+        : document.getElementById('religion').value,
+      education: document.getElementById('education').value,
+      admissionDate: document.getElementById('admissionDate').value,
+      
+      nokName: document.getElementById('nokName').value,
+      nokRelationship: document.getElementById('nokRelationship').value,
+      nokContact: document.getElementById('nokContact').value,
+      
+      lnmp: document.getElementById('lnmp').value,
+      edd: document.getElementById('edd').value,
+      woa: document.getElementById('woa').value,
+      gravida: document.getElementById('gravida').value,
+      parity: document.getElementById('parity').value,
+      nearestFacility: document.getElementById('nearestFacility').value,
+      
+      referred: referred ? referred.value : '',
+      referralFacility: document.getElementById('referralFacility').value,
+      referralLevel: document.getElementById('referralLevel').value,
+      referralReason: document.getElementById('referralReason').value,
+      referralTreatment: document.getElementById('referralTreatment').value,
+      
+      hivStatus: hivStatus ? hivStatus.value : '',
+      arvRegimen: document.getElementById('arvRegimen').value,
+      partnerHivStatus: partnerHiv ? partnerHiv.value : '',
+      
+      complaintVerbatim: document.getElementById('complaintVerbatim').value,
+      durationValue: document.getElementById('durationValue').value,
+      durationUnit: document.getElementById('durationUnit').value,
+      complaintCategory: complaintCategory,
+      otherComplaint: document.getElementById('otherComplaint').value,
+      onset: document.querySelector('input[name="onset"]:checked')?.value || '',
+      course: document.querySelector('input[name="course"]:checked')?.value || '',
+      associatedComplaints: document.getElementById('associatedComplaints').value,
+      
+      hpcNarrative: document.getElementById('hpcNarrative').value,
+      hpcSite: document.getElementById('hpcSite').value,
+      hpcOnset: document.getElementById('hpcOnset').value,
+      hpcCharacter: document.getElementById('hpcCharacter').value,
+      hpcRadiation: document.getElementById('hpcRadiation').value,
+      hpcSeverity: document.getElementById('hpcSeverity').value,
+      hpcTime: document.getElementById('hpcTime').value,
+      hpcExacerbating: document.getElementById('hpcExacerbating').value,
+      hpcRelieving: document.getElementById('hpcRelieving').value,
+      hpcAssociations: document.getElementById('hpcAssociations').value,
+      
+      // ROS
+      ros: getRosData(),
+      
+      // Obstetric History
+      prevPregnancies: document.getElementById('prevPregnancies').value,
+      prevCS: document.getElementById('prevCS').value,
+      prevAbortions: document.getElementById('prevAbortions').value,
+      prevObsComplications: document.getElementById('prevObsComplications').value,
+      ancTotalVisits: document.getElementById('ancTotalVisits').value,
+      ancFirstWeeks: document.getElementById('ancFirstWeeks').value,
+      ancFirstDays: document.getElementById('ancFirstDays').value,
+      ancFacility: document.getElementById('ancFacility').value,
+      ancVisits: getAncData(),
+      ancMedications: ancMeds,
+      ancFindings: document.getElementById('ancFindings').value,
+      ancUltrasound: document.getElementById('ancUltrasound').value,
+      
+      // Gynecological History
+      lastSmear: document.getElementById('lastSmear').value,
+      sexualHistory: document.getElementById('sexualHistory').value,
+      gynSurgeries: document.getElementById('gynSurgeries').value,
+      gynConditions: document.getElementById('gynConditions').value,
+      gynFamilyHistory: document.getElementById('gynFamilyHistory').value,
+      
+      // Menstrual History
+      menarche: document.getElementById('menarche').value,
+      lmpDate: document.getElementById('lmpDate').value,
+      cycleLength: document.getElementById('cycleLength').value,
+      flowDuration: document.getElementById('flowDuration').value,
+      flowAmount: document.getElementById('flowAmount').value,
+      dysmenorrhoea: document.getElementById('dysmenorrhoea').value,
+      menstrualStatus: menstrualStatus ? menstrualStatus.value : '',
+      menstrualNotes: document.getElementById('menstrualNotes').value,
+      
+      // Contraceptive History
+      contraception: contraception,
+      previousContraception: document.getElementById('previousContraception').value,
+      contraceptiveNotes: document.getElementById('contraceptiveNotes').value,
+      
+      // Past Medical & Surgical
+      chronicConditions: document.getElementById('chronicConditions').value,
+      currentMeds: document.getElementById('currentMeds').value,
+      allergies: document.getElementById('allergies').value,
+      transfusionHistory: document.getElementById('transfusionHistory').value,
+      previousSurgeries: document.getElementById('previousSurgeries').value,
+      surgeryComplications: document.getElementById('surgeryComplications').value,
+      anaestheticHistory: document.getElementById('anaestheticHistory').value,
+      
+      // Social History
+      livingSituation: document.getElementById('livingSituation').value,
+      waterSource: document.getElementById('waterSource').value,
+      toiletType: document.getElementById('toiletType').value,
+      smoking: smoking ? smoking.value : '',
+      smokingPackYears: document.getElementById('smokingPackYears').value,
+      smokingQuitDate: document.getElementById('smokingQuitDate').value,
+      smokingDetails: document.getElementById('smokingDetails').value,
+      alcohol: alcohol ? alcohol.value : '',
+      alcoholUnits: document.getElementById('alcoholUnits').value,
+      alcoholType: document.getElementById('alcoholType').value,
+      alcoholDetails: document.getElementById('alcoholDetails').value,
+      drugUse: document.getElementById('drugUse').value,
+      occupationDetails: document.getElementById('occupationDetails').value,
+      socialSupport: document.getElementById('socialSupport').value,
+      
+      // Family History
+      familyConditions: document.getElementById('familyConditions').value,
+      familyGynCancer: document.getElementById('familyGynCancer').value,
+      familyOtherCancer: document.getElementById('familyOtherCancer').value,
+      familyBloodDisorders: document.getElementById('familyBloodDisorders').value,
+      familyMentalHealth: document.getElementById('familyMentalHealth').value,
+      familyInfertility: document.getElementById('familyInfertility').value
+    };
+  }
+
+  function goNext() {
+    const name = document.getElementById('patientName').value.trim();
+    const age = document.getElementById('age').value;
+    const lnmp = document.getElementById('lnmp').value;
+    const gravida = document.getElementById('gravida').value;
+    const parity = document.getElementById('parity').value.trim();
+    const complaint = document.getElementById('complaintVerbatim').value.trim();
+    const durVal = document.getElementById('durationValue').value;
+    const durUnit = document.getElementById('durationUnit').value;
+    const cat = document.getElementById('complaintCategory').value;
+    const hpc = document.getElementById('hpcNarrative').value.trim();
+
+    if (!name || !age) { alert('Please complete required demographics: Name and Age.'); return; }
+    if (!lnmp) { alert('Please enter Last Normal Menstrual Period (LNMP).'); return; }
+    if (!gravida || !parity) { alert('Please enter Gravida and Parity.'); return; }
+    if (!complaint || !durVal || !durUnit || !cat) { alert('Please complete the presenting complaint.'); return; }
+    if (!hpc) { alert('Please write the HPC narrative.'); return; }
+
+    console.log('📋 Full Patient Data:', getFormData());
+    alert('✅ All history sections complete. Data logged to console.\n\nReady for Physical Examination →');
+  }
+</script>
+</body>
+</html>
