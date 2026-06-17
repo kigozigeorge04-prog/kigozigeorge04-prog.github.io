@@ -67,7 +67,6 @@
     .callout { background: var(--primary-light); border-left: 4px solid var(--primary); border-radius: 0 7px 7px 0; padding: 0.7rem 1rem; font-size: 0.83rem; color: var(--primary); margin-bottom: 1rem; }
     .callout strong { font-weight: 700; }
 
-    /* Hint panels */
     .hint-panel { display: none; background: var(--warn-bg); border: 1.5px solid var(--warn-border); border-radius: var(--radius); padding: 1rem 1.2rem; margin-top: 1rem; }
     .hint-panel.visible { display: block; }
     .hint-panel-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #b07800; margin-bottom: 0.7rem; }
@@ -77,9 +76,8 @@
     .hint-panel .red-flags-title { font-size: 0.78rem; font-weight: 700; color: var(--danger); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; }
     .hint-panel .red-flags ul li { color: var(--danger); }
 
-    /* ROS banner */
-    #ros-pc-banner { border-left: 6px solid var(--accent); background: #fff8f5; }
-    #ros-pc-banner .card-title { color: var(--accent); border-bottom-color: #f0d0c0; }
+    .ros-banner { border-left: 6px solid var(--accent); background: #fff8f5; }
+    .ros-banner .card-title { color: var(--accent); border-bottom-color: #f0d0c0; }
 
     .sym-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
     .sym-chip { border: 1.5px solid var(--border); border-radius: 20px; padding: 0.3rem 0.75rem; font-size: 0.82rem; cursor: pointer; background: var(--bg); color: var(--muted); user-select: none; transition: all 0.15s; }
@@ -96,11 +94,9 @@
     .btn-primary:hover { background: #154f67; }
     .sys-notes { margin-top: 0.6rem; min-height: 50px; font-size: 0.84rem; }
 
-    /* Assessment specific */
     .dx-item { background: var(--bg); border-radius: 7px; padding: 0.7rem 0.9rem; margin-bottom: 0.6rem; border-left: 4px solid var(--primary); }
     .dx-item input, .dx-item textarea { margin-top: 0.3rem; }
 
-    /* Collapsible PE - with persistent hints outside textboxes */
     .pe-toggle { cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between; padding: 0.3rem 0; }
     .pe-toggle .chevron { font-size: 0.9rem; transition: transform 0.2s; }
     .pe-toggle.open .chevron { transform: rotate(180deg); }
@@ -110,11 +106,113 @@
     .pe-section-title { font-weight: 700; font-size: 0.85rem; color: var(--primary); margin-bottom: 0.3rem; }
     .pe-hint-box { background: #fff; border: 1px dashed var(--border); border-radius: 6px; padding: 0.5rem 0.8rem; margin-bottom: 0.5rem; font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
     .pe-hint-box strong { color: var(--text); }
-    .pe-sub textarea { background: #fff; }
 
-    /* Generated DDx styling */
     .gen-ddx-badge { background: var(--primary-light); color: var(--primary); font-size: 0.7rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 12px; margin-left: 0.5rem; }
     .dx-item.generated { border-left-color: var(--accent); background: #fff8f5; }
+
+    /* Camera styles */
+    .camera-section {
+      margin: 15px 0;
+      padding: 15px;
+      background: #f0f7fa;
+      border-radius: 16px;
+      border: 2px dashed #2a9d8f;
+    }
+    .camera-section h4 {
+      color: #1b7e6b;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .camera-preview {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      background: #000;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto 12px;
+    }
+    .camera-controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn-camera {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-camera:hover { transform: scale(1.03); opacity: 0.9; }
+    .btn-camera-start { background: #2a9d8f; color: white; }
+    .btn-camera-capture { background: #e67e22; color: white; }
+    .btn-camera-stop { background: #e53e3e; color: white; }
+    .btn-camera-remove { background: #95a5a6; color: white; }
+    .captured-images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .captured-image-item {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid #e2e8f0;
+      width: 120px;
+      height: 90px;
+      flex-shrink: 0;
+    }
+    .captured-image-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .captured-image-item .remove-img {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(229,62,62,0.9);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .image-counter {
+      font-size: 0.8rem;
+      color: #4a5568;
+      text-align: center;
+      margin-top: 6px;
+    }
+    .camera-permission-banner {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .camera-permission-banner.visible {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -125,8 +223,8 @@
     <div class="topbar-subtitle">Surgery Clerkship</div>
   </div>
   <div class="topbar-right">
-    <button class="btn-outline-white">Save Draft</button>
-    <button class="btn-outline-white">← Exit</button>
+    <button class="btn-outline-white" onclick="saveDraft()">💾 Save Draft</button>
+    <button class="btn-outline-white" onclick="exitForm()">← Exit</button>
   </div>
 </nav>
 <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:45%"></div></div>
@@ -134,7 +232,7 @@
 <div class="main-wrap">
 
   <!-- ============================================
-       SECTION 1 — DEMOGRAPHICS (abridged)
+       SECTION 1 — DEMOGRAPHICS
   ============================================ -->
   <div class="section-header" style="margin-top:0.5rem;">
     <span class="section-badge">1</span>
@@ -189,7 +287,7 @@
     </div>
   </div>
 
-  <!-- Social & referral (short) -->
+  <!-- Social & referral -->
   <div class="card">
     <div class="card-title">👤 Social & Referral</div>
     <div class="inline-row">
@@ -243,7 +341,7 @@
   <hr class="divider" />
 
   <!-- ============================================
-       SECTION 2 — PRESENTING COMPLAINT (with hints)
+       SECTION 2 — PRESENTING COMPLAINT
   ============================================ -->
   <div class="section-header">
     <span class="section-badge">2</span>
@@ -371,7 +469,7 @@
   <hr class="divider" />
 
   <!-- ============================================
-       SECTION 4 — REVIEW OF SYSTEMS (abridged)
+       SECTION 4 — REVIEW OF SYSTEMS
   ============================================ -->
   <div class="section-header">
     <span class="section-badge">4</span>
@@ -380,7 +478,7 @@
   <div class="callout">
     <strong>How to use:</strong> Tap each symptom to toggle — <span style="color:var(--success);font-weight:700;">✓ Present</span> · <span style="color:var(--danger);font-weight:700;">✗ Absent</span> · grey = not asked.
   </div>
-  <div id="ros-pc-banner" style="display:none;" class="card">
+  <div id="ros-pc-banner" style="display:none;" class="card ros-banner">
     <div class="card-title" id="ros-pc-title" style="color:var(--accent);">🎯 Presenting System</div>
     <div id="ros-pc-chips" class="sym-chips"></div>
     <textarea class="sys-notes" placeholder="Additional notes on the presenting system..." style="min-height:50px;"></textarea>
@@ -819,15 +917,443 @@
     </div>
   </div>
 
+  <!-- ============================================
+       NEW SECTION 10 — CLINICAL PHOTOGRAPHY (CAMERA)
+  ============================================ -->
+  <div class="section-header">
+    <span class="section-badge">📷</span>
+    <span class="section-title">Clinical Photography</span>
+  </div>
+  <div class="card">
+    <div class="card-title">📸 Camera & Image Upload</div>
+    <div class="camera-section">
+      <h4>📷 Capture or Upload Images</h4>
+      <div id="cameraPermissionBanner" class="camera-permission-banner">
+        ⚠️ Camera access is required. Please allow when prompted.
+      </div>
+      <video id="cameraPreview" class="camera-preview" autoplay playsinline style="display:none;"></video>
+      <div class="camera-controls">
+        <button class="btn-camera btn-camera-start" id="btnCameraStart" onclick="startCamera()">📷 Start Camera</button>
+        <button class="btn-camera btn-camera-capture" id="btnCameraCapture" onclick="captureImage()" style="display:none;">📸 Capture</button>
+        <button class="btn-camera btn-camera-stop" id="btnCameraStop" onclick="stopCamera()" style="display:none;">⏹ Stop</button>
+        <button class="btn-camera btn-camera-remove" onclick="removeAllImages()">🗑️ Remove All</button>
+        <label class="btn-camera btn-camera-start" style="background:#2980b9; color:white; cursor:pointer;">
+          📁 Upload from Device
+          <input type="file" accept="image/*" multiple onchange="uploadImages(event)" style="display:none;">
+        </label>
+      </div>
+      <div id="capturedImagesContainer" class="captured-images"></div>
+      <div id="imageCounter" class="image-counter">📷 0 images captured</div>
+      <input type="hidden" id="capturedImagesData" value="">
+    </div>
+  </div>
+
 </div><!-- /main-wrap -->
 
 <div class="footer-nav">
-  <div class="step-indicator">Steps <strong>1–9</strong> complete — Demographics · PC · HPC · ROS · PMH · Drugs · Family/Social · PE · Assessment</div>
-  <button class="btn-primary" onclick="goNext()">Finish & Submit</button>
+  <div class="step-indicator">Steps <strong>1–10</strong> complete — Demographics · PC · HPC · ROS · PMH · Drugs · Family/Social · PE · Assessment · Photos</div>
+  <div style="display:flex; gap:0.8rem;">
+    <button class="btn-primary" onclick="saveDraft()">💾 Save Draft</button>
+    <button class="btn-primary" onclick="submitForm()">✅ Finish & Submit</button>
+  </div>
 </div>
 
 <script>
-  // ========== HELPERS ==========
+  // ============================================================
+  // 1. SUPABASE CONFIG – REPLACE WITH YOUR OWN
+  // ============================================================
+  const SUPABASE_URL = 'https://your-project.supabase.co';
+  const SUPABASE_ANON_KEY = 'your-anon-key';
+  // Uncomment below when you have Supabase set up:
+  // const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ============================================================
+  // 2. LOCAL STORAGE HELPERS
+  // ============================================================
+  function saveToLocalStorage(data) {
+    try {
+      localStorage.setItem('easeMed_surgery_draft', JSON.stringify(data));
+    } catch (e) { console.warn('LocalStorage error:', e); }
+  }
+
+  function loadFromLocalStorage() {
+    try {
+      const raw = localStorage.getItem('easeMed_surgery_draft');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  // ============================================================
+  // 3. TOAST NOTIFICATION
+  // ============================================================
+  function showToast(msg, color = '#2a9d8f') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: ${color}; color: white; padding: 12px 28px;
+      border-radius: 30px; font-size: 0.9rem; z-index: 99999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      transition: opacity 0.3s; opacity: 0;
+      pointer-events: none; font-weight: 600;
+    `;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => { toast.style.opacity = '1'; });
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 400);
+    }, 3000);
+  }
+
+  // ============================================================
+  // 4. CAMERA FUNCTIONALITY
+  // ============================================================
+  let cameraStream = null;
+  let capturedImages = [];
+
+  function updateImageCounter() {
+    document.getElementById('imageCounter').textContent = `📷 ${capturedImages.length} images captured`;
+    document.getElementById('capturedImagesData').value = JSON.stringify(capturedImages);
+    updateProgress();
+  }
+
+  function renderCapturedImages() {
+    const container = document.getElementById('capturedImagesContainer');
+    container.innerHTML = '';
+    capturedImages.forEach((imgData, index) => {
+      const div = document.createElement('div');
+      div.className = 'captured-image-item';
+      div.innerHTML = `
+        <img src="${imgData}" alt="Clinical photo ${index+1}">
+        <button class="remove-img" onclick="removeImage(${index})">×</button>
+      `;
+      container.appendChild(div);
+    });
+    updateImageCounter();
+  }
+
+  async function startCamera() {
+    const video = document.getElementById('cameraPreview');
+    const banner = document.getElementById('cameraPermissionBanner');
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
+      });
+      video.srcObject = cameraStream;
+      video.style.display = 'block';
+      document.getElementById('btnCameraStart').style.display = 'none';
+      document.getElementById('btnCameraCapture').style.display = 'inline-flex';
+      document.getElementById('btnCameraStop').style.display = 'inline-flex';
+      banner.classList.remove('visible');
+      showToast('📷 Camera started', '#2a9d8f');
+    } catch (err) {
+      console.error('Camera error:', err);
+      banner.textContent = '⚠️ Camera access denied. Please allow camera permissions in your browser settings.';
+      banner.classList.add('visible');
+      showToast('❌ Camera access denied', '#e53e3e');
+    }
+  }
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+    const video = document.getElementById('cameraPreview');
+    video.srcObject = null;
+    video.style.display = 'none';
+    document.getElementById('btnCameraStart').style.display = 'inline-flex';
+    document.getElementById('btnCameraCapture').style.display = 'none';
+    document.getElementById('btnCameraStop').style.display = 'none';
+    showToast('⏹ Camera stopped', '#95a5a6');
+  }
+
+  function captureImage() {
+    const video = document.getElementById('cameraPreview');
+    if (!video.srcObject) {
+      showToast('⚠️ Please start the camera first', '#e67e22');
+      return;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = canvas.toDataURL('image/jpeg', 0.85);
+    capturedImages.push(imageData);
+    renderCapturedImages();
+    showToast('📸 Image captured!', '#2a9d8f');
+  }
+
+  function uploadImages(event) {
+    const files = event.target.files;
+    if (!files.length) return;
+    let loaded = 0;
+    for (let file of files) {
+      if (!file.type.startsWith('image/')) continue;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        capturedImages.push(e.target.result);
+        loaded++;
+        if (loaded === files.length) {
+          renderCapturedImages();
+          showToast(`📁 ${loaded} image(s) uploaded`, '#2980b9');
+          event.target.value = '';
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function removeImage(index) {
+    capturedImages.splice(index, 1);
+    renderCapturedImages();
+    showToast('🗑️ Image removed', '#95a5a6');
+  }
+
+  function removeAllImages() {
+    if (capturedImages.length === 0) return;
+    if (!confirm('Remove all captured images?')) return;
+    capturedImages = [];
+    renderCapturedImages();
+    showToast('🗑️ All images removed', '#95a5a6');
+  }
+
+  // ============================================================
+  // 5. FORM DATA COLLECTION
+  // ============================================================
+  function collectFormData() {
+    const getVal = (id) => document.getElementById(id)?.value || '';
+    const getText = (id) => document.getElementById(id)?.value || '';
+    const getRadio = (name) => {
+      const el = document.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : '';
+    };
+    // Collect differentials
+    const diffItems = document.querySelectorAll('#differentialList .dx-item');
+    const differentials = [];
+    diffItems.forEach(item => {
+      const input = item.querySelector('input');
+      const textarea = item.querySelector('textarea');
+      if (input && input.value.trim()) {
+        differentials.push({
+          diagnosis: input.value.trim(),
+          justification: textarea ? textarea.value.trim() : ''
+        });
+      }
+    });
+
+    // ROS chips state
+    const rosData = {};
+    Object.keys(SYS_SYMPTOMS).forEach(sys => {
+      const chips = document.querySelectorAll(`#chips-${sys} .sym-chip`);
+      const notes = document.querySelector(`#ros-card-${sys} .sys-notes`);
+      rosData[sys] = {
+        symptoms: Array.from(chips).map(c => ({ name: c.textContent, status: c.className.includes('present') ? 'present' : c.className.includes('absent') ? 'absent' : '' })),
+        notes: notes ? notes.value : ''
+      };
+    });
+
+    return {
+      demographics: {
+        patientName: getVal('patientName'),
+        age: getVal('age'),
+        sex: getVal('sex'),
+        ipNumber: getVal('ipNumber'),
+        admissionDate: getVal('admissionDate'),
+        ward: getVal('ward'),
+        clerkedBy: getVal('clerkedBy'),
+        maritalStatus: getVal('maritalStatus'),
+        religion: getVal('religion'),
+        referred: getRadio('referred'),
+        referralFacility: getVal('referralFacility'),
+        referralLevel: getVal('referralLevel'),
+        referralReason: getText('referralReason')
+      },
+      complaint: {
+        verbatim: getText('complaintVerbatim'),
+        durationValue: getVal('durationValue'),
+        durationUnit: getVal('durationUnit'),
+        category: getVal('complaintCategory'),
+        other: getVal('otherComplaint'),
+        onset: getRadio('onset'),
+        course: getRadio('course')
+      },
+      hpc: {
+        narrative: getText('hpcNarrative'),
+        site: getVal('hpcSite'),
+        onset: getVal('hpcOnset'),
+        character: getVal('hpcCharacter'),
+        radiation: getVal('hpcRadiation'),
+        severity: getVal('hpcSeverity'),
+        time: getVal('hpcTime'),
+        exacerbating: getVal('hpcExacerbating'),
+        relieving: getVal('hpcRelieving'),
+        associations: getVal('hpcAssociations')
+      },
+      ros: rosData,
+      pastHistory: {
+        medical: getText('pastMedical'),
+        chronicMeds: getText('chronicMeds'),
+        surgical: getText('pastSurgical'),
+        transfusion: getRadio('transfusion'),
+        obstetric: getVal('obstetricHx')
+      },
+      drugHistory: {
+        currentMeds: getText('currentMeds'),
+        herbalMeds: getText('herbalMeds'),
+        allergies: getText('allergies'),
+        adr: getText('adr')
+      },
+      familySocial: {
+        familyHistory: getText('familyHistory'),
+        familySurgical: getVal('familySurgical'),
+        occupation: getText('socialOccupation'),
+        smoking: getRadio('smoking'),
+        smokingDetail: getVal('smokingDetail'),
+        alcohol: getRadio('alcohol'),
+        alcoholDetail: getVal('alcoholDetail'),
+        living: getText('livingSituation')
+      },
+      physicalExam: {
+        general: getText('peGeneral'),
+        bp: getVal('peBP'),
+        hr: getVal('peHR'),
+        rr: getVal('peRR'),
+        temp: getVal('peTemp'),
+        spo2: getVal('peSpO2'),
+        bmi: getVal('peBMI'),
+        cvs: getText('peCVS'),
+        resp: getText('peResp'),
+        abdo: getText('peAbdo'),
+        gu: getText('peGU'),
+        neuro: getText('peNeuro'),
+        msk: getText('peMSK'),
+        wound: getText('peWound'),
+        other: getText('peOther')
+      },
+      assessment: {
+        summary: getText('summary'),
+        differentials: differentials,
+        investigations: getText('investigations'),
+        treatmentPlan: getText('treatmentPlan'),
+        referrals: getText('referrals'),
+        clerkSignature: getVal('clerkSignature'),
+        clerkDate: getVal('clerkDate')
+      },
+      images: capturedImages,
+      metadata: {
+        savedAt: new Date().toISOString()
+      }
+    };
+  }
+
+  // ============================================================
+  // 6. SAVE DRAFT (local + supabase)
+  // ============================================================
+  async function saveDraft() {
+    const data = collectFormData();
+    // 1. Local
+    saveToLocalStorage(data);
+    showToast('✅ Draft saved locally.');
+
+    // 2. Supabase (if configured)
+    // Uncomment when Supabase is set up:
+    /*
+    try {
+      const patientName = data.demographics.patientName || 'unknown';
+      const { error } = await supabase
+        .from('surgery_drafts')
+        .upsert({
+          patient_name: patientName,
+          draft_data: data,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'patient_name' });
+      if (error) {
+        console.error('Supabase error:', error);
+        showToast('⚠️ Saved locally, Supabase sync failed.');
+      } else {
+        showToast('✅ Draft saved locally & to Supabase.');
+      }
+    } catch (e) {
+      console.error('Supabase save error:', e);
+      showToast('⚠️ Saved locally, Supabase sync failed.');
+    }
+    */
+  }
+
+  // ============================================================
+  // 7. SUBMIT FORM
+  // ============================================================
+  async function submitForm() {
+    // Validate required fields
+    const name = document.getElementById('patientName').value.trim();
+    const age = document.getElementById('age').value;
+    const sex = document.getElementById('sex').value;
+    const complaint = document.getElementById('complaintVerbatim').value.trim();
+    const durVal = document.getElementById('durationValue').value;
+    const durUnit = document.getElementById('durationUnit').value;
+    const cat = document.getElementById('complaintCategory').value;
+    const hpc = document.getElementById('hpcNarrative').value.trim();
+    const summary = document.getElementById('summary').value.trim();
+
+    if (!name || !age || !sex) { alert('Please complete required demographics: Name, Age, and Sex.'); return; }
+    if (!complaint || !durVal || !durUnit || !cat) { alert('Please complete the presenting complaint.'); return; }
+    if (!hpc) { alert('Please write the History of Presenting Complaint narrative.'); return; }
+    if (!summary) { alert('Please write a summary in the Clerk\'s Assessment section.'); return; }
+
+    const data = collectFormData();
+    data.metadata.submittedAt = new Date().toISOString();
+    data.metadata.status = 'submitted';
+
+    // Save to Supabase (if configured)
+    // Uncomment when Supabase is set up:
+    /*
+    try {
+      const { error } = await supabase
+        .from('surgery_submissions')
+        .insert({
+          patient_name: name,
+          patient_age: age,
+          patient_sex: sex,
+          complaint_category: cat,
+          full_data: data,
+          submitted_at: new Date().toISOString()
+        });
+      if (error) {
+        console.error('Submit error:', error);
+        alert('❌ Submission to Supabase failed: ' + error.message);
+      } else {
+        alert('✅ Form submitted successfully to Supabase!');
+        localStorage.removeItem('easeMed_surgery_draft');
+        showToast('✅ Submitted! Draft cleared.');
+      }
+    } catch (e) {
+      console.error('Submit error:', e);
+      alert('❌ Submission failed. Check console.');
+    }
+    */
+    alert('✅ All sections complete. Data logged to console.\n\nImages captured: ' + capturedImages.length);
+    console.log('📋 Full Patient Data:', data);
+  }
+
+  // ============================================================
+  // 8. EXIT FORM
+  // ============================================================
+  function exitForm() {
+    if (confirm('Do you want to save a draft before exiting?')) {
+      saveDraft().then(() => {
+        showToast('📂 Draft saved. Exiting...');
+        setTimeout(() => window.location.href = 'about:blank', 500);
+      });
+    } else {
+      window.location.href = 'about:blank';
+    }
+  }
+
+  // ============================================================
+  // 9. EXISTING HELPERS (unchanged)
+  // ============================================================
   function checkAge() {
     const age = parseInt(document.getElementById('age').value);
     document.getElementById('paedFlag').style.display = (!isNaN(age) && age < 18) ? 'block' : 'none';
@@ -836,7 +1362,6 @@
     document.getElementById('referralDetails').style.display = show ? 'block' : 'none';
   }
 
-  // ========== COMPLAINT → SYSTEM ==========
   const COMPLAINT_SYSTEM = {
     'abdo-pain':'git','abdo-swelling':'git','vomiting':'git','bowel':'git','rectal-bleed':'git','jaundice':'git',
     'haematuria':'uro','urinary-sx':'uro','scrotal':'uro',
@@ -929,11 +1454,9 @@
     } else {
       banner.style.display = 'none';
     }
-    // Regenerate differentials when complaint category changes
     generateDifferentials();
   }
 
-  // ========== PE TOGGLE ==========
   function togglePE(headerEl) {
     const body = headerEl.nextElementSibling;
     if (!body || !body.classList.contains('pe-body')) return;
@@ -941,7 +1464,6 @@
     headerEl.classList.toggle('open');
   }
 
-  // ========== DIFFERENTIAL GENERATOR (based on complaint) ==========
   function generateDifferentials() {
     const cat = document.getElementById('complaintCategory').value;
     const age = parseInt(document.getElementById('age').value) || 30;
@@ -949,7 +1471,6 @@
     const isPaed = age < 18;
     const isFemale = sex === 'Female';
 
-    // Comprehensive differential knowledge base indexed by complaint category
     const DDX_MAP = {
       'abdo-pain': {
         common: ['Acute appendicitis', 'Acute gastroenteritis', 'Mesenteric adenitis', 'Peptic ulcer disease', 'Biliary colic / cholecystitis', 'Pancreatitis'],
@@ -1003,7 +1524,7 @@
         common: ['Hydrocele', 'Varicocele', 'Epididymitis', 'Inguinal hernia'],
         adult: ['Testicular torsion', 'Testicular carcinoma', 'Fournier\'s gangrene'],
         paed: ['Testicular torsion (emergency)', 'Hydrocele', 'Hernia', 'Torsion of testicular appendage'],
-        female: [] // not applicable
+        female: []
       },
       'swelling-surface': {
         common: ['Lipoma', 'Sebaceous cyst', 'Abscess', 'Lymphadenopathy', 'Dermatofibroma'],
@@ -1057,32 +1578,16 @@
 
     const ddx = DDX_MAP[cat] || DDX_MAP['other'];
     let list = [];
-
-    // Start with common
     if (ddx.common) list = list.concat(ddx.common);
-
-    // Add adult-specific
     if (!isPaed && ddx.adult) list = list.concat(ddx.adult);
-
-    // Add paediatric-specific
     if (isPaed && ddx.paed) list = list.concat(ddx.paed);
-
-    // Add female-specific
     if (isFemale && ddx.female) list = list.concat(ddx.female);
-
-    // Remove duplicates
     list = [...new Set(list)];
-
-    // If list is empty, fallback
     if (list.length === 0) list = ['Surgical infection', 'Abscess', 'Cellulitis', 'Malignancy'];
-
-    // Limit to top 6
     list = list.slice(0, 6);
 
-    // Now update the DOM
     const container = document.getElementById('differentialList');
     container.innerHTML = '';
-
     list.forEach((dx, index) => {
       const div = document.createElement('div');
       div.className = 'dx-item generated';
@@ -1092,8 +1597,6 @@
       `;
       container.appendChild(div);
     });
-
-    // Add one empty manual slot for user to add their own
     const manualDiv = document.createElement('div');
     manualDiv.className = 'dx-item';
     manualDiv.style.borderLeftColor = 'var(--muted)';
@@ -1104,7 +1607,6 @@
     container.appendChild(manualDiv);
   }
 
-  // ========== ADD DIFFERENTIAL (manual) ==========
   function addDifferential() {
     const container = document.getElementById('differentialList');
     const div = document.createElement('div');
@@ -1116,28 +1618,149 @@
     container.appendChild(div);
   }
 
-  // ========== FINISH ==========
-  function goNext() {
-    const name = document.getElementById('patientName').value.trim();
-    const age = document.getElementById('age').value;
-    const sex = document.getElementById('sex').value;
-    const complaint = document.getElementById('complaintVerbatim').value.trim();
-    const durVal = document.getElementById('durationValue').value;
-    const durUnit = document.getElementById('durationUnit').value;
-    const cat = document.getElementById('complaintCategory').value;
-    const hpc = document.getElementById('hpcNarrative').value.trim();
-    const summary = document.getElementById('summary').value.trim();
-    if (!name || !age || !sex) { alert('Please complete required demographics: Name, Age, and Sex.'); return; }
-    if (!complaint || !durVal || !durUnit || !cat) { alert('Please complete the presenting complaint.'); return; }
-    if (!hpc) { alert('Please write the History of Presenting Complaint narrative.'); return; }
-    if (!summary) { alert('Please write a summary in the Clerk\'s Assessment section.'); return; }
-    alert('✅ All sections complete. Wire your Supabase save + submission logic here.');
+  // ============================================================
+  // 10. PROGRESS UPDATE
+  // ============================================================
+  function updateProgress() {
+    const inputs = document.querySelectorAll('input:not(.btn-camera):not([type="file"]), textarea, select');
+    let filled = 0;
+    inputs.forEach(el => { if (el.value && el.value.trim() !== '') filled++; });
+    const totalInputs = inputs.length;
+    // Add image count to progress
+    const imgBonus = Math.min(capturedImages.length, 3) * 0.5;
+    const percent = Math.min(((filled / totalInputs) * 60) + imgBonus + 10, 100);
+    document.getElementById('progressFill').style.width = percent + '%';
   }
 
-  // Auto-generate on load if category is already set
+  // ============================================================
+  // 11. LOAD DRAFT
+  // ============================================================
+  function loadDraft() {
+    const saved = loadFromLocalStorage();
+    if (!saved) return;
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val !== undefined && val !== null) el.value = val;
+    };
+    const d = saved;
+    if (d.demographics) {
+      setVal('patientName', d.demographics.patientName);
+      setVal('age', d.demographics.age);
+      setVal('sex', d.demographics.sex);
+      setVal('ipNumber', d.demographics.ipNumber);
+      setVal('admissionDate', d.demographics.admissionDate);
+      setVal('ward', d.demographics.ward);
+      setVal('clerkedBy', d.demographics.clerkedBy);
+      setVal('maritalStatus', d.demographics.maritalStatus);
+      setVal('religion', d.demographics.religion);
+      setVal('referralFacility', d.demographics.referralFacility);
+      setVal('referralLevel', d.demographics.referralLevel);
+      setVal('referralReason', d.demographics.referralReason);
+    }
+    if (d.complaint) {
+      setVal('complaintVerbatim', d.complaint.verbatim);
+      setVal('durationValue', d.complaint.durationValue);
+      setVal('durationUnit', d.complaint.durationUnit);
+      setVal('complaintCategory', d.complaint.category);
+      setVal('otherComplaint', d.complaint.other);
+    }
+    if (d.hpc) {
+      setVal('hpcNarrative', d.hpc.narrative);
+      setVal('hpcSite', d.hpc.site);
+      setVal('hpcOnset', d.hpc.onset);
+      setVal('hpcCharacter', d.hpc.character);
+      setVal('hpcRadiation', d.hpc.radiation);
+      setVal('hpcSeverity', d.hpc.severity);
+      setVal('hpcTime', d.hpc.time);
+      setVal('hpcExacerbating', d.hpc.exacerbating);
+      setVal('hpcRelieving', d.hpc.relieving);
+      setVal('hpcAssociations', d.hpc.associations);
+    }
+    if (d.physicalExam) {
+      setVal('peGeneral', d.physicalExam.general);
+      setVal('peBP', d.physicalExam.bp);
+      setVal('peHR', d.physicalExam.hr);
+      setVal('peRR', d.physicalExam.rr);
+      setVal('peTemp', d.physicalExam.temp);
+      setVal('peSpO2', d.physicalExam.spo2);
+      setVal('peBMI', d.physicalExam.bmi);
+      setVal('peCVS', d.physicalExam.cvs);
+      setVal('peResp', d.physicalExam.resp);
+      setVal('peAbdo', d.physicalExam.abdo);
+      setVal('peGU', d.physicalExam.gu);
+      setVal('peNeuro', d.physicalExam.neuro);
+      setVal('peMSK', d.physicalExam.msk);
+      setVal('peWound', d.physicalExam.wound);
+      setVal('peOther', d.physicalExam.other);
+    }
+    if (d.assessment) {
+      setVal('summary', d.assessment.summary);
+      setVal('investigations', d.assessment.investigations);
+      setVal('treatmentPlan', d.assessment.treatmentPlan);
+      setVal('referrals', d.assessment.referrals);
+      setVal('clerkSignature', d.assessment.clerkSignature);
+      setVal('clerkDate', d.assessment.clerkDate);
+    }
+    if (d.pastHistory) {
+      setVal('pastMedical', d.pastHistory.medical);
+      setVal('chronicMeds', d.pastHistory.chronicMeds);
+      setVal('pastSurgical', d.pastHistory.surgical);
+      setVal('obstetricHx', d.pastHistory.obstetric);
+    }
+    if (d.drugHistory) {
+      setVal('currentMeds', d.drugHistory.currentMeds);
+      setVal('herbalMeds', d.drugHistory.herbalMeds);
+      setVal('allergies', d.drugHistory.allergies);
+      setVal('adr', d.drugHistory.adr);
+    }
+    if (d.familySocial) {
+      setVal('familyHistory', d.familySocial.familyHistory);
+      setVal('familySurgical', d.familySocial.familySurgical);
+      setVal('socialOccupation', d.familySocial.occupation);
+      setVal('smokingDetail', d.familySocial.smokingDetail);
+      setVal('alcoholDetail', d.familySocial.alcoholDetail);
+      setVal('livingSituation', d.familySocial.living);
+    }
+    // Restore images
+    if (d.images && d.images.length) {
+      capturedImages = d.images;
+      renderCapturedImages();
+    }
+    showToast('📂 Draft loaded from local storage.');
+    updateProgress();
+  }
+
+  // ============================================================
+  // 12. INIT
+  // ============================================================
   document.addEventListener('DOMContentLoaded', function() {
     checkAge();
     setTimeout(generateDifferentials, 100);
+    loadDraft();
+    // Auto-update progress on input
+    document.querySelectorAll('input, textarea, select').forEach(el => {
+      el.addEventListener('input', updateProgress);
+    });
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+      btn.addEventListener('click', updateProgress);
+    });
+    // Referral toggle
+    document.querySelectorAll('input[name="referred"]').forEach(r => {
+      r.addEventListener('change', function() {
+        toggleReferral(this.value === 'yes' || this.value === 'transferred');
+      });
+    });
+    // Initial referral state
+    const checkedReferral = document.querySelector('input[name="referred"]:checked');
+    if (checkedReferral) {
+      toggleReferral(checkedReferral.value === 'yes' || checkedReferral.value === 'transferred');
+    }
+    // Camera cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+    });
   });
 </script>
 </body>
