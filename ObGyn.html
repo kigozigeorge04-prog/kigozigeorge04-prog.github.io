@@ -192,12 +192,201 @@
     .pe-other { margin-top: 0.5rem; }
     .pe-other textarea { font-size: 0.84rem; padding: 0.35rem 0.6rem; min-height: 50px; }
     
-    /* Step indicator badge */
     .step-badge { display: inline-block; background: var(--primary); color: #fff; border-radius: 50%; width: 20px; height: 20px; text-align: center; line-height: 20px; font-size: 0.65rem; font-weight: 700; margin-right: 0.3rem; flex-shrink: 0; }
     .step-badge.inspection { background: #3498db; }
     .step-badge.palpation { background: #e67e22; }
     .step-badge.percussion { background: #9b59b6; }
     .step-badge.auscultation { background: #2ecc71; }
+
+    /* ============================================================ */
+    /* IMAGE CAPTURE STYLES                                         */
+    /* ============================================================ */
+    .image-capture-section {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      transition: border-color 0.3s;
+      background: var(--bg);
+    }
+    .image-capture-section:hover {
+      border-color: var(--primary);
+    }
+    .image-capture-section .capture-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+    }
+    .image-capture-section .capture-header h4 {
+      color: var(--primary);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .image-capture-section .capture-header .count-badge {
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 0.1rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .image-capture-section .capture-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .capture-btn {
+      padding: 0.45rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .capture-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .capture-btn.primary { background: var(--primary); color: #fff; }
+    .capture-btn.primary:hover { background: var(--primary-dark); }
+    .capture-btn.success { background: var(--success); color: #fff; }
+    .capture-btn.success:hover { background: #145c3a; }
+    .capture-btn.danger { background: var(--danger); color: #fff; }
+    .capture-btn.danger:hover { background: #a93226; }
+    .capture-btn.outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+    .capture-btn.outline:hover { border-color: var(--primary); background: var(--primary-light); }
+
+    .video-container {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      display: none;
+    }
+    .video-container.active {
+      display: block;
+    }
+    .video-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .video-container .capture-overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+    }
+    .video-container .capture-overlay button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .video-container .capture-overlay .snap-btn {
+      background: #fff;
+      color: #000;
+    }
+    .video-container .capture-overlay .snap-btn:hover {
+      transform: scale(1.05);
+    }
+    .video-container .capture-overlay .close-btn {
+      background: rgba(255,0,0,0.8);
+      color: #fff;
+    }
+    .video-container .capture-overlay .close-btn:hover {
+      background: rgba(255,0,0,1);
+    }
+
+    .image-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 0.8rem;
+      margin-top: 0.8rem;
+    }
+    .image-gallery .image-item {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      aspect-ratio: 1;
+      border: 2px solid var(--border);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .image-gallery .image-item:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      z-index: 2;
+    }
+    .image-gallery .image-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .image-gallery .image-item .remove-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(192, 57, 43, 0.85);
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+    }
+    .image-gallery .image-item:hover .remove-btn {
+      opacity: 1;
+    }
+    .image-gallery .image-item .remove-btn:hover {
+      background: var(--danger);
+      transform: scale(1.1);
+    }
+    .image-gallery .image-item .image-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 0.6rem;
+      padding: 0.2rem 0.4rem;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .image-gallery-empty {
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 1rem;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -1983,9 +2172,7 @@
       Click findings to toggle <span style="color:var(--success);font-weight:700;">Present</span>.
     </div>
 
-    <!-- ════════════════════════════════
-         PE SYSTEM 1: GENERAL EXAMINATION
-         ════════════════════════════════ -->
+    <!-- PE SYSTEM 1: GENERAL -->
     <div class="pe-system">
       <div class="pe-header" onclick="togglePE('pe-general')">
         <h3><span class="pe-icon">🌡️</span> General Examination</h3>
@@ -1994,7 +2181,6 @@
       <div class="pe-body" id="pe-general">
         <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, 25th Ed. Ch. 8; Hutchison's Clinical Methods, Ch. 3 &amp; 10</div>
         
-        <!-- Step 1: Inspection -->
         <div class="pe-step">
           <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
           <div class="pe-findings-wrap" data-system="general-inspection">
@@ -2007,11 +2193,9 @@
             <button class="pe-finding-tag" data-finding="Lymphadenopathy" onclick="togglePEFinding(this)">Lymphadenopathy</button>
             <button class="pe-finding-tag" data-finding="Oedema" onclick="togglePEFinding(this)">Oedema</button>
             <button class="pe-finding-tag" data-finding="Dehydration" onclick="togglePEFinding(this)">Dehydration</button>
-            <button class="pe-finding-tag" data-finding="Cachexia" onclick="togglePEFinding(this)">Cachexia</button>
           </div>
         </div>
 
-        <!-- Step 2: Palpation -->
         <div class="pe-step">
           <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
           <div class="pe-findings-wrap" data-system="general-palpation">
@@ -2019,12 +2203,9 @@
             <button class="pe-finding-tag" data-finding="Reduced skin turgor" onclick="togglePEFinding(this)">Reduced skin turgor</button>
             <button class="pe-finding-tag" data-finding="Lymph nodes non-tender" onclick="togglePEFinding(this)">Lymph nodes non-tender</button>
             <button class="pe-finding-tag" data-finding="Lymph nodes tender" onclick="togglePEFinding(this)">Lymph nodes tender</button>
-            <button class="pe-finding-tag" data-finding="Pitting oedema" onclick="togglePEFinding(this)">Pitting oedema</button>
-            <button class="pe-finding-tag" data-finding="Non-pitting oedema" onclick="togglePEFinding(this)">Non-pitting oedema</button>
           </div>
         </div>
 
-        <!-- Step 3: Percussion -->
         <div class="pe-step">
           <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
           <div class="pe-findings-wrap" data-system="general-percussion">
@@ -2032,7 +2213,6 @@
           </div>
         </div>
 
-        <!-- Step 4: Auscultation -->
         <div class="pe-step">
           <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
           <div class="pe-findings-wrap" data-system="general-auscultation">
@@ -2048,9 +2228,7 @@
       </div>
     </div>
 
-    <!-- ════════════════════════════════
-         PE SYSTEM 2: CNS / NEUROLOGICAL
-         ════════════════════════════════ -->
+    <!-- PE SYSTEM 2: CNS -->
     <div class="pe-system">
       <div class="pe-header" onclick="togglePE('pe-cns')">
         <h3><span class="pe-icon">🧠</span> Central Nervous System</h3>
@@ -2059,505 +2237,505 @@
       <div class="pe-body" id="pe-cns">
         <div class="pe-reference"><strong>📖 Reference:</strong> Hutchison's Clinical Methods, Ch. 19; Williams Obstetrics, Ch. 8</div>
 
-        <!-- Step 1: Inspection -->
         <div class="pe-step">
           <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
           <div class="pe-findings-wrap" data-system="cns-inspection">
-                      <button class="pe-finding-tag" data-finding="Alert and oriented" onclick="togglePEFinding(this)">Alert and oriented</button>
-          <button class="pe-finding-tag" data-finding="Disoriented" onclick="togglePEFinding(this)">Disoriented</button>
-          <button class="pe-finding-tag" data-finding="GCS 15/15" onclick="togglePEFinding(this)">GCS 15/15</button>
-          <button class="pe-finding-tag" data-finding="GCS <15" onclick="togglePEFinding(this)">GCS &lt;15</button>
-          <button class="pe-finding-tag" data-finding="Speech normal" onclick="togglePEFinding(this)">Speech normal</button>
-          <button class="pe-finding-tag" data-finding="Dysarthria" onclick="togglePEFinding(this)">Dysarthria</button>
-          <button class="pe-finding-tag" data-finding="Facial asymmetry" onclick="togglePEFinding(this)">Facial asymmetry</button>
-          <button class="pe-finding-tag" data-finding="Gait normal" onclick="togglePEFinding(this)">Gait normal</button>
-          <button class="pe-finding-tag" data-finding="Gait abnormal" onclick="togglePEFinding(this)">Gait abnormal</button>
+            <button class="pe-finding-tag" data-finding="Alert and oriented" onclick="togglePEFinding(this)">Alert and oriented</button>
+            <button class="pe-finding-tag" data-finding="Disoriented" onclick="togglePEFinding(this)">Disoriented</button>
+            <button class="pe-finding-tag" data-finding="GCS 15/15" onclick="togglePEFinding(this)">GCS 15/15</button>
+            <button class="pe-finding-tag" data-finding="GCS <15" onclick="togglePEFinding(this)">GCS &lt;15</button>
+            <button class="pe-finding-tag" data-finding="Speech normal" onclick="togglePEFinding(this)">Speech normal</button>
+            <button class="pe-finding-tag" data-finding="Dysarthria" onclick="togglePEFinding(this)">Dysarthria</button>
+            <button class="pe-finding-tag" data-finding="Facial asymmetry" onclick="togglePEFinding(this)">Facial asymmetry</button>
+            <button class="pe-finding-tag" data-finding="Gait normal" onclick="togglePEFinding(this)">Gait normal</button>
+            <button class="pe-finding-tag" data-finding="Gait abnormal" onclick="togglePEFinding(this)">Gait abnormal</button>
+          </div>
         </div>
-      </div>
 
-      <!-- Step 2: Palpation -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
-        <div class="pe-findings-wrap" data-system="cns-palpation">
-          <button class="pe-finding-tag" data-finding="Tone normal" onclick="togglePEFinding(this)">Tone normal</button>
-          <button class="pe-finding-tag" data-finding="Spasticity" onclick="togglePEFinding(this)">Spasticity</button>
-          <button class="pe-finding-tag" data-finding="Rigidity" onclick="togglePEFinding(this)">Rigidity</button>
-          <button class="pe-finding-tag" data-finding="Power 5/5" onclick="togglePEFinding(this)">Power 5/5</button>
-          <button class="pe-finding-tag" data-finding="Reduced power" onclick="togglePEFinding(this)">Reduced power</button>
-          <button class="pe-finding-tag" data-finding="Reflexes present" onclick="togglePEFinding(this)">Reflexes present</button>
-          <button class="pe-finding-tag" data-finding="Brisk reflexes" onclick="togglePEFinding(this)">Brisk reflexes</button>
-          <button class="pe-finding-tag" data-finding="Absent reflexes" onclick="togglePEFinding(this)">Absent reflexes</button>
-          <button class="pe-finding-tag" data-finding="Plantars downgoing" onclick="togglePEFinding(this)">Plantars downgoing</button>
-          <button class="pe-finding-tag" data-finding="Babinski +" onclick="togglePEFinding(this)">Babinski +</button>
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
+          <div class="pe-findings-wrap" data-system="cns-palpation">
+            <button class="pe-finding-tag" data-finding="Tone normal" onclick="togglePEFinding(this)">Tone normal</button>
+            <button class="pe-finding-tag" data-finding="Spasticity" onclick="togglePEFinding(this)">Spasticity</button>
+            <button class="pe-finding-tag" data-finding="Rigidity" onclick="togglePEFinding(this)">Rigidity</button>
+            <button class="pe-finding-tag" data-finding="Power 5/5" onclick="togglePEFinding(this)">Power 5/5</button>
+            <button class="pe-finding-tag" data-finding="Reduced power" onclick="togglePEFinding(this)">Reduced power</button>
+            <button class="pe-finding-tag" data-finding="Reflexes present" onclick="togglePEFinding(this)">Reflexes present</button>
+            <button class="pe-finding-tag" data-finding="Brisk reflexes" onclick="togglePEFinding(this)">Brisk reflexes</button>
+            <button class="pe-finding-tag" data-finding="Absent reflexes" onclick="togglePEFinding(this)">Absent reflexes</button>
+            <button class="pe-finding-tag" data-finding="Plantars downgoing" onclick="togglePEFinding(this)">Plantars downgoing</button>
+            <button class="pe-finding-tag" data-finding="Babinski +" onclick="togglePEFinding(this)">Babinski +</button>
+          </div>
         </div>
-      </div>
 
-      <!-- Step 3: Percussion -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
-        <div class="pe-findings-wrap" data-system="cns-percussion">
-          <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
+          <div class="pe-findings-wrap" data-system="cns-percussion">
+            <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
+          </div>
         </div>
-      </div>
 
-      <!-- Step 4: Auscultation -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
-        <div class="pe-findings-wrap" data-system="cns-auscultation">
-          <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
+          <div class="pe-findings-wrap" data-system="cns-auscultation">
+            <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
+          </div>
         </div>
-      </div>
 
-      <button class="pe-normal-btn" onclick="markPENormal('cns')">✅ All Normal</button>
-      <div class="pe-other">
-        <label>CNS Examination Narrative:</label>
-        <textarea id="peCnsNarrative" rows="3" placeholder="e.g. GCS 15/15. Oriented to time, place and person. Cranial nerves I-XII intact..." style="min-height:60px;"></textarea>
+        <button class="pe-normal-btn" onclick="markPENormal('cns')">✅ All Normal</button>
+        <div class="pe-other">
+          <label>CNS Examination Narrative:</label>
+          <textarea id="peCnsNarrative" rows="3" placeholder="e.g. GCS 15/15. Oriented to time, place and person. Cranial nerves I-XII intact..." style="min-height:60px;"></textarea>
+        </div>
       </div>
     </div>
+
+    <!-- PE SYSTEM 3: CARDIOVASCULAR -->
+    <div class="pe-system">
+      <div class="pe-header" onclick="togglePE('pe-cv')">
+        <h3><span class="pe-icon">❤️</span> Cardiovascular System</h3>
+        <span class="pe-toggle" id="pe-cv-toggle">▼</span>
+      </div>
+      <div class="pe-body" id="pe-cv">
+        <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, Ch. 8; Hutchison's Clinical Methods, Ch. 13</div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
+          <div class="pe-findings-wrap" data-system="cv-inspection">
+            <button class="pe-finding-tag" data-finding="JVP normal" onclick="togglePEFinding(this)">JVP normal</button>
+            <button class="pe-finding-tag" data-finding="Elevated JVP" onclick="togglePEFinding(this)">Elevated JVP</button>
+            <button class="pe-finding-tag" data-finding="Chest shape normal" onclick="togglePEFinding(this)">Chest shape normal</button>
+            <button class="pe-finding-tag" data-finding="Pectus excavatum" onclick="togglePEFinding(this)">Pectus excavatum</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
+          <div class="pe-findings-wrap" data-system="cv-palpation">
+            <button class="pe-finding-tag" data-finding="Apex beat 5th ICS MCL" onclick="togglePEFinding(this)">Apex beat 5th ICS MCL</button>
+            <button class="pe-finding-tag" data-finding="Displaced apex beat" onclick="togglePEFinding(this)">Displaced apex beat</button>
+            <button class="pe-finding-tag" data-finding="LV heave" onclick="togglePEFinding(this)">LV heave</button>
+            <button class="pe-finding-tag" data-finding="RV heave" onclick="togglePEFinding(this)">RV heave</button>
+            <button class="pe-finding-tag" data-finding="Thrill palpable" onclick="togglePEFinding(this)">Thrill palpable</button>
+            <button class="pe-finding-tag" data-finding="Peripheral pulses present" onclick="togglePEFinding(this)">Peripheral pulses present</button>
+            <button class="pe-finding-tag" data-finding="Peripheral pulses absent" onclick="togglePEFinding(this)">Peripheral pulses absent</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
+          <div class="pe-findings-wrap" data-system="cv-percussion">
+            <button class="pe-finding-tag" data-finding="Cardiac dullness normal" onclick="togglePEFinding(this)">Cardiac dullness normal</button>
+            <button class="pe-finding-tag" data-finding="Cardiac dullness enlarged" onclick="togglePEFinding(this)">Cardiac dullness enlarged</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
+          <div class="pe-findings-wrap" data-system="cv-auscultation">
+            <button class="pe-finding-tag" data-finding="S1 + S2 heard" onclick="togglePEFinding(this)">S1 + S2 heard</button>
+            <button class="pe-finding-tag" data-finding="S3 gallop" onclick="togglePEFinding(this)">S3 gallop</button>
+            <button class="pe-finding-tag" data-finding="S4" onclick="togglePEFinding(this)">S4</button>
+            <button class="pe-finding-tag" data-finding="Systolic murmur" onclick="togglePEFinding(this)">Systolic murmur</button>
+            <button class="pe-finding-tag" data-finding="Diastolic murmur" onclick="togglePEFinding(this)">Diastolic murmur</button>
+            <button class="pe-finding-tag" data-finding="Pericardial rub" onclick="togglePEFinding(this)">Pericardial rub</button>
+            <button class="pe-finding-tag" data-finding="Regular rhythm" onclick="togglePEFinding(this)">Regular rhythm</button>
+            <button class="pe-finding-tag" data-finding="Irregular rhythm" onclick="togglePEFinding(this)">Irregular rhythm</button>
+          </div>
+        </div>
+
+        <button class="pe-normal-btn" onclick="markPENormal('cv')">✅ All Normal</button>
+        <div class="pe-other">
+          <label>Cardiovascular Examination Narrative:</label>
+          <textarea id="peCvNarrative" rows="3" placeholder="e.g. JVP not elevated. Apex beat at 5th ICS MCL. No heaves or thrills. S1 + S2 heard..." style="min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- PE SYSTEM 4: RESPIRATORY -->
+    <div class="pe-system">
+      <div class="pe-header" onclick="togglePE('pe-resp')">
+        <h3><span class="pe-icon">🫁</span> Respiratory System</h3>
+        <span class="pe-toggle" id="pe-resp-toggle">▼</span>
+      </div>
+      <div class="pe-body" id="pe-resp">
+        <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, Ch. 8; Hutchison's Clinical Methods, Ch. 12</div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
+          <div class="pe-findings-wrap" data-system="resp-inspection">
+            <button class="pe-finding-tag" data-finding="Chest symmetrical" onclick="togglePEFinding(this)">Chest symmetrical</button>
+            <button class="pe-finding-tag" data-finding="Chest asymmetry" onclick="togglePEFinding(this)">Chest asymmetry</button>
+            <button class="pe-finding-tag" data-finding="Trachea central" onclick="togglePEFinding(this)">Trachea central</button>
+            <button class="pe-finding-tag" data-finding="Tracheal deviation" onclick="togglePEFinding(this)">Tracheal deviation</button>
+            <button class="pe-finding-tag" data-finding="Equal expansion" onclick="togglePEFinding(this)">Equal expansion</button>
+            <button class="pe-finding-tag" data-finding="Reduced expansion (R)" onclick="togglePEFinding(this)">Reduced expansion (R)</button>
+            <button class="pe-finding-tag" data-finding="Reduced expansion (L)" onclick="togglePEFinding(this)">Reduced expansion (L)</button>
+            <button class="pe-finding-tag" data-finding="Accessory muscle use" onclick="togglePEFinding(this)">Accessory muscle use</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
+          <div class="pe-findings-wrap" data-system="resp-palpation">
+            <button class="pe-finding-tag" data-finding="Tactile fremitus normal" onclick="togglePEFinding(this)">Tactile fremitus normal</button>
+            <button class="pe-finding-tag" data-finding="Tactile fremitus reduced" onclick="togglePEFinding(this)">Tactile fremitus reduced</button>
+            <button class="pe-finding-tag" data-finding="Tactile fremitus increased" onclick="togglePEFinding(this)">Tactile fremitus increased</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
+          <div class="pe-findings-wrap" data-system="resp-percussion">
+            <button class="pe-finding-tag" data-finding="Resonant percussion" onclick="togglePEFinding(this)">Resonant percussion</button>
+            <button class="pe-finding-tag" data-finding="Dull to percussion" onclick="togglePEFinding(this)">Dull to percussion</button>
+            <button class="pe-finding-tag" data-finding="Stony dull (effusion)" onclick="togglePEFinding(this)">Stony dull (effusion)</button>
+            <button class="pe-finding-tag" data-finding="Hyperresonant (pneumothorax)" onclick="togglePEFinding(this)">Hyperresonant (pneumothorax)</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
+          <div class="pe-findings-wrap" data-system="resp-auscultation">
+            <button class="pe-finding-tag" data-finding="Vesicular breath sounds" onclick="togglePEFinding(this)">Vesicular breath sounds</button>
+            <button class="pe-finding-tag" data-finding="Bronchial breathing" onclick="togglePEFinding(this)">Bronchial breathing</button>
+            <button class="pe-finding-tag" data-finding="Reduced breath sounds" onclick="togglePEFinding(this)">Reduced breath sounds</button>
+            <button class="pe-finding-tag" data-finding="Coarse crackles" onclick="togglePEFinding(this)">Coarse crackles</button>
+            <button class="pe-finding-tag" data-finding="Fine crackles" onclick="togglePEFinding(this)">Fine crackles</button>
+            <button class="pe-finding-tag" data-finding="Expiratory wheeze" onclick="togglePEFinding(this)">Expiratory wheeze</button>
+            <button class="pe-finding-tag" data-finding="Inspiratory wheeze" onclick="togglePEFinding(this)">Inspiratory wheeze</button>
+            <button class="pe-finding-tag" data-finding="Pleural rub" onclick="togglePEFinding(this)">Pleural rub</button>
+          </div>
+        </div>
+
+        <button class="pe-normal-btn" onclick="markPENormal('resp')">✅ All Normal</button>
+        <div class="pe-other">
+          <label>Respiratory Examination Narrative:</label>
+          <textarea id="peRespNarrative" rows="3" placeholder="e.g. Chest symmetrical. Trachea central. Equal expansion bilaterally. Resonant percussion..." style="min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- PE SYSTEM 5: BREAST -->
+    <div class="pe-system">
+      <div class="pe-header" onclick="togglePE('pe-breast')">
+        <h3><span class="pe-icon">🍈</span> Breast Examination</h3>
+        <span class="pe-toggle" id="pe-breast-toggle">▼</span>
+      </div>
+      <div class="pe-body" id="pe-breast">
+        <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, Ch. 8; Gabbe's Obstetrics, Ch. 7</div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
+          <div class="pe-findings-wrap" data-system="breast-inspection">
+            <button class="pe-finding-tag" data-finding="Breasts symmetrical" onclick="togglePEFinding(this)">Breasts symmetrical</button>
+            <button class="pe-finding-tag" data-finding="Breast asymmetry" onclick="togglePEFinding(this)">Breast asymmetry</button>
+            <button class="pe-finding-tag" data-finding="Skin normal" onclick="togglePEFinding(this)">Skin normal</button>
+            <button class="pe-finding-tag" data-finding="Peau d'orange" onclick="togglePEFinding(this)">Peau d'orange</button>
+            <button class="pe-finding-tag" data-finding="Erythema" onclick="togglePEFinding(this)">Erythema</button>
+            <button class="pe-finding-tag" data-finding="Ulceration" onclick="togglePEFinding(this)">Ulceration</button>
+            <button class="pe-finding-tag" data-finding="Nipple normal" onclick="togglePEFinding(this)">Nipple normal</button>
+            <button class="pe-finding-tag" data-finding="Nipple retraction" onclick="togglePEFinding(this)">Nipple retraction</button>
+            <button class="pe-finding-tag" data-finding="Nipple discharge" onclick="togglePEFinding(this)">Nipple discharge</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
+          <div class="pe-findings-wrap" data-system="breast-palpation">
+            <button class="pe-finding-tag" data-finding="No palpable lumps" onclick="togglePEFinding(this)">No palpable lumps</button>
+            <button class="pe-finding-tag" data-finding="Palpable lump (R)" onclick="togglePEFinding(this)">Palpable lump (R)</button>
+            <button class="pe-finding-tag" data-finding="Palpable lump (L)" onclick="togglePEFinding(this)">Palpable lump (L)</button>
+            <button class="pe-finding-tag" data-finding="Lump: mobile" onclick="togglePEFinding(this)">Lump: mobile</button>
+            <button class="pe-finding-tag" data-finding="Lump: fixed" onclick="togglePEFinding(this)">Lump: fixed</button>
+            <button class="pe-finding-tag" data-finding="Lump: tender" onclick="togglePEFinding(this)">Lump: tender</button>
+            <button class="pe-finding-tag" data-finding="Lump: non-tender" onclick="togglePEFinding(this)">Lump: non-tender</button>
+            <button class="pe-finding-tag" data-finding="Axillary nodes palpable" onclick="togglePEFinding(this)">Axillary nodes palpable</button>
+            <button class="pe-finding-tag" data-finding="Axillary nodes not palpable" onclick="togglePEFinding(this)">Axillary nodes not palpable</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
+          <div class="pe-findings-wrap" data-system="breast-percussion">
+            <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
+          <div class="pe-findings-wrap" data-system="breast-auscultation">
+            <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
+          </div>
+        </div>
+
+        <button class="pe-normal-btn" onclick="markPENormal('breast')">✅ All Normal</button>
+        <div class="pe-other">
+          <label>Breast Examination Narrative:</label>
+          <textarea id="peBreastNarrative" rows="3" placeholder="e.g. Breasts symmetrical, no skin changes. Nipples normal. No palpable lumps..." style="min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- PE SYSTEM 6: THYROID -->
+    <div class="pe-system">
+      <div class="pe-header" onclick="togglePE('pe-thyroid')">
+        <h3><span class="pe-icon">🦋</span> Thyroid Examination</h3>
+        <span class="pe-toggle" id="pe-thyroid-toggle">▼</span>
+      </div>
+      <div class="pe-body" id="pe-thyroid">
+        <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, Ch. 8; Hutchison's Clinical Methods, Ch. 22</div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
+          <div class="pe-findings-wrap" data-system="thyroid-inspection">
+            <button class="pe-finding-tag" data-finding="Thyroid not visible" onclick="togglePEFinding(this)">Thyroid not visible</button>
+            <button class="pe-finding-tag" data-finding="Thyroid visible on swallowing" onclick="togglePEFinding(this)">Thyroid visible on swallowing</button>
+            <button class="pe-finding-tag" data-finding="Goitre visible" onclick="togglePEFinding(this)">Goitre visible</button>
+            <button class="pe-finding-tag" data-finding="Asymmetrical swelling" onclick="togglePEFinding(this)">Asymmetrical swelling</button>
+            <button class="pe-finding-tag" data-finding="Trachea central" onclick="togglePEFinding(this)">Trachea central</button>
+            <button class="pe-finding-tag" data-finding="Tracheal deviation" onclick="togglePEFinding(this)">Tracheal deviation</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
+          <div class="pe-findings-wrap" data-system="thyroid-palpation">
+            <button class="pe-finding-tag" data-finding="Thyroid not palpable" onclick="togglePEFinding(this)">Thyroid not palpable</button>
+            <button class="pe-finding-tag" data-finding="Thyroid palpable" onclick="togglePEFinding(this)">Thyroid palpable</button>
+            <button class="pe-finding-tag" data-finding="Diffuse enlargement" onclick="togglePEFinding(this)">Diffuse enlargement</button>
+            <button class="pe-finding-tag" data-finding="Thyroid nodule" onclick="togglePEFinding(this)">Thyroid nodule</button>
+            <button class="pe-finding-tag" data-finding="Thyroid: firm" onclick="togglePEFinding(this)">Thyroid: firm</button>
+            <button class="pe-finding-tag" data-finding="Thyroid: hard" onclick="togglePEFinding(this)">Thyroid: hard</button>
+            <button class="pe-finding-tag" data-finding="Thyroid: tender" onclick="togglePEFinding(this)">Thyroid: tender</button>
+            <button class="pe-finding-tag" data-finding="Cervical lymphadenopathy" onclick="togglePEFinding(this)">Cervical lymphadenopathy</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
+          <div class="pe-findings-wrap" data-system="thyroid-percussion">
+            <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
+          <div class="pe-findings-wrap" data-system="thyroid-auscultation">
+            <button class="pe-finding-tag" data-finding="No thyroid bruit" onclick="togglePEFinding(this)">No thyroid bruit</button>
+            <button class="pe-finding-tag" data-finding="Thyroid bruit present" onclick="togglePEFinding(this)">Thyroid bruit present</button>
+          </div>
+        </div>
+
+        <button class="pe-normal-btn" onclick="markPENormal('thyroid')">✅ All Normal</button>
+        <div class="pe-other">
+          <label>Thyroid Examination Narrative:</label>
+          <textarea id="peThyroidNarrative" rows="3" placeholder="e.g. Thyroid not palpable. No cervical lymphadenopathy. No thyroid bruit..." style="min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- PE SYSTEM 7: VAGINAL EXAMINATION (SYSTEMATIC) -->
+    <div class="pe-system">
+      <div class="pe-header" onclick="togglePE('pe-vaginal')">
+        <h3><span class="pe-icon">🔍</span> Vaginal & Pelvic Examination</h3>
+        <span class="pe-toggle" id="pe-vaginal-toggle">▼</span>
+      </div>
+      <div class="pe-body" id="pe-vaginal">
+        <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, 25th Ed. Ch. 8 &amp; 18; Gabbe's Obstetrics, Ch. 7</div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection — External Genitalia</div>
+          <div class="pe-findings-wrap" data-system="vaginal-inspection">
+            <button class="pe-finding-tag" data-finding="Vulva normal" onclick="togglePEFinding(this)">Vulva normal</button>
+            <button class="pe-finding-tag" data-finding="Vulval lesions" onclick="togglePEFinding(this)">Vulval lesions</button>
+            <button class="pe-finding-tag" data-finding="Vulval ulcers" onclick="togglePEFinding(this)">Vulval ulcers</button>
+            <button class="pe-finding-tag" data-finding="Vulval erythema" onclick="togglePEFinding(this)">Vulval erythema</button>
+            <button class="pe-finding-tag" data-finding="Vulval oedema" onclick="togglePEFinding(this)">Vulval oedema</button>
+            <button class="pe-finding-tag" data-finding="Varicosities" onclick="togglePEFinding(this)">Varicosities</button>
+            <button class="pe-finding-tag" data-finding="Scarring/episiotomy scar" onclick="togglePEFinding(this)">Scarring/episiotomy scar</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge palpation">2</span> Speculum Examination</div>
+          <div class="pe-findings-wrap" data-system="vaginal-speculum">
+            <button class="pe-finding-tag" data-finding="Vaginal mucosa normal" onclick="togglePEFinding(this)">Vaginal mucosa normal</button>
+            <button class="pe-finding-tag" data-finding="Vaginal atrophy" onclick="togglePEFinding(this)">Vaginal atrophy</button>
+            <button class="pe-finding-tag" data-finding="Vaginal discharge" onclick="togglePEFinding(this)">Vaginal discharge</button>
+            <button class="pe-finding-tag" data-finding="Cervix normal" onclick="togglePEFinding(this)">Cervix normal</button>
+            <button class="pe-finding-tag" data-finding="Cervical erosion" onclick="togglePEFinding(this)">Cervical erosion</button>
+            <button class="pe-finding-tag" data-finding="Cervical polyp" onclick="togglePEFinding(this)">Cervical polyp</button>
+            <button class="pe-finding-tag" data-finding="Cervical os closed" onclick="togglePEFinding(this)">Cervical os closed</button>
+            <button class="pe-finding-tag" data-finding="Cervical os open" onclick="togglePEFinding(this)">Cervical os open</button>
+            <button class="pe-finding-tag" data-finding="Cervical motion tenderness" onclick="togglePEFinding(this)">Cervical motion tenderness</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge percussion">3</span> Bimanual Examination</div>
+          <div class="pe-findings-wrap" data-system="vaginal-bimanual">
+            <button class="pe-finding-tag" data-finding="Uterus normal size" onclick="togglePEFinding(this)">Uterus normal size</button>
+            <button class="pe-finding-tag" data-finding="Uterus enlarged" onclick="togglePEFinding(this)">Uterus enlarged</button>
+            <button class="pe-finding-tag" data-finding="Uterus: anteverted" onclick="togglePEFinding(this)">Uterus: anteverted</button>
+            <button class="pe-finding-tag" data-finding="Uterus: retroverted" onclick="togglePEFinding(this)">Uterus: retroverted</button>
+            <button class="pe-finding-tag" data-finding="Uterus: mobile" onclick="togglePEFinding(this)">Uterus: mobile</button>
+            <button class="pe-finding-tag" data-finding="Uterus: fixed" onclick="togglePEFinding(this)">Uterus: fixed</button>
+            <button class="pe-finding-tag" data-finding="Uterus: tender" onclick="togglePEFinding(this)">Uterus: tender</button>
+            <button class="pe-finding-tag" data-finding="Uterus: non-tender" onclick="togglePEFinding(this)">Uterus: non-tender</button>
+            <button class="pe-finding-tag" data-finding="Adnexa normal" onclick="togglePEFinding(this)">Adnexa normal</button>
+            <button class="pe-finding-tag" data-finding="Adnexal mass (R)" onclick="togglePEFinding(this)">Adnexal mass (R)</button>
+            <button class="pe-finding-tag" data-finding="Adnexal mass (L)" onclick="togglePEFinding(this)">Adnexal mass (L)</button>
+            <button class="pe-finding-tag" data-finding="Adnexal tenderness" onclick="togglePEFinding(this)">Adnexal tenderness</button>
+            <button class="pe-finding-tag" data-finding="Pouch of Douglas clear" onclick="togglePEFinding(this)">Pouch of Douglas clear</button>
+            <button class="pe-finding-tag" data-finding="Pouch of Douglas full/tender" onclick="togglePEFinding(this)">Pouch of Douglas full/tender</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge auscultation">4</span> Rectovaginal (if indicated)</div>
+          <div class="pe-findings-wrap" data-system="vaginal-rectovaginal">
+            <button class="pe-finding-tag" data-finding="Rectovaginal septum normal" onclick="togglePEFinding(this)">Rectovaginal septum normal</button>
+            <button class="pe-finding-tag" data-finding="Rectovaginal mass" onclick="togglePEFinding(this)">Rectovaginal mass</button>
+            <button class="pe-finding-tag" data-finding="Tone normal" onclick="togglePEFinding(this)">Tone normal</button>
+            <button class="pe-finding-tag" data-finding="Reduced tone" onclick="togglePEFinding(this)">Reduced tone</button>
+          </div>
+        </div>
+
+        <button class="pe-normal-btn" onclick="markPENormal('vaginal')">✅ All Normal</button>
+        <div class="pe-other">
+          <label>Pelvic Examination Narrative:</label>
+          <textarea id="peVaginalNarrative" rows="3" placeholder="e.g. Vulva normal. Vaginal mucosa normal. Cervix appears normal. Uterus normal size, anteverted..." style="min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- PE SYSTEM 8: OBSTETRIC EXAMINATION (SYSTEMATIC) -->
+    <div class="pe-system">
+      <div class="pe-header" onclick="togglePE('pe-obstetric')">
+        <h3><span class="pe-icon">🤰</span> Obstetric Examination</h3>
+        <span class="pe-toggle" id="pe-obstetric-toggle">▼</span>
+      </div>
+      <div class="pe-body" id="pe-obstetric">
+        <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, 25th Ed. Ch. 8 &amp; 18; Gabbe's Obstetrics, Ch. 7</div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection — Abdominal</div>
+          <div class="pe-findings-wrap" data-system="obstetric-inspection">
+            <button class="pe-finding-tag" data-finding="Abdomen normal shape" onclick="togglePEFinding(this)">Abdomen normal shape</button>
+            <button class="pe-finding-tag" data-finding="Abdomen distended" onclick="togglePEFinding(this)">Abdomen distended</button>
+            <button class="pe-finding-tag" data-finding="Fetal movements visible" onclick="togglePEFinding(this)">Fetal movements visible</button>
+            <button class="pe-finding-tag" data-finding="Linea nigra present" onclick="togglePEFinding(this)">Linea nigra present</button>
+            <button class="pe-finding-tag" data-finding="Striae gravidarum" onclick="togglePEFinding(this)">Striae gravidarum</button>
+            <button class="pe-finding-tag" data-finding="Scar (CS scar)" onclick="togglePEFinding(this)">Scar (CS scar)</button>
+            <button class="pe-finding-tag" data-finding="Uterine shape: ovoid" onclick="togglePEFinding(this)">Uterine shape: ovoid</button>
+            <button class="pe-finding-tag" data-finding="Uterine shape: broad" onclick="togglePEFinding(this)">Uterine shape: broad</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation — Fundal Height, Lie &amp; Presentation</div>
+          <div class="pe-findings-wrap" data-system="obstetric-palpation">
+            <button class="pe-finding-tag" data-finding="Fundal height (cm): ___" onclick="togglePEFinding(this)">Fundal height (cm): ___</button>
+            <button class="pe-finding-tag" data-finding="Fundal height matches dates" onclick="togglePEFinding(this)">Fundal height matches dates</button>
+            <button class="pe-finding-tag" data-finding="Fundal height > dates" onclick="togglePEFinding(this)">Fundal height > dates</button>
+            <button class="pe-finding-tag" data-finding="Fundal height < dates" onclick="togglePEFinding(this)">Fundal height < dates</button>
+            <button class="pe-finding-tag" data-finding="Lie: Longitudinal" onclick="togglePEFinding(this)">Lie: Longitudinal</button>
+            <button class="pe-finding-tag" data-finding="Lie: Transverse" onclick="togglePEFinding(this)">Lie: Transverse</button>
+            <button class="pe-finding-tag" data-finding="Lie: Oblique" onclick="togglePEFinding(this)">Lie: Oblique</button>
+            <button class="pe-finding-tag" data-finding="Presentation: Cephalic" onclick="togglePEFinding(this)">Presentation: Cephalic</button>
+            <button class="pe-finding-tag" data-finding="Presentation: Breech" onclick="togglePEFinding(this)">Presentation: Breech</button>
+            <button class="pe-finding-tag" data-finding="Presentation: Shoulder" onclick="togglePEFinding(this)">Presentation: Shoulder</button>
+            <button class="pe-finding-tag" data-finding="Presentation: Engaged" onclick="togglePEFinding(this)">Presentation: Engaged</button>
+            <button class="pe-finding-tag" data-finding="Presentation: Non-engaged" onclick="togglePEFinding(this)">Presentation: Non-engaged</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge percussion">3</span> Palpation — Uterus &amp; Fetal Heart</div>
+          <div class="pe-findings-wrap" data-system="obstetric-percussion">
+            <button class="pe-finding-tag" data-finding="Uterus non-tender" onclick="togglePEFinding(this)">Uterus non-tender</button>
+            <button class="pe-finding-tag" data-finding="Uterus tender" onclick="togglePEFinding(this)">Uterus tender</button>
+            <button class="pe-finding-tag" data-finding="Uterus irritable" onclick="togglePEFinding(this)">Uterus irritable</button>
+            <button class="pe-finding-tag" data-finding="No contractions" onclick="togglePEFinding(this)">No contractions</button>
+            <button class="pe-finding-tag" data-finding="Contractions: irregular" onclick="togglePEFinding(this)">Contractions: irregular</button>
+            <button class="pe-finding-tag" data-finding="Contractions: regular" onclick="togglePEFinding(this)">Contractions: regular</button>
+            <button class="pe-finding-tag" data-finding="FHR normal (110-160 bpm)" onclick="togglePEFinding(this)">FHR normal (110-160 bpm)</button>
+            <button class="pe-finding-tag" data-finding="FHR bradycardia" onclick="togglePEFinding(this)">FHR bradycardia</button>
+            <button class="pe-finding-tag" data-finding="FHR tachycardia" onclick="togglePEFinding(this)">FHR tachycardia</button>
+          </div>
+        </div>
+
+        <div class="pe-step">
+          <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation — Fetal Heart &amp; Liquor</div>
+          <div class="pe-findings-wrap" data-system="obstetric-auscultation">
+            <button class="pe-finding-tag" data-finding="FHR audible" onclick="togglePEFinding(this)">FHR audible</button>
+            <button class="pe-finding-tag" data-finding="FHR regular" onclick="togglePEFinding(this)">FHR regular</button>
+            <button class="pe-finding-tag" data-finding="FHR irregular" onclick="togglePEFinding(this)">FHR irregular</button>
+            <button class="pe-finding-tag" data-finding="Liquor: clear" onclick="togglePEFinding(this)">Liquor: clear</button>
+            <button class="pe-finding-tag" data-finding="Liquor: meconium-stained" onclick="togglePEFinding(this)">Liquor: meconium-stained</button>
+            <button class="pe-finding-tag" data-finding="Liquor: blood-stained" onclick="togglePEFinding(this)">Liquor: blood-stained</button>
+            <button class="pe-finding-tag" data-finding="Liquor: offensive" onclick="togglePEFinding(this)">Liquor: offensive</button>
+            <button class="pe-finding-tag" data-finding="Placental position: Anterior" onclick="togglePEFinding(this)">Placental position: Anterior</button>
+            <button class="pe-finding-tag" data-finding="Placental position: Posterior" onclick="togglePEFinding(this)">Placental position: Posterior</button>
+            <button class="pe-finding-tag" data-finding="Placental position: Fundal" onclick="togglePEFinding(this)">Placental position: Fundal</button>
+            <button class="pe-finding-tag" data-finding="Placental position: Low-lying" onclick="togglePEFinding(this)">Placental position: Low-lying</button>
+          </div>
+        </div>
+
+        <button class="pe-normal-btn" onclick="markPENormal('obstetric')">✅ All Normal</button>
+        <div class="pe-other">
+          <label>Obstetric Examination Narrative:</label>
+          <textarea id="peObstetricNarrative" rows="3" placeholder="e.g. Fundal height 34 cm. Lie: Longitudinal. Presentation: Cephalic. FHR 140 bpm, regular..." style="min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- ════════════════════════════════
-       PE SYSTEM 3: CARDIOVASCULAR
-       ════════════════════════════════ -->
-  <div class="pe-system">
-    <div class="pe-header" onclick="togglePE('pe-cv')">
-      <h3><span class="pe-icon">❤️</span> Cardiovascular System</h3>
-      <span class="pe-toggle" id="pe-cv-toggle">▼</span>
-    </div>
-    <div class="pe-body" id="pe-cv">
-      <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, Ch. 8; Hutchison's Clinical Methods, Ch. 13</div>
+  <hr class="divider" />
 
-      <!-- Step 1: Inspection -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
-        <div class="pe-findings-wrap" data-system="cv-inspection">
-          <button class="pe-finding-tag" data-finding="JVP normal" onclick="togglePEFinding(this)">JVP normal</button>
-          <button class="pe-finding-tag" data-finding="Elevated JVP" onclick="togglePEFinding(this)">Elevated JVP</button>
-          <button class="pe-finding-tag" data-finding="Chest shape normal" onclick="togglePEFinding(this)">Chest shape normal</button>
-          <button class="pe-finding-tag" data-finding="Pectus excavatum" onclick="togglePEFinding(this)">Pectus excavatum</button>
-          <button class="pe-finding-tag" data-finding="Palpable apex beat visible" onclick="togglePEFinding(this)">Palpable apex beat visible</button>
-        </div>
-      </div>
-
-      <!-- Step 2: Palpation -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
-        <div class="pe-findings-wrap" data-system="cv-palpation">
-          <button class="pe-finding-tag" data-finding="Apex beat 5th ICS MCL" onclick="togglePEFinding(this)">Apex beat 5th ICS MCL</button>
-          <button class="pe-finding-tag" data-finding="Displaced apex beat" onclick="togglePEFinding(this)">Displaced apex beat</button>
-          <button class="pe-finding-tag" data-finding="LV heave" onclick="togglePEFinding(this)">LV heave</button>
-          <button class="pe-finding-tag" data-finding="RV heave" onclick="togglePEFinding(this)">RV heave</button>
-          <button class="pe-finding-tag" data-finding="Thrill palpable" onclick="togglePEFinding(this)">Thrill palpable</button>
-          <button class="pe-finding-tag" data-finding="Peripheral pulses present" onclick="togglePEFinding(this)">Peripheral pulses present</button>
-          <button class="pe-finding-tag" data-finding="Peripheral pulses absent" onclick="togglePEFinding(this)">Peripheral pulses absent</button>
-          <button class="pe-finding-tag" data-finding="Radiofemoral delay" onclick="togglePEFinding(this)">Radiofemoral delay</button>
-        </div>
-      </div>
-
-      <!-- Step 3: Percussion -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
-        <div class="pe-findings-wrap" data-system="cv-percussion">
-          <button class="pe-finding-tag" data-finding="Cardiac dullness normal" onclick="togglePEFinding(this)">Cardiac dullness normal</button>
-          <button class="pe-finding-tag" data-finding="Cardiac dullness enlarged" onclick="togglePEFinding(this)">Cardiac dullness enlarged</button>
-        </div>
-      </div>
-
-      <!-- Step 4: Auscultation -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
-        <div class="pe-findings-wrap" data-system="cv-auscultation">
-          <button class="pe-finding-tag" data-finding="S1 + S2 heard" onclick="togglePEFinding(this)">S1 + S2 heard</button>
-          <button class="pe-finding-tag" data-finding="S3 gallop" onclick="togglePEFinding(this)">S3 gallop</button>
-          <button class="pe-finding-tag" data-finding="S4" onclick="togglePEFinding(this)">S4</button>
-          <button class="pe-finding-tag" data-finding="Systolic murmur" onclick="togglePEFinding(this)">Systolic murmur</button>
-          <button class="pe-finding-tag" data-finding="Diastolic murmur" onclick="togglePEFinding(this)">Diastolic murmur</button>
-          <button class="pe-finding-tag" data-finding="Pericardial rub" onclick="togglePEFinding(this)">Pericardial rub</button>
-          <button class="pe-finding-tag" data-finding="Regular rhythm" onclick="togglePEFinding(this)">Regular rhythm</button>
-          <button class="pe-finding-tag" data-finding="Irregular rhythm" onclick="togglePEFinding(this)">Irregular rhythm</button>
-        </div>
-      </div>
-
-      <button class="pe-normal-btn" onclick="markPENormal('cv')">✅ All Normal</button>
-      <div class="pe-other">
-        <label>Cardiovascular Examination Narrative:</label>
-        <textarea id="peCvNarrative" rows="3" placeholder="e.g. JVP not elevated. Apex beat at 5th ICS MCL. No heaves or thrills. S1 + S2 heard..." style="min-height:60px;"></textarea>
-      </div>
-    </div>
+  <!-- ══════════════════════════════════
+       SECTION 13 — IMAGE CAPTURE
+  ══════════════════════════════════ -->
+  <div class="section-header">
+    <span class="section-badge" style="background:#8e44ad;">13</span>
+    <span class="section-title">Image Capture</span>
   </div>
 
-  <!-- ════════════════════════════════
-       PE SYSTEM 4: RESPIRATORY
-       ════════════════════════════════ -->
-  <div class="pe-system">
-    <div class="pe-header" onclick="togglePE('pe-resp')">
-      <h3><span class="pe-icon">🫁</span> Respiratory System</h3>
-      <span class="pe-toggle" id="pe-resp-toggle">▼</span>
+  <div class="card" style="border-left: 3px solid #8e44ad;">
+    <div class="card-title">📸 Clinical Images</div>
+    <div class="callout" style="margin-bottom:1rem; font-size:0.85rem;">
+      <strong>📋 Instructions:</strong> Capture images using your device camera or upload from gallery. Images are stored locally and saved with the patient record.
     </div>
-    <div class="pe-body" id="pe-resp">
-      <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, Ch. 8; Hutchison's Clinical Methods, Ch. 12</div>
 
-      <!-- Step 1: Inspection -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
-        <div class="pe-findings-wrap" data-system="resp-inspection">
-          <button class="pe-finding-tag" data-finding="Chest symmetrical" onclick="togglePEFinding(this)">Chest symmetrical</button>
-          <button class="pe-finding-tag" data-finding="Chest asymmetry" onclick="togglePEFinding(this)">Chest asymmetry</button>
-          <button class="pe-finding-tag" data-finding="Trachea central" onclick="togglePEFinding(this)">Trachea central</button>
-          <button class="pe-finding-tag" data-finding="Tracheal deviation" onclick="togglePEFinding(this)">Tracheal deviation</button>
-          <button class="pe-finding-tag" data-finding="Equal expansion" onclick="togglePEFinding(this)">Equal expansion</button>
-          <button class="pe-finding-tag" data-finding="Reduced expansion (R)" onclick="togglePEFinding(this)">Reduced expansion (R)</button>
-          <button class="pe-finding-tag" data-finding="Reduced expansion (L)" onclick="togglePEFinding(this)">Reduced expansion (L)</button>
-          <button class="pe-finding-tag" data-finding="Accessory muscle use" onclick="togglePEFinding(this)">Accessory muscle use</button>
-          <button class="pe-finding-tag" data-finding="Intercostal recession" onclick="togglePEFinding(this)">Intercostal recession</button>
+    <div class="image-capture-section">
+      <div class="capture-header">
+        <h4>📷 Camera Capture <span class="count-badge" id="imageCount">0 images</span></h4>
+        <div class="capture-buttons">
+          <button class="capture-btn primary" onclick="startCamera()">📸 Open Camera</button>
+          <button class="capture-btn outline" onclick="uploadImage()">📁 Upload Image</button>
         </div>
       </div>
 
-      <!-- Step 2: Palpation -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
-        <div class="pe-findings-wrap" data-system="resp-palpation">
-          <button class="pe-finding-tag" data-finding="Tactile fremitus normal" onclick="togglePEFinding(this)">Tactile fremitus normal</button>
-          <button class="pe-finding-tag" data-finding="Tactile fremitus reduced" onclick="togglePEFinding(this)">Tactile fremitus reduced</button>
-          <button class="pe-finding-tag" data-finding="Tactile fremitus increased" onclick="togglePEFinding(this)">Tactile fremitus increased</button>
-          <button class="pe-finding-tag" data-finding="Tracheal tug" onclick="togglePEFinding(this)">Tracheal tug</button>
+      <!-- Video Container -->
+      <div class="video-container" id="videoContainer">
+        <video id="video" autoplay playsinline></video>
+        <div class="capture-overlay">
+          <button class="snap-btn" onclick="captureImage()">📸 Capture</button>
+          <button class="close-btn" onclick="stopCamera()">✕ Close</button>
         </div>
       </div>
 
-      <!-- Step 3: Percussion -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
-        <div class="pe-findings-wrap" data-system="resp-percussion">
-          <button class="pe-finding-tag" data-finding="Resonant percussion" onclick="togglePEFinding(this)">Resonant percussion</button>
-          <button class="pe-finding-tag" data-finding="Dull to percussion" onclick="togglePEFinding(this)">Dull to percussion</button>
-          <button class="pe-finding-tag" data-finding="Stony dull (effusion)" onclick="togglePEFinding(this)">Stony dull (effusion)</button>
-          <button class="pe-finding-tag" data-finding="Hyperresonant (pneumothorax)" onclick="togglePEFinding(this)">Hyperresonant (pneumothorax)</button>
-        </div>
+      <!-- Hidden file input -->
+      <input type="file" id="fileInput" accept="image/*" multiple style="display:none;" onchange="handleFileUpload(event)" />
+
+      <!-- Image Gallery -->
+      <div id="imageGallery" class="image-gallery">
+        <!-- Images will be rendered here -->
       </div>
-
-      <!-- Step 4: Auscultation -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
-        <div class="pe-findings-wrap" data-system="resp-auscultation">
-          <button class="pe-finding-tag" data-finding="Vesicular breath sounds" onclick="togglePEFinding(this)">Vesicular breath sounds</button>
-          <button class="pe-finding-tag" data-finding="Bronchial breathing" onclick="togglePEFinding(this)">Bronchial breathing</button>
-          <button class="pe-finding-tag" data-finding="Reduced breath sounds" onclick="togglePEFinding(this)">Reduced breath sounds</button>
-          <button class="pe-finding-tag" data-finding="Coarse crackles" onclick="togglePEFinding(this)">Coarse crackles</button>
-          <button class="pe-finding-tag" data-finding="Fine crackles" onclick="togglePEFinding(this)">Fine crackles</button>
-          <button class="pe-finding-tag" data-finding="Expiratory wheeze" onclick="togglePEFinding(this)">Expiratory wheeze</button>
-          <button class="pe-finding-tag" data-finding="Inspiratory wheeze" onclick="togglePEFinding(this)">Inspiratory wheeze</button>
-          <button class="pe-finding-tag" data-finding="Pleural rub" onclick="togglePEFinding(this)">Pleural rub</button>
-        </div>
-      </div>
-
-      <button class="pe-normal-btn" onclick="markPENormal('resp')">✅ All Normal</button>
-      <div class="pe-other">
-        <label>Respiratory Examination Narrative:</label>
-        <textarea id="peRespNarrative" rows="3" placeholder="e.g. Chest symmetrical. Trachea central. Equal expansion bilaterally. Resonant percussion..." style="min-height:60px;"></textarea>
-      </div>
-    </div>
-  </div>
-
-  <!-- ════════════════════════════════
-       PE SYSTEM 5: BREAST EXAMINATION
-       ════════════════════════════════ -->
-  <div class="pe-system">
-    <div class="pe-header" onclick="togglePE('pe-breast')">
-      <h3><span class="pe-icon">🍈</span> Breast Examination</h3>
-      <span class="pe-toggle" id="pe-breast-toggle">▼</span>
-    </div>
-    <div class="pe-body" id="pe-breast">
-      <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, Ch. 8; Gabbe's Obstetrics, Ch. 7</div>
-
-      <!-- Step 1: Inspection -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
-        <div class="pe-findings-wrap" data-system="breast-inspection">
-          <button class="pe-finding-tag" data-finding="Breasts symmetrical" onclick="togglePEFinding(this)">Breasts symmetrical</button>
-          <button class="pe-finding-tag" data-finding="Breast asymmetry" onclick="togglePEFinding(this)">Breast asymmetry</button>
-          <button class="pe-finding-tag" data-finding="Skin normal" onclick="togglePEFinding(this)">Skin normal</button>
-          <button class="pe-finding-tag" data-finding="Peau d'orange" onclick="togglePEFinding(this)">Peau d'orange</button>
-          <button class="pe-finding-tag" data-finding="Erythema" onclick="togglePEFinding(this)">Erythema</button>
-          <button class="pe-finding-tag" data-finding="Ulceration" onclick="togglePEFinding(this)">Ulceration</button>
-          <button class="pe-finding-tag" data-finding="Nipple normal" onclick="togglePEFinding(this)">Nipple normal</button>
-          <button class="pe-finding-tag" data-finding="Nipple retraction" onclick="togglePEFinding(this)">Nipple retraction</button>
-          <button class="pe-finding-tag" data-finding="Nipple discharge" onclick="togglePEFinding(this)">Nipple discharge</button>
-          <button class="pe-finding-tag" data-finding="Axillary skin normal" onclick="togglePEFinding(this)">Axillary skin normal</button>
-        </div>
-      </div>
-
-      <!-- Step 2: Palpation -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
-        <div class="pe-findings-wrap" data-system="breast-palpation">
-          <button class="pe-finding-tag" data-finding="No palpable lumps" onclick="togglePEFinding(this)">No palpable lumps</button>
-          <button class="pe-finding-tag" data-finding="Palpable lump (R)" onclick="togglePEFinding(this)">Palpable lump (R)</button>
-          <button class="pe-finding-tag" data-finding="Palpable lump (L)" onclick="togglePEFinding(this)">Palpable lump (L)</button>
-          <button class="pe-finding-tag" data-finding="Lump: mobile" onclick="togglePEFinding(this)">Lump: mobile</button>
-          <button class="pe-finding-tag" data-finding="Lump: fixed" onclick="togglePEFinding(this)">Lump: fixed</button>
-          <button class="pe-finding-tag" data-finding="Lump: tender" onclick="togglePEFinding(this)">Lump: tender</button>
-          <button class="pe-finding-tag" data-finding="Lump: non-tender" onclick="togglePEFinding(this)">Lump: non-tender</button>
-          <button class="pe-finding-tag" data-finding="Axillary nodes palpable" onclick="togglePEFinding(this)">Axillary nodes palpable</button>
-          <button class="pe-finding-tag" data-finding="Axillary nodes not palpable" onclick="togglePEFinding(this)">Axillary nodes not palpable</button>
-        </div>
-      </div>
-
-      <!-- Step 3: Percussion -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
-        <div class="pe-findings-wrap" data-system="breast-percussion">
-          <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
-        </div>
-      </div>
-
-      <!-- Step 4: Auscultation -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
-        <div class="pe-findings-wrap" data-system="breast-auscultation">
-          <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
-        </div>
-      </div>
-
-      <button class="pe-normal-btn" onclick="markPENormal('breast')">✅ All Normal</button>
-      <div class="pe-other">
-        <label>Breast Examination Narrative:</label>
-        <textarea id="peBreastNarrative" rows="3" placeholder="e.g. Breasts symmetrical, no skin changes. Nipples normal. No palpable lumps. No axillary lymphadenopathy..." style="min-height:60px;"></textarea>
-      </div>
-    </div>
-  </div>
-
-  <!-- ════════════════════════════════
-       PE SYSTEM 6: THYROID EXAMINATION
-       ════════════════════════════════ -->
-  <div class="pe-system">
-    <div class="pe-header" onclick="togglePE('pe-thyroid')">
-      <h3><span class="pe-icon">🦋</span> Thyroid Examination</h3>
-      <span class="pe-toggle" id="pe-thyroid-toggle">▼</span>
-    </div>
-    <div class="pe-body" id="pe-thyroid">
-      <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, Ch. 8; Hutchison's Clinical Methods, Ch. 22</div>
-
-      <!-- Step 1: Inspection -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
-        <div class="pe-findings-wrap" data-system="thyroid-inspection">
-          <button class="pe-finding-tag" data-finding="Thyroid not visible" onclick="togglePEFinding(this)">Thyroid not visible</button>
-          <button class="pe-finding-tag" data-finding="Thyroid visible on swallowing" onclick="togglePEFinding(this)">Thyroid visible on swallowing</button>
-          <button class="pe-finding-tag" data-finding="Goitre visible" onclick="togglePEFinding(this)">Goitre visible</button>
-          <button class="pe-finding-tag" data-finding="Asymmetrical swelling" onclick="togglePEFinding(this)">Asymmetrical swelling</button>
-          <button class="pe-finding-tag" data-finding="Trachea central" onclick="togglePEFinding(this)">Trachea central</button>
-          <button class="pe-finding-tag" data-finding="Tracheal deviation" onclick="togglePEFinding(this)">Tracheal deviation</button>
-        </div>
-      </div>
-
-      <!-- Step 2: Palpation -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
-        <div class="pe-findings-wrap" data-system="thyroid-palpation">
-          <button class="pe-finding-tag" data-finding="Thyroid not palpable" onclick="togglePEFinding(this)">Thyroid not palpable</button>
-          <button class="pe-finding-tag" data-finding="Thyroid palpable" onclick="togglePEFinding(this)">Thyroid palpable</button>
-          <button class="pe-finding-tag" data-finding="Diffuse enlargement" onclick="togglePEFinding(this)">Diffuse enlargement</button>
-          <button class="pe-finding-tag" data-finding="Thyroid nodule" onclick="togglePEFinding(this)">Thyroid nodule</button>
-          <button class="pe-finding-tag" data-finding="Thyroid: firm" onclick="togglePEFinding(this)">Thyroid: firm</button>
-          <button class="pe-finding-tag" data-finding="Thyroid: hard" onclick="togglePEFinding(this)">Thyroid: hard</button>
-          <button class="pe-finding-tag" data-finding="Thyroid: tender" onclick="togglePEFinding(this)">Thyroid: tender</button>
-          <button class="pe-finding-tag" data-finding="Cervical lymphadenopathy" onclick="togglePEFinding(this)">Cervical lymphadenopathy</button>
-        </div>
-      </div>
-
-      <!-- Step 3: Percussion -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
-        <div class="pe-findings-wrap" data-system="thyroid-percussion">
-          <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
-        </div>
-      </div>
-
-      <!-- Step 4: Auscultation -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
-        <div class="pe-findings-wrap" data-system="thyroid-auscultation">
-          <button class="pe-finding-tag" data-finding="No thyroid bruit" onclick="togglePEFinding(this)">No thyroid bruit</button>
-          <button class="pe-finding-tag" data-finding="Thyroid bruit present" onclick="togglePEFinding(this)">Thyroid bruit present</button>
-        </div>
-      </div>
-
-      <button class="pe-normal-btn" onclick="markPENormal('thyroid')">✅ All Normal</button>
-      <div class="pe-other">
-        <label>Thyroid Examination Narrative:</label>
-        <textarea id="peThyroidNarrative" rows="3" placeholder="e.g. Thyroid not palpable. No cervical lymphadenopathy. No thyroid bruit..." style="min-height:60px;"></textarea>
-      </div>
-    </div>
-  </div>
-
-  <!-- ════════════════════════════════
-       PE SYSTEM 7: VAGINAL EXAMINATION (SYSTEMATIC)
-       ════════════════════════════════ -->
-  <div class="pe-system">
-    <div class="pe-header" onclick="togglePE('pe-vaginal')">
-      <h3><span class="pe-icon">🔍</span> Vaginal & Pelvic Examination</h3>
-      <span class="pe-toggle" id="pe-vaginal-toggle">▼</span>
-    </div>
-    <div class="pe-body" id="pe-vaginal">
-      <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, 25th Ed. Ch. 8 &amp; 18; Gabbe's Obstetrics, Ch. 7</div>
-
-      <!-- Step 1: Inspection (External Genitalia) -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection — External Genitalia (Vulva)</div>
-        <div class="pe-findings-wrap" data-system="vaginal-inspection">
-          <button class="pe-finding-tag" data-finding="Vulva normal" onclick="togglePEFinding(this)">Vulva normal</button>
-          <button class="pe-finding-tag" data-finding="Vulval lesions" onclick="togglePEFinding(this)">Vulval lesions</button>
-          <button class="pe-finding-tag" data-finding="Vulval ulcers" onclick="togglePEFinding(this)">Vulval ulcers</button>
-          <button class="pe-finding-tag" data-finding="Vulval erythema" onclick="togglePEFinding(this)">Vulval erythema</button>
-          <button class="pe-finding-tag" data-finding="Vulval oedema" onclick="togglePEFinding(this)">Vulval oedema</button>
-          <button class="pe-finding-tag" data-finding="Varicosities" onclick="togglePEFinding(this)">Varicosities</button>
-          <button class="pe-finding-tag" data-finding="Scarring/episiotomy scar" onclick="togglePEFinding(this)">Scarring/episiotomy scar</button>
-          <button class="pe-finding-tag" data-finding="Hirsutism" onclick="togglePEFinding(this)">Hirsutism</button>
-          <button class="pe-finding-tag" data-finding="Skin excoriation" onclick="togglePEFinding(this)">Skin excoriation</button>
-        </div>
-      </div>
-
-      <!-- Step 2: Speculum Examination -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge palpation">2</span> Speculum Examination</div>
-        <div class="pe-findings-wrap" data-system="vaginal-speculum">
-          <button class="pe-finding-tag" data-finding="Vaginal mucosa normal" onclick="togglePEFinding(this)">Vaginal mucosa normal</button>
-          <button class="pe-finding-tag" data-finding="Vaginal atrophy" onclick="togglePEFinding(this)">Vaginal atrophy</button>
-          <button class="pe-finding-tag" data-finding="Vaginal discharge" onclick="togglePEFinding(this)">Vaginal discharge</button>
-          <button class="pe-finding-tag" data-finding="Cervix normal" onclick="togglePEFinding(this)">Cervix normal</button>
-          <button class="pe-finding-tag" data-finding="Cervical erosion" onclick="togglePEFinding(this)">Cervical erosion</button>
-          <button class="pe-finding-tag" data-finding="Cervical polyp" onclick="togglePEFinding(this)">Cervical polyp</button>
-          <button class="pe-finding-tag" data-finding="Cervical hypertrophy" onclick="togglePEFinding(this)">Cervical hypertrophy</button>
-          <button class="pe-finding-tag" data-finding="Cervical os closed" onclick="togglePEFinding(this)">Cervical os closed</button>
-          <button class="pe-finding-tag" data-finding="Cervical os open" onclick="togglePEFinding(this)">Cervical os open</button>
-          <button class="pe-finding-tag" data-finding="Cervical motion tenderness" onclick="togglePEFinding(this)">Cervical motion tenderness</button>
-        </div>
-      </div>
-
-      <!-- Step 3: Bimanual Examination -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge percussion">3</span> Bimanual Examination</div>
-        <div class="pe-findings-wrap" data-system="vaginal-bimanual">
-          <button class="pe-finding-tag" data-finding="Uterus normal size" onclick="togglePEFinding(this)">Uterus normal size</button>
-          <button class="pe-finding-tag" data-finding="Uterus enlarged" onclick="togglePEFinding(this)">Uterus enlarged</button>
-          <button class="pe-finding-tag" data-finding="Uterus: anteverted" onclick="togglePEFinding(this)">Uterus: anteverted</button>
-          <button class="pe-finding-tag" data-finding="Uterus: retroverted" onclick="togglePEFinding(this)">Uterus: retroverted</button>
-          <button class="pe-finding-tag" data-finding="Uterus: mobile" onclick="togglePEFinding(this)">Uterus: mobile</button>
-          <button class="pe-finding-tag" data-finding="Uterus: fixed" onclick="togglePEFinding(this)">Uterus: fixed</button>
-          <button class="pe-finding-tag" data-finding="Uterus: tender" onclick="togglePEFinding(this)">Uterus: tender</button>
-          <button class="pe-finding-tag" data-finding="Uterus: non-tender" onclick="togglePEFinding(this)">Uterus: non-tender</button>
-          <button class="pe-finding-tag" data-finding="Adnexa normal" onclick="togglePEFinding(this)">Adnexa normal</button>
-          <button class="pe-finding-tag" data-finding="Adnexal mass (R)" onclick="togglePEFinding(this)">Adnexal mass (R)</button>
-          <button class="pe-finding-tag" data-finding="Adnexal mass (L)" onclick="togglePEFinding(this)">Adnexal mass (L)</button>
-          <button class="pe-finding-tag" data-finding="Adnexal tenderness (R)" onclick="togglePEFinding(this)">Adnexal tenderness (R)</button>
-          <button class="pe-finding-tag" data-finding="Adnexal tenderness (L)" onclick="togglePEFinding(this)">Adnexal tenderness (L)</button>
-          <button class="pe-finding-tag" data-finding="Pouch of Douglas clear" onclick="togglePEFinding(this)">Pouch of Douglas clear</button>
-          <button class="pe-finding-tag" data-finding="Pouch of Douglas full/tender" onclick="togglePEFinding(this)">Pouch of Douglas full/tender</button>
-        </div>
-      </div>
-
-      <!-- Step 4: Rectovaginal (optional) -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge auscultation">4</span> Rectovaginal Examination (if indicated)</div>
-        <div class="pe-findings-wrap" data-system="vaginal-rectovaginal">
-          <button class="pe-finding-tag" data-finding="Rectovaginal septum normal" onclick="togglePEFinding(this)">Rectovaginal septum normal</button>
-          <button class="pe-finding-tag" data-finding="Rectovaginal mass" onclick="togglePEFinding(this)">Rectovaginal mass</button>
-          <button class="pe-finding-tag" data-finding="Tone normal" onclick="togglePEFinding(this)">Tone normal</button>
-          <button class="pe-finding-tag" data-finding="Reduced tone" onclick="togglePEFinding(this)">Reduced tone</button>
-        </div>
-      </div>
-
-      <button class="pe-normal-btn" onclick="markPENormal('vaginal')">✅ All Normal</button>
-      <div class="pe-other">
-        <label>Pelvic Examination Narrative:</label>
-        <textarea id="peVaginalNarrative" rows="3" placeholder="e.g. Vulva normal. Vaginal mucosa normal. Cervix appears normal. Uterus normal size, anteverted, mobile, non-tender..." style="min-height:60px;"></textarea>
-      </div>
-    </div>
-  </div>
-
-  <!-- ════════════════════════════════
-       PE SYSTEM 8: OBSTETRIC EXAMINATION (SYSTEMATIC)
-       ════════════════════════════════ -->
-  <div class="pe-system">
-    <div class="pe-header" onclick="togglePE('pe-obstetric')">
-      <h3><span class="pe-icon">🤰</span> Obstetric Examination</h3>
-      <span class="pe-toggle" id="pe-obstetric-toggle">▼</span>
-    </div>
-    <div class="pe-body" id="pe-obstetric">
-      <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, 25th Ed. Ch. 8 &amp; 18; Gabbe's Obstetrics, Ch. 7</div>
-
-      <!-- Step 1: Inspection (Abdominal) -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection — Abdominal</div>
-        <div class="pe-findings-wrap" data-system="obstetric-inspection">
-          <button class="pe-finding-tag" data-finding="Abdomen normal shape" onclick="togglePEFinding(this)">Abdomen normal shape</button>
-          <button class="pe-finding-tag" data-finding="Abdomen distended" onclick="togglePEFinding(this)">Abdomen distended</button>
-          <button class="pe-finding-tag" data-finding="Fetal movements visible" onclick="togglePEFinding(this)">Fetal movements visible</button>
-          <button class="pe-finding-tag" data-finding="Linea nigra present" onclick="togglePEFinding(this)">Linea nigra present</button>
-          <button class="pe-finding-tag" data-finding="Striae gravidarum" onclick="togglePEFinding(this)">Striae gravidarum</button>
-          <button class="pe-finding-tag" data-finding="Scar (CS scar)" onclick="togglePEFinding(this)">Scar (CS scar)</button>
-          <button class="pe-finding-tag" data-finding="Uterine shape: ovoid" onclick="togglePEFinding(this)">Uterine shape: ovoid</button>
-          <button class="pe-finding-tag" data-finding="Uterine shape: broad" onclick="togglePEFinding(this)">Uterine shape: broad</button>
-        </div>
-      </div>
-
-      <!-- Step 2: Palpation — Fundal Height & Lie -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation — Fundal Height, Lie &amp; Presentation</div>
-        <div class="pe-findings-wrap" data-system="obstetric-palpation">
-          <button class="pe-finding-tag" data-finding="Fundal height (cm): ___" onclick="togglePEFinding(this)">Fundal height (cm): ___</button>
-          <button class="pe-finding-tag" data-finding="Fundal height matches dates" onclick="togglePEFinding(this)">Fundal height matches dates</button>
-          <button class="pe-finding-tag" data-finding="Fundal height > dates" onclick="togglePEFinding(this)">Fundal height > dates</button>
-          <button class="pe-finding-tag" data-finding="Fundal height < dates" onclick="togglePEFinding(this)">Fundal height < dates</button>
-          <button class="pe-finding-tag" data-finding="Lie: Longitudinal" onclick="togglePEFinding(this)">Lie: Longitudinal</button>
-          <button class="pe-finding-tag" data-finding="Lie: Transverse" onclick="togglePEFinding(this)">Lie: Transverse</button>
-          <button class="pe-finding-tag" data-finding="Lie: Oblique" onclick="togglePEFinding(this)">Lie: Oblique</button>
-          <button class="pe-finding-tag" data-finding="Presentation: Cephalic" onclick="togglePEFinding(this)">Presentation: Cephalic</button>
-          <button class="pe-finding-tag" data-finding="Presentation: Breech" onclick="togglePEFinding(this)">Presentation: Breech</button>
-          <button class="pe-finding-tag" data-finding="Presentation: Shoulder" onclick="togglePEFinding(this)">Presentation: Shoulder</button>
-          <button class="pe-finding-tag" data-finding="Presentation: Engagement (0/5)" onclick="togglePEFinding(this)">Presentation: Engagement (0/5)</button>
-          <button class="pe-finding-tag" data-finding="Presentation: Non-engaged" onclick="togglePEFinding(this)">Presentation: Non-engaged</button>
-        </div>
-      </div>
-
-      <!-- Step 3: Palpation — Uterus & Fetal Heart -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge percussion">3</span> Palpation — Uterus &amp; Fetal Heart</div>
-        <div class="pe-findings-wrap" data-system="obstetric-percussion">
-          <button class="pe-finding-tag" data-finding="Uterus non-tender" onclick="togglePEFinding(this)">Uterus non-tender</button>
-          <button class="pe-finding-tag" data-finding="Uterus tender" onclick="togglePEFinding(this)">Uterus tender</button>
-          <button class="pe-finding-tag" data-finding="Uterus irritable" onclick="togglePEFinding(this)">Uterus irritable</button>
-          <button class="pe-finding-tag" data-finding="No contractions" onclick="togglePEFinding(this)">No contractions</button>
-          <button class="pe-finding-tag" data-finding="Contractions: irregular" onclick="togglePEFinding(this)">Contractions: irregular</button>
-          <button class="pe-finding-tag" data-finding="Contractions: regular" onclick="togglePEFinding(this)">Contractions: regular</button>
-          <button class="pe-finding-tag" data-finding="FHR normal (110-160 bpm)" onclick="togglePEFinding(this)">FHR normal (110-160 bpm)</button>
-          <button class="pe-finding-tag" data-finding="FHR bradycardia" onclick="togglePEFinding(this)">FHR bradycardia</button>
-          <button class="pe-finding-tag" data-finding="FHR tachycardia" onclick="togglePEFinding(this)">FHR tachycardia</button>
-        </div>
-      </div>
-
-      <!-- Step 4: Auscultation — Fetal Heart & Liquor -->
-      <div class="pe-step">
-        <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation — Fetal Heart &amp; Liquor</div>
-        <div class="pe-findings-wrap" data-system="obstetric-auscultation">
-          <button class="pe-finding-tag" data-finding="FHR audible" onclick="togglePEFinding(this)">FHR audible</button>
-          <button class="pe-finding-tag" data-finding="FHR regular" onclick="togglePEFinding(this)">FHR regular</button>
-          <button class="pe-finding-tag" data-finding="FHR irregular" onclick="togglePEFinding(this)">FHR irregular</button>
-          <button class="pe-finding-tag" data-finding="Liquor: clear" onclick="togglePEFinding(this)">Liquor: clear</button>
-          <button class="pe-finding-tag" data-finding="Liquor: meconium-stained" onclick="togglePEFinding(this)">Liquor: meconium-stained</button>
-          <button class="pe-finding-tag" data-finding="Liquor: blood-stained" onclick="togglePEFinding(this)">Liquor: blood-stained</button>
-          <button class="pe-finding-tag" data-finding="Liquor: offensive" onclick="togglePEFinding(this)">Liquor: offensive</button>
-          <button class="pe-finding-tag" data-finding="Placental position: Anterior" onclick="togglePEFinding(this)">Placental position: Anterior</button>
-          <button class="pe-finding-tag" data-finding="Placental position: Posterior" onclick="togglePEFinding(this)">Placental position: Posterior</button>
-          <button class="pe-finding-tag" data-finding="Placental position: Fundal" onclick="togglePEFinding(this)">Placental position: Fundal</button>
-          <button class="pe-finding-tag" data-finding="Placental position: Low-lying" onclick="togglePEFinding(this)">Placental position: Low-lying</button>
-        </div>
-      </div>
-
-      <button class="pe-normal-btn" onclick="markPENormal('obstetric')">✅ All Normal</button>
-      <div class="pe-other">
-        <label>Obstetric Examination Narrative:</label>
-        <textarea id="peObstetricNarrative" rows="3" placeholder="e.g. Fundal height 34 cm. Lie: Longitudinal. Presentation: Cephalic. FHR 140 bpm, regular. Uterus non-tender..." style="min-height:60px;"></textarea>
+      <div id="imageGalleryEmpty" class="image-gallery-empty">
+        No images captured yet. Use the camera or upload images.
       </div>
     </div>
   </div>
@@ -2566,11 +2744,121 @@
 
 <!-- Footer -->
 <div class="footer-nav">
-  <div class="step-indicator">Step <strong id="stepNum">1</strong> of 12 — <span id="stepLabel">Demographics & History</span></div>
+  <div class="step-indicator">Step <strong id="stepNum">1</strong> of 13 — <span id="stepLabel">Demographics & History</span></div>
   <button class="btn-primary" onclick="goNext()">Complete History →</button>
 </div>
 
 <script>
+  // ============================================================
+  // IMAGE CAPTURE FUNCTIONALITY
+  // ============================================================
+  let capturedImages = [];
+  let stream = null;
+
+  function startCamera() {
+    const container = document.getElementById('videoContainer');
+    const video = document.getElementById('video');
+    
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(function(s) {
+          stream = s;
+          video.srcObject = stream;
+          container.classList.add('active');
+        })
+        .catch(function(err) {
+          alert('Unable to access camera: ' + err.message + '\nPlease ensure camera permissions are granted.');
+        });
+    } else {
+      alert('Camera not supported on this device.');
+    }
+  }
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+    document.getElementById('videoContainer').classList.remove('active');
+  }
+
+  function captureImage() {
+    const video = document.getElementById('video');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    addImage(dataUrl, `capture_${timestamp}.jpg`);
+    
+    // Keep camera open for multiple captures
+  }
+
+  function uploadImage() {
+    document.getElementById('fileInput').click();
+  }
+
+  function handleFileUpload(event) {
+    const files = event.target.files;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          addImage(e.target.result, file.name);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    event.target.value = '';
+  }
+
+  function addImage(dataUrl, filename) {
+    capturedImages.push({
+      id: Date.now() + Math.random().toString(36).substr(2, 5),
+      dataUrl: dataUrl,
+      filename: filename || 'image.jpg',
+      capturedAt: new Date().toISOString()
+    });
+    renderGallery();
+    updateImageCount();
+  }
+
+  function removeImage(id) {
+    if (confirm('Remove this image?')) {
+      capturedImages = capturedImages.filter(img => img.id !== id);
+      renderGallery();
+      updateImageCount();
+    }
+  }
+
+  function renderGallery() {
+    const gallery = document.getElementById('imageGallery');
+    const empty = document.getElementById('imageGalleryEmpty');
+    
+    if (capturedImages.length === 0) {
+      gallery.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    
+    gallery.innerHTML = capturedImages.map(img => `
+      <div class="image-item">
+        <img src="${img.dataUrl}" alt="${img.filename}" />
+        <button class="remove-btn" onclick="removeImage('${img.id}')">×</button>
+        <div class="image-label">${img.filename}</div>
+      </div>
+    `).join('');
+  }
+
+  function updateImageCount() {
+    document.getElementById('imageCount').textContent = `${capturedImages.length} images`;
+  }
+
   // ============================================================
   // 1. RELIGION "OTHER" TOGGLE
   // ============================================================
@@ -2633,7 +2921,7 @@
   }
 
   // ============================================================
-  // 4. ROS BUTTON TOGGLE (2-state: off → present → off)
+  // 4. ROS BUTTON TOGGLE
   // ============================================================
   function toggleRosButton(btn) {
     if (btn.classList.contains('active-present')) {
@@ -2676,7 +2964,7 @@
   }
 
   // ============================================================
-  // 7. PE FINDING TOGGLE (2-state: off → present → off)
+  // 7. PE FINDING TOGGLE
   // ============================================================
   function togglePEFinding(btn) {
     if (btn.classList.contains('active-present')) {
@@ -2695,13 +2983,11 @@
     const container = document.querySelector(`.pe-body[id="pe-${system}"]`);
     if (!container) return;
     
-    // Clear all active findings in this system
     container.querySelectorAll('.pe-finding-tag.active-present').forEach(btn => {
       btn.classList.remove('active-present');
       btn.innerHTML = btn.innerHTML.replace(' ✓', '');
     });
     
-    // Set default narrative
     const narratives = {
       'general': 'Patient appears well, alert and oriented. No pallor, jaundice, cyanosis or clubbing. Hydration adequate. No peripheral oedema. No palpable lymphadenopathy.',
       'cns': 'GCS 15/15. Oriented to time, place and person. Cranial nerves I-XII intact. Power 5/5 all four limbs. Tone normal. Coordination intact. DTRs present and equal bilaterally. Plantars downgoing. Sensation intact. Gait normal.',
@@ -2740,7 +3026,6 @@
       });
     }
 
-    // HIV status ARV details toggle
     document.querySelectorAll('input[name="hivStatus"]').forEach(radio => {
       radio.addEventListener('change', function() {
         document.getElementById('arvDetails').style.display = 
@@ -2748,19 +3033,21 @@
       });
     });
 
-    // Smoking toggle
     document.querySelectorAll('input[name="smoking"]').forEach(radio => {
       radio.addEventListener('change', function() {
         toggleSmokingDetails();
       });
     });
 
-    // Alcohol toggle
     document.querySelectorAll('input[name="alcohol"]').forEach(radio => {
       radio.addEventListener('change', function() {
         toggleAlcoholDetails();
       });
     });
+
+    // Initialize image gallery
+    renderGallery();
+    updateImageCount();
   });
 
   // ============================================================
@@ -2959,7 +3246,7 @@
   }
 
   // ============================================================
-  // 17. SAVE PATIENT (LOCAL STORAGE)
+  // 17. SAVE PATIENT (LOCAL STORAGE + IMAGES)
   // ============================================================
   function savePatient() {
     const name = document.getElementById('patientName').value.trim();
@@ -2979,12 +3266,12 @@
       age: formData.age,
       ...formData,
       ros: rosData,
-      physicalExamination: peData
+      physicalExamination: peData,
+      images: capturedImages // Store images with the record
     };
 
     // Save to localStorage
     let records = JSON.parse(localStorage.getItem('easemed_patients_obgyn')) || [];
-    // Check if record with same name exists and update
     const existingIdx = records.findIndex(r => r.patientName === name && r.id === record.id);
     if (existingIdx >= 0) {
       records[existingIdx] = record;
@@ -2993,10 +3280,9 @@
     }
     localStorage.setItem('easemed_patients_obgyn', JSON.stringify(records));
 
-    alert('✅ Patient record saved successfully!');
+    alert('✅ Patient record saved successfully! Images: ' + capturedImages.length);
     console.log('📋 Saved Record:', record);
     
-    // Update progress
     updateProgress();
   }
 
@@ -3173,11 +3459,21 @@
   document.addEventListener('DOMContentLoaded', function() {
     updateProgress();
     
-    // Add event listeners for all form inputs
     document.querySelectorAll('input, textarea, select').forEach(el => {
       el.addEventListener('input', updateProgress);
       el.addEventListener('change', updateProgress);
     });
+
+    // Render image gallery
+    renderGallery();
+    updateImageCount();
+  });
+
+  // Clean up camera on page unload
+  window.addEventListener('beforeunload', function() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
   });
 </script>
 </body>
