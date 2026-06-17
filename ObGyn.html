@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EaseMed – ObGyn Clerkship</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+  </script>
   <style>
     :root {
       --bg: #f7f9fb; --surface: #ffffff; --border: #dde3ea;
@@ -142,7 +144,7 @@
     .symptom-guide ul { padding-left: 1.2rem; margin: 0.2rem 0; }
     .symptom-guide ul li { font-size: 0.82rem; color: var(--text); line-height: 1.5; }
 
-    /* ROS Styles */
+    /* ROS Styles - Color Button Design */
     .ros-system { border: 1.5px solid var(--border); border-radius: 8px; margin-bottom: 0.8rem; overflow: hidden; }
     .ros-system:last-child { margin-bottom: 0; }
     .ros-header { background: var(--bg); padding: 0.7rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; user-select: none; }
@@ -163,9 +165,7 @@
     .ros-other { margin-top: 0.5rem; }
     .ros-other input { font-size: 0.84rem; padding: 0.35rem 0.6rem; }
 
-    /* ============================================================ */
-    /* PHYSICAL EXAMINATION (PE) STYLES - 4-STEP APPROACH           */
-    /* ============================================================ */
+    /* PE Styles */
     .pe-system { border: 1.5px solid var(--border); border-radius: 8px; margin-bottom: 0.8rem; overflow: hidden; }
     .pe-system:last-child { margin-bottom: 0; }
     .pe-header { background: var(--bg); padding: 0.7rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; user-select: none; }
@@ -176,10 +176,8 @@
     .pe-header .pe-toggle.open { transform: rotate(180deg); }
     .pe-body { padding: 0 1rem 1rem 1rem; display: none; }
     .pe-body.open { display: block; }
-    
     .pe-reference { background: var(--pe-light); border-radius: 6px; padding: 0.5rem 0.75rem; margin-bottom: 0.8rem; font-size: 0.75rem; color: var(--pe-color); border-left: 3px solid var(--pe-color); }
     .pe-reference strong { color: var(--primary); }
-    
     .pe-step { background: #f8fafc; border-radius: 6px; padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid var(--primary); }
     .pe-step-title { font-size: 0.72rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.2rem; }
     .pe-findings-wrap { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.2rem 0 0.3rem 0; }
@@ -191,73 +189,22 @@
     .pe-normal-btn:hover { background: #145c3a; }
     .pe-other { margin-top: 0.5rem; }
     .pe-other textarea { font-size: 0.84rem; padding: 0.35rem 0.6rem; min-height: 50px; }
-    
     .step-badge { display: inline-block; background: var(--primary); color: #fff; border-radius: 50%; width: 20px; height: 20px; text-align: center; line-height: 20px; font-size: 0.65rem; font-weight: 700; margin-right: 0.3rem; flex-shrink: 0; }
     .step-badge.inspection { background: #3498db; }
     .step-badge.palpation { background: #e67e22; }
     .step-badge.percussion { background: #9b59b6; }
     .step-badge.auscultation { background: #2ecc71; }
 
-    /* ============================================================ */
-    /* IMAGE CAPTURE STYLES                                         */
-    /* ============================================================ */
-    .image-capture-section {
-      border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 1.2rem;
-      margin-bottom: 1rem;
-      transition: border-color 0.3s;
-      background: var(--bg);
-    }
-    .image-capture-section:hover {
-      border-color: var(--primary);
-    }
-    .image-capture-section .capture-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.8rem;
-    }
-    .image-capture-section .capture-header h4 {
-      color: var(--primary);
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .image-capture-section .capture-header .count-badge {
-      background: var(--primary-light);
-      color: var(--primary);
-      padding: 0.1rem 0.6rem;
-      border-radius: 20px;
-      font-size: 0.7rem;
-      font-weight: 600;
-    }
-    .image-capture-section .capture-buttons {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .capture-btn {
-      padding: 0.45rem 1rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .capture-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
+    /* Image Capture */
+    .image-capture-section { border: 2px dashed var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1rem; transition: border-color 0.3s; background: var(--bg); }
+    .image-capture-section:hover { border-color: var(--primary); }
+    .image-capture-section .capture-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem; }
+    .image-capture-section .capture-header h4 { color: var(--primary); font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+    .image-capture-section .capture-header .count-badge { background: var(--primary-light); color: var(--primary); padding: 0.1rem 0.6rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+    .capture-btn { padding: 0.45rem 1rem; border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .capture-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     .capture-btn.primary { background: var(--primary); color: #fff; }
-    .capture-btn.primary:hover { background: var(--primary-dark); }
+    .capture-btn.primary:hover { background: #0f4055; }
     .capture-btn.success { background: var(--success); color: #fff; }
     .capture-btn.success:hover { background: #145c3a; }
     .capture-btn.danger { background: var(--danger); color: #fff; }
@@ -265,128 +212,30 @@
     .capture-btn.outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
     .capture-btn.outline:hover { border-color: var(--primary); background: var(--primary-light); }
 
-    .video-container {
-      position: relative;
-      width: 100%;
-      max-width: 480px;
-      margin: 0 auto;
-      background: #000;
-      border-radius: 12px;
-      overflow: hidden;
-      aspect-ratio: 4/3;
-      display: none;
-    }
-    .video-container.active {
-      display: block;
-    }
-    .video-container video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .video-container .capture-overlay {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 12px;
-    }
-    .video-container .capture-overlay button {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 50px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .video-container .capture-overlay .snap-btn {
-      background: #fff;
-      color: #000;
-    }
-    .video-container .capture-overlay .snap-btn:hover {
-      transform: scale(1.05);
-    }
-    .video-container .capture-overlay .close-btn {
-      background: rgba(255,0,0,0.8);
-      color: #fff;
-    }
-    .video-container .capture-overlay .close-btn:hover {
-      background: rgba(255,0,0,1);
-    }
+    .video-container { position: relative; width: 100%; max-width: 480px; margin: 0 auto; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 4/3; display: none; }
+    .video-container.active { display: block; }
+    .video-container video { width: 100%; height: 100%; object-fit: cover; }
+    .video-container .capture-overlay { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; }
+    .video-container .capture-overlay button { padding: 12px 24px; border: none; border-radius: 50px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .video-container .capture-overlay .snap-btn { background: #fff; color: #000; }
+    .video-container .capture-overlay .snap-btn:hover { transform: scale(1.05); }
+    .video-container .capture-overlay .close-btn { background: rgba(255,0,0,0.8); color: #fff; }
+    .video-container .capture-overlay .close-btn:hover { background: rgba(255,0,0,1); }
 
-    .image-gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 0.8rem;
-      margin-top: 0.8rem;
-    }
-    .image-gallery .image-item {
-      position: relative;
-      border-radius: 10px;
-      overflow: hidden;
-      aspect-ratio: 1;
-      border: 2px solid var(--border);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .image-gallery .image-item:hover {
-      transform: scale(1.03);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-      z-index: 2;
-    }
-    .image-gallery .image-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .image-gallery .image-item .remove-btn {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(192, 57, 43, 0.85);
-      color: #fff;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-    }
-    .image-gallery .image-item:hover .remove-btn {
-      opacity: 1;
-    }
-    .image-gallery .image-item .remove-btn:hover {
-      background: var(--danger);
-      transform: scale(1.1);
-    }
-    .image-gallery .image-item .image-label {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(0,0,0,0.6);
-      color: #fff;
-      font-size: 0.6rem;
-      padding: 0.2rem 0.4rem;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .image-gallery-empty {
-      color: var(--muted);
-      font-size: 0.85rem;
-      text-align: center;
-      padding: 1rem;
-      border: 1px dashed var(--border);
-      border-radius: 8px;
-    }
+    .image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.8rem; margin-top: 0.8rem; }
+    .image-gallery .image-item { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 1; border: 2px solid var(--border); transition: transform 0.2s, box-shadow 0.2s; }
+    .image-gallery .image-item:hover { transform: scale(1.03); box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 2; }
+    .image-gallery .image-item img { width: 100%; height: 100%; object-fit: cover; }
+    .image-gallery .image-item .remove-btn { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; border: none; background: rgba(192,57,43,0.85); color: #fff; font-size: 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0; }
+    .image-gallery .image-item:hover .remove-btn { opacity: 1; }
+    .image-gallery .image-item .remove-btn:hover { background: var(--danger); transform: scale(1.1); }
+    .image-gallery .image-item .image-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.6rem; padding: 0.2rem 0.4rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .image-gallery-empty { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 1rem; border: 1px dashed var(--border); border-radius: 8px; }
+
+    .save-toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--success); color: white; padding: 12px 28px; border-radius: 14px; font-weight: 600; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 99999; transition: transform 0.35s cubic-bezier(.175,.885,.32,1.275); pointer-events: none; }
+    .save-toast.show { transform: translateX(-50%) translateY(0); }
+    .save-toast.error { background: var(--danger); }
+    .save-toast.warning { background: #e67e22; }
   </style>
 </head>
 <body>
@@ -717,7 +566,7 @@
       <input type="text" id="otherComplaint" placeholder="Describe the presenting complaint..." />
     </div>
 
-    <!-- HINT PANELS (shortened for space) -->
+    <!-- HINT PANELS (shortened for space - kept from previous version) -->
     <div class="hint-panel" id="hint-gyn-pv-bleed">
       <div class="hint-panel-title">🔴 PV Bleeding — Clinical Guide</div>
       <div class="symptom-guide">
@@ -1426,7 +1275,7 @@
   <hr class="divider" />
 
   <!-- ══════════════════════════════════
-       SECTION 4 — REVIEW OF SYSTEMS
+       SECTION 4 — REVIEW OF SYSTEMS (MOVED HERE AFTER HPC)
   ══════════════════════════════════ -->
   <div class="section-header">
     <span class="section-badge ros">4</span>
@@ -1436,7 +1285,7 @@
   <div class="card ros-card">
     <div class="card-title">🩺 Review of Systems</div>
     <div class="callout" style="margin-bottom:1rem; font-size:0.85rem;">
-      <strong>📋 Instructions:</strong> Click on each system to expand. Click the symptom buttons to toggle between <span style="color:var(--success);font-weight:700;">Present</span> or <span style="color:#95a5a6;font-weight:700;">Absent</span>.
+      <strong>📋 Instructions:</strong> Click on each system to expand. Click the symptom buttons to toggle between <span style="color:var(--success);font-weight:700;">Present</span>, <span style="color:#95a5a6;font-weight:700;">Absent</span>, or <span style="color:var(--text);font-weight:700;">Not Asked</span>. Use the "Other" field for symptoms not listed.
     </div>
 
     <!-- SYSTEM 1: GIT -->
@@ -1633,6 +1482,7 @@
         </div>
       </div>
     </div>
+
   </div>
 
   <hr class="divider" />
@@ -2748,9 +2598,18 @@
   <button class="btn-primary" onclick="goNext()">Complete History →</button>
 </div>
 
+<!-- Save Toast -->
+<div class="save-toast" id="saveToast">✅ Patient record saved!</div>
+
 <script>
   // ============================================================
-  // IMAGE CAPTURE FUNCTIONALITY
+  // SUPABASE CONFIGURATION
+  // ============================================================
+  const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+  // ============================================================
+  // 1. IMAGE CAPTURE FUNCTIONALITY
   // ============================================================
   let capturedImages = [];
   let stream = null;
@@ -2793,8 +2652,6 @@
     const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     addImage(dataUrl, `capture_${timestamp}.jpg`);
-    
-    // Keep camera open for multiple captures
   }
 
   function uploadImage() {
@@ -2860,7 +2717,7 @@
   }
 
   // ============================================================
-  // 1. RELIGION "OTHER" TOGGLE
+  // 2. RELIGION "OTHER" TOGGLE
   // ============================================================
   function toggleOtherReligion(value) {
     const otherInput = document.getElementById('religionOther');
@@ -2876,7 +2733,7 @@
   }
 
   // ============================================================
-  // 2. EDD AND WOA CALCULATION
+  // 3. EDD AND WOA CALCULATION
   // ============================================================
   function calculateEDDandWOA() {
     const lnmp = document.getElementById('lnmp').value;
@@ -2900,7 +2757,7 @@
   }
 
   // ============================================================
-  // 3. COMPLAINT TAGS
+  // 4. COMPLAINT TAGS
   // ============================================================
   function selectTag(btn) {
     document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
@@ -2921,12 +2778,16 @@
   }
 
   // ============================================================
-  // 4. ROS BUTTON TOGGLE
+  // 5. ROS BUTTON TOGGLE (3-state: off → present → absent → off)
   // ============================================================
   function toggleRosButton(btn) {
     if (btn.classList.contains('active-present')) {
       btn.classList.remove('active-present');
-      btn.innerHTML = btn.innerHTML.replace(' ✓', '');
+      btn.classList.add('active-absent');
+      btn.innerHTML = btn.innerHTML.replace(' ✓', ' ✗');
+    } else if (btn.classList.contains('active-absent')) {
+      btn.classList.remove('active-absent');
+      btn.innerHTML = btn.innerHTML.replace(' ✗', '');
     } else {
       btn.classList.add('active-present');
       btn.innerHTML = btn.innerHTML + ' ✓';
@@ -2934,7 +2795,7 @@
   }
 
   // ============================================================
-  // 5. ROS TOGGLE FUNCTION
+  // 6. ROS TOGGLE FUNCTION
   // ============================================================
   function toggleROS(systemId) {
     const body = document.getElementById(systemId);
@@ -2949,7 +2810,7 @@
   }
 
   // ============================================================
-  // 6. PE TOGGLE FUNCTION
+  // 7. PE TOGGLE FUNCTION
   // ============================================================
   function togglePE(systemId) {
     const body = document.getElementById(systemId);
@@ -2964,7 +2825,7 @@
   }
 
   // ============================================================
-  // 7. PE FINDING TOGGLE
+  // 8. PE FINDING TOGGLE (2-state: off → present → off)
   // ============================================================
   function togglePEFinding(btn) {
     if (btn.classList.contains('active-present')) {
@@ -2977,7 +2838,7 @@
   }
 
   // ============================================================
-  // 8. PE MARK NORMAL
+  // 9. PE MARK NORMAL
   // ============================================================
   function markPENormal(system) {
     const container = document.querySelector(`.pe-body[id="pe-${system}"]`);
@@ -3006,7 +2867,7 @@
   }
 
   // ============================================================
-  // 9. CONTRACEPTION "NONE" EXCLUSIVE
+  // 10. CONTRACEPTION "NONE" EXCLUSIVE
   // ============================================================
   document.addEventListener('DOMContentLoaded', function() {
     const contraGroup = document.getElementById('contraceptionGroup');
@@ -3026,6 +2887,7 @@
       });
     }
 
+    // HIV status ARV details toggle
     document.querySelectorAll('input[name="hivStatus"]').forEach(radio => {
       radio.addEventListener('change', function() {
         document.getElementById('arvDetails').style.display = 
@@ -3033,25 +2895,27 @@
       });
     });
 
+    // Smoking toggle
     document.querySelectorAll('input[name="smoking"]').forEach(radio => {
       radio.addEventListener('change', function() {
         toggleSmokingDetails();
       });
     });
 
+    // Alcohol toggle
     document.querySelectorAll('input[name="alcohol"]').forEach(radio => {
       radio.addEventListener('change', function() {
         toggleAlcoholDetails();
       });
     });
 
-    // Initialize image gallery
+    // Render image gallery
     renderGallery();
     updateImageCount();
   });
 
   // ============================================================
-  // 10. SMOKING TOGGLE
+  // 11. SMOKING TOGGLE
   // ============================================================
   function toggleSmokingDetails() {
     const selected = document.querySelector('input[name="smoking"]:checked');
@@ -3067,7 +2931,7 @@
   }
 
   // ============================================================
-  // 11. ALCOHOL TOGGLE
+  // 12. ALCOHOL TOGGLE
   // ============================================================
   function toggleAlcoholDetails() {
     const selected = document.querySelector('input[name="alcohol"]:checked');
@@ -3083,7 +2947,7 @@
   }
 
   // ============================================================
-  // 12. ADD ANC ENTRY
+  // 13. ADD ANC ENTRY
   // ============================================================
   let ancEntryCount = 1;
 
@@ -3157,7 +3021,7 @@
   }
 
   // ============================================================
-  // 13. OTHER UTILITY FUNCTIONS
+  // 14. OTHER UTILITY FUNCTIONS
   // ============================================================
   function toggleReferral(show) {
     document.getElementById('referralDetails').style.display = show ? 'block' : 'none';
@@ -3169,7 +3033,7 @@
   }
 
   // ============================================================
-  // 14. GET ANC DATA
+  // 15. GET ANC DATA
   // ============================================================
   function getAncData() {
     const entries = [];
@@ -3202,7 +3066,7 @@
   }
 
   // ============================================================
-  // 15. GET ROS DATA
+  // 16. GET ROS DATA
   // ============================================================
   function getRosData() {
     const systems = ['git', 'urinogenital', 'respiratory', 'cardiovascular', 'musculoskeletal', 'endocrine', 'cns'];
@@ -3210,14 +3074,18 @@
     systems.forEach(sys => {
       const buttons = document.querySelectorAll(`.ros-buttons[data-system="${sys}"] .ros-btn`);
       const present = [];
+      const absent = [];
       buttons.forEach(btn => {
         if (btn.classList.contains('active-present')) {
           present.push(btn.dataset.symptom);
+        } else if (btn.classList.contains('active-absent')) {
+          absent.push(btn.dataset.symptom);
         }
       });
       const otherField = document.getElementById(`ros${sys.charAt(0).toUpperCase() + sys.slice(1)}Other`);
       rosData[sys] = {
         present: present,
+        absent: absent,
         other: otherField ? otherField.value : ''
       };
     });
@@ -3225,16 +3093,18 @@
   }
 
   // ============================================================
-  // 16. GET PE DATA
+  // 17. GET PE DATA
   // ============================================================
   function getPeData() {
     const systems = ['general', 'cns', 'cv', 'resp', 'breast', 'thyroid', 'vaginal', 'obstetric'];
     const peData = {};
     systems.forEach(sys => {
-      const buttons = document.querySelectorAll(`.pe-body[id="pe-${sys}"] .pe-finding-tag.active-present`);
+      const buttons = document.querySelectorAll(`.pe-findings-wrap[data-system^="${sys}"] .pe-finding-tag`);
       const present = [];
       buttons.forEach(btn => {
-        present.push(btn.dataset.finding);
+        if (btn.classList.contains('active-present')) {
+          present.push(btn.dataset.finding);
+        }
       });
       const narrativeField = document.getElementById(`pe${sys.charAt(0).toUpperCase() + sys.slice(1)}Narrative`);
       peData[sys] = {
@@ -3246,177 +3116,275 @@
   }
 
   // ============================================================
-  // 17. SAVE PATIENT (LOCAL STORAGE + IMAGES)
+  // 18. CREATE SUPABASE CLIENT
   // ============================================================
-  function savePatient() {
+  function getSupabaseClient() {
+    if (typeof supabase !== 'undefined' && supabase.createClient) {
+      return supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    }
+    if (window.supabase && window.supabase.createClient) {
+      return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    }
+    throw new Error('Supabase client not available.');
+  }
+
+  // ============================================================
+  // 19. SAVE PATIENT (LOCAL + SUPABASE)
+  // ============================================================
+  async function savePatient() {
     const name = document.getElementById('patientName').value.trim();
     if (!name) {
-      alert('Please enter patient name before saving.');
+      showToast('Error', 'Please enter patient name.', 'error');
       return;
     }
 
-    const formData = getFormData();
-    const peData = getPeData();
-    const rosData = getRosData();
-    
-    const record = {
-      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-      savedAt: new Date().toISOString(),
-      patientName: formData.patientName,
-      age: formData.age,
-      ...formData,
-      ros: rosData,
-      physicalExamination: peData,
-      images: capturedImages // Store images with the record
-    };
+    try {
+      // Collect all form data
+      const formData = captureFormData();
+      const patients = getPatients();
+      
+      const record = {
+        id: currentPatientId || generateId(),
+        savedAt: new Date().toISOString(),
+        createdAt: currentPatientId ? (patients.find(p => p.id === currentPatientId)?.createdAt || Date.now()) : Date.now(),
+        patientName: name,
+        age: document.getElementById('age').value,
+        ipNumber: document.getElementById('ipNumber').value,
+        type: document.querySelector('input[name="type"]:checked')?.value || 'gyn',
+        ...formData
+      };
 
-    // Save to localStorage
-    let records = JSON.parse(localStorage.getItem('easemed_patients_obgyn')) || [];
-    const existingIdx = records.findIndex(r => r.patientName === name && r.id === record.id);
-    if (existingIdx >= 0) {
-      records[existingIdx] = record;
-    } else {
-      records.unshift(record);
+      // 1. SAVE TO LOCAL STORAGE
+      const existingIdx = patients.findIndex(p => p.id === record.id);
+      if (existingIdx >= 0) {
+        patients[existingIdx] = record;
+        showToast('Updated', `Record for ${name} updated locally.`, 'success');
+      } else {
+        patients.unshift(record);
+        currentPatientId = record.id;
+        showToast('Saved', `Record for ${name} saved locally.`, 'success');
+      }
+      savePatients(patients);
+      renderTable();
+      updateStats();
+      updateProgress();
+
+      // 2. SAVE TO SUPABASE
+      try {
+        const sb = getSupabaseClient();
+        const { data: { session } } = await sb.auth.getSession();
+        
+        if (!session) {
+          showToast('⚠️ Saved locally only', 'Supabase: Not logged in. Record saved locally.', 'warning');
+          return;
+        }
+
+        const user = session.user;
+        const oiList = Array.from(document.querySelectorAll('#hivDetails input[type="checkbox"]:checked'))
+          .map(cb => cb.value);
+
+        // Build Supabase record
+        const supabaseRecord = {
+          user_id: user.id,
+          module: 'obgyn',
+          full_name: record.patientName || '',
+          age: parseInt(record.age) || null,
+          gender: document.getElementById('gender')?.value || '',
+          marital_status: record.maritalStatus || '',
+          occupation: record.occupation || '',
+          religion: record.religion || '',
+          tribe: record.tribe || '',
+          address: record.address || '',
+          next_of_kin: record.nokName || '',
+          nearest_health_centre: record.nearestFacility || '',
+          referral_status: record.referred || 'Self-referred',
+          referral_from: record.referralFacility || '',
+          referral_reason: record.referralReason || '',
+          current_symptom: record.complaintCategory || '',
+          complaint_verbatim: record.complaintVerbatim || '',
+          duration_value: record.durationValue || '',
+          duration_unit: record.durationUnit || '',
+          hpc: record.hpcNarrative || '',
+          hpc_site: record.hpcSite || '',
+          hpc_onset: record.hpcOnset || '',
+          hpc_character: record.hpcCharacter || '',
+          hpc_radiation: record.hpcRadiation || '',
+          hpc_severity: record.hpcSeverity || '',
+          hpc_time: record.hpcTime || '',
+          hpc_exacerbating: record.hpcExacerbating || '',
+          hpc_relieving: record.hpcRelieving || '',
+          hpc_associations: record.hpcAssociations || '',
+          pmh: record.pmh || '',
+          medications: record.medications || '',
+          allergies: record.allergies || '',
+          hiv_status: record.hivStatus || '',
+          hiv_diagnosis_date: record.hivDiagnosisDate || '',
+          hiv_diagnosis_method: record.hivDiagnosisMethod || '',
+          hiv_who_stage: record.hivWhoStage || '',
+          hiv_on_art: record.hivOnArt || '',
+          hiv_art_start_date: record.hivArtStartDate || '',
+          hiv_art_regimen: record.hivArtRegimen || '',
+          hiv_adherence: record.hivAdherence || '',
+          hiv_missed_doses: record.hivMissedDoses || '',
+          hiv_adherence_barriers: record.hivAdherenceBarriers || '',
+          hiv_cd4: record.hivCd4 || '',
+          hiv_cd4_date: record.hivCd4Date || '',
+          hiv_viral_load: record.hivViralLoad || '',
+          hiv_vl_date: record.hivVlDate || '',
+          hiv_opportunistic_infections: oiList,
+          hiv_ipt: record.hivIpt || '',
+          hiv_cpt: record.hivCpt || '',
+          hiv_partner_status: record.hivPartnerStatus || '',
+          ros_data: getRosData(),
+          pe_data: getPeData(),
+          social_history: record.social || '',
+          family_history: record.familyHistory || '',
+          management_plan: record.managementPlan || '',
+          gravida: record.gravida || '',
+          parity: record.parity || '',
+          lnmp: record.lnmp || '',
+          edd: record.edd || '',
+          woa: record.woa || '',
+          prev_cs: record.prevCS || '',
+          prev_obs_complications: record.prevObsComplications || '',
+          prev_pregnancies: record.prevPregnancies || '',
+          anc_total_visits: record.ancTotalVisits || '',
+          anc_first_weeks: record.ancFirstWeeks || '',
+          anc_first_days: record.ancFirstDays || '',
+          anc_facility: record.ancFacility || '',
+          anc_visits: getAncData(),
+          anc_medications: getAncMedications(),
+          anc_findings: record.ancFindings || '',
+          anc_ultrasound: record.ancUltrasound || '',
+          menarche: record.menarche || '',
+          lmp_date: record.lmpDate || '',
+          cycle_length: record.cycleLength || '',
+          flow_duration: record.flowDuration || '',
+          flow_amount: record.flowAmount || '',
+          dysmenorrhoea: record.dysmenorrhoea || '',
+          menstrual_status: record.menstrualStatus || '',
+          last_smear: record.lastSmear || '',
+          sexual_history: record.sexualHistory || '',
+          gyn_surgeries: record.gynSurgeries || '',
+          gyn_conditions: record.gynConditions || '',
+          images: capturedImages || [],
+          updated_at: new Date().toISOString()
+        };
+
+        // Check if record exists in Supabase
+        const { data: existing, error: checkError } = await sb
+          .from('patient_records')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('full_name', record.patientName)
+          .eq('module', 'obgyn')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        let result;
+        if (existing && existing.length > 0) {
+          result = await sb
+            .from('patient_records')
+            .update(supabaseRecord)
+            .eq('id', existing[0].id);
+        } else {
+          supabaseRecord.created_at = new Date().toISOString();
+          result = await sb
+            .from('patient_records')
+            .insert(supabaseRecord);
+        }
+
+        if (result.error) {
+          console.error('Supabase error:', result.error);
+          showToast('⚠️ Saved locally only', 'Cloud sync failed: ' + result.error.message, 'warning');
+        } else {
+          // Mark as synced in local storage
+          const updatedPatients = getPatients();
+          const idx = updatedPatients.findIndex(p => p.id === record.id);
+          if (idx >= 0) {
+            updatedPatients[idx]._synced = true;
+            savePatients(updatedPatients);
+          }
+          showToast('✅ Saved', 'Record saved locally and to cloud!', 'success');
+        }
+
+      } catch (err) {
+        console.error('Supabase error:', err);
+        showToast('⚠️ Saved locally only', 'Cloud sync failed: ' + err.message, 'warning');
+      }
+
+    } catch (err) {
+      console.error('Save error:', err);
+      showToast('Error', 'Failed to save record: ' + err.message, 'error');
     }
-    localStorage.setItem('easemed_patients_obgyn', JSON.stringify(records));
-
-    alert('✅ Patient record saved successfully! Images: ' + capturedImages.length);
-    console.log('📋 Saved Record:', record);
-    
-    updateProgress();
   }
 
   // ============================================================
-  // 18. FORM DATA COLLECTION
+  // 20. GET ANC MEDICATIONS
   // ============================================================
-  function getFormData() {
-    const complaintCategory = document.getElementById('complaintCategory').value;
-    const contraChecks = document.querySelectorAll('#contraceptionGroup input[type="checkbox"]:checked');
-    const contraception = Array.from(contraChecks).map(cb => cb.value);
-    const hivStatus = document.querySelector('input[name="hivStatus"]:checked');
-    const partnerHiv = document.querySelector('input[name="partnerHiv"]:checked');
-    const referred = document.querySelector('input[name="referred"]:checked');
-    const menstrualStatus = document.querySelector('input[name="menstrualStatus"]:checked');
-    const smoking = document.querySelector('input[name="smoking"]:checked');
-    const alcohol = document.querySelector('input[name="alcohol"]:checked');
-    
-    const ancMeds = [];
-    if (document.getElementById('ancFerrous').checked) ancMeds.push('Ferrous sulphate');
-    if (document.getElementById('ancFolic').checked) ancMeds.push('Folic acid');
-    if (document.getElementById('ancIptp').checked) ancMeds.push('IPTp (SP)');
-    if (document.getElementById('ancMebendazole').checked) ancMeds.push('Mebendazole');
-    if (document.getElementById('ancTt').checked) ancMeds.push('TT vaccine');
-    if (document.getElementById('ancArvs').checked) ancMeds.push('ARVs (PMTCT)');
-    if (document.getElementById('ancCalcium').checked) ancMeds.push('Calcium');
-    if (document.getElementById('ancAspirin').checked) ancMeds.push('Aspirin');
-
-    return {
-      patientName: document.getElementById('patientName').value,
-      age: document.getElementById('age').value,
-      ipNumber: document.getElementById('ipNumber').value,
-      address: document.getElementById('address').value,
-      occupation: document.getElementById('occupation').value,
-      tribe: document.getElementById('tribe').value,
-      religion: document.getElementById('religion').value === 'Other' 
-        ? document.getElementById('religionOther').value 
-        : document.getElementById('religion').value,
-      education: document.getElementById('education').value,
-      admissionDate: document.getElementById('admissionDate').value,
-      nokName: document.getElementById('nokName').value,
-      nokRelationship: document.getElementById('nokRelationship').value,
-      nokContact: document.getElementById('nokContact').value,
-      lnmp: document.getElementById('lnmp').value,
-      edd: document.getElementById('edd').value,
-      woa: document.getElementById('woa').value,
-      gravida: document.getElementById('gravida').value,
-      parity: document.getElementById('parity').value,
-      nearestFacility: document.getElementById('nearestFacility').value,
-      referred: referred ? referred.value : '',
-      referralFacility: document.getElementById('referralFacility').value,
-      referralLevel: document.getElementById('referralLevel').value,
-      referralReason: document.getElementById('referralReason').value,
-      referralTreatment: document.getElementById('referralTreatment').value,
-      hivStatus: hivStatus ? hivStatus.value : '',
-      arvRegimen: document.getElementById('arvRegimen').value,
-      partnerHivStatus: partnerHiv ? partnerHiv.value : '',
-      complaintVerbatim: document.getElementById('complaintVerbatim').value,
-      durationValue: document.getElementById('durationValue').value,
-      durationUnit: document.getElementById('durationUnit').value,
-      complaintCategory: complaintCategory,
-      otherComplaint: document.getElementById('otherComplaint').value,
-      onset: document.querySelector('input[name="onset"]:checked')?.value || '',
-      course: document.querySelector('input[name="course"]:checked')?.value || '',
-      associatedComplaints: document.getElementById('associatedComplaints').value,
-      hpcNarrative: document.getElementById('hpcNarrative').value,
-      hpcSite: document.getElementById('hpcSite').value,
-      hpcOnset: document.getElementById('hpcOnset').value,
-      hpcCharacter: document.getElementById('hpcCharacter').value,
-      hpcRadiation: document.getElementById('hpcRadiation').value,
-      hpcSeverity: document.getElementById('hpcSeverity').value,
-      hpcTime: document.getElementById('hpcTime').value,
-      hpcExacerbating: document.getElementById('hpcExacerbating').value,
-      hpcRelieving: document.getElementById('hpcRelieving').value,
-      hpcAssociations: document.getElementById('hpcAssociations').value,
-      prevPregnancies: document.getElementById('prevPregnancies').value,
-      prevCS: document.getElementById('prevCS').value,
-      prevAbortions: document.getElementById('prevAbortions').value,
-      prevObsComplications: document.getElementById('prevObsComplications').value,
-      ancTotalVisits: document.getElementById('ancTotalVisits').value,
-      ancFirstWeeks: document.getElementById('ancFirstWeeks').value,
-      ancFirstDays: document.getElementById('ancFirstDays').value,
-      ancFacility: document.getElementById('ancFacility').value,
-      ancVisits: getAncData(),
-      ancMedications: ancMeds,
-      ancFindings: document.getElementById('ancFindings').value,
-      ancUltrasound: document.getElementById('ancUltrasound').value,
-      lastSmear: document.getElementById('lastSmear').value,
-      sexualHistory: document.getElementById('sexualHistory').value,
-      gynSurgeries: document.getElementById('gynSurgeries').value,
-      gynConditions: document.getElementById('gynConditions').value,
-      gynFamilyHistory: document.getElementById('gynFamilyHistory').value,
-      menarche: document.getElementById('menarche').value,
-      lmpDate: document.getElementById('lmpDate').value,
-      cycleLength: document.getElementById('cycleLength').value,
-      flowDuration: document.getElementById('flowDuration').value,
-      flowAmount: document.getElementById('flowAmount').value,
-      dysmenorrhoea: document.getElementById('dysmenorrhoea').value,
-      menstrualStatus: menstrualStatus ? menstrualStatus.value : '',
-      menstrualNotes: document.getElementById('menstrualNotes').value,
-      contraception: contraception,
-      previousContraception: document.getElementById('previousContraception').value,
-      contraceptiveNotes: document.getElementById('contraceptiveNotes').value,
-      chronicConditions: document.getElementById('chronicConditions').value,
-      currentMeds: document.getElementById('currentMeds').value,
-      allergies: document.getElementById('allergies').value,
-      transfusionHistory: document.getElementById('transfusionHistory').value,
-      previousSurgeries: document.getElementById('previousSurgeries').value,
-      surgeryComplications: document.getElementById('surgeryComplications').value,
-      anaestheticHistory: document.getElementById('anaestheticHistory').value,
-      livingSituation: document.getElementById('livingSituation').value,
-      waterSource: document.getElementById('waterSource').value,
-      toiletType: document.getElementById('toiletType').value,
-      smoking: smoking ? smoking.value : '',
-      smokingPackYears: document.getElementById('smokingPackYears').value,
-      smokingQuitDate: document.getElementById('smokingQuitDate').value,
-      smokingDetails: document.getElementById('smokingDetails').value,
-      alcohol: alcohol ? alcohol.value : '',
-      alcoholUnits: document.getElementById('alcoholUnits').value,
-      alcoholType: document.getElementById('alcoholType').value,
-      alcoholDetails: document.getElementById('alcoholDetails').value,
-      drugUse: document.getElementById('drugUse').value,
-      occupationDetails: document.getElementById('occupationDetails').value,
-      socialSupport: document.getElementById('socialSupport').value,
-      familyConditions: document.getElementById('familyConditions').value,
-      familyGynCancer: document.getElementById('familyGynCancer').value,
-      familyOtherCancer: document.getElementById('familyOtherCancer').value,
-      familyBloodDisorders: document.getElementById('familyBloodDisorders').value,
-      familyMentalHealth: document.getElementById('familyMentalHealth').value,
-      familyInfertility: document.getElementById('familyInfertility').value
-    };
+  function getAncMedications() {
+    const meds = [];
+    if (document.getElementById('ancFerrous')?.checked) meds.push('Ferrous sulphate');
+    if (document.getElementById('ancFolic')?.checked) meds.push('Folic acid');
+    if (document.getElementById('ancIptp')?.checked) meds.push('IPTp (SP)');
+    if (document.getElementById('ancMebendazole')?.checked) meds.push('Mebendazole');
+    if (document.getElementById('ancTt')?.checked) meds.push('TT vaccine');
+    if (document.getElementById('ancArvs')?.checked) meds.push('ARVs (PMTCT)');
+    if (document.getElementById('ancCalcium')?.checked) meds.push('Calcium');
+    if (document.getElementById('ancAspirin')?.checked) meds.push('Aspirin');
+    return meds;
   }
 
   // ============================================================
-  // 19. PROGRESS UPDATE
+  // 21. GET PATIENTS FROM LOCAL STORAGE
+  // ============================================================
+  function getPatients() {
+    try {
+      return JSON.parse(localStorage.getItem('easemed_patients_obgyn')) || [];
+    } catch { return []; }
+  }
+
+  function savePatients(patients) {
+    localStorage.setItem('easemed_patients_obgyn', JSON.stringify(patients));
+  }
+
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+  }
+
+  // ============================================================
+  // 22. SHOW TOAST
+  // ============================================================
+  let toastTimeout;
+
+  function showToast(title, message, type = 'success') {
+    const toast = document.getElementById('saveToast');
+    toast.textContent = `${title} — ${message}`;
+    toast.className = 'save-toast' + (type === 'error' ? ' error' : type === 'warning' ? ' warning' : '');
+    toast.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  // ============================================================
+  // 23. CAPTURE FORM DATA
+  // ============================================================
+  function captureFormData() {
+    const data = {};
+    document.querySelectorAll('input[id], textarea[id], select[id]').forEach(el => {
+      if (el.type === 'checkbox') data[el.id] = el.checked;
+      else if (el.type === 'radio' && el.checked) data[el.name] = el.value;
+      else data[el.id] = el.value;
+    });
+    const msRadio = document.querySelector('input[name="menstrualStatus"]:checked');
+    if (msRadio) data.menstrualStatus = msRadio.value;
+    const typeRadio = document.querySelector('input[name="type"]:checked');
+    if (typeRadio) data.type = typeRadio.value;
+    return data;
+  }
+
+  // ============================================================
+  // 24. UPDATE PROGRESS
   // ============================================================
   function updateProgress() {
     const totalFields = document.querySelectorAll('input, textarea, select').length;
@@ -3424,12 +3392,12 @@
     document.querySelectorAll('input, textarea, select').forEach(f => {
       if (f.value && f.value.trim() !== '') filledFields++;
     });
-    const progress = Math.min(100, Math.round((filledFields / totalFields) * 100));
+    const progress = Math.min(100, Math.round((filledFields / Math.max(totalFields, 1)) * 100));
     document.getElementById('progressFill').style.width = progress + '%';
   }
 
   // ============================================================
-  // 20. GO NEXT
+  // 25. GO NEXT / COMPLETE
   // ============================================================
   function goNext() {
     const name = document.getElementById('patientName').value.trim();
@@ -3443,30 +3411,47 @@
     const cat = document.getElementById('complaintCategory').value;
     const hpc = document.getElementById('hpcNarrative').value.trim();
 
-    if (!name || !age) { alert('Please complete required demographics: Name and Age.'); return; }
-    if (!lnmp) { alert('Please enter Last Normal Menstrual Period (LNMP).'); return; }
-    if (!gravida || !parity) { alert('Please enter Gravida and Parity.'); return; }
-    if (!complaint || !durVal || !durUnit || !cat) { alert('Please complete the presenting complaint.'); return; }
-    if (!hpc) { alert('Please write the HPC narrative.'); return; }
+    if (!name || !age) { showToast('Error', 'Please complete Name and Age.', 'error'); return; }
+    if (!lnmp) { showToast('Error', 'Please enter LNMP.', 'error'); return; }
+    if (!gravida || !parity) { showToast('Error', 'Please enter Gravida and Parity.', 'error'); return; }
+    if (!complaint || !durVal || !durUnit || !cat) { showToast('Error', 'Please complete the presenting complaint.', 'error'); return; }
+    if (!hpc) { showToast('Error', 'Please write the HPC narrative.', 'error'); return; }
 
-    alert('✅ All history sections complete. You can now save the record.');
+    // Auto-save before completing
     savePatient();
+    showToast('✅ Complete', 'All history sections complete! Record saved.', 'success');
   }
 
   // ============================================================
-  // 21. INIT
+  // 26. INIT
   // ============================================================
   document.addEventListener('DOMContentLoaded', function() {
     updateProgress();
     
+    // Add event listeners for all form inputs
     document.querySelectorAll('input, textarea, select').forEach(el => {
       el.addEventListener('input', updateProgress);
       el.addEventListener('change', updateProgress);
     });
 
+    // Set up contraception "None" exclusive
+    document.addEventListener('change', function(e) {
+      if (e.target.closest && e.target.closest('#contraceptionGroup')) {
+        const checkboxes = document.querySelectorAll('#contraceptionGroup input[type="checkbox"]');
+        if (e.target.value === 'None' && e.target.checked) {
+          checkboxes.forEach(cb => { if (cb.value !== 'None') cb.checked = false; });
+        } else if (e.target.value !== 'None' && e.target.checked) {
+          const noneCb = document.querySelector('#contraceptionGroup input[value="None"]');
+          if (noneCb) noneCb.checked = false;
+        }
+      }
+    });
+
     // Render image gallery
     renderGallery();
     updateImageCount();
+    renderTable();
+    updateStats();
   });
 
   // Clean up camera on page unload
@@ -3475,6 +3460,34 @@
       stream.getTracks().forEach(track => track.stop());
     }
   });
+
+  // Make functions globally available
+  window.savePatient = savePatient;
+  window.goNext = goNext;
+  window.startCamera = startCamera;
+  window.stopCamera = stopCamera;
+  window.captureImage = captureImage;
+  window.uploadImage = uploadImage;
+  window.handleFileUpload = handleFileUpload;
+  window.addImage = addImage;
+  window.removeImage = removeImage;
+  window.renderGallery = renderGallery;
+  window.updateImageCount = updateImageCount;
+  window.toggleOtherReligion = toggleOtherReligion;
+  window.calculateEDDandWOA = calculateEDDandWOA;
+  window.selectTag = selectTag;
+  window.toggleRosButton = toggleRosButton;
+  window.toggleROS = toggleROS;
+  window.togglePE = togglePE;
+  window.togglePEFinding = togglePEFinding;
+  window.markPENormal = markPENormal;
+  window.toggleSmokingDetails = toggleSmokingDetails;
+  window.toggleAlcoholDetails = toggleAlcoholDetails;
+  window.addAncEntry = addAncEntry;
+  window.removeAncEntry = removeAncEntry;
+  window.toggleReferral = toggleReferral;
+  window.checkAge = checkAge;
+  window.updateProgress = updateProgress;
 </script>
 </body>
 </html>
