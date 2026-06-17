@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <style>
-        /* ========== COMPLETE ORIGINAL STYLES (unchanged) ========== */
+        /* ========== COMPLETE ORIGINAL STYLES ========== */
         * {
             margin: 0;
             padding: 0;
@@ -1606,6 +1606,10 @@
             border-radius: 12px;
             flex-shrink: 0;
         }
+        .module-card .module-icon.obgyn {
+            background: #fce4ec;
+            color: #c62828;
+        }
         .module-card .module-icon.peds {
             background: #b2dfdb;
             color: #1b5e4a;
@@ -1639,6 +1643,17 @@
             transform: scale(1.04);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
         }
+        .module-card.obgyn-card {
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+            border-left: 5px solid #c62828;
+        }
+        .module-card.obgyn-card .module-text h3 {
+            color: #c62828;
+        }
+        .module-card.obgyn-card .module-btn {
+            background: linear-gradient(135deg, #c62828, #b5006e);
+            color: white;
+        }
         .module-card.peds-card {
             background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
             border-left: 5px solid #1b7e6b;
@@ -1661,6 +1676,47 @@
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
         }
+        .module-card .module-badge {
+            font-size: 0.6rem;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            color: #333;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-left: 8px;
+        }
+
+        /* Module Navigation Bar */
+        .module-nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 12px 0 8px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 16px;
+        }
+        .module-nav .nav-btn {
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .module-nav .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .module-nav .nav-btn.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+        }
 
         @media (max-width: 600px) {
             .module-card {
@@ -1675,54 +1731,61 @@
                 width: 100%;
                 text-align: center;
             }
+            .module-nav {
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
     <div class="progress-bar" id="progressBar"></div>
+    
+    <!-- AUTH BAR -->
     <div id="authBar" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(15,32,39,0.92); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.4); font-family: 'Segoe UI', sans-serif;">
-        <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:22px;">🩺</span><span style="color:#fff; font-weight:700; font-size:1rem;">EaseMed</span></div>
-        <div style="display:flex; align-items:center; gap:14px;"><span id="userGreeting" style="color:#90cdf4; font-size:0.88rem; font-weight:500;"></span><button onclick="handleLogout()" style="background: linear-gradient(135deg, #e53e3e, #c53030); color: white; border: none; border-radius: 8px; padding: 7px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">🚪 Logout</button></div>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:22px;">🩺</span>
+            <span style="color:#fff; font-weight:700; font-size:1rem;">EaseMed</span>
+            <span style="color:rgba(255,255,255,0.5); font-size:0.75rem; margin-left:6px;">| ObGyn</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:14px;">
+            <span id="userGreeting" style="color:#90cdf4; font-size:0.88rem; font-weight:500;"></span>
+            <button onclick="handleLogout()" style="background: linear-gradient(135deg, #e53e3e, #c53030); color: white; border: none; border-radius: 8px; padding: 7px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer;">🚪 Logout</button>
+        </div>
     </div>
     <div style="height: 52px;"></div>
 
     <div class="container">
         <div class="clerking-panel">
             <div class="panel-header">
-                <h1><span>📚</span> EaseMed - Clinical Clerk System <span class="badge">Hutchison's Clinical Methods 25th Ed.</span></h1>
-                <p>Comprehensive history taking & physical examination guide | Based on Hutchison's Clinical Methods</p>
+                <h1><span>📚</span> EaseMed - ObGyn Clerking <span class="badge">Hutchison's Clinical Methods 25th Ed.</span></h1>
+                <p>Comprehensive Obstetrics & Gynaecology history taking & physical examination guide</p>
+                
+                <!-- Module Navigation -->
+                <div class="module-nav">
+                    <a href="easemed_index.html" class="nav-btn">🏠 Dashboard</a>
+                    <a href="easemed_surgery.html" class="nav-btn">🔪 Surgery</a>
+                    <a href="easemed_pediatrics.html" class="nav-btn">👶 Pediatrics</a>
+                    <a href="#" class="nav-btn active">🤰 ObGyn</a>
+                </div>
             </div>
 
-            <!-- ============================================================ -->
-            <!-- MODULE CARDS: Surgery Clerking + Pediatric Clerking            -->
-            <!-- ============================================================ -->
-            
-            <!-- Surgery Clerking Module -->
-            <div class="module-card surgery-card">
+            <!-- ====== OBGYN MODULE CARD ====== -->
+            <div class="module-card obgyn-card" style="margin: 0 0 16px 0; border-radius: 0; border-left: none; background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);">
                 <div class="module-left">
-                    <div class="module-icon surgery">🔪</div>
+                    <div class="module-icon obgyn">🤰</div>
                     <div class="module-text">
-                        <h3>Surgery Clerking Module</h3>
-                        <p>Comprehensive surgical history taking: PC, HPC, PMH, ROS, Physical Examination &amp; Assessment</p>
+                        <h3>Obstetrics & Gynaecology Clerking <span class="module-badge">Complete</span></h3>
+                        <p>Menstrual history, obstetric history, gynaecological history, ANC data, and system-specific ROS</p>
                     </div>
                 </div>
-                <a href="surgery-clerking.html" class="module-btn">🔪 Go to Surgery Module →</a>
-            </div>
-
-            <!-- Pediatric Clerking Module -->
-            <div class="module-card peds-card">
-                <div class="module-left">
-                    <div class="module-icon peds">👶</div>
-                    <div class="module-text">
-                        <h3>Pediatric Clerking Module</h3>
-                        <p>Birth history, milestones, immunisations, growth charts &amp; red flags</p>
-                    </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <span style="background:rgba(255,255,255,0.4); padding:4px 12px; border-radius:20px; font-size:0.7rem; font-weight:600;">👶 Obstetrics</span>
+                    <span style="background:rgba(255,255,255,0.4); padding:4px 12px; border-radius:20px; font-size:0.7rem; font-weight:600;">🩺 Gynaecology</span>
                 </div>
-                <a href="easemed_pediatrics.html" class="module-btn">👶 Go to Pediatric Module →</a>
             </div>
 
             <!-- ============================================================ -->
-            <!-- END OF MODULE CARDS                                           -->
+            <!-- MAIN OBGYN CLERKING FORM                                     -->
             <!-- ============================================================ -->
 
             <!-- Demographics -->
@@ -1731,7 +1794,7 @@
                 <div class="demographics-grid">
                     <div><label>Full Name:</label><input type="text" id="fullName" placeholder="Surname, First name"></div>
                     <div><label>Age:</label><input type="number" id="age" placeholder="Years"></div>
-                    <div><label>Sex:</label><select id="gender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+                    <div><label>Sex:</label><select id="gender"><option>Female</option><option>Male</option><option>Other</option></select></div>
                     <div><label>Marital Status:</label><select id="maritalStatus"><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option><option>Separated</option></select></div>
                     <div><label>Occupation:</label><input type="text" id="occupation" placeholder="Current job/profession"></div>
                     <div><label>Religion:</label><input type="text" id="religion" placeholder="Religious affiliation"></div>
@@ -1837,16 +1900,93 @@
                 <div id="rosContainer"></div>
             </div>
 
+            <!-- ====== OBSTETRIC & GYNAECOLOGICAL HISTORY ====== -->
+            <div class="form-section" style="border-bottom: 3px solid #c62828; background: #fdf2f4;">
+                <h3 style="color: #c62828;">🤰 Obstetric History</h3>
+                <div class="demographics-grid">
+                    <div><label>Gravida (G):</label><input type="number" id="gravida" placeholder="Total pregnancies" min="0"></div>
+                    <div><label>Parity (P):</label><input type="text" id="parity" placeholder="e.g. P2+0 (2 term, 0 preterm)"></div>
+                    <div><label>Last Normal Menstrual Period (LNMP):</label><input type="date" id="lnmp"></div>
+                    <div><label>Estimated Due Date (EDD):</label><input type="date" id="edd"></div>
+                    <div><label>Weeks of Amenorrhea (WOA):</label><input type="text" id="woa" placeholder="e.g. 24 weeks"></div>
+                    <div><label>Previous Caesarean Sections:</label><select id="prevCS"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3+">3+</option></select></div>
+                </div>
+                <div style="margin-top:12px;"><label>Previous Obstetric Complications:</label><input type="text" id="prevObsComplications" placeholder="e.g. PPH, Pre-eclampsia, GDM, Preterm birth"></div>
+                <div style="margin-top:12px;"><label>Previous Pregnancies Summary:</label><textarea id="prevPregnancies" rows="2" placeholder="e.g. 2019 — SVD at term, live baby, no complications. 2021 — LSCS for fetal distress..."></textarea></div>
+                
+                <h4 style="margin-top:20px; color:#c62828;">📋 Antenatal Care (ANC) Details</h4>
+                <div class="demographics-grid">
+                    <div><label>Total ANC Visits So Far:</label><input type="number" id="ancTotalVisits" placeholder="e.g. 4" min="0"></div>
+                    <div><label>First ANC Visit GA (weeks):</label><input type="number" id="ancFirstWeeks" placeholder="e.g. 12" min="0" max="42"></div>
+                    <div><label>ANC Facility:</label><input type="text" id="ancFacility" placeholder="e.g. Kawempe HC IV"></div>
+                    <div><label>ANC Booking Date:</label><input type="date" id="ancBookingDate"></div>
+                </div>
+                
+                <div style="margin-top:12px;">
+                    <label>ANC Medications Received:</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;">
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="ancFerrous"> Ferrous sulphate</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="ancFolic"> Folic acid</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="ancIptp"> IPTp (SP)</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="ancMebendazole"> Mebendazole</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="ancTt"> TT vaccine</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="ancArvs"> ARVs (PMTCT)</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="ancCalcium"> Calcium</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="ancAspirin"> Aspirin</label>
+                    </div>
+                </div>
+                
+                <div style="margin-top:12px;"><label>ANC Findings / Problems:</label><textarea id="ancFindings" rows="2" placeholder="e.g. Anaemia noted at 28 wks (Hb 8.5 g/dL)..."></textarea></div>
+                <div style="margin-top:12px;"><label>Ultrasound Findings:</label><textarea id="ancUltrasound" rows="2" placeholder="e.g. EDD confirmed, placental position..."></textarea></div>
+            </div>
+
+            <!-- Gynaecological History -->
+            <div class="form-section" style="border-bottom: 3px solid #b5006e; background: #faf0f5;">
+                <h3 style="color: #b5006e;">🩸 Gynaecological History</h3>
+                <div class="demographics-grid">
+                    <div><label>Age at Menarche:</label><input type="number" id="menarche" placeholder="e.g. 13" min="8" max="20"></div>
+                    <div><label>Last Menstrual Period (LMP):</label><input type="date" id="lmpDate"></div>
+                    <div><label>Cycle Length:</label><input type="text" id="cycleLength" placeholder="e.g. 28 days"></div>
+                    <div><label>Duration of Flow:</label><input type="text" id="flowDuration" placeholder="e.g. 4-5 days"></div>
+                    <div><label>Flow Amount:</label><select id="flowAmount"><option value="">— Select —</option><option>Light</option><option>Normal</option><option>Heavy</option><option>Flooding</option></select></div>
+                    <div><label>Dysmenorrhoea:</label><select id="dysmenorrhoea"><option value="">— Select —</option><option>None</option><option>Mild</option><option>Moderate</option><option>Severe</option><option>Secondary</option></select></div>
+                </div>
+                <div style="margin-top:12px;"><label>Menstrual Status:</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;">
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="radio" name="menstrualStatus" value="Regular"> Regular</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="radio" name="menstrualStatus" value="Irregular"> Irregular</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="radio" name="menstrualStatus" value="Amenorrhea"> Amenorrhea</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="radio" name="menstrualStatus" value="Perimenopausal"> Perimenopausal</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="radio" name="menstrualStatus" value="Postmenopausal"> Postmenopausal</label>
+                    </div>
+                </div>
+                <div style="margin-top:12px;"><label>Contraception / Family Planning:</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;">
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="contraNone" checked> None</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="contraOCP"> OCP</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="contraIUD"> IUD</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="contraImplant"> Implant</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="contraInjection"> Injection</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="contraCondoms"> Condoms</label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; font-weight:400; text-transform:none;"><input type="checkbox" id="contraNatural"> Natural</label>
+                    </div>
+                </div>
+                <div style="margin-top:12px;"><label>Last Cervical Smear / HPV Screening:</label><input type="text" id="lastSmear" placeholder="e.g. Never done / 2023 — normal"></div>
+                <div style="margin-top:12px;"><label>Sexual History (relevant):</label><textarea id="sexualHistory" rows="2" placeholder="e.g. Monogamous, husband only. No STI history..."></textarea></div>
+                <div style="margin-top:12px;"><label>Previous Gynaecological Surgeries:</label><input type="text" id="gynSurgeries" placeholder="e.g. Myomectomy, D&C"></div>
+                <div style="margin-top:12px;"><label>Previous Gynaecological Conditions:</label><input type="text" id="gynConditions" placeholder="e.g. Fibroids, PCOS, Endometriosis, PID"></div>
+            </div>
+
             <!-- Social History -->
             <div class="form-section">
                 <h3>🏠 Social History</h3>
-                <textarea id="social" placeholder="Smoking, alcohol, drugs, living conditions, occupation, diet, travel..."></textarea>
+                <textarea id="social" placeholder="Smoking (pack years), alcohol (units/week), drugs, living conditions, occupation, diet, travel..."></textarea>
             </div>
 
             <!-- Family History -->
             <div class="form-section">
                 <h3>👨‍👩‍👧 Family History</h3>
-                <textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders..."></textarea>
+                <textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders, gynaecological cancers..."></textarea>
             </div>
 
             <!-- Management Plan -->
@@ -1858,7 +1998,7 @@
             <!-- Summary Actions -->
             <div class="summary-actions">
                 <button class="btn-generate" onclick="generateClinicalSummary()">Generate Clinical Summary + Ward Round Format</button>
-                <button class="btn-generate" onclick="savePatient()" style="background: linear-gradient(135deg, #27ae60, #1e8449);">Save Patient Record</button>
+                <button class="btn-generate" onclick="savePatient()" style="background: linear-gradient(135deg, #27ae60, #1e8449);">💾 Save Patient Record</button>
             </div>
 
             <div class="form-section" id="summarySection" style="display:none;">
@@ -1873,7 +2013,7 @@
         <div class="guidance-panel">
             <div class="guidance-header"><h2>📖 Hutchison's Clinical Guidance</h2><p>Reference: Hutchison's Clinical Methods, 25th Edition</p></div>
             <div class="guidance-content" id="guidanceContent" style="padding: 20px;">
-                <div class="guidance-card"><h4>📚 Welcome to EaseMed</h4><p>This system guides you through systematic history taking. Select a symptom for specific questions.</p></div>
+                <div class="guidance-card"><h4>📚 Welcome to EaseMed ObGyn</h4><p>This system guides you through systematic history taking for Obstetrics & Gynaecology. Select a symptom for specific questions.</p></div>
                 <div class="guidance-card"><h4>💡 Key principle</h4><p>SOCRATES is reserved for PAIN complaints. For other symptoms, specific clinical questions are provided.</p></div>
             </div>
         </div>
@@ -1893,7 +2033,7 @@
 
     <script>
         // ==================== GLOBAL STATE ====================
-        const STORAGE_KEY = 'easemed_patients';
+        const STORAGE_KEY = 'easemed_patients_obgyn';
         let currentSymptom = '';
         let symptomDetails = {};
         let rosData = {};
@@ -2410,7 +2550,31 @@
                 ros: getROSFindings(),
                 social: fieldValue('social', 'Not documented'),
                 familyHistory: fieldValue('familyHistory', 'Not documented'),
-                managementPlan: fieldValue('managementPlan', 'Not documented')
+                managementPlan: fieldValue('managementPlan', 'Not documented'),
+                // ObGyn specific
+                gravida: fieldValue('gravida', ''),
+                parity: fieldValue('parity', ''),
+                lnmp: fieldValue('lnmp', ''),
+                edd: fieldValue('edd', ''),
+                woa: fieldValue('woa', ''),
+                prevCS: fieldValue('prevCS', ''),
+                prevObsComplications: fieldValue('prevObsComplications', ''),
+                prevPregnancies: fieldValue('prevPregnancies', ''),
+                ancTotalVisits: fieldValue('ancTotalVisits', ''),
+                ancFirstWeeks: fieldValue('ancFirstWeeks', ''),
+                ancFacility: fieldValue('ancFacility', ''),
+                ancFindings: fieldValue('ancFindings', ''),
+                ancUltrasound: fieldValue('ancUltrasound', ''),
+                menarche: fieldValue('menarche', ''),
+                lmpDate: fieldValue('lmpDate', ''),
+                cycleLength: fieldValue('cycleLength', ''),
+                flowDuration: fieldValue('flowDuration', ''),
+                flowAmount: fieldValue('flowAmount', ''),
+                dysmenorrhoea: fieldValue('dysmenorrhoea', ''),
+                lastSmear: fieldValue('lastSmear', ''),
+                sexualHistory: fieldValue('sexualHistory', ''),
+                gynSurgeries: fieldValue('gynSurgeries', ''),
+                gynConditions: fieldValue('gynConditions', '')
             };
         }
 
@@ -2422,7 +2586,82 @@
                 `<ul class="summary-list">${data.ros.map(item => `<li><strong>${escapeHTML(item.name)}:</strong> ${escapeHTML(item.findings)}</li>`).join('')}</ul>`;
             const hivList =
                 `<ul class="summary-list">${data.hivItems.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>`;
-            return `<div class="summary-banner"><strong>EaseMed Clinical Summary</strong> Generated ${escapeHTML(data.generatedAt)}</div><div class="summary-grid">${summaryField('Name', data.fullName)}${summaryField('Age', data.age)}${summaryField('Sex', data.gender)}${summaryField('Marital Status', data.maritalStatus)}${summaryField('Occupation', data.occupation)}${summaryField('Religion', data.religion)}${summaryField('Tribe/Ethnicity', data.tribe)}${summaryField('Address', data.address)}${summaryField('Next of Kin', data.nextOfKin)}${summaryField('Nearest Health Centre', data.nearestHealthCentre)}${summaryField('Referral', data.referralText)}${summaryField('Main Symptom', data.mainSymptom)}</div>${summaryBlock('Presenting Complaint Details', complaintDetails)}${summaryBlock('History of Presenting Complaint', formatParagraph(data.hpc))}${summaryBlock('Past Medical History', formatParagraph(data.pmh))}${summaryBlock('Medications and Allergies', `<strong>Current medications:</strong><br>${formatParagraph(data.medications)}<br><br><strong>Allergies:</strong><br>${formatParagraph(data.allergies)}`)}${summaryBlock('HIV History', hivList)}${summaryBlock('Review of Systems', rosList)}${summaryBlock('Social History', formatParagraph(data.social))}${summaryBlock('Family History', formatParagraph(data.familyHistory))}${summaryBlock('Management Plan', formatParagraph(data.managementPlan))}<div style="margin-top:12px; color:#718096; font-style:italic;">Based on Hutchison's Clinical Methods, 25th Edition.</div>`;
+            
+            // ObGyn Summary
+            const obgynSummary = `
+                <div class="summary-section-block" style="border-left:3px solid #c62828;">
+                    <h5>🤰 Obstetric History</h5>
+                    <div class="summary-grid">
+                        ${summaryField('Gravida', data.gravida)}
+                        ${summaryField('Parity', data.parity)}
+                        ${summaryField('LNMP', data.lnmp)}
+                        ${summaryField('EDD', data.edd)}
+                        ${summaryField('WOA', data.woa)}
+                        ${summaryField('Previous CS', data.prevCS)}
+                        ${summaryField('Prev Obstetric Complications', data.prevObsComplications)}
+                    </div>
+                    <div style="margin-top:8px;font-size:0.85rem;">
+                        <strong>Previous Pregnancies:</strong> ${formatParagraph(data.prevPregnancies)}
+                    </div>
+                    <div style="margin-top:8px;font-size:0.85rem;">
+                        <strong>ANC:</strong> ${data.ancTotalVisits} visits, first at ${data.ancFirstWeeks} weeks at ${data.ancFacility}
+                    </div>
+                    <div style="margin-top:8px;font-size:0.85rem;">
+                        <strong>ANC Findings:</strong> ${formatParagraph(data.ancFindings)}
+                    </div>
+                    <div style="margin-top:8px;font-size:0.85rem;">
+                        <strong>Ultrasound:</strong> ${formatParagraph(data.ancUltrasound)}
+                    </div>
+                </div>
+                <div class="summary-section-block" style="border-left:3px solid #b5006e;">
+                    <h5>🩸 Gynaecological History</h5>
+                    <div class="summary-grid">
+                        ${summaryField('Menarche', data.menarche)}
+                        ${summaryField('LMP', data.lmpDate)}
+                        ${summaryField('Cycle Length', data.cycleLength)}
+                        ${summaryField('Flow Duration', data.flowDuration)}
+                        ${summaryField('Flow Amount', data.flowAmount)}
+                        ${summaryField('Dysmenorrhoea', data.dysmenorrhoea)}
+                        ${summaryField('Last Smear', data.lastSmear)}
+                    </div>
+                    <div style="margin-top:8px;font-size:0.85rem;">
+                        <strong>Sexual History:</strong> ${formatParagraph(data.sexualHistory)}
+                    </div>
+                    <div style="margin-top:8px;font-size:0.85rem;">
+                        <strong>Previous Gyn Surgeries:</strong> ${escapeHTML(data.gynSurgeries)}
+                    </div>
+                    <div style="margin-top:8px;font-size:0.85rem;">
+                        <strong>Previous Gyn Conditions:</strong> ${escapeHTML(data.gynConditions)}
+                    </div>
+                </div>
+            `;
+
+            return `<div class="summary-banner"><strong>EaseMed ObGyn Clinical Summary</strong> Generated ${escapeHTML(data.generatedAt)}</div>
+                <div class="summary-grid">
+                    ${summaryField('Name', data.fullName)}
+                    ${summaryField('Age', data.age)}
+                    ${summaryField('Sex', data.gender)}
+                    ${summaryField('Marital Status', data.maritalStatus)}
+                    ${summaryField('Occupation', data.occupation)}
+                    ${summaryField('Religion', data.religion)}
+                    ${summaryField('Tribe/Ethnicity', data.tribe)}
+                    ${summaryField('Address', data.address)}
+                    ${summaryField('Next of Kin', data.nextOfKin)}
+                    ${summaryField('Nearest Health Centre', data.nearestHealthCentre)}
+                    ${summaryField('Referral', data.referralText)}
+                    ${summaryField('Main Symptom', data.mainSymptom)}
+                </div>
+                ${summaryBlock('Presenting Complaint Details', complaintDetails)}
+                ${summaryBlock('History of Presenting Complaint', formatParagraph(data.hpc))}
+                ${summaryBlock('Past Medical History', formatParagraph(data.pmh))}
+                ${summaryBlock('Medications and Allergies', `<strong>Current medications:</strong><br>${formatParagraph(data.medications)}<br><br><strong>Allergies:</strong><br>${formatParagraph(data.allergies)}`)}
+                ${summaryBlock('HIV History', hivList)}
+                ${obgynSummary}
+                ${summaryBlock('Review of Systems', rosList)}
+                ${summaryBlock('Social History', formatParagraph(data.social))}
+                ${summaryBlock('Family History', formatParagraph(data.familyHistory))}
+                ${summaryBlock('Management Plan', formatParagraph(data.managementPlan))}
+                <div style="margin-top:12px; color:#718096; font-style:italic;">Based on Hutchison's Clinical Methods, 25th Edition.</div>`;
         }
 
         function buildWardRoundHTML(data) {
@@ -2436,14 +2675,18 @@
             const allergyText = escapeHTML(data.allergies);
             const hivHighlights = data.hivItems.filter(item => !/not documented/i.test(item)).slice(0, 4)
                 .map(item => escapeHTML(item)).join('; ') || 'HIV history not contributory/not documented';
+            
+            const obSummary = `G${data.gravida}P${data.parity}, EDD ${data.edd}, ${data.ancTotalVisits} ANC visits`;
+            
             const wardItems = [
                 `<strong>Patient:</strong> ${escapeHTML(data.fullName)}, ${escapeHTML(data.age)}-year-old ${escapeHTML(data.gender)}, ${escapeHTML(data.occupation)}, ${escapeHTML(data.maritalStatus)}, ${escapeHTML(data.referralText)}.`,
+                `<strong>Obstetric status:</strong> ${obSummary}. Previous CS: ${data.prevCS}.`,
                 `<strong>Presenting problem:</strong> ${escapeHTML(data.mainSymptom)} with HPI features: ${hpcText}.`,
                 `<strong>Major positives:</strong> ${keyRos.length ? escapeHTML(keyRos.join('; ')) : 'No additional positive ROS findings documented'}; relevant background: ${pmhText}; HIV: ${hivHighlights}.`,
                 `<strong>Important negatives:</strong> ${negativeRos.length ? escapeHTML(negativeRos.join(', ')) + ' without documented symptoms' : 'No key negative ROS findings documented'}; allergies: ${allergyText}.`,
                 `<strong>Diagnostic impression:</strong> Overall pattern points toward the clinician's working diagnosis based on the presenting complaint, major positives, important negatives, PMH, medications (${medsText}), and bedside assessment.`
             ];
-            return `<div class="summary-banner"><strong>Five-Line Ward Round Diagnostic Summary</strong> Prepared ${escapeHTML(data.generatedAt)}</div><ol class="summary-list">${wardItems.map(item => `<li>${item}</li>`).join('')}</ol>`;
+            return `<div class="summary-banner"><strong>Six-Line Ward Round Diagnostic Summary</strong> Prepared ${escapeHTML(data.generatedAt)}</div><ol class="summary-list">${wardItems.map(item => `<li>${item}</li>`).join('')}</ol>`;
         }
 
         function generateClinicalSummary() {
@@ -2468,6 +2711,8 @@
             document.querySelectorAll('input[id], textarea[id], select[id]').forEach(el => {
                 if (el.type === 'checkbox') {
                     data[el.id] = el.checked;
+                } else if (el.type === 'radio' && el.checked) {
+                    data[el.name] = el.value;
                 } else {
                     data[el.id] = el.value;
                 }
@@ -2475,15 +2720,24 @@
             data._currentSymptom = currentSymptom || '';
             data._rosData = rosData || {};
             data.managementPlan = document.getElementById('managementPlan')?.value || '';
+            // Menstrual status
+            const msRadio = document.querySelector('input[name="menstrualStatus"]:checked');
+            if (msRadio) data.menstrualStatus = msRadio.value;
             return data;
         }
 
         function restoreFormData(data) {
             Object.entries(data || {}).forEach(([id, val]) => {
                 if (id.startsWith('_')) return;
+                if (id === 'menstrualStatus') {
+                    const radio = document.querySelector(`input[name="menstrualStatus"][value="${val}"]`);
+                    if (radio) radio.checked = true;
+                    return;
+                }
                 const el = document.getElementById(id);
                 if (el) {
                     if (el.type === 'checkbox') el.checked = val;
+                    else if (el.type === 'radio' && val === el.value) el.checked = true;
                     else el.value = val;
                 }
             });
@@ -2502,6 +2756,7 @@
             if (!confirm('Clear form?')) return;
             document.querySelectorAll('input[id], textarea[id]').forEach(el => {
                 if (el.type === 'checkbox') el.checked = false;
+                else if (el.type === 'radio') el.checked = false;
                 else el.value = '';
             });
             document.querySelectorAll('select[id]').forEach(el => el.selectedIndex = 0);
@@ -2537,7 +2792,7 @@
             const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `easemed_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.download = `easemed_obgyn_backup_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
             URL.revokeObjectURL(a.href);
             showToast('Backup downloaded', '#8e44ad');
@@ -2635,6 +2890,32 @@
                             social_history: formData.social || '',
                             family_history: formData.familyHistory || '',
                             management_plan: formData.managementPlan || '',
+                            // ObGyn specific
+                            gravida: formData.gravida || '',
+                            parity: formData.parity || '',
+                            lnmp: formData.lnmp || '',
+                            edd: formData.edd || '',
+                            woa: formData.woa || '',
+                            prev_cs: formData.prevCS || '',
+                            prev_obs_complications: formData.prevObsComplications || '',
+                            prev_pregnancies: formData.prevPregnancies || '',
+                            anc_total_visits: formData.ancTotalVisits || '',
+                            anc_first_weeks: formData.ancFirstWeeks || '',
+                            anc_facility: formData.ancFacility || '',
+                            anc_findings: formData.ancFindings || '',
+                            anc_ultrasound: formData.ancUltrasound || '',
+                            menarche: formData.menarche || '',
+                            lmp_date: formData.lmpDate || '',
+                            cycle_length: formData.cycleLength || '',
+                            flow_duration: formData.flowDuration || '',
+                            flow_amount: formData.flowAmount || '',
+                            dysmenorrhoea: formData.dysmenorrhoea || '',
+                            menstrual_status: formData.menstrualStatus || '',
+                            last_smear: formData.lastSmear || '',
+                            sexual_history: formData.sexualHistory || '',
+                            gyn_surgeries: formData.gynSurgeries || '',
+                            gyn_conditions: formData.gynConditions || '',
+                            module: 'obgyn',
                             created_at: new Date().toISOString()
                         });
                     if (error) {
@@ -2660,6 +2941,10 @@
                 id: existingIdx >= 0 ? records[existingIdx].id : Date.now(),
                 savedAt: new Date().toISOString(),
                 user: userEmail,
+                name: formData.fullName || '',
+                age: formData.age || '',
+                gender: formData.gender || '',
+                complaint: formData._currentSymptom || '',
                 ...formData
             };
             if (existingIdx >= 0) records[existingIdx] = record;
@@ -3111,7 +3396,6 @@
             document.querySelectorAll('.symptom-btn').forEach(btn => {
                 const symptom = btn.dataset.symptom;
                 if (symptom) {
-                    // Remove any existing click listeners by cloning
                     const newBtn = btn.cloneNode(true);
                     btn.parentNode.replaceChild(newBtn, btn);
                     newBtn.addEventListener('click', function(e) {
@@ -3129,20 +3413,17 @@
         // Fix symptom buttons on DOM load
         document.addEventListener('DOMContentLoaded', function() {
             fixSymptomButtons();
-            // Also fix any buttons that might have been missed
             setTimeout(fixSymptomButtons, 500);
         });
 
-        // Also fix after a delay to ensure everything is loaded
         setTimeout(fixSymptomButtons, 1000);
 
         // Initialize XP Physical Examination
         xpInit();
 
-        console.log('EaseMed Clinical Clerk System loaded successfully');
+        console.log('EaseMed ObGyn Clerking Module loaded successfully');
         console.log('💡 Tip: Use SOCRATES only for pain complaints');
         console.log('📖 Based on Hutchison\'s Clinical Methods, 25th Edition');
-        console.log('🔪 Surgery Clerking Module available at: surgery-clerking.html');
     </script>
 </body>
 </html>
