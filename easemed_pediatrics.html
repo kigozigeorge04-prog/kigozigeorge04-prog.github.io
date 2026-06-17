@@ -454,6 +454,10 @@
     <div class="guidance-panel">
         <div class="guidance-header"><h2>📖 Pediatric Guidance</h2><p>Based on Uganda Clinical Guidelines & WHO/EPI</p></div>
         <div class="guidance-content" id="guidanceContent">
+            <div class="guidance-content" id="guidanceContent">
+  <!-- existing static tips -->
+  <div id="dynamicDifferentials" style="margin-top: 12px;"></div>
+</div>
             <div class="guidance-tip"><strong>👶 Pediatric Principles</strong><br>Always check danger signs first. Use age‑appropriate equipment.</div>
             <div class="guidance-tip"><strong>🚨 Emergency signs</strong><br>Convulsions, lethargy, inability to feed, stridor, severe dehydration, fast breathing.</div>
         </div>
@@ -1485,7 +1489,457 @@
             ]
         }
     };
-
+const differentialDB = {
+  fever: [
+    {
+      diagnosis: "Malaria",
+      clues: ["Acute", "Intermittent", "Rigors present", "Fever + altered consciousness", "Fever + convulsions"]
+    },
+    {
+      diagnosis: "Pneumonia",
+      clues: ["Acute", "Continuous", "Cough + fast breathing", "Fever + inability to drink"]
+    },
+    {
+      diagnosis: "Meningitis",
+      clues: ["Acute", "High-grade", "Vomiting + headache + neck stiffness", "Fever + altered consciousness", "Fever + convulsions"]
+    },
+    {
+      diagnosis: "Typhoid",
+      clues: ["Subacute", "Continuous", "Fever + altered consciousness"]
+    },
+    {
+      diagnosis: "Tuberculosis",
+      clues: ["Prolonged / PUO", "Remittent", "Fever + altered consciousness", "Fever + convulsions"]
+    },
+    {
+      diagnosis: "Viral URTI",
+      clues: ["Acute", "Low-grade", "No rigors"]
+    },
+    {
+      diagnosis: "Urinary Tract Infection",
+      clues: ["Acute", "Dysuria / frequency"]
+    },
+    {
+      diagnosis: "Sepsis (neonatal)",
+      clues: ["Fever in child < 3 months", "Fever + inability to drink"]
+    }
+  ],
+  cough: [
+    {
+      diagnosis: "Pneumonia",
+      clues: ["Acute", "Purulent", "Tachypnoea — infant", "Tachypnoea — child", "Chest indrawing"]
+    },
+    {
+      diagnosis: "Tuberculosis",
+      clues: ["Chronic", "Haemoptysis", "TB contact", "Subacute"]
+    },
+    {
+      diagnosis: "Pertussis",
+      clues: ["Subacute", "Paroxysmal", "Whooping"]
+    },
+    {
+      diagnosis: "Asthma",
+      clues: ["Chronic", "Nocturnal", "Wheeze"]
+    },
+    {
+      diagnosis: "Foreign Body",
+      clues: ["Sudden onset while playing/eating", "Choking history"]
+    },
+    {
+      diagnosis: "Bronchiolitis",
+      clues: ["Acute", "Wheeze", "Tachypnoea — infant"]
+    },
+    {
+      diagnosis: "GORD / Aspiration",
+      clues: ["Positional", "With feeding / lying flat"]
+    }
+  ],
+  diarrhea: [
+    {
+      diagnosis: "Acute Gastroenteritis (viral)",
+      clues: ["Acute", "Watery, large volume, no blood", "Vomiting with diarrhoea"]
+    },
+    {
+      diagnosis: "Dysentery (Shigella)",
+      clues: ["Acute", "Small volume, bloody, mucus", "Blood in stool"]
+    },
+    {
+      diagnosis: "Cholera",
+      clues: ["Acute", "Watery, large volume, no blood", "Rice-water stool"]
+    },
+    {
+      diagnosis: "Giardia / Cryptosporidium",
+      clues: ["Persistent", "Fatty, foul-smelling, floats"]
+    },
+    {
+      diagnosis: "Malabsorption (coeliac)",
+      clues: ["Chronic", "Fatty, foul-smelling, floats"]
+    },
+    {
+      diagnosis: "HIV enteropathy",
+      clues: ["Chronic", "Persistent"]
+    }
+  ],
+  "poor feeding": [
+    {
+      diagnosis: "Neonatal Sepsis",
+      clues: ["Acute", "Weak suck", "Fever + poor feeding", "Lethargy"]
+    },
+    {
+      diagnosis: "Congenital Heart Disease",
+      clues: ["Tires easily", "Fast breathing + poor feeding", "Gradual over weeks"]
+    },
+    {
+      diagnosis: "Pyloric Stenosis",
+      clues: ["Projectile vomiting", "Weight loss", "Olive mass"]
+    },
+    {
+      diagnosis: "Oral Thrush",
+      clues: ["Refuses breast entirely", "Rash + poor feeding"]
+    },
+    {
+      diagnosis: "Gastro‑oesophageal Reflux",
+      clues: ["Large volume regurgitation", "Vomiting after feeds"]
+    }
+  ],
+  convulsions: [
+    {
+      diagnosis: "Simple Febrile Seizure",
+      clues: ["Brief", "Generalised", "Fever present", "Back to normal within 30 min"]
+    },
+    {
+      diagnosis: "Cerebral Malaria",
+      clues: ["Prolonged", "Generalised", "Fever + convulsions", "Fever + altered consciousness", "Prolonged post-ictal"]
+    },
+    {
+      diagnosis: "Meningitis",
+      clues: ["Fever + focal signs/altered consciousness", "Fever + neck stiffness", "Bulging fontanelle"]
+    },
+    {
+      diagnosis: "Hypoglycaemic Seizure",
+      clues: ["Afebrile", "< 2.5 mmol/L", "Weakness"]
+    },
+    {
+      diagnosis: "Epilepsy",
+      clues: ["Afebrile", "Focal", "Staring / lapse"]
+    },
+    {
+      diagnosis: "Status Epilepticus",
+      clues: ["> 30 minutes or recurring", "Unresponsive"]
+    }
+  ],
+  rash: [
+    {
+      diagnosis: "Measles",
+      clues: ["Face → downward", "Rash as fever rises", "Not vaccinated / unsure", "Macular"]
+    },
+    {
+      diagnosis: "Meningococcaemia",
+      clues: ["Does NOT blanch", "Petechiae", "Fever + non-blanching rash"]
+    },
+    {
+      diagnosis: "Chickenpox",
+      clues: ["Vesicular", "Trunk → outward", "Rash as fever rises"]
+    },
+    {
+      diagnosis: "Scabies",
+      clues: ["Flexures, between fingers", "Itching", "Papular"]
+    },
+    {
+      diagnosis: "Roseola",
+      clues: ["Rash after fever breaks", "Trunk → outward"]
+    },
+    {
+      diagnosis: "Drug Reaction",
+      clues: ["Blanches", "Macular", "Papular"]
+    }
+  ],
+  jaundice: [
+    {
+      diagnosis: "Physiological Jaundice",
+      clues: ["Day 2–7", "Normal stool, normal urine"]
+    },
+    {
+      diagnosis: "Haemolytic Disease (G6PD / ABO)",
+      clues: ["< 24 hours", "Pallor + jaundice", "Dark urine"]
+    },
+    {
+      diagnosis: "Biliary Atresia",
+      clues: ["> 14 days (term)", "Pale/clay stools + dark urine"]
+    },
+    {
+      diagnosis: "Neonatal Sepsis",
+      clues: ["Fever + jaundice", "Hepatomegaly", "Pallor + jaundice"]
+    },
+    {
+      diagnosis: "Viral Hepatitis",
+      clues: ["Fever + jaundice", "Hepatomegaly", "Pale stool + dark urine (conjugated)"]
+    }
+  ],
+  pain: [
+    {
+      diagnosis: "Appendicitis",
+      clues: ["Right iliac fossa", "Periumbilical → RIF", "Sudden, severe", "Constant, dull ache", "Sharp, worse on movement"]
+    },
+    {
+      diagnosis: "UTI / Renal Colic",
+      clues: ["Loin/flank", "Dysuria / frequency"]
+    },
+    {
+      diagnosis: "Intussusception",
+      clues: ["Colicky (waves)", "Recurrent episodic", "Red currant jelly stool"]
+    },
+    {
+      diagnosis: "Testicular Torsion",
+      clues: ["Scrotal swelling", "Sudden, severe"]
+    },
+    {
+      diagnosis: "Mesenteric Adenitis",
+      clues: ["Periumbilical", "Gradual over hours–days"]
+    },
+    {
+      diagnosis: "Constipation",
+      clues: ["Colicky", "Recurrent episodic", "Abdominal distension"]
+    }
+  ],
+  "difficulty breathing": [
+    {
+      diagnosis: "Pneumonia",
+      clues: ["Chest indrawing", "Tachypnoea", "Fever + cough", "Grunting"]
+    },
+    {
+      diagnosis: "Asthma",
+      clues: ["Wheeze", "Nocturnal", "Recurrent episodes"]
+    },
+    {
+      diagnosis: "Foreign Body",
+      clues: ["Sudden (seconds–minutes)", "Stridor", "Choking history"]
+    },
+    {
+      diagnosis: "Croup",
+      clues: ["Stridor", "Barking cough", "Subacute"]
+    },
+    {
+      diagnosis: "Bronchiolitis",
+      clues: ["Wheeze", "Infant", "Tachypnoea"]
+    },
+    {
+      diagnosis: "Congenital Heart Disease",
+      clues: ["Tachypnoea", "Poor feeding", "Cyanosis"]
+    }
+  ],
+  pallor: [
+    {
+      diagnosis: "Iron Deficiency Anaemia",
+      clues: ["Gradual (weeks–months)", "Poor diet, no meat/veg", "Pica"]
+    },
+    {
+      diagnosis: "Malaria (haemolytic)",
+      clues: ["Sudden (hours–days)", "Dark urine", "Jaundice", "Fever"]
+    },
+    {
+      diagnosis: "Sickle Cell Crisis",
+      clues: ["Family history", "Pallor + jaundice", "Acute"]
+    },
+    {
+      diagnosis: "G6PD Deficiency",
+      clues: ["Dark urine", "Jaundice", "Triggers (drugs, fava beans)"]
+    },
+    {
+      diagnosis: "Leukaemia",
+      clues: ["Pallor + petechiae", "Lymphadenopathy", "Chronic"]
+    }
+  ],
+  "neck stiffness": [
+    {
+      diagnosis: "Bacterial Meningitis",
+      clues: ["Fever + neck stiffness", "Non-blanching rash", "Reduced consciousness"]
+    },
+    {
+      diagnosis: "Cerebral Malaria",
+      clues: ["Fever + neck stiffness", "Convulsions", "Altered consciousness"]
+    },
+    {
+      diagnosis: "TB Meningitis",
+      clues: ["TB contact", "Subacute onset", "Reduced consciousness"]
+    },
+    {
+      diagnosis: "Viral Meningitis",
+      clues: ["Fever + neck stiffness", "Blanching rash", "Alert"]
+    },
+    {
+      diagnosis: "Cryptococcal Meningitis",
+      clues: ["HIV+", "Chronic", "Headache"]
+    }
+  ],
+  "ear discharge": [
+    {
+      diagnosis: "Acute Otitis Media with Perforation (AOMP)",
+      clues: ["< 2 weeks", "Purulent, odourless", "Severe pain relieved when discharge started"]
+    },
+    {
+      diagnosis: "Chronic Suppurative Otitis Media (CSOM)",
+      clues: ["> 12 weeks", "Foul-smelling, thick", "Hearing loss"]
+    },
+    {
+      diagnosis: "Mastoiditis",
+      clues: ["Pain ongoing despite discharge", "Mastoid tenderness"]
+    },
+    {
+      diagnosis: "Trauma / CSF Leak",
+      clues: ["Blood-stained", "Head injury"]
+    },
+    {
+      diagnosis: "Cholesteatoma",
+      clues: ["Chronic", "Foul-smelling", "Hearing loss"]
+    }
+  ],
+  oedema: [
+    {
+      diagnosis: "Kwashiorkor (SAM)",
+      clues: ["Bilateral lower limbs, ascends", "Pitting oedema", "Low protein diet", "Flaky paint skin"]
+    },
+    {
+      diagnosis: "Nephrotic Syndrome",
+      clues: ["Face + lower limbs", "Frothy urine", "Pitting oedema"]
+    },
+    {
+      diagnosis: "Cardiac Failure",
+      clues: ["Bilateral lower limbs", "Orthopnoea", "Gallop rhythm"]
+    },
+    {
+      diagnosis: "Acute Kidney Injury",
+      clues: ["Reduced urine output", "Pitting oedema"]
+    },
+    {
+      diagnosis: "Hepatic Failure",
+      clues: ["Ascites", "Jaundice", "Pitting oedema"]
+    }
+  ],
+  swelling: [
+    {
+      diagnosis: "Burkitt's Lymphoma",
+      clues: ["Jaw/abdominal", "Painless", "Rapidly enlarging"]
+    },
+    {
+      diagnosis: "Wilms' Tumour",
+      clues: ["Abdomen", "Painless", "Child < 5 years"]
+    },
+    {
+      diagnosis: "Tuberculous Lymphadenitis",
+      clues: ["Neck", "Painless", "Rubbery", "TB contact"]
+    },
+    {
+      diagnosis: "Abscess",
+      clues: ["Painful", "Fluctuant", "Hot/red"]
+    },
+    {
+      diagnosis: "Incarcerated Hernia",
+      clues: ["Groin", "Painful", "Unable to reduce"]
+    },
+    {
+      diagnosis: "Hydrocele",
+      clues: ["Scrotal", "Transilluminates", "Painless"]
+    },
+    {
+      diagnosis: "Testicular Torsion",
+      clues: ["Scrotal", "Sudden severe pain", "Tender"]
+    }
+  ],
+  lethargy: [
+    {
+      diagnosis: "Cerebral Malaria",
+      clues: ["Fever + lethargy", "Convulsions", "Unresponsive", "AVPU: P/U"]
+    },
+    {
+      diagnosis: "Meningitis",
+      clues: ["Fever + lethargy", "Neck stiffness", "Bulging fontanelle", "AVPU: V"]
+    },
+    {
+      diagnosis: "Hypoglycaemia",
+      clues: ["< 2.5 mmol/L", "Lethargy + no fever", "Seizure"]
+    },
+    {
+      diagnosis: "Neonatal Sepsis",
+      clues: ["Poor feeding", "Lethargy", "Fever", "Irritability"]
+    },
+    {
+      diagnosis: "DKA / Hyperglycaemia",
+      clues: ["> 11 mmol/L", "Lethargy", "Deep breathing"]
+    },
+    {
+      diagnosis: "Poisoning / Toxicity",
+      clues: ["Recent medication or traditional remedies", "Lethargy + no fever"]
+    }
+  ]
+};
+function getSelectedCluesForSymptom(symptom) {
+  if (!symptomDetails[symptom]) return [];
+  const selected = [];
+  const guide = pediatricSymptomGuides[symptom];
+  if (!guide) return selected;
+  guide.questions.forEach((q, idx) => {
+    const key = `q${idx}`;
+    if (symptomDetails[symptom][key]) {
+      selected.push(symptomDetails[symptom][key]);
+    }
+  });
+  return selected;
+}
+   function generateDifferentialsFromDB(symptom) {
+  const selectedClues = getSelectedCluesForSymptom(symptom);
+  if (selectedClues.length === 0) return [];
+  
+  const db = differentialDB[symptom];
+  if (!db) return [];
+  
+  const scored = db.map(d => {
+    const matches = d.clues.filter(clue => selectedClues.includes(clue));
+    return {
+      diagnosis: d.diagnosis,
+      matchCount: matches.length,
+      matchingClues: matches
+    };
+  });
+  
+  // Filter out zero matches (or keep them? Let's keep only with matches)
+  const withMatches = scored.filter(d => d.matchCount > 0);
+  // Sort descending by match count
+  withMatches.sort((a, b) => b.matchCount - a.matchCount);
+  return withMatches;
+}
+    function renderDifferentials(symptom) {
+  const container = document.getElementById('dynamicDifferentials');
+  if (!container) return;
+  
+  const diffs = generateDifferentialsFromDB(symptom);
+  if (diffs.length === 0) {
+    container.innerHTML = `
+      <div class="guidance-tip" style="background:#f0f0f0; border-left-color:#999;">
+        <em>Select clues above to generate differentials...</em>
+      </div>`;
+    return;
+  }
+  
+  let html = `<div class="guidance-tip" style="background:#e8f4f8; border-left-color:#2980b9;">
+    <strong>🧠 Dynamic Differentials (based on your answers)</strong>
+    <div style="font-size:0.8rem; color:#555; margin-top:4px;">Ranked by number of supporting clues.</div>
+  </div>`;
+  
+  diffs.forEach((d, idx) => {
+    const badge = idx === 0 ? '🔴 ' : idx === 1 ? '🟡 ' : '🟢 ';
+    const color = idx === 0 ? '#c0392b' : idx === 1 ? '#e67e22' : '#2980b9';
+    html += `<div class="guidance-tip" style="border-left-color: ${color};">
+      <strong>${badge}${d.diagnosis}</strong> <span style="font-size:0.7rem; color:gray;">(${d.matchCount} supporting clue${d.matchCount > 1 ? 's' : ''})</span>
+      <div style="font-size:0.8rem; margin-top:4px; color:#555;">
+        <strong>Supporting clues:</strong> ${d.matchingClues.map(c => `<span style="display:inline-block; background:#f0f7ff; border-radius:4px; padding:2px 8px; margin:2px;">${c}</span>`).join(' ')}
+      </div>
+    </div>`;
+  });
+  
+  container.innerHTML = html;
+}
+    
     function displayQuestions(symptom) {
         const guide = pediatricSymptomGuides[symptom];
         const container = document.getElementById('dynamicQuestions');
@@ -1529,6 +1983,8 @@
         if (!symptomDetails[symptom]) symptomDetails[symptom] = {};
         symptomDetails[symptom][`q${qIndex}`] = value;
         updateProgress();
+  renderDifferentials(symptom);
+}
     }
 
     function findMatchingSymptom(input) {
@@ -1552,6 +2008,7 @@
                 } else {
                     currentSymptom = matched;
                     displayQuestions(matched);
+                    renderDifferentials(currentSymptom);
                     const guide = pediatricSymptomGuides[matched];
                     let guidanceHtml = '';
                     if (guide) {
@@ -1592,6 +2049,7 @@
 
     function setSymptom(btn, symptom) {
         currentSymptom = symptom;
+        renderDifferentials(currentSymptom);
         document.querySelectorAll('.symptom-btn').forEach(button => button.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('customSymptom').value = '';
@@ -1956,6 +2414,7 @@ async function savePatient() {
         if (!record) return;
         if (!confirm(`Load ${record.childName}?`)) return;
         restoreFormData(record);
+        if (currentSymptom) renderDifferentials(currentSymptom);
         generateClinicalSummary();
         window.scrollTo(0,0);
         showToast(`Loaded ${record.childName}`, '#2980b9');
