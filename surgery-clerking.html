@@ -1780,31 +1780,41 @@ async function extractTextWithVision(visionKey) {
      
 
   // ── CLAUDE INTERPRETATION ──────────────────────────────────────
-  async function interpretWithClaude(extractedText, docType, patientContext) {
-    const docTypeLabels = {
-      auto: 'medical document',
-      lab: 'laboratory results',
-      radiology: 'radiology report',
-      operation: 'operation note',
-      discharge: 'discharge summary',
-      handwritten: 'handwritten clinical notes',
-      ecg: 'ECG/cardiac tracing',
-      pathology: 'pathology/histology report',
-      drug_chart: 'drug chart/prescription',
-      other: 'medical document'
-    };
-    const docLabel = docTypeLabels[docType] || 'medical document';
+ // ============================================================
+// REPLACE the interpretWithClaude function in your
+// easemed-ai-section.html script with this version.
+// It calls the Supabase Edge Function instead of Anthropic directly,
+// which avoids the browser CORS block.
+// ============================================================
 
-    const patientInfo = [
-      patientContext.patientName && `Patient: ${patientContext.patientName}`,
-      patientContext.age && `Age: ${patientContext.age} years`,
-      patientContext.sex && `Sex: ${patientContext.sex}`,
-      patientContext.complaint && `Presenting complaint: ${patientContext.complaint}`
-    ].filter(Boolean).join(' | ');
+async function interpretWithClaude(extractedText, docType, patientContext) {
+  const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
-    const systemPrompt = `You are a senior clinician and medical educator reviewing medical documents in a Ugandan teaching hospital context. You are helping a third-year medical student interpret clinical documents during surgery clerkship. Be thorough, educational, and clinically precise. Always flag abnormal findings clearly. Reference normal ranges appropriate to a Ugandan/African clinical context where relevant.`;
+  const docTypeLabels = {
+    auto: 'medical document',
+    lab: 'laboratory results',
+    radiology: 'radiology report',
+    operation: 'operation note',
+    discharge: 'discharge summary',
+    handwritten: 'handwritten clinical notes',
+    ecg: 'ECG/cardiac tracing',
+    pathology: 'pathology/histology report',
+    drug_chart: 'drug chart/prescription',
+    other: 'medical document'
+  };
+  const docLabel = docTypeLabels[docType] || 'medical document';
 
-    const userPrompt = `I am a third-year medical student on surgery clerkship. I have scanned a ${docLabel} using OCR. Please provide a structured clinical interpretation.
+  const patientInfo = [
+    patientContext.patientName && `Patient: ${patientContext.patientName}`,
+    patientContext.age && `Age: ${patientContext.age} years`,
+    patientContext.sex && `Sex: ${patientContext.sex}`,
+    patientContext.complaint && `Presenting complaint: ${patientContext.complaint}`
+  ].filter(Boolean).join(' | ');
+
+  const systemPrompt = `You are a senior clinician and medical educator reviewing medical documents in a Ugandan teaching hospital context. You are helping a third-year medical student interpret clinical documents during surgery clerkship. Be thorough, educational, and clinically precise. Always flag abnormal findings clearly. Reference normal ranges appropriate to a Ugandan/African clinical context where relevant.`;
+
+  const userPrompt = `I am a third-year medical student on surgery clerkship. I have scanned a ${docLabel} using OCR. Please provide a structured clinical interpretation.
 
 ${patientInfo ? `PATIENT CONTEXT:\n${patientInfo}\n\n` : ''}EXTRACTED DOCUMENT TEXT:
 ${extractedText}
@@ -1815,7 +1825,7 @@ DOCUMENT TYPE:
 [Identify what type of document this is]
 
 KEY FINDINGS:
-[List the most important findings, one per line, with ✓ for normal and ⚠ for abnormal/concerning]
+[List the most important findings, one per line, with check for normal and warning symbol for abnormal/concerning]
 
 ABNORMAL VALUES:
 [List any abnormal results with the normal range in brackets — write NONE if all normal]
@@ -1835,26 +1845,31 @@ SUGGESTED NEXT STEPS:
 TEACHING POINT:
 [One key educational point about interpreting this type of document that a medical student should remember]`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch(
+    `${SUPABASE_URL}/functions/v1/claude-interpret`,
+    {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1500,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(`Claude API error: ${err.error?.message || response.statusText}`);
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ systemPrompt, userPrompt })
     }
+  );
 
-    const data = await response.json();
-    return data.content[0].text;
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: response.statusText }));
+    throw new Error(err.error || `Edge Function error: ${response.statusText}`);
   }
 
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.error || 'Claude interpretation failed');
+  }
+
+  return data.text;
+}
   // ── RENDER RESULTS ─────────────────────────────────────────────
   function renderResults(rawText, claudeText, docType) {
     document.getElementById('ocrText').value = rawText;
