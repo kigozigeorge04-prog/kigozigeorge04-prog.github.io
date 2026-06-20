@@ -218,7 +218,6 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc";
   const INITIATE_PAYMENT_URL = "https://uhjcybwczelmqkkapeac.supabase.co/functions/v1/initiate-payment";
 
-  // ✅ Use a different name to avoid clashes
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // ── On page load: check auth + subscription ──────────────
@@ -230,13 +229,15 @@
       return;
     }
 
+    // FIXED: uses is_active (boolean) instead of status (text),
+    // matching the actual subscriptions table schema
     const { data: sub } = await sb
       .from("subscriptions")
-      .select("status, expires_at")
+      .select("is_active, expires_at")
       .eq("user_id", user.id)
-      .eq("status", "active")
+      .eq("is_active", true)
       .gt("expires_at", new Date().toISOString())
-      .single();
+      .maybeSingle();
 
     if (sub) {
       const expiry = new Date(sub.expires_at).toLocaleDateString("en-UG", {
@@ -248,11 +249,10 @@
     }
   }
 
-  // ── Initiate payment (now globally accessible) ──────────
+  // ── Initiate payment ──────────────────────────────────────
   async function initiatePayment() {
     const phone = document.getElementById("phone").value.trim();
     const btn = document.getElementById("payBtn");
-    const statusEl = document.getElementById("status");
 
     if (!phone || phone.length < 12 || !phone.startsWith("256")) {
       showStatus("Please enter a valid MTN number starting with 256", "error");
@@ -262,6 +262,7 @@
     const { data: { user } } = await sb.auth.getUser();
     if (!user) { window.location.href = "login.html"; return; }
 
+    // plans table is unaffected — schema matches as-is
     const { data: plan } = await sb
       .from("plans")
       .select("id")
