@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EaseMed — Choose a Clerking Module</title>
+<meta name="description" content="EaseMed: clinical clerking modules for Ugandan medical students, grounded in Hutchison's Clinical Methods.">
+<meta name="theme-color" content="#0c1b22">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0c1b22;
+    --navy2:#13314f;
+    --navy3:#2a5298;
+    --teal:#3fb6a3;
+    --amber:#f2b545;
+    --paper:#f6f3ea;
+    --ink:#16232b;
+    --muted:#5d6e78;
+    --rule: rgba(246,243,234,0.14);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter', sans-serif;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(63,182,163,0.16), transparent 32%),
+      radial-gradient(circle at 96% 18%, rgba(242,181,69,0.10), transparent 28%),
+      linear-gradient(160deg, var(--navy) 0%, #102733 46%, #173a45 100%);
+    min-height:100vh;
+    color:var(--paper);
+  }
+
+  /* ---- top strip ---- */
+  .topline{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 36px;
+    border-bottom:1px solid var(--rule);
+  }
+  .topline .brand{display:flex;align-items:center;gap:11px;}
+  .topline .crest{
+    width:36px;height:36px;border-radius:9px;
+    background:linear-gradient(135deg,var(--teal),var(--navy3));
+    display:grid;place-items:center;font-size:17px;
+    box-shadow:0 6px 16px rgba(0,0,0,0.4);
+  }
+  .topline .brand-name{font-family:'Fraunces',serif;font-weight:600;font-size:1.18rem;letter-spacing:0.01em;}
+  .topline .edition{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;letter-spacing:0.06em;
+    color:rgba(246,243,234,0.45);
+    border:1px solid var(--rule);
+    padding:5px 10px;border-radius:999px;
+  }
+
+  /* ---- hero ---- */
+  .hero{
+    max-width:760px;
+    margin:0 auto;
+    padding:68px 28px 36px;
+    text-align:center;
+  }
+  .hero .eyebrow{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;font-weight:500;letter-spacing:0.14em;
+    text-transform:uppercase;color:var(--teal);
+    margin-bottom:24px;
+  }
+  .hero .eyebrow::before, .hero .eyebrow::after{
+    content:'';width:22px;height:1px;background:rgba(63,182,163,0.5);
+  }
+  .hero h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(2.3rem, 5vw, 3.4rem);
+    line-height:1.08;
+    letter-spacing:-0.01em;
+  }
+  .hero h1 em{
+    font-style:italic;
+    font-weight:500;
+    color:var(--teal);
+  }
+  .hero p{
+    margin:20px auto 0;
+    max-width:480px;
+    color:rgba(246,243,234,0.62);
+    font-size:1.01rem;
+    line-height:1.65;
+  }
+
+  /* ---- module grid ---- */
+  .modules{
+    max-width:1080px;
+    margin:10px auto 64px;
+    padding:0 36px;
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:22px;
+  }
+  @media (max-width:680px){ .modules{grid-template-columns:1fr; padding:0 22px;} }
+
+  .card{
+    position:relative;
+    background:linear-gradient(180deg, #fffdf8 0%, var(--paper) 100%);
+    color:var(--ink);
+    border-radius:6px;
+    text-decoration:none;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.06);
+    box-shadow:0 20px 44px rgba(4,12,16,0.42);
+    transition:transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s ease;
+    display:flex; flex-direction:column;
+  }
+  .card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 30px 60px rgba(4,12,16,0.5);
+  }
+
+  /* illustrated banner with diagonal texture */
+  .card .banner{
+    position:relative;
+    height:128px;
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 14px),
+      linear-gradient(135deg, var(--accent-a, #13314f), var(--accent-b, #2a5298));
+    display:flex; align-items:flex-end; justify-content:space-between;
+    padding:16px 20px;
+    overflow:hidden;
+  }
+  .card .banner .num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    color:rgba(255,255,255,0.55);
+    position:absolute; top:14px; left:20px;
+    letter-spacing:0.05em;
+  }
+  .card .banner .icon-big{
+    font-size:46px;
+    filter:drop-shadow(0 8px 14px rgba(0,0,0,0.3));
+    transition:transform 0.35s cubic-bezier(.2,.8,.2,1);
+    line-height:1;
+  }
+  .card:hover .banner .icon-big{ transform:scale(1.1) rotate(-3deg) translateY(-2px); }
+  .card .banner .tag{
+    align-self:flex-end;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.66rem;font-weight:500;letter-spacing:0.06em;
+    text-transform:uppercase;color:rgba(255,255,255,0.85);
+  }
+
+  .card .body{
+    padding:20px 22px 22px;
+    display:flex; flex-direction:column; gap:9px;
+    flex:1;
+    border-top:1px solid rgba(22,35,43,0.08);
+  }
+  .card h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.28rem;
+    color:var(--ink);
+    letter-spacing:-0.01em;
+  }
+  .card p.desc{color:var(--muted);font-size:0.89rem;line-height:1.55;}
+  .card .go{
+    margin-top:auto;
+    padding-top:12px;
+    font-size:0.82rem;font-weight:700;
+    color:var(--accent-a, var(--navy2));
+    display:flex;align-items:center;gap:7px;
+    text-transform:uppercase;letter-spacing:0.04em;
+  }
+  .card .go .arrow{transition:transform 0.25s cubic-bezier(.2,.8,.2,1); font-size:1rem;}
+  .card:hover .go .arrow{transform:translateX(6px);}
+
+  .card.medicine{ --accent-a:#13314f; --accent-b:#2a5298; }
+  .card.surgery{ --accent-a:#0f2540; --accent-b:#3a6ea5; }
+  .card.peds{ --accent-a:#0e5447; --accent-b:#3fb6a3; }
+  .card.obgyn{ --accent-a:#7a1f35; --accent-b:#c43e63; }
+
+  footer{
+    text-align:center;
+    padding:0 28px 44px;
+    color:rgba(246,243,234,0.32);
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.04em;
+  }
+</style>
+</head>
+<body>
+
+  <div class="topline">
+    <div class="brand">
+      <div class="crest">🩺</div>
+      <span class="brand-name">EaseMed</span>
+    </div>
+    <span class="edition">Hutchison's, 25th Ed.</span>
+  </div>
+
+  <section class="hero">
+    <span class="eyebrow">Select a module</span>
+    <h1>Which patient are you<br><em>clerking</em> today?</h1>
+    <p>Structured history-taking and examination, built for the wards — every prompt referenced back to Hutchison's Clinical Methods.</p>
+  </section>
+
+  <div class="modules">
+    <a href="internal-medicine.html" class="card medicine">
+      <div class="banner">
+        <span class="num">01</span>
+        <span class="icon-big">📚</span>
+        <span class="tag">General</span>
+      </div>
+      <div class="body">
+        <h3>Internal Medicine</h3>
+        <p class="desc">Full adult history: presenting complaint, HPC, PMH, HIV history, review of systems &amp; examination.</p>
+        <span class="go">Open module <span class="arrow">→</span></span>
+      </div>
+    </a>
+
+    <a href="surgery-clerking.html" class="card surgery">
+      <div class="banner">
+        <span class="num">02</span>
+        <span class="icon-big">🔪</span>
+        <span class="tag">Surgical</span>
+      </div>
+      <div class="body">
+        <h3>Surgery</h3>
+        <p class="desc">Surgical history taking: PC, HPC, PMH, ROS, physical examination &amp; assessment.</p>
+        <span class="go">Open module <span class="arrow">→</span></span>
+      </div>
+    </a>
+
+    <a href="easemed_pediatrics.html" class="card peds">
+      <div class="banner">
+        <span class="num">03</span>
+        <span class="icon-big">👶</span>
+        <span class="tag">Child</span>
+      </div>
+      <div class="body">
+        <h3>Pediatrics</h3>
+        <p class="desc">Birth history, developmental milestones, immunisations, growth charts &amp; red flags.</p>
+        <span class="go">Open module <span class="arrow">→</span></span>
+      </div>
+    </a>
+
+    <a href="ObGyn.html" class="card obgyn">
+      <div class="banner">
+        <span class="num">04</span>
+        <span class="icon-big">🤰</span>
+        <span class="tag">Complete</span>
+      </div>
+      <div class="body">
+        <h3>Obstetrics &amp; Gynaecology</h3>
+        <p class="desc">Menstrual, obstetric &amp; gynaecological history, ANC data, system-specific ROS &amp; examination.</p>
+        <span class="go">Open module <span class="arrow">→</span></span>
+      </div>
+    </a>
+  </div>
+
+  <footer>EASEMED · BUILT FOR UGANDAN MEDICAL STUDENTS</footer>
+
+</body>
+</html>
