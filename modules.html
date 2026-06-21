@@ -199,7 +199,11 @@
       <div class="crest">🩺</div>
       <span class="brand-name">EaseMed</span>
     </div>
-    <span class="edition">Hutchison's, 25th Ed.</span>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <span id="userGreeting" style="font-family:'Inter',sans-serif;font-size:0.82rem;color:rgba(246,243,234,0.7);"></span>
+      <span class="edition">Hutchison's, 25th Ed.</span>
+      <button onclick="handleLogout()" style="background:rgba(255,255,255,0.08);border:1px solid var(--rule);color:var(--paper);border-radius:7px;padding:6px 13px;font-size:0.76rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Logout</button>
+    </div>
   </div>
 
   <section class="hero">
@@ -263,6 +267,37 @@
   </div>
 
   <footer>EASEMED · BUILT FOR UGANDAN MEDICAL STUDENTS</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+    (async function authCheck() {
+      try {
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+          window.location.href = 'easemed_login.html';
+          return;
+        }
+        const user = session.user;
+        const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
+        document.getElementById('userGreeting').textContent = '👤 ' + displayName;
+        window._sb = sb;
+        window._currentUser = user;
+      } catch (err) {
+        console.error('Auth error:', err);
+        window.location.href = 'easemed_login.html';
+      }
+    })();
+
+    async function handleLogout() {
+      if (window._sb) await window._sb.auth.signOut();
+      window.location.href = 'easemed_login.html';
+    }
+  </script>
 
 </body>
 </html>
