@@ -1,664 +1,1290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EaseMed Admin Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* (all your existing styles – keep unchanged) */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: "Segoe UI", Arial, sans-serif; color: #20313f; background: radial-gradient(circle at 12% 10%, rgba(42,157,143,0.22), transparent 28%), radial-gradient(circle at 86% 12%, rgba(244,211,94,0.18), transparent 25%), linear-gradient(135deg, #0f2027 0%, #203a43 48%, #2c5364 100%); padding: 22px; }
-        .shell { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: 270px 1fr; gap: 22px; }
-        .sidebar, .main-panel, .card, .table-panel { background: rgba(255,255,255,0.96); border: 1px solid rgba(255,255,255,0.55); box-shadow: 0 22px 55px rgba(15,32,39,0.25), inset 0 1px 0 rgba(255,255,255,0.75); backdrop-filter: blur(14px); }
-        .sidebar { border-radius: 20px; padding: 22px; min-height: calc(100vh - 44px); position: sticky; top: 22px; }
-        .brand { display: flex; align-items: center; gap: 12px; padding-bottom: 22px; border-bottom: 1px solid #dbe7ef; }
-        .brand-mark { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: #fff; font-weight: 900; background: linear-gradient(135deg,#1e3c72,#2a9d8f); box-shadow: 0 10px 20px rgba(30,60,114,0.25); }
-        .brand h1 { font-size: 1.08rem; color: #17324d; }
-        .brand span { display: block; color: #718096; font-size: 0.78rem; margin-top: 2px; }
-        .nav { margin-top: 22px; display: grid; gap: 8px; }
-        .nav button { border: 0; border-radius: 12px; padding: 12px 14px; text-align: left; color: #40566a; background: transparent; font-weight: 700; cursor: pointer; transition: 0.22s ease; }
-        .nav button:hover, .nav button.active { color: #1e3c72; background: #e8f4f8; transform: translateX(3px); }
-        .sidebar-note { margin-top: 28px; border-radius: 16px; padding: 16px; background: linear-gradient(135deg,#f7fbfd,#eef8f4); border: 1px solid #dbe7ef; color: #496173; font-size: 0.86rem; line-height: 1.55; }
-        .main { display: grid; gap: 20px; }
-        .main-panel { border-radius: 22px; overflow: hidden; }
-        .hero { position: relative; overflow: hidden; color: #fff; padding: 26px 30px; background: linear-gradient(135deg,#1e3c72 0%,#2a5298 48%,#2a9d8f 100%); }
-        .hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: linear-gradient(90deg,#2a9d8f,#f4d35e,#e74c3c); }
-        .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; position: relative; z-index: 1; }
-        .hero h2 { font-size: 1.75rem; margin-bottom: 7px; }
-        .hero p { opacity: 0.9; max-width: 720px; line-height: 1.55; }
-        .admin-pill { white-space: nowrap; border-radius: 999px; padding: 9px 13px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28); font-weight: 800; font-size: 0.84rem; }
-        .auth-bar { max-width: 1500px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; color: #fff; background: rgba(15,32,39,0.74); border: 1px solid rgba(255,255,255,0.18); border-radius: 16px; padding: 12px 16px; backdrop-filter: blur(12px); box-shadow: 0 12px 28px rgba(0,0,0,0.18); }
-        .auth-bar strong { color: #90cdf4; }
-        .auth-actions button { border: 0; border-radius: 10px; padding: 9px 12px; color: #fff; background: linear-gradient(135deg,#e53e3e,#c53030); cursor: pointer; font-weight: 800; }
-        .access-lock { max-width: 720px; margin: 90px auto; background: rgba(255,255,255,0.96); border: 1px solid rgba(255,255,255,0.55); border-radius: 22px; padding: 28px; text-align: center; box-shadow: 0 22px 55px rgba(15,32,39,0.30); }
-        .access-lock h2 { color: #1e3c72; margin-bottom: 10px; }
-        .access-lock p { color: #496173; line-height: 1.6; }
-        .access-lock button { margin-top: 18px; border: 0; border-radius: 12px; padding: 12px 16px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); cursor: pointer; font-weight: 800; }
-        .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 20px; }
-        .card { border-radius: 16px; padding: 18px; transition: 0.25s ease; }
-        .card:hover, .table-panel:hover { transform: translateY(-3px); box-shadow: 0 26px 60px rgba(15,32,39,0.27), inset 0 1px 0 rgba(255,255,255,0.8); }
-        .metric-label { color: #718096; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
-        .metric-value { font-size: 2rem; color: #17324d; font-weight: 900; margin-top: 8px; }
-        .metric-sub { margin-top: 8px; font-size: 0.84rem; color: #496173; }
-        .accent-teal { border-left: 5px solid #2a9d8f; }
-        .accent-gold { border-left: 5px solid #f4d35e; }
-        .accent-red  { border-left: 5px solid #e74c3c; }
-        .accent-blue { border-left: 5px solid #2a5298; }
-        .content-grid { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 20px; }
-        .table-panel { border-radius: 20px; overflow: hidden; }
-        .panel-title { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; gap: 14px; border-bottom: 1px solid #e2e8f0; }
-        .panel-title h3 { color: #17324d; font-size: 1.05rem; }
-        .panel-title button { border: 0; border-radius: 10px; padding: 9px 12px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); cursor: pointer; font-weight: 800; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #edf2f7; font-size: 0.9rem; }
-        th { color: #718096; background: #f8fafc; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; }
-        tr:hover td { background: #f8fcfd; }
-        .status { display: inline-flex; border-radius: 999px; padding: 5px 9px; font-size: 0.76rem; font-weight: 900; }
-        .status.good { color: #1e7d5a; background: #e8f7ef; }
-        .status.warn { color: #936900; background: #fff6d8; }
-        .status.risk { color: #b73128; background: #fdecea; }
-        .activity-list { padding: 16px 18px 20px; display: grid; gap: 12px; }
-        .activity { display: grid; grid-template-columns: 12px 1fr; gap: 12px; align-items: start; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; background: #2a9d8f; box-shadow: 0 0 0 5px rgba(42,157,143,0.12); }
-        .activity strong { color: #20313f; display: block; margin-bottom: 3px; }
-        .activity span { color: #718096; font-size: 0.84rem; }
-        .quick-actions { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
-        .action { border: 1px solid #dbe7ef; border-radius: 16px; padding: 16px; background: rgba(255,255,255,0.95); cursor: pointer; transition: 0.25s ease; }
-        .action:hover { border-color: #2a9d8f; transform: translateY(-3px); box-shadow: 0 15px 30px rgba(15,32,39,0.12); }
-        .action span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); font-weight: 900; margin-bottom: 12px; }
-        .action strong { color: #17324d; display: block; margin-bottom: 5px; }
-        .action p { color: #718096; font-size: 0.84rem; line-height: 1.45; }
-        .tabs { display: flex; gap: 12px; padding: 0 20px; margin-top: 8px; margin-bottom: 8px; }
-        .admin-tab { background: rgba(255,255,255,0.9); border: none; padding: 8px 18px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #1e3c72; }
-        .admin-tab.active { background: #2a9d8f; color: white; box-shadow: 0 4px 12px rgba(42,157,143,0.3); }
-        .alert-info { background: #e6f7ff; color: #0c5460; border-left: 5px solid #17a2b8; padding: 15px; border-radius: 12px; margin: 15px 20px; font-size: 0.9rem; }
-        .alert-error { background: #f8d7da; color: #721c24; border-left: 5px solid #e53e3e; padding: 15px; border-radius: 12px; margin: 15px 20px; font-size: 0.9rem; }
-        .session-ip { font-family: monospace; font-size: 0.85rem; color: #718096; }
-        .session-device { font-size: 0.8rem; color: #718096; }
-        .live-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #2ecc71; margin-right: 6px; animation: pulse-dot 2s infinite; }
-        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        @media (max-width:1050px){ .shell, .content-grid { grid-template-columns:1fr; } .sidebar { position: static; min-height: auto; } .metrics, .quick-actions { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-        @media (max-width:640px){ body { padding:14px; } .metrics, .quick-actions { grid-template-columns:1fr; } .hero-top, .panel-title { align-items:flex-start; flex-direction: column; } table { min-width:680px; } .table-scroll { overflow-x: auto; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EaseMed Admin · User Activation</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+  </script>
+  <style>
+    /* === base & layout (unchanged) === */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #20313f;
+      background: radial-gradient(circle at 12% 10%, rgba(42, 157, 143, 0.22), transparent 28%), radial-gradient(circle at 86% 12%, rgba(244, 211, 94, 0.18), transparent 25%), linear-gradient(135deg, #0f2027 0%, #203a43 48%, #2c5364 100%);
+      padding: 22px;
+    }
+
+    .shell {
+      max-width: 1500px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      gap: 22px;
+    }
+
+    .sidebar,
+    .main-panel,
+    .card,
+    .table-panel {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      box-shadow: 0 22px 55px rgba(15, 32, 39, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(14px);
+    }
+
+    .sidebar {
+      border-radius: 20px;
+      padding: 22px;
+      min-height: calc(100vh - 44px);
+      position: sticky;
+      top: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid #dbe7ef;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 900;
+      background: linear-gradient(135deg, #1e3c72, #2a9d8f);
+      box-shadow: 0 10px 20px rgba(30, 60, 114, 0.25);
+    }
+
+    .brand h1 {
+      font-size: 1.08rem;
+      color: #17324d;
+    }
+
+    .brand span {
+      display: block;
+      color: #718096;
+      font-size: 0.78rem;
+      margin-top: 2px;
+    }
+
+    .nav {
+      margin-top: 22px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: left;
+      color: #40566a;
+      background: transparent;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.22s ease;
+    }
+
+    .nav button:hover,
+    .nav button.active {
+      color: #1e3c72;
+      background: #e8f4f8;
+      transform: translateX(3px);
+    }
+
+    .sidebar-note {
+      margin-top: 28px;
+      border-radius: 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, #f7fbfd, #eef8f4);
+      border: 1px solid #dbe7ef;
+      color: #496173;
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+
+    .main {
+      display: grid;
+      gap: 20px;
+    }
+
+    .main-panel {
+      border-radius: 22px;
+      overflow: hidden;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+      padding: 26px 30px;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 48%, #2a9d8f 100%);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #2a9d8f, #f4d35e, #e74c3c);
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h2 {
+      font-size: 1.75rem;
+      margin-bottom: 7px;
+    }
+
+    .hero p {
+      opacity: 0.9;
+      max-width: 720px;
+      line-height: 1.55;
+    }
+
+    .admin-pill {
+      white-space: nowrap;
+      border-radius: 999px;
+      padding: 9px 13px;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      font-weight: 800;
+      font-size: 0.84rem;
+    }
+
+    .auth-bar {
+      max-width: 1500px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      color: #fff;
+      background: rgba(15, 32, 39, 0.74);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 16px;
+      padding: 12px 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+    }
+
+    .auth-bar strong {
+      color: #90cdf4;
+    }
+
+    .auth-actions button {
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 12px;
+      color: #fff;
+      background: linear-gradient(135deg, #e53e3e, #c53030);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .access-lock {
+      max-width: 720px;
+      margin: 90px auto;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 22px;
+      padding: 28px;
+      text-align: center;
+      box-shadow: 0 22px 55px rgba(15, 32, 39, 0.30);
+    }
+
+    .access-lock h2 {
+      color: #1e3c72;
+      margin-bottom: 10px;
+    }
+
+    .access-lock p {
+      color: #496173;
+      line-height: 1.6;
+    }
+
+    .access-lock button {
+      margin-top: 18px;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #fff;
+      background: linear-gradient(135deg, #1e3c72, #2a9d8f);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      padding: 20px;
+    }
+
+    .card {
+      border-radius: 16px;
+      padding: 18px;
+      transition: 0.25s ease;
+    }
+
+    .card:hover,
+    .table-panel:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 26px 60px rgba(15, 32, 39, 0.27), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .metric-label {
+      color: #718096;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      color: #17324d;
+      font-weight: 900;
+      margin-top: 8px;
+    }
+
+    .metric-sub {
+      margin-top: 8px;
+      font-size: 0.84rem;
+      color: #496173;
+    }
+
+    .accent-teal {
+      border-left: 5px solid #2a9d8f;
+    }
+
+    .accent-gold {
+      border-left: 5px solid #f4d35e;
+    }
+
+    .accent-red {
+      border-left: 5px solid #e74c3c;
+    }
+
+    .accent-blue {
+      border-left: 5px solid #2a5298;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 20px;
+    }
+
+    .table-panel {
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .panel-title {
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .panel-title h3 {
+      color: #17324d;
+      font-size: 1.05rem;
+    }
+
+    .panel-title button {
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 12px;
+      color: #fff;
+      background: linear-gradient(135deg, #1e3c72, #2a9d8f);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid #edf2f7;
+      font-size: 0.9rem;
+    }
+
+    th {
+      color: #718096;
+      background: #f8fafc;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr:hover td {
+      background: #f8fcfd;
+    }
+
+    .status {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 0.76rem;
+      font-weight: 900;
+    }
+
+    .status.good {
+      color: #1e7d5a;
+      background: #e8f7ef;
+    }
+
+    .status.warn {
+      color: #936900;
+      background: #fff6d8;
+    }
+
+    .status.risk {
+      color: #b73128;
+      background: #fdecea;
+    }
+
+    .activity-list {
+      padding: 16px 18px 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .activity {
+      display: grid;
+      grid-template-columns: 12px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-top: 5px;
+      background: #2a9d8f;
+      box-shadow: 0 0 0 5px rgba(42, 157, 143, 0.12);
+    }
+
+    .activity strong {
+      color: #20313f;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .activity span {
+      color: #718096;
+      font-size: 0.84rem;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .action {
+      border: 1px solid #dbe7ef;
+      border-radius: 16px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.95);
+      cursor: pointer;
+      transition: 0.25s ease;
+    }
+
+    .action:hover {
+      border-color: #2a9d8f;
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(15, 32, 39, 0.12);
+    }
+
+    .action span {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      color: #fff;
+      background: linear-gradient(135deg, #1e3c72, #2a9d8f);
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .action strong {
+      color: #17324d;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .action p {
+      color: #718096;
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 12px;
+      padding: 0 20px;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+
+    .admin-tab {
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      color: #1e3c72;
+    }
+
+    .admin-tab.active {
+      background: #2a9d8f;
+      color: white;
+      box-shadow: 0 4px 12px rgba(42, 157, 143, 0.3);
+    }
+
+    .alert-info {
+      background: #e6f7ff;
+      color: #0c5460;
+      border-left: 5px solid #17a2b8;
+      padding: 15px;
+      border-radius: 12px;
+      margin: 15px 20px;
+      font-size: 0.9rem;
+    }
+
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border-left: 5px solid #e53e3e;
+      padding: 15px;
+      border-radius: 12px;
+      margin: 15px 20px;
+      font-size: 0.9rem;
+    }
+
+    .session-ip {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #718096;
+    }
+
+    .session-device {
+      font-size: 0.8rem;
+      color: #718096;
+    }
+
+    .live-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #2ecc71;
+      margin-right: 6px;
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    /* ===== NEW: activation toggle + expiry input ===== */
+    .toggle-btn {
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toggle-btn.activate {
+      background: linear-gradient(135deg, #1e7d5a, #2a9d8f);
+      color: #fff;
+    }
+
+    .toggle-btn.deactivate {
+      background: linear-gradient(135deg, #c0392b, #e74c3c);
+      color: #fff;
+    }
+
+    .expire-input {
+      border: 1.5px solid #dbe7ef;
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 0.82rem;
+      outline: none;
+      width: 140px;
+    }
+
+    /* hide activation section by default */
+    #activationSection {
+      display: none;
+    }
+
+    @media (max-width:1050px) {
+      .shell,
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static;
+        min-height: auto;
+      }
+      .metrics,
+      .quick-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width:640px) {
+      body {
+        padding: 14px;
+      }
+      .metrics,
+      .quick-actions {
+        grid-template-columns: 1fr;
+      }
+      .hero-top,
+      .panel-title {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      table {
+        min-width: 680px;
+      }
+      .table-scroll {
+        overflow-x: auto;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="auth-bar" id="adminAuthBar" style="display:none;">
-        <div>Signed in as <strong id="adminUserName">Admin</strong></div>
-        <div class="auth-actions">
-            <button onclick="handleAdminLogout()">Logout</button>
+
+  <!-- auth bar -->
+  <div class="auth-bar" id="adminAuthBar" style="display:none;">
+    <div>Signed in as <strong id="adminUserName">Admin</strong></div>
+    <div class="auth-actions">
+      <button onclick="handleAdminLogout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- access lock -->
+  <div class="access-lock" id="accessLock">
+    <h2>Checking admin access…</h2>
+    <p>Please wait while EaseMed verifies that this account has permission to view the admin dashboard.</p>
+  </div>
+
+  <!-- ===== SHELL ===== -->
+  <div class="shell" id="adminShell" style="display:none;">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">EM</div>
+        <div>
+          <h1>EaseMed Admin</h1>
+          <span>Clinical clerkship control center</span>
         </div>
-    </div>
+      </div>
+      <nav class="nav">
+        <button class="active" onclick="showSection(event, 'dashboard')">Dashboard Overview</button>
+        <button onclick="showSection(event, 'students')">Students</button>
+        <button onclick="showSection(event, 'records')">Patient Records</button>
+        <button onclick="showSection(event, 'rounds')">Ward Round Reviews</button>
+        <button onclick="showSection(event, 'supervisors')">Supervisors</button>
+        <button onclick="showSection(event, 'settings')">Settings</button>
+        <!-- NEW: User Activation button -->
+        <button onclick="showSection(event, 'activation')">🔑 User Activation</button>
+      </nav>
+      <div class="sidebar-note">Monitor clerked patients, review completion quality, and identify students who need feedback before ward rounds.</div>
+    </aside>
 
-    <div class="access-lock" id="accessLock">
-        <h2>Checking admin access…</h2>
-        <p>Please wait while EaseMed verifies that this account has permission to view the admin dashboard.</p>
-    </div>
+    <!-- MAIN CONTENT -->
+    <main class="main">
 
-    <div class="shell" id="adminShell" style="display:none;">
-        <aside class="sidebar">
-            <div class="brand">
-                <div class="brand-mark">EM</div>
-                <div>
-                    <h1>EaseMed Admin</h1>
-                    <span>Clinical clerkship control center</span>
-                </div>
+      <!-- DASHBOARD sections (visible by default) -->
+      <section id="dashboardSection">
+        <section class="main-panel">
+          <div class="hero">
+            <div class="hero-top">
+              <div>
+                <h2>Admin Dashboard</h2>
+                <p>Track medical clerkship activity, review patient documentation quality, and monitor user sessions.</p>
+              </div>
+              <div class="admin-pill" id="adminRolePill">Admin Access</div>
             </div>
-            <nav class="nav">
-                <button class="active">Dashboard Overview</button>
-                <button>Students</button>
-                <button>Patient Records</button>
-                <button>Ward Round Reviews</button>
-                <button>Supervisors</button>
-                <button>Settings</button>
-            </nav>
-            <div class="sidebar-note">Monitor clerked patients, review completion quality, and identify students who need feedback before ward rounds.</div>
-        </aside>
+          </div>
 
-        <main class="main">
-            <section class="main-panel">
-                <div class="hero">
-                    <div class="hero-top">
-                        <div>
-                            <h2>Admin Dashboard</h2>
-                            <p>Track medical clerkship activity, review patient documentation quality, and monitor user sessions.</p>
-                        </div>
-                        <div class="admin-pill" id="adminRolePill">Admin Access</div>
-                    </div>
-                </div>
+          <div class="tabs">
+            <button id="tabPediatric" class="admin-tab active" onclick="switchTable('pediatric')">👶 Pediatric</button>
+            <button id="tabAdult" class="admin-tab" onclick="switchTable('adult')">🧑 Adult</button>
+          </div>
 
-                <div class="tabs">
-                    <button id="tabPediatric" class="admin-tab active" onclick="switchTable('pediatric')">👶 Pediatric</button>
-                    <button id="tabAdult" class="admin-tab" onclick="switchTable('adult')">🧑 Adult</button>
-                </div>
+          <div id="dashboardMessage" class="alert-info" style="display:none;"></div>
 
-                <div id="dashboardMessage" class="alert-info" style="display:none;"></div>
+          <div class="metrics">
+            <div class="card accent-teal">
+              <div class="metric-label">Clerked Patients</div>
+              <div class="metric-value" id="totalPatientsValue">--</div>
+              <div class="metric-sub">Total encounters</div>
+            </div>
+            <div class="card accent-blue">
+              <div class="metric-label">Active Students</div>
+              <div class="metric-value" id="activeStudentsValue">--</div>
+              <div class="metric-sub">Students who clerked</div>
+            </div>
+            <div class="card accent-gold">
+              <div class="metric-label">Ward Round Ready</div>
+              <div class="metric-value" id="completePercentValue">--%</div>
+              <div class="metric-sub">With management plan</div>
+            </div>
+            <div class="card accent-red">
+              <div class="metric-label">Needs Review</div>
+              <div class="metric-value" id="needsReviewValue">--</div>
+              <div class="metric-sub">Missing HPC/exam</div>
+            </div>
+          </div>
+        </section>
 
-                <div class="metrics">
-                    <div class="card accent-teal">
-                        <div class="metric-label">Clerked Patients</div>
-                        <div class="metric-value" id="totalPatientsValue">--</div>
-                        <div class="metric-sub">Total encounters</div>
-                    </div>
-                    <div class="card accent-blue">
-                        <div class="metric-label">Active Students</div>
-                        <div class="metric-value" id="activeStudentsValue">--</div>
-                        <div class="metric-sub">Students who clerked</div>
-                    </div>
-                    <div class="card accent-gold">
-                        <div class="metric-label">Ward Round Ready</div>
-                        <div class="metric-value" id="completePercentValue">--%</div>
-                        <div class="metric-sub">With management plan</div>
-                    </div>
-                    <div class="card accent-red">
-                        <div class="metric-label">Needs Review</div>
-                        <div class="metric-value" id="needsReviewValue">--</div>
-                        <div class="metric-sub">Missing HPC/exam</div>
-                    </div>
-                </div>
-            </section>
+        <!-- Active Users & Recent Logins -->
+        <section class="content-grid" style="margin-top:8px;">
+          <div class="table-panel">
+            <div class="panel-title">
+              <h3><span class="live-dot"></span> Currently Active Users</h3>
+              <button onclick="loadActiveUsers()">Refresh</button>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>User</th><th>Email</th><th>IP Address</th><th>Device</th><th>Last Seen</th></tr></thead>
+                <tbody id="activeUsersBody"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
 
-            <!-- Active Users & Recent Logins -->
-            <section class="content-grid" style="margin-top:8px;">
-                <div class="table-panel">
-                    <div class="panel-title">
-                        <h3><span class="live-dot"></span> Currently Active Users</h3>
-                        <button onclick="loadActiveUsers()">Refresh</button>
-                    </div>
-                    <div class="table-scroll">
-                        <table>
-                            <thead><tr><th>User</th><th>Email</th><th>IP Address</th><th>Device</th><th>Last Seen</th></tr></thead>
-                            <tbody id="activeUsersBody"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
+          <div class="table-panel">
+            <div class="panel-title">
+              <h3>📋 Recent Logins</h3>
+              <button onclick="loadRecentLogins()">Refresh</button>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>User</th><th>Email</th><th>IP Address</th><th>Device</th><th>Login Time</th></tr></thead>
+                <tbody id="recentLoginsBody"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-                <div class="table-panel">
-                    <div class="panel-title">
-                        <h3>📋 Recent Logins</h3>
-                        <button onclick="loadRecentLogins()">Refresh</button>
-                    </div>
-                    <div class="table-scroll">
-                        <table>
-                            <thead><tr><th>User</th><th>Email</th><th>IP Address</th><th>Device</th><th>Login Time</th></tr></thead>
-                            <tbody id="recentLoginsBody"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
+        <section class="quick-actions">
+          <div class="action"><span>+</span><strong>Add Student</strong><p>Create a student profile and assign a clerkship rotation.</p></div>
+          <div class="action"><span>R</span><strong>Review Cases</strong><p>Open pending patient records that need supervisor feedback.</p></div>
+          <div class="action"><span>B</span><strong>Backup Records</strong><p>Download or restore saved clerkship records securely.</p></div>
+        </section>
 
-            <section class="quick-actions">
-                <div class="action"><span>+</span><strong>Add Student</strong><p>Create a student profile and assign a clerkship rotation.</p></div>
-                <div class="action"><span>R</span><strong>Review Cases</strong><p>Open pending patient records that need supervisor feedback.</p></div>
-                <div class="action"><span>B</span><strong>Backup Records</strong><p>Download or restore saved clerkship records securely.</p></div>
-            </section>
+        <section class="content-grid">
+          <div class="table-panel">
+            <div class="panel-title">
+              <h3>Recent Clerked Patients</h3>
+              <button onclick="loadRecentPatients()">Refresh</button>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Patient</th><th>Student</th><th>Complaint</th><th>Plan</th><th>Status</th></tr></thead>
+                <tbody id="recentPatientsBody"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
 
-            <section class="content-grid">
-                <div class="table-panel">
-                    <div class="panel-title">
-                        <h3>Recent Clerked Patients</h3>
-                        <button onclick="loadRecentPatients()">Refresh</button>
-                    </div>
-                    <div class="table-scroll">
-                        <table>
-                            <thead><tr><th>Patient</th><th>Student</th><th>Complaint</th><th>Plan</th><th>Status</th></tr></thead>
-                            <tbody id="recentPatientsBody"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
+          <div class="table-panel">
+            <div class="panel-title">
+              <h3>Admin Activity</h3>
+              <button onclick="loadRecentActivity()">Refresh</button>
+            </div>
+            <div class="activity-list" id="activityList">
+              <div class="activity"><div class="dot"></div><div><strong>Loading activity...</strong><span>Please wait</span></div></div>
+            </div>
+          </div>
+        </section>
+      </section>
 
-                <div class="table-panel">
-                    <div class="panel-title">
-                        <h3>Admin Activity</h3>
-                        <button onclick="loadRecentActivity()">Refresh</button>
-                    </div>
-                    <div class="activity-list" id="activityList">
-                        <div class="activity"><div class="dot"></div><div><strong>Loading activity...</strong><span>Please wait</span></div></div>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
+      <!-- ===== USER ACTIVATION SECTION (hidden by default) ===== -->
+      <section id="activationSection">
+        <div class="table-panel">
+          <div class="panel-title">
+            <h3>🔑 User Activation</h3>
+            <button onclick="loadAllUsers()">Refresh</button>
+          </div>
 
-    <script>
-        // ==================== Configuration ====================
-        const SUPABASE_URL  = 'https://uhjcybwczelmqkkapeac.supabase.co';
-        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
-        const ADMIN_EMAILS = ['kigozigeorge04@gmail.com'];
-        let adminSupabase = null;
-        let currentTable = 'pediatric';
-        let refreshInterval = null;
+          <div style="padding:16px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+            <input id="userSearchInput" type="text" placeholder="Search by email..."
+            oninput="filterUsers()"
+            style="width:100%; padding:10px 14px; border:1.5px solid #dbe7ef; border-radius:10px; font-size:0.9rem; outline:none;" />
+          </div>
 
-        function showMessage(msg, isError = false) {
-            const el = document.getElementById('dashboardMessage');
-            if (!el) return;
-            el.style.display = 'block';
-            el.className = isError ? 'alert-error' : 'alert-info';
-            el.innerHTML = msg;
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Expires</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="allUsersBody">
+                <tr><td colspan="5" style="text-align:center;">Click Refresh to load users</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // ==================== CONFIG ====================
+    const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFrYWthcGVhYyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzgxMjE1NzYxLCJleHAiOjIwOTY3OTE3NjF9.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+    const ADMIN_EMAILS = ['kigozigeorge04@gmail.com'];
+    let adminSupabase = null;
+    let currentTable = 'pediatric';
+    let refreshInterval = null;
+
+    // ==================== HELPERS ====================
+    function showMessage(msg, isError = false) {
+      const el = document.getElementById('dashboardMessage');
+      if (!el) return;
+      el.style.display = 'block';
+      el.className = isError ? 'alert-error' : 'alert-info';
+      el.innerHTML = msg;
+    }
+
+    async function tableExists(tableName) {
+      try {
+        const { error } = await adminSupabase.from(tableName).select('id', { count: 'exact', head: true });
+        if (error && error.message && error.message.includes('relation') && error.message.includes('does not exist')) {
+          return false;
+        }
+        return true;
+      } catch (e) { return false; }
+    }
+
+    // ==================== NAVIGATION: show sections ====================
+    function showSection(event, section) {
+      // hide all main sections
+      document.querySelectorAll('.main > section').forEach(s => s.style.display = 'none');
+
+      if (section === 'activation') {
+        document.getElementById('activationSection').style.display = 'block';
+        loadAllUsers();
+      } else {
+        // show dashboard section (and keep other default sections visible)
+        document.getElementById('dashboardSection').style.display = 'block';
+        // also ensure any other default sections are visible (they are inside dashboardSection)
+      }
+
+      // update nav active state
+      document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+      if (event && event.target) {
+        event.target.classList.add('active');
+      } else {
+        // fallback: find button with text
+        const btns = document.querySelectorAll('.nav button');
+        btns.forEach(b => {
+          if (b.textContent.includes('User Activation') && section === 'activation') b.classList.add('active');
+          else if (b.textContent.includes('Dashboard') && section === 'dashboard') b.classList.add('active');
+        });
+      }
+    }
+
+    // ==================== DASHBOARD FUNCTIONS (unchanged) ====================
+    async function loadDashboardStats() {
+      const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
+      const exists = await tableExists(tableName);
+      if (!exists) {
+        showMessage(`⚠️ Table <strong>${tableName}</strong> does not exist.`, true);
+        document.getElementById('totalPatientsValue').innerText = '0';
+        document.getElementById('activeStudentsValue').innerText = '0';
+        document.getElementById('completePercentValue').innerHTML = '0%';
+        document.getElementById('needsReviewValue').innerText = '0';
+        return;
+      }
+
+      try {
+        const { count: total, error: totalErr } = await adminSupabase
+          .from(tableName)
+          .select('id', { count: 'exact', head: true });
+        if (totalErr) throw totalErr;
+
+        const { data: studentsData, error: studentsErr } = await adminSupabase
+          .from(tableName)
+          .select('user_id');
+        let activeStudents = 0;
+        if (!studentsErr && studentsData) {
+          activeStudents = new Set(studentsData.map(s => s.user_id)).size;
         }
 
-        // ==================== Check if table exists ====================
-        async function tableExists(tableName) {
-            try {
-                const { error } = await adminSupabase.from(tableName).select('id', { count: 'exact', head: true });
-                if (error && error.message && error.message.includes('relation') && error.message.includes('does not exist')) {
-                    return false;
-                }
-                return true;
-            } catch (e) { return false; }
+        let complete = 0;
+        try {
+          const { count: c, error: ce } = await adminSupabase
+            .from(tableName)
+            .select('id', { count: 'exact', head: true })
+            .not('management_plan', 'is', null)
+            .not('management_plan', 'eq', '');
+          if (!ce) complete = c || 0;
+        } catch (e) { /* ignore */ }
+
+        const percentReady = total ? Math.round((complete / total) * 100) : 0;
+
+        let missing = 0;
+        try {
+          const { count: m, error: me } = await adminSupabase
+            .from(tableName)
+            .select('id', { count: 'exact', head: true })
+            .or('hpc.is.null,hpc.eq.,exam_data.is.null');
+          if (!me) missing = m || 0;
+        } catch (e) { missing = 0; }
+
+        document.getElementById('totalPatientsValue').innerText = total || 0;
+        document.getElementById('activeStudentsValue').innerText = activeStudents;
+        document.getElementById('completePercentValue').innerHTML = `${percentReady}%`;
+        document.getElementById('needsReviewValue').innerText = missing;
+        showMessage('', false);
+      } catch (err) {
+        console.error('Error loading dashboard stats:', err);
+        showMessage(`❌ Error loading stats: ${err.message}`, true);
+        document.getElementById('totalPatientsValue').innerText = 'Error';
+        document.getElementById('activeStudentsValue').innerText = 'Error';
+        document.getElementById('completePercentValue').innerHTML = 'Error';
+        document.getElementById('needsReviewValue').innerText = 'Error';
+      }
+    }
+
+    // loadActiveUsers, loadRecentLogins, loadRecentPatients, loadRecentActivity (kept from original)
+    async function loadActiveUsers() {
+      const tbody = document.getElementById('activeUsersBody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+      try {
+        const exists = await tableExists('user_sessions');
+        if (!exists) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">⚠️ Table user_sessions does not exist.</td></tr>';
+          return;
+        }
+        const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+        const { data: sessions, error } = await adminSupabase
+          .from('user_sessions')
+          .select('id, user_id, email, ip_address, user_agent, login_time')
+          .gte('login_time', tenMinAgo)
+          .order('login_time', { ascending: false });
+
+        if (error) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ Error: ${error.message}</td></tr>`;
+          return;
+        }
+        if (!sessions || sessions.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No active users in last 10 min</td></tr>';
+          return;
+        }
+        const userIds = [...new Set(sessions.map(s => s.user_id))];
+        const { data: profiles } = await adminSupabase.from('profiles').select('id, name, email').in('id', userIds);
+        const userMap = new Map();
+        if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
+
+        tbody.innerHTML = '';
+        for (let s of sessions) {
+          const row = tbody.insertRow();
+          const displayName = userMap.get(s.user_id) || s.email || 'Unknown';
+          row.insertCell(0).innerText = displayName;
+          row.insertCell(1).innerText = s.email || '—';
+          row.insertCell(2).innerHTML = `<span class="session-ip">${s.ip_address || '—'}</span>`;
+          row.insertCell(3).innerHTML = `<span class="session-device">${s.user_agent ? s.user_agent.slice(0, 40) + '…' : '—'}</span>`;
+          row.insertCell(4).innerText = s.login_time ? new Date(s.login_time).toLocaleString() : '—';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ ${err.message}</td></tr>`;
+      }
+    }
+
+    async function loadRecentLogins() {
+      const tbody = document.getElementById('recentLoginsBody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+      try {
+        const exists = await tableExists('user_sessions');
+        if (!exists) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">⚠️ Table user_sessions does not exist.</td></tr>';
+          return;
+        }
+        const { data: logins, error } = await adminSupabase
+          .from('user_sessions')
+          .select('id, user_id, email, ip_address, user_agent, login_time')
+          .order('login_time', { ascending: false })
+          .limit(20);
+        if (error) throw error;
+        if (!logins || logins.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No login records found</td></tr>';
+          return;
+        }
+        const userIds = [...new Set(logins.map(s => s.user_id))];
+        const { data: profiles } = await adminSupabase.from('profiles').select('id, name, email').in('id', userIds);
+        const userMap = new Map();
+        if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
+
+        tbody.innerHTML = '';
+        for (let s of logins) {
+          const row = tbody.insertRow();
+          const displayName = userMap.get(s.user_id) || s.email || 'Unknown';
+          row.insertCell(0).innerText = displayName;
+          row.insertCell(1).innerText = s.email || '—';
+          row.insertCell(2).innerHTML = `<span class="session-ip">${s.ip_address || '—'}</span>`;
+          row.insertCell(3).innerHTML = `<span class="session-device">${s.user_agent ? s.user_agent.slice(0, 40) + '…' : '—'}</span>`;
+          row.insertCell(4).innerText = s.login_time ? new Date(s.login_time).toLocaleString() : '—';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ ${err.message}</td></tr>`;
+      }
+    }
+
+    async function loadRecentPatients() {
+      const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
+      const tbody = document.getElementById('recentPatientsBody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+      const exists = await tableExists(tableName);
+      if (!exists) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">⚠️ Table not created yet.</td></tr>';
+        return;
+      }
+      try {
+        let selectFields = currentTable === 'pediatric' ? 'child_name, user_id, current_symptom, management_plan, created_at' :
+          'full_name, user_id, current_symptom, management_plan, created_at';
+        const { data: records, error } = await adminSupabase
+          .from(tableName)
+          .select(selectFields)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (error) throw error;
+        if (!records || records.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found</td></tr>';
+          return;
+        }
+        const userIds = [...new Set(records.map(r => r.user_id))];
+        const { data: profiles } = await adminSupabase.from('profiles').select('id, name, email').in('id', userIds);
+        const userMap = new Map();
+        if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
+
+        tbody.innerHTML = '';
+        for (let rec of records) {
+          const row = tbody.insertRow();
+          const patientName = currentTable === 'pediatric' ? rec.child_name : rec.full_name;
+          row.insertCell(0).innerText = patientName || '—';
+          row.insertCell(1).innerText = userMap.get(rec.user_id) || 'Unknown';
+          row.insertCell(2).innerText = rec.current_symptom || '—';
+          const hasPlan = rec.management_plan && rec.management_plan.trim() !== '';
+          row.insertCell(3).innerText = hasPlan ? 'Yes' : 'No';
+          const statusClass = hasPlan ? 'good' : 'warn';
+          const statusText = hasPlan ? 'Ready' : 'Pending';
+          row.insertCell(4).innerHTML = `<span class="status ${statusClass}">${statusText}</span>`;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function loadRecentActivity() {
+      const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
+      const activityContainer = document.getElementById('activityList');
+      activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Loading activity...</strong><span>Please wait</span></div></div>';
+      const exists = await tableExists(tableName);
+      if (!exists) {
+        activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>⚠️ Table not created yet</strong><span>No activity to show</span></div></div>';
+        return;
+      }
+      try {
+        let selectFields = currentTable === 'pediatric' ? 'child_name, created_at, user_id' : 'full_name, created_at, user_id';
+        const { data: activities, error } = await adminSupabase
+          .from(tableName)
+          .select(selectFields)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        if (error) throw error;
+        if (!activities || activities.length === 0) {
+          activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>No recent activity</strong><span>No records have been saved yet</span></div></div>';
+          return;
+        }
+        const userIds = [...new Set(activities.map(a => a.user_id))];
+        const { data: profiles } = await adminSupabase.from('profiles').select('id, name, email').in('id', userIds);
+        const userMap = new Map();
+        if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
+
+        activityContainer.innerHTML = '';
+        for (let act of activities) {
+          const date = new Date(act.created_at).toLocaleString();
+          const studentName = userMap.get(act.user_id) || act.user_id?.slice(0, 8) || 'Unknown';
+          const patientName = currentTable === 'pediatric' ? act.child_name : act.full_name;
+          const div = document.createElement('div');
+          div.className = 'activity';
+          div.innerHTML = `<div class="dot"></div><div><strong>New patient record</strong><span>${patientName || 'Unnamed'} clerked by ${studentName} on ${date}</span></div>`;
+          activityContainer.appendChild(div);
+        }
+      } catch (err) {
+        activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Could not load activity</strong><span>Please refresh the page</span></div></div>';
+      }
+    }
+
+    function switchTable(table) {
+      currentTable = table;
+      document.getElementById('tabPediatric').classList.toggle('active', table === 'pediatric');
+      document.getElementById('tabAdult').classList.toggle('active', table === 'adult');
+      loadDashboardStats();
+      loadRecentPatients();
+      loadRecentActivity();
+    }
+
+    function startAutoRefresh() {
+      if (refreshInterval) clearInterval(refreshInterval);
+      refreshInterval = setInterval(() => {
+        loadActiveUsers();
+        loadRecentLogins();
+      }, 30000);
+    }
+
+    // ==================== USER ACTIVATION ====================
+    let allUsersCache = [];
+
+    async function loadAllUsers() {
+      const tbody = document.getElementById('allUsersBody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+
+      try {
+        const { data: profiles, error } = await adminSupabase
+          .from('profiles')
+          .select('id, is_active, expires_at, created_at, email')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (!profiles || profiles.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No users found</td></tr>';
+          return;
         }
 
-        // ==================== Load Active Users (fix: remove session_active filter, use last 10 min) ====================
-        async function loadActiveUsers() {
-            console.log('loadActiveUsers called');
-            const tbody = document.getElementById('activeUsersBody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+        allUsersCache = profiles;
+        renderUsersTable(profiles);
 
-            try {
-                // First check if table exists
-                const exists = await tableExists('user_sessions');
-                if (!exists) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">⚠️ Table user_sessions does not exist. Please create it.</td></tr>';
-                    return;
-                }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#c0392b;">❌ ${err.message}</td></tr>`;
+      }
+    }
 
-                // Try to get all sessions from the last 10 minutes (without session_active filter to see if any data exists)
-                const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-                const { data: sessions, error } = await adminSupabase
-                    .from('user_sessions')
-                    .select('id, user_id, email, ip_address, user_agent, login_time')
-                    .gte('login_time', tenMinAgo)
-                    .order('login_time', { ascending: false });
+    function renderUsersTable(profiles) {
+      const tbody = document.getElementById('allUsersBody');
+      tbody.innerHTML = '';
 
-                if (error) {
-                    console.error('Error fetching sessions:', error);
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ Error: ${error.message}</td></tr>`;
-                    showMessage(`❌ Error loading active users: ${error.message}`, true);
-                    return;
-                }
+      for (let p of profiles) {
+        const isActive = p.is_active;
+        const expires = p.expires_at ? new Date(p.expires_at).toLocaleDateString() : '—';
+        const joined = p.created_at ? new Date(p.created_at).toLocaleDateString() : '—';
+        const isExpired = p.expires_at && new Date(p.expires_at) < new Date();
 
-                if (!sessions || sessions.length === 0) {
-                    // Try without time filter to see if there are any sessions at all
-                    const { data: allSessions, error: allError } = await adminSupabase
-                        .from('user_sessions')
-                        .select('id, user_id, email, ip_address, user_agent, login_time')
-                        .order('login_time', { ascending: false })
-                        .limit(5);
-                    if (allError) {
-                        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ No sessions found (error: ${allError.message})</td></tr>`;
-                    } else if (!allSessions || allSessions.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No active users in the last 10 minutes (no sessions at all)</td></tr>';
-                    } else {
-                        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No active users in last 10 min, but found ${allSessions.length} older sessions. Refresh to see.</td></tr>`;
-                    }
-                    return;
-                }
-
-                // Get user names from profiles
-                const userIds = [...new Set(sessions.map(s => s.user_id))];
-                const { data: profiles } = await adminSupabase.from('profiles').select('id, name, email').in('id', userIds);
-                const userMap = new Map();
-                if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
-
-                tbody.innerHTML = '';
-                for (let s of sessions) {
-                    const row = tbody.insertRow();
-                    const displayName = userMap.get(s.user_id) || s.email || 'Unknown';
-                    row.insertCell(0).innerText = displayName;
-                    row.insertCell(1).innerText = s.email || '—';
-                    row.insertCell(2).innerHTML = `<span class="session-ip">${s.ip_address || '—'}</span>`;
-                    row.insertCell(3).innerHTML = `<span class="session-device">${s.user_agent ? s.user_agent.slice(0,40) + '…' : '—'}</span>`;
-                    row.insertCell(4).innerText = s.login_time ? new Date(s.login_time).toLocaleString() : '—';
-                }
-            } catch (err) {
-                console.error('loadActiveUsers error:', err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ ${err.message}</td></tr>`;
-                showMessage(`❌ Error loading active users: ${err.message}`, true);
-            }
+        let statusHtml;
+        if (isActive && !isExpired) {
+          statusHtml = '<span class="status good">Active</span>';
+        } else if (isActive && isExpired) {
+          statusHtml = '<span class="status risk">Expired</span>';
+        } else {
+          statusHtml = '<span class="status warn">Inactive</span>';
         }
 
-        // ==================== Load Recent Logins ====================
-        async function loadRecentLogins() {
-            console.log('loadRecentLogins called');
-            const tbody = document.getElementById('recentLoginsBody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${p.email || '—'}</td>
+            <td>${statusHtml}</td>
+            <td>${expires}</td>
+            <td>${joined}</td>
+            <td style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <input type="date" class="expire-input" id="exp-${p.id}"
+                value="${p.expires_at ? p.expires_at.split('T')[0] : getDefaultExpiry()}" />
+              ${isActive
+                ? `<button class="toggle-btn deactivate" onclick="deactivateUser('${p.id}')">Deactivate</button>`
+                : `<button class="toggle-btn activate" onclick="activateUser('${p.id}')">Activate</button>`
+              }
+            </td>
+          `;
+      }
+    }
 
-            try {
-                const exists = await tableExists('user_sessions');
-                if (!exists) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">⚠️ Table user_sessions does not exist.</td></tr>';
-                    return;
-                }
+    function getDefaultExpiry() {
+      const d = new Date();
+      d.setFullYear(d.getFullYear() + 1);
+      return d.toISOString().split('T')[0];
+    }
 
-                const { data: logins, error } = await adminSupabase
-                    .from('user_sessions')
-                    .select('id, user_id, email, ip_address, user_agent, login_time')
-                    .order('login_time', { ascending: false })
-                    .limit(20);
+    async function activateUser(userId) {
+      const expiryInput = document.getElementById(`exp-${userId}`);
+      const expiryVal = expiryInput?.value;
+      if (!expiryVal) {
+        alert('Please set an expiry date first.');
+        return;
+      }
 
-                if (error) {
-                    console.error('Error fetching recent logins:', error);
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ Error: ${error.message}</td></tr>`;
-                    showMessage(`❌ Error loading recent logins: ${error.message}`, true);
-                    return;
-                }
+      const { error } = await adminSupabase
+        .from('profiles')
+        .update({
+          is_active: true,
+          expires_at: new Date(expiryVal).toISOString()
+        })
+        .eq('id', userId);
 
-                if (!logins || logins.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No login records found</td></tr>';
-                    return;
-                }
+      if (error) {
+        alert('❌ Failed to activate: ' + error.message);
+        return;
+      }
 
-                const userIds = [...new Set(logins.map(s => s.user_id))];
-                const { data: profiles } = await adminSupabase.from('profiles').select('id, name, email').in('id', userIds);
-                const userMap = new Map();
-                if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
+      showToastAdmin('✅ User activated successfully');
+      loadAllUsers();
+    }
 
-                tbody.innerHTML = '';
-                for (let s of logins) {
-                    const row = tbody.insertRow();
-                    const displayName = userMap.get(s.user_id) || s.email || 'Unknown';
-                    row.insertCell(0).innerText = displayName;
-                    row.insertCell(1).innerText = s.email || '—';
-                    row.insertCell(2).innerHTML = `<span class="session-ip">${s.ip_address || '—'}</span>`;
-                    row.insertCell(3).innerHTML = `<span class="session-device">${s.user_agent ? s.user_agent.slice(0,40) + '…' : '—'}</span>`;
-                    row.insertCell(4).innerText = s.login_time ? new Date(s.login_time).toLocaleString() : '—';
-                }
-            } catch (err) {
-                console.error('loadRecentLogins error:', err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ ${err.message}</td></tr>`;
-                showMessage(`❌ Error loading recent logins: ${err.message}`, true);
-            }
+    async function deactivateUser(userId) {
+      if (!confirm('Deactivate this user? They will lose access immediately.')) return;
+
+      const { error } = await adminSupabase
+        .from('profiles')
+        .update({ is_active: false })
+        .eq('id', userId);
+
+      if (error) {
+        alert('❌ Failed to deactivate: ' + error.message);
+        return;
+      }
+
+      showToastAdmin('⚠️ User deactivated');
+      loadAllUsers();
+    }
+
+    function filterUsers() {
+      const query = document.getElementById('userSearchInput').value.toLowerCase();
+      const filtered = allUsersCache.filter(p =>
+        (p.email || '').toLowerCase().includes(query)
+      );
+      renderUsersTable(filtered);
+    }
+
+    function showToastAdmin(msg) {
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#1e3c72; color:#fff; padding:12px 28px; border-radius:30px; font-size:0.9rem; font-weight:700; z-index:99999; box-shadow:0 8px 24px rgba(0,0,0,0.2);';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ==================== ADMIN AUTH ====================
+    function isAdminUser(user) {
+      const email = (user.email || '').toLowerCase();
+      const appRole = user.app_metadata?.role || user.app_metadata?.user_role;
+      const userRole = user.user_metadata?.role || user.user_metadata?.user_role;
+      const isAdminFlag = user.user_metadata?.is_admin || user.app_metadata?.is_admin;
+      return ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email) || appRole === 'admin' || userRole === 'admin' || isAdminFlag === true;
+    }
+
+    function showAdmin(user) {
+      const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
+      document.getElementById('adminUserName').textContent = displayName;
+      document.getElementById('adminRolePill').textContent = `Admin: ${displayName}`;
+      document.getElementById('accessLock').style.display = 'none';
+      document.getElementById('adminAuthBar').style.display = 'flex';
+      document.getElementById('adminShell').style.display = 'grid';
+      loadDashboardStats();
+      loadRecentPatients();
+      loadRecentActivity();
+      loadActiveUsers();
+      loadRecentLogins();
+      startAutoRefresh();
+    }
+
+    function showAccessDenied() {
+      document.getElementById('adminShell').style.display = 'none';
+      document.getElementById('adminAuthBar').style.display = 'none';
+      document.getElementById('accessLock').innerHTML = `
+          <h2>Admin access required</h2>
+          <p>This account is signed in but has not been granted EaseMed admin access.
+             Ask the system owner to add an admin role or include this email in the admin list.</p>
+          <button onclick="handleAdminLogout()">Use another account</button>
+        `;
+      document.getElementById('accessLock').style.display = 'block';
+    }
+
+    async function handleAdminLogout() {
+      if (adminSupabase) await adminSupabase.auth.signOut();
+      localStorage.removeItem('easemed_user');
+      localStorage.removeItem('easemed_user_name');
+      window.location.href = 'easemed_login.html';
+    }
+
+    (async function checkAdminAccess() {
+      try {
+        const { createClient } = supabase;
+        adminSupabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+        const { data: { session } } = await adminSupabase.auth.getSession();
+        if (!session) {
+          window.location.href = 'easemed_login.html';
+          return;
         }
-
-        // ==================== Other functions (unchanged) ====================
-        async function loadDashboardStats() {
-            console.log('loadDashboardStats called for table:', currentTable);
-            const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
-            const exists = await tableExists(tableName);
-            if (!exists) {
-                showMessage(`⚠️ Table <strong>${tableName}</strong> does not exist. Please create it first.`, true);
-                document.getElementById('totalPatientsValue').innerText = '0';
-                document.getElementById('activeStudentsValue').innerText = '0';
-                document.getElementById('completePercentValue').innerHTML = '0%';
-                document.getElementById('needsReviewValue').innerText = '0';
-                return;
-            }
-
-            try {
-                const { count: total, error: totalErr } = await adminSupabase
-                    .from(tableName)
-                    .select('id', { count: 'exact', head: true });
-                if (totalErr) throw totalErr;
-
-                const { data: studentsData, error: studentsErr } = await adminSupabase
-                    .from(tableName)
-                    .select('user_id');
-                let activeStudents = 0;
-                if (!studentsErr && studentsData) {
-                    activeStudents = new Set(studentsData.map(s => s.user_id)).size;
-                }
-
-                let complete = 0;
-                try {
-                    const { count: c, error: ce } = await adminSupabase
-                        .from(tableName)
-                        .select('id', { count: 'exact', head: true })
-                        .not('management_plan', 'is', null)
-                        .not('management_plan', 'eq', '');
-                    if (!ce) complete = c || 0;
-                } catch (e) { /* ignore */ }
-
-                const percentReady = total ? Math.round((complete / total) * 100) : 0;
-
-                let missing = 0;
-                try {
-                    const { count: m, error: me } = await adminSupabase
-                        .from(tableName)
-                        .select('id', { count: 'exact', head: true })
-                        .or('hpc.is.null,hpc.eq.,exam_data.is.null');
-                    if (!me) missing = m || 0;
-                } catch (e) { missing = 0; }
-
-                document.getElementById('totalPatientsValue').innerText = total || 0;
-                document.getElementById('activeStudentsValue').innerText = activeStudents;
-                document.getElementById('completePercentValue').innerHTML = `${percentReady}%`;
-                document.getElementById('needsReviewValue').innerText = missing;
-                showMessage('', false);
-            } catch (err) {
-                console.error('Error loading dashboard stats:', err);
-                showMessage(`❌ Error loading stats: ${err.message}`, true);
-                document.getElementById('totalPatientsValue').innerText = 'Error';
-                document.getElementById('activeStudentsValue').innerText = 'Error';
-                document.getElementById('completePercentValue').innerHTML = 'Error';
-                document.getElementById('needsReviewValue').innerText = 'Error';
-            }
+        if (!isAdminUser(session.user)) {
+          showAccessDenied();
+          return;
         }
-
-        async function loadRecentPatients() {
-            console.log('loadRecentPatients called for table:', currentTable);
-            const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
-            const tbody = document.getElementById('recentPatientsBody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
-
-            const exists = await tableExists(tableName);
-            if (!exists) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">⚠️ Table not created yet.</td></tr>';
-                return;
-            }
-
-            try {
-                let selectFields;
-                if (currentTable === 'pediatric') {
-                    selectFields = 'child_name, user_id, current_symptom, management_plan, created_at';
-                } else {
-                    selectFields = 'full_name, user_id, current_symptom, management_plan, created_at';
-                }
-
-                const { data: records, error } = await adminSupabase
-                    .from(tableName)
-                    .select(selectFields)
-                    .order('created_at', { ascending: false })
-                    .limit(10);
-                if (error) {
-                    if (error.message.includes('column') && error.message.includes('does not exist')) {
-                        const fallbackFields = currentTable === 'pediatric' ? 'child_name, user_id, created_at' : 'full_name, user_id, created_at';
-                        const { data: fallbackData, error: fallbackErr } = await adminSupabase
-                            .from(tableName)
-                            .select(fallbackFields)
-                            .order('created_at', { ascending: false })
-                            .limit(10);
-                        if (fallbackErr) throw fallbackErr;
-                        if (!fallbackData || fallbackData.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found</td></tr>';
-                            return;
-                        }
-                        const userIds = [...new Set(fallbackData.map(r => r.user_id))];
-                        const { data: profiles } = await adminSupabase.from('profiles').select('id, name, email').in('id', userIds);
-                        const userMap = new Map();
-                        if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
-
-                        tbody.innerHTML = '';
-                        for (let rec of fallbackData) {
-                            const row = tbody.insertRow();
-                            const patientName = currentTable === 'pediatric' ? rec.child_name : rec.full_name;
-                            row.insertCell(0).innerText = patientName || '—';
-                            row.insertCell(1).innerText = userMap.get(rec.user_id) || 'Unknown';
-                            row.insertCell(2).innerText = '—';
-                            row.insertCell(3).innerText = '—';
-                            row.insertCell(4).innerHTML = `<span class="status warn">Unknown</span>`;
-                        }
-                        return;
-                    }
-                    throw error;
-                }
-
-                if (!records || records.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found</td></tr>';
-                    return;
-                }
-
-                const userIds = [...new Set(records.map(r => r.user_id))];
-                const { data: profiles, error: profilesError } = await adminSupabase
-                    .from('profiles')
-                    .select('id, name, email')
-                    .in('id', userIds);
-                const userMap = new Map();
-                if (profiles && !profilesError) {
-                    profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
-                } else {
-                    userIds.forEach(uid => userMap.set(uid, uid.slice(0,8)));
-                }
-
-                tbody.innerHTML = '';
-                for (let rec of records) {
-                    const row = tbody.insertRow();
-                    const patientName = currentTable === 'pediatric' ? rec.child_name : rec.full_name;
-                    row.insertCell(0).innerText = patientName || '—';
-                    row.insertCell(1).innerText = userMap.get(rec.user_id) || 'Unknown';
-                    row.insertCell(2).innerText = rec.current_symptom || '—';
-                    const hasPlan = rec.management_plan && rec.management_plan.trim() !== '';
-                    row.insertCell(3).innerText = hasPlan ? 'Yes' : 'No';
-                    const statusClass = hasPlan ? 'good' : 'warn';
-                    const statusText = hasPlan ? 'Ready' : 'Pending';
-                    row.insertCell(4).innerHTML = `<span class="status ${statusClass}">${statusText}</span>`;
-                }
-            } catch (err) {
-                console.error('Error loading recent patients:', err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Error: ${err.message}</td></tr>`;
-            }
-        }
-
-        async function loadRecentActivity() {
-            console.log('loadRecentActivity called for table:', currentTable);
-            const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
-            const activityContainer = document.getElementById('activityList');
-            activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Loading activity...</strong><span>Please wait</span></div></div>';
-
-            const exists = await tableExists(tableName);
-            if (!exists) {
-                activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>⚠️ Table not created yet</strong><span>No activity to show</span></div></div>';
-                return;
-            }
-
-            try {
-                let selectFields = currentTable === 'pediatric' ? 'child_name, created_at, user_id' : 'full_name, created_at, user_id';
-                const { data: activities, error } = await adminSupabase
-                    .from(tableName)
-                    .select(selectFields)
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-                if (error) throw error;
-
-                if (!activities || activities.length === 0) {
-                    activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>No recent activity</strong><span>No records have been saved yet</span></div></div>';
-                    return;
-                }
-
-                const userIds = [...new Set(activities.map(a => a.user_id))];
-                const { data: profiles } = await adminSupabase.from('profiles').select('id, name, email').in('id', userIds);
-                const userMap = new Map();
-                if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
-
-                activityContainer.innerHTML = '';
-                for (let act of activities) {
-                    const date = new Date(act.created_at).toLocaleString();
-                    const studentName = userMap.get(act.user_id) || act.user_id?.slice(0,8) || 'Unknown';
-                    const patientName = currentTable === 'pediatric' ? act.child_name : act.full_name;
-                    const div = document.createElement('div');
-                    div.className = 'activity';
-                    div.innerHTML = `<div class="dot"></div><div><strong>New patient record</strong><span>${patientName || 'Unnamed'} clerked by ${studentName} on ${date}</span></div>`;
-                    activityContainer.appendChild(div);
-                }
-            } catch (err) {
-                console.error('Error loading activity:', err);
-                activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Could not load activity</strong><span>Please refresh the page</span></div></div>';
-            }
-        }
-
-        function switchTable(table) {
-            console.log('switchTable to:', table);
-            currentTable = table;
-            document.getElementById('tabPediatric').classList.toggle('active', table === 'pediatric');
-            document.getElementById('tabAdult').classList.toggle('active', table === 'adult');
-            loadDashboardStats();
-            loadRecentPatients();
-            loadRecentActivity();
-        }
-
-        function startAutoRefresh() {
-            if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(() => {
-                console.log('Auto-refresh triggered');
-                loadActiveUsers();
-                loadRecentLogins();
-            }, 30000);
-        }
-
-        // ==================== Admin authentication ====================
-        function isAdminUser(user) {
-            const email = (user.email || '').toLowerCase();
-            const appRole = user.app_metadata?.role || user.app_metadata?.user_role;
-            const userRole = user.user_metadata?.role || user.user_metadata?.user_role;
-            const isAdminFlag = user.user_metadata?.is_admin || user.app_metadata?.is_admin;
-            return ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email) || appRole === 'admin' || userRole === 'admin' || isAdminFlag === true;
-        }
-
-        function showAdmin(user) {
-            const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
-            document.getElementById('adminUserName').textContent = displayName;
-            document.getElementById('adminRolePill').textContent = `Admin: ${displayName}`;
-            document.getElementById('accessLock').style.display = 'none';
-            document.getElementById('adminAuthBar').style.display = 'flex';
-            document.getElementById('adminShell').style.display = 'grid';
-            loadDashboardStats();
-            loadRecentPatients();
-            loadRecentActivity();
-            loadActiveUsers();
-            loadRecentLogins();
-            startAutoRefresh();
-        }
-
-        function showAccessDenied() {
-            document.getElementById('adminShell').style.display = 'none';
-            document.getElementById('adminAuthBar').style.display = 'none';
-            document.getElementById('accessLock').innerHTML = `
-                <h2>Admin access required</h2>
-                <p>This account is signed in but has not been granted EaseMed admin access.
-                   Ask the system owner to add an admin role or include this email in the admin list.</p>
-                <button onclick="handleAdminLogout()">Use another account</button>
-            `;
-            document.getElementById('accessLock').style.display = 'block';
-        }
-
-        async function handleAdminLogout() {
-            if (adminSupabase) await adminSupabase.auth.signOut();
-            localStorage.removeItem('easemed_user');
-            localStorage.removeItem('easemed_user_name');
-            window.location.href = 'easemed_login.html';
-        }
-
-        (async function checkAdminAccess() {
-            try {
-                const { createClient } = supabase;
-                adminSupabase = createClient(SUPABASE_URL, SUPABASE_ANON);
-                const { data: { session } } = await adminSupabase.auth.getSession();
-                if (!session) {
-                    window.location.href = 'easemed_login.html';
-                    return;
-                }
-                if (!isAdminUser(session.user)) {
-                    showAccessDenied();
-                    return;
-                }
-                showAdmin(session.user);
-            } catch (error) {
-                document.getElementById('accessLock').innerHTML = `
-                    <h2>Unable to verify access</h2>
-                    <p>Please check the Supabase connection and try signing in again.</p>
-                    <button onclick="window.location.href='easemed_login.html'">Go to login</button>
-                `;
-            }
-        })();
-    </script>
+        showAdmin(session.user);
+      } catch (error) {
+        document.getElementById('accessLock').innerHTML = `
+            <h2>Unable to verify access</h2>
+            <p>Please check the Supabase connection and try signing in again.</p>
+            <button onclick="window.location.href='easemed_login.html'">Go to login</button>
+          `;
+      }
+    })();
+  </script>
 </body>
 </html>
