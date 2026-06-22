@@ -1,353 +1,746 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EaseMed – Subscribe</title>
-  <style> 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EaseMed – Activate Your Account</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f4f8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
+        :root {
+            --primary: #1a5f7a;
+            --primary-light: #e8f4f8;
+            --accent: #e05c2a;
+            --text: #1c2b36;
+            --muted: #6b7f8c;
+            --border: #dde3ea;
+            --surface: #ffffff;
+            --airtel: #e4002b;
+            --airtel-dark: #a30020;
+            --airtel-light: #fff0f2;
+            --success: #1a7a4a;
+            --radius: 16px;
+            --shadow: 0 8px 32px rgba(26, 95, 122, 0.12);
+        }
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 40px;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .logo {
-      font-size: 24px;
-      font-weight: 700;
-      color: #1a73e8;
-      margin-bottom: 8px;
-    }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #0d1b2a;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
 
-    .tagline {
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 32px;
-    }
+        /* ── ANIMATED BACKGROUND ── */
+        .bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .bg-canvas::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(26,95,122,0.45) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(228,0,43,0.2) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 40% at 60% 30%, rgba(26,95,122,0.2) 0%, transparent 50%);
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.18;
+            animation: drift 12s ease-in-out infinite alternate;
+        }
+        .orb-1 {
+            width: 500px; height: 500px;
+            background: #1a5f7a;
+            top: -150px; left: -100px;
+            animation-delay: 0s;
+        }
+        .orb-2 {
+            width: 350px; height: 350px;
+            background: #e4002b;
+            bottom: -80px; right: -80px;
+            animation-delay: -4s;
+        }
+        .orb-3 {
+            width: 250px; height: 250px;
+            background: #9fd8f0;
+            top: 40%; left: 60%;
+            animation-delay: -8s;
+        }
+        @keyframes drift {
+            0%   { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40px, 30px) scale(1.08); }
+        }
 
-    .plan-box {
-      background: #f0f7ff;
-      border: 2px solid #1a73e8;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 28px;
-      text-align: center;
-    }
+        /* Floating particles */
+        .particles {
+            position: absolute;
+            inset: 0;
+        }
+        .particle {
+            position: absolute;
+            width: 3px; height: 3px;
+            background: rgba(159,216,240,0.6);
+            border-radius: 50%;
+            animation: float-up linear infinite;
+        }
+        @keyframes float-up {
+            0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 0.4; }
+            100% { transform: translateY(-10vh) translateX(var(--dx, 20px)); opacity: 0; }
+        }
 
-    .plan-name {
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-    }
+        /* ── TOPBAR ── */
+        .topbar {
+            position: relative;
+            z-index: 10;
+            background: rgba(13,27,42,0.7);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: #fff;
+            padding: 0.9rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .brand { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.3px; color: #fff; }
+        .brand span { color: #9fd8f0; }
+        .topbar-sub { font-size: 0.76rem; opacity: 0.6; margin-top: 2px; color: #fff; }
+        .btn-logout {
+            background: rgba(255,255,255,0.08);
+            border: 1.5px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 0.38rem 1rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: background 0.15s;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.15); }
 
-    .plan-price {
-      font-size: 36px;
-      font-weight: 700;
-      color: #1a73e8;
-      margin: 8px 0 4px;
-    }
+        /* ── MAIN ── */
+        .main {
+            position: relative;
+            z-index: 5;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2.5rem 1rem 4rem;
+        }
 
-    .plan-price span {
-      font-size: 16px;
-      font-weight: 400;
-      color: #666;
-    }
+        /* ── DEACTIVATED BANNER ── */
+        .deactivated-banner {
+            display: none;
+            background: rgba(231,0,43,0.12);
+            border: 1.5px solid rgba(231,0,43,0.5);
+            border-radius: var(--radius);
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            width: 100%;
+            max-width: 540px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+        .deactivated-banner.visible { display: block; animation: slide-down 0.4s ease; }
+        @keyframes slide-down {
+            from { opacity: 0; transform: translateY(-12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .deactivated-banner strong { color: #ff6b7a; font-size: 0.95rem; }
+        .deactivated-banner p { color: #ffb3bc; font-size: 0.84rem; margin-top: 0.3rem; }
 
-    .plan-features {
-      list-style: none;
-      margin-top: 12px;
-      text-align: left;
-    }
+        /* ── HERO ── */
+        .hero {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            max-width: 500px;
+            animation: fade-up 0.6s ease both;
+        }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .hero-icon {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, rgba(26,95,122,0.8), rgba(26,95,122,0.4));
+            border: 2px solid rgba(159,216,240,0.3);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.25rem;
+            box-shadow: 0 8px 32px rgba(26,95,122,0.4);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 8px 32px rgba(26,95,122,0.4); }
+            50%       { box-shadow: 0 8px 48px rgba(26,95,122,0.7), 0 0 0 8px rgba(26,95,122,0.1); }
+        }
+        .hero h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.6rem;
+            line-height: 1.2;
+        }
+        .hero h1 span { color: #9fd8f0; }
+        .hero p {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.55);
+            line-height: 1.7;
+        }
 
-    .plan-features li {
-      font-size: 13px;
-      color: #555;
-      padding: 4px 0;
-    }
+        /* PRICE BADGE */
+        .price-badge {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0.4rem;
+            background: linear-gradient(135deg, var(--airtel), var(--airtel-dark));
+            color: #fff;
+            border-radius: 99px;
+            padding: 0.6rem 1.6rem;
+            margin: 1.25rem auto 0;
+            box-shadow: 0 4px 20px rgba(228,0,43,0.4);
+            animation: badge-pulse 2.5s ease-in-out infinite;
+        }
+        @keyframes badge-pulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(228,0,43,0.4); }
+            50%       { box-shadow: 0 4px 32px rgba(228,0,43,0.65); }
+        }
+        .price-amount { font-size: 1.5rem; font-weight: 800; }
+        .price-period { font-size: 0.8rem; opacity: 0.85; }
 
-    .plan-features li::before {
-      content: "✓ ";
-      color: #1a73e8;
-      font-weight: 700;
-    }
+        /* ── STEPS ── */
+        .steps-wrap {
+            width: 100%;
+            max-width: 540px;
+            margin-bottom: 2rem;
+            animation: fade-up 0.6s 0.1s ease both;
+        }
+        .steps-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .steps { display: flex; }
+        .step {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            text-align: center;
+        }
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 15px; left: 50%;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, rgba(159,216,240,0.4), rgba(159,216,240,0.1));
+        }
+        .step-num {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: rgba(26,95,122,0.5);
+            border: 2px solid rgba(159,216,240,0.5);
+            color: #9fd8f0;
+            font-weight: 700;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 0.5rem;
+        }
+        .step-label { font-size: 0.72rem; color: rgba(255,255,255,0.45); line-height: 1.4; max-width: 76px; }
 
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #444;
-      margin-bottom: 6px;
-    }
+        /* ── PAYMENT CARD (single Airtel) ── */
+        .card-wrap {
+            width: 100%;
+            max-width: 540px;
+            margin-bottom: 1.5rem;
+            animation: fade-up 0.6s 0.2s ease both;
+        }
+        .payment-card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .payment-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 48px rgba(228,0,43,0.2);
+        }
+        .payment-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--airtel), #ff4d6d, var(--airtel));
+            background-size: 200% 100%;
+            animation: shimmer 2.5s linear infinite;
+        }
+        @keyframes shimmer {
+            0%   { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        /* decorative circle */
+        .payment-card::after {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: rgba(228,0,43,0.08);
+            pointer-events: none;
+        }
 
-    input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1.5px solid #ddd;
-      border-radius: 8px;
-      font-size: 15px;
-      margin-bottom: 20px;
-      transition: border 0.2s;
-      outline: none;
-    }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .airtel-badge {
+            background: linear-gradient(135deg, var(--airtel), var(--airtel-dark));
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+        }
+        .card-label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.45);
+            font-weight: 500;
+        }
 
-    input:focus { border-color: #1a73e8; }
+        .card-number-display {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .number-info {}
+        .number-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 0.25rem;
+        }
+        .number-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 2px;
+            font-variant-numeric: tabular-nums;
+        }
+        .number-name {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.45);
+            margin-top: 0.2rem;
+        }
 
-    .hint {
-      font-size: 12px;
-      color: #888;
-      margin-top: -16px;
-      margin-bottom: 20px;
-    }
+        .btn-copy {
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--airtel), var(--airtel-dark));
+            color: #fff;
+            border: none;
+            padding: 0.65rem 1.3rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.15s, transform 0.15s;
+            white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(228,0,43,0.35);
+        }
+        .btn-copy:hover { opacity: 0.88; transform: scale(1.03); }
+        .btn-copy.copied {
+            background: linear-gradient(135deg, var(--success), #0f5c35);
+            box-shadow: 0 4px 16px rgba(26,122,74,0.35);
+        }
 
-    button {
-      width: 100%;
-      padding: 14px;
-      background: #1a73e8;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+        .card-amount-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.45);
+        }
+        .card-amount-row strong { color: rgba(255,255,255,0.85); font-size: 0.9rem; }
 
-    button:hover { background: #1558b0; }
-    button:disabled { background: #aaa; cursor: not-allowed; }
+        /* ── INSTRUCTIONS ── */
+        .instructions {
+            width: 100%;
+            max-width: 540px;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            animation: fade-up 0.6s 0.3s ease both;
+        }
+        .instructions-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 1.1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .instr-list { list-style: none; }
+        .instr-list li {
+            display: flex;
+            gap: 0.9rem;
+            align-items: flex-start;
+            font-size: 0.87rem;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.6;
+            margin-bottom: 0.85rem;
+        }
+        .instr-list li:last-child { margin-bottom: 0; }
+        .instr-num {
+            flex-shrink: 0;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: rgba(228,0,43,0.25);
+            border: 1.5px solid rgba(228,0,43,0.5);
+            color: #ff6b7a;
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+        }
+        .instr-list li strong { color: #fff; }
 
-    .status {
-      margin-top: 20px;
-      padding: 14px;
-      border-radius: 8px;
-      font-size: 14px;
-      text-align: center;
-      display: none;
-    }
+        /* ── WHATSAPP CTA ── */
+        .whatsapp-cta {
+            width: 100%;
+            max-width: 540px;
+            background: rgba(37,211,102,0.1);
+            border: 1.5px solid rgba(37,211,102,0.3);
+            border-radius: var(--radius);
+            padding: 1.1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            animation: fade-up 0.6s 0.4s ease both;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .whatsapp-cta:hover {
+            background: rgba(37,211,102,0.15);
+            border-color: rgba(37,211,102,0.5);
+        }
+        .whatsapp-icon { font-size: 2rem; flex-shrink: 0; }
+        .whatsapp-text { flex: 1; }
+        .whatsapp-text strong { font-size: 0.9rem; color: #5ef0a0; display: block; margin-bottom: 0.2rem; }
+        .whatsapp-text span { font-size: 0.82rem; color: rgba(255,255,255,0.45); }
+        .btn-whatsapp {
+            background: #25d366;
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.15s, transform 0.15s;
+            box-shadow: 0 4px 16px rgba(37,211,102,0.3);
+        }
+        .btn-whatsapp:hover { background: #1ebe5d; transform: scale(1.03); }
 
-    .status.info { background: #e8f0fe; color: #1a73e8; display: block; }
-    .status.success { background: #e6f4ea; color: #2e7d32; display: block; }
-    .status.error { background: #fce8e6; color: #c62828; display: block; }
+        /* ── NOTE ── */
+        .note {
+            width: 100%;
+            max-width: 540px;
+            background: rgba(255,204,0,0.07);
+            border: 1px solid rgba(255,204,0,0.2);
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.45);
+            text-align: center;
+            line-height: 1.6;
+            animation: fade-up 0.6s 0.5s ease both;
+        }
+        .note strong { color: #ffd966; }
 
-    .already-subscribed {
-      text-align: center;
-      padding: 20px;
-      display: none;
-    }
-
-    .already-subscribed .badge {
-      background: #e6f4ea;
-      color: #2e7d32;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 14px;
-      display: inline-block;
-      margin-bottom: 12px;
-    }
-
-    .expires {
-      font-size: 13px;
-      color: #666;
-    }
-  </style>
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(26,122,74,0.95);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 99px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.25s, transform 0.25s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
 </head>
 <body>
 
-<div class="card">
-  <div class="logo">EaseMed</div>
-  <div class="tagline">Structured clinical clerking for medical students</div>
-
-  <!-- Already subscribed view -->
-  <div class="already-subscribed" id="alreadySubscribed">
-    <div class="badge">✓ Active Subscription</div>
-    <p class="expires" id="expiresText"></p>
-    <br>
-    <button onclick="window.location.href='index.html'">Go to App</button>
-  </div>
-
-  <!-- Payment form -->
-  <div id="paymentForm">
-    <div class="plan-box">
-      <div class="plan-name">EaseMed Student Monthly</div>
-      <div class="plan-price">UGX 5,000 <span>/ month</span></div>
-      <ul class="plan-features">
-        <li>Full symptom-guided clerking</li>
-        <li>Hutchison's chapter references</li>
-        <li>Uganda-weighted differentials</li>
-        <li>Unlimited patient sessions</li>
-      </ul>
+    <!-- Animated background -->
+    <div class="bg-canvas">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="particles" id="particles"></div>
     </div>
 
-    <label for="phone">MTN Mobile Money Number</label>
-    <input
-      type="tel"
-      id="phone"
-      placeholder="e.g. 256771234567"
-      maxlength="12"
-    />
-    <p class="hint">Use format: 256 followed by your 9-digit number</p>
+    <nav class="topbar">
+        <div>
+            <div class="brand">Ease<span>Med</span></div>
+            <div class="topbar-sub">Account Activation</div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </nav>
 
-    <button id="payBtn" onclick="initiatePayment()">
-      Pay UGX 5,000 via MTN MoMo
-    </button>
+    <div class="main">
 
-    <div class="status" id="status"></div>
-  </div>
-</div>
+        <!-- Deactivated banner -->
+        <div class="deactivated-banner" id="deactivatedBanner">
+            <strong>⚠️ Your subscription has expired</strong>
+            <p>Renew below to continue accessing EaseMed modules.</p>
+        </div>
 
-<!-- Supabase JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <!-- Hero -->
+        <div class="hero">
+            <div class="hero-icon">🏥</div>
+            <h1>Activate <span>EaseMed</span> Access</h1>
+            <p>Pay via Airtel Money to unlock all clinical clerking modules. Your account is activated within 24 hours of payment confirmation.</p>
+            <div class="price-badge">
+                <span class="price-amount">5,000 UGX</span>
+                <span class="price-period">/ 30 days</span>
+            </div>
+        </div>
 
-<script>
-  // ── Config ──────────────────────────────────────────────
-  const SUPABASE_URL = "https://uhjcybwczelmqkkapeac.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc";
-  const INITIATE_PAYMENT_URL = "https://uhjcybwczelmqkkapeac.supabase.co/functions/v1/initiate-payment";
+        <!-- Steps -->
+        <div class="steps-wrap">
+            <div class="steps-title">How it works</div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-label">Copy number & send payment</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-label">Screenshot confirmation SMS</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-label">Send to WhatsApp</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-label">Activated within 24 hrs</div>
+                </div>
+            </div>
+        </div>
 
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        <!-- Airtel payment card -->
+        <div class="card-wrap">
+            <div class="payment-card">
+                <div class="card-header">
+                    <span class="airtel-badge">Airtel Money</span>
+                    <span class="card-label">Send payment to this number</span>
+                </div>
+                <div class="card-number-display">
+                    <div class="number-info">
+                        <div class="number-label">Airtel Money Number</div>
+                        <div class="number-value">0756 418 723</div>
+                        <div class="number-name">Kigozi George Ssebagala</div>
+                    </div>
+                    <button class="btn-copy" id="copyBtn" onclick="copyNumber()">📋 Copy</button>
+                </div>
+                <div class="card-amount-row">
+                    <span>Amount to send</span>
+                    <strong>5,000 UGX</strong>
+                </div>
+            </div>
+        </div>
 
-  // ── On page load: check auth + subscription ──────────────
-  async function init() {
-    const { data: { user } } = await sb.auth.getUser();
+        <!-- Instructions -->
+        <div class="instructions">
+            <div class="instructions-title">📋 Payment Instructions</div>
+            <ul class="instr-list">
+                <li>
+                    <span class="instr-num">1</span>
+                    <span>Tap <strong>Copy</strong> above to copy the Airtel Money number, then open your <strong>Airtel Money app</strong> or dial <strong>*185#</strong> and send <strong>5,000 UGX</strong>.</span>
+                </li>
+                <li>
+                    <span class="instr-num">2</span>
+                    <span>Take a <strong>screenshot</strong> of the confirmation SMS you receive after the transaction completes.</span>
+                </li>
+                <li>
+                    <span class="instr-num">3</span>
+                    <span>Send the screenshot along with your <strong>registered email address</strong> to the WhatsApp number below.</span>
+                </li>
+                <li>
+                    <span class="instr-num">4</span>
+                    <span>Your account will be activated within <strong>24 hours</strong>. You will then have full access to all EaseMed modules.</span>
+                </li>
+            </ul>
+        </div>
 
-    if (!user) {
-      window.location.href = "login.html";
-      return;
-    }
+        <!-- WhatsApp CTA -->
+        <div class="whatsapp-cta">
+            <div class="whatsapp-icon">💬</div>
+            <div class="whatsapp-text">
+                <strong>Send your proof of payment</strong>
+                <span>WhatsApp your screenshot + email to activate</span>
+            </div>
+            <a class="btn-whatsapp" id="whatsappLink" href="#" target="_blank">Open WhatsApp</a>
+        </div>
 
-    // FIXED: uses is_active (boolean) instead of status (text),
-    // matching the actual subscriptions table schema
-    const { data: sub } = await sb
-      .from("subscriptions")
-      .select("is_active, expires_at")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .gt("expires_at", new Date().toISOString())
-      .maybeSingle();
+        <!-- Note -->
+        <div class="note">
+            <strong>Already paid?</strong> If it's been more than 24 hours and your account isn't active, send a follow-up WhatsApp with your email and Airtel transaction ID.
+        </div>
 
-    if (sub) {
-      const expiry = new Date(sub.expires_at).toLocaleDateString("en-UG", {
-        day: "numeric", month: "long", year: "numeric"
-      });
-      document.getElementById("alreadySubscribed").style.display = "block";
-      document.getElementById("paymentForm").style.display = "none";
-      document.getElementById("expiresText").textContent = `Your subscription is active until ${expiry}`;
-    }
-  }
+    </div>
 
-  // ── Initiate payment ──────────────────────────────────────
-  async function initiatePayment() {
-    const phone = document.getElementById("phone").value.trim();
-    const btn = document.getElementById("payBtn");
+    <div class="toast" id="toast"></div>
 
-    if (!phone || phone.length < 12 || !phone.startsWith("256")) {
-      showStatus("Please enter a valid MTN number starting with 256", "error");
-      return;
-    }
+    <script>
+        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+        const WHATSAPP_NUMBER = '256756418723'; // Airtel number in international format
 
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user) { window.location.href = "login.html"; return; }
+        // ── PARTICLES ──────────────────────────────────────────
+        (function spawnParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 28; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.cssText = `
+                    left: ${Math.random() * 100}%;
+                    width: ${Math.random() * 3 + 1.5}px;
+                    height: ${Math.random() * 3 + 1.5}px;
+                    opacity: ${Math.random() * 0.5 + 0.2};
+                    animation-duration: ${Math.random() * 14 + 10}s;
+                    animation-delay: ${Math.random() * -20}s;
+                    --dx: ${(Math.random() - 0.5) * 80}px;
+                `;
+                container.appendChild(p);
+            }
+        })();
 
-    // plans table is unaffected — schema matches as-is
-    const { data: plan } = await sb
-      .from("plans")
-      .select("id")
-      .eq("name", "EaseMed Student Monthly")
-      .single();
+        // ── TOAST ──────────────────────────────────────────────
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.background = isError
+                ? 'rgba(200,30,50,0.95)'
+                : 'rgba(26,122,74,0.95)';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
 
-    if (!plan) {
-      showStatus("Could not load plan. Please refresh and try again.", "error");
-      return;
-    }
+        // ── COPY NUMBER ────────────────────────────────────────
+        function copyNumber() {
+            const number = '0756418723';
+            const btn = document.getElementById('copyBtn');
+            navigator.clipboard.writeText(number).then(() => {
+                btn.textContent = '✅ Copied!';
+                btn.classList.add('copied');
+                showToast('✅ Number copied — open Airtel Money and paste');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy';
+                    btn.classList.remove('copied');
+                }, 2500);
+            }).catch(() => {
+                showToast('Could not copy — number is 0756418723', true);
+            });
+        }
 
-    btn.disabled = true;
-    btn.textContent = "Sending request...";
-    showStatus("Sending payment request to your phone...", "info");
+        // ── INIT ───────────────────────────────────────────────
+        async function initPage() {
+            const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    try {
-      const { data: { session } } = await sb.auth.getSession();
+            const { data: { session } } = await supabase.auth.getSession();
+            const email = session?.user?.email || '';
 
-      const res = await fetch(INITIATE_PAYMENT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          plan_id: plan.id,
-          phone_number: phone
-        })
-      });
+            // Show expired banner if redirected with ?reason=expired
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('reason') === 'expired') {
+                document.getElementById('deactivatedBanner').classList.add('visible');
+            }
 
-      const result = await res.json();
+            // Prefill WhatsApp message
+            const msg = encodeURIComponent(
+                `Hello, I have paid for EaseMed access via Airtel Money.\n\nEmail: ${email}\n\n[Please attach your payment screenshot to this message]`
+            );
+            document.getElementById('whatsappLink').href =
+                `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+        }
 
-      if (result.success) {
-        showStatus(
-          "✓ Request sent! Check your phone for an MTN MoMo prompt and enter your PIN to complete payment. This page will update automatically.",
-          "success"
-        );
-        btn.textContent = "Waiting for payment...";
-        pollPaymentStatus(result.payment_id);
-      } else {
-        throw new Error(result.error || "Payment request failed");
-      }
+        // ── LOGOUT ─────────────────────────────────────────────
+        async function logout() {
+            const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            await supabase.auth.signOut();
+            window.location.replace('easemed_login.html');
+        }
 
-    } catch (err) {
-      showStatus(`Error: ${err.message}`, "error");
-      btn.disabled = false;
-      btn.textContent = "Pay UGX 5,000 via MTN MoMo";
-    }
-  }
-
-  // ── Poll Supabase until payment is confirmed ─────────────
-  async function pollPaymentStatus(paymentId) {
-    const interval = setInterval(async () => {
-      const { data: payment } = await sb
-        .from("payments")
-        .select("status")
-        .eq("id", paymentId)
-        .single();
-
-      if (payment?.status === "successful") {
-        clearInterval(interval);
-        showStatus("🎉 Payment successful! Your subscription is now active.", "success");
-        setTimeout(() => window.location.href = "index.html", 2000);
-      } else if (payment?.status === "failed") {
-        clearInterval(interval);
-        showStatus("Payment failed or was cancelled. Please try again.", "error");
-        const btn = document.getElementById("payBtn");
-        btn.disabled = false;
-        btn.textContent = "Pay UGX 5,000 via MTN MoMo";
-      }
-    }, 5000);
-
-    setTimeout(() => clearInterval(interval), 180000);
-  }
-
-  // ── Helper ───────────────────────────────────────────────
-  function showStatus(message, type) {
-    const el = document.getElementById("status");
-    el.textContent = message;
-    el.className = `status ${type}`;
-  }
-
-  // ── Init ─────────────────────────────────────────────────
-  init();
-</script>
+        initPage();
+    </script>
 </body>
 </html>
