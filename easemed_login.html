@@ -484,7 +484,7 @@
 
         <div id="alertMsg" class="alert"></div>
 
-        <div class="tabs">
+        <div class="tabs" id="mainTabs">
             <button class="tab active" onclick="switchTab('login')">Login</button>
             <button class="tab"        onclick="switchTab('signup')">Sign Up</button>
         </div>
@@ -632,6 +632,38 @@
             <p class="social-note">One click — your Google account handles the rest</p>
         </div>
 
+        <!-- ── SET NEW PASSWORD FORM (shown only after a password-reset link is clicked) ── -->
+        <div id="resetForm" class="form">
+            <p style="text-align:center; color:#4a5568; font-size:0.85rem; margin-bottom:20px;">
+                🔑 You're verified — set a new password for your account below.
+            </p>
+            <div class="input-group">
+                <label>🔒 New Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="resetPassword" placeholder="Min. 6 characters" oninput="checkPasswordStrength(this.value, 'resetPwStrengthBar', 'resetPwStrengthLabel')">
+                    <button type="button" class="pw-toggle" onclick="togglePassword('resetPassword', this)" tabindex="-1" aria-label="Show/hide password">
+                        👁️
+                    </button>
+                </div>
+                <div class="pw-strength"><div class="pw-strength-bar" id="resetPwStrengthBar"></div></div>
+                <div class="pw-strength-label" id="resetPwStrengthLabel"></div>
+            </div>
+            <div class="input-group">
+                <label>🔒 Confirm New Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="resetConfirmPassword" placeholder="Confirm new password" oninput="checkResetPasswordMatch()">
+                    <button type="button" class="pw-toggle" onclick="togglePassword('resetConfirmPassword', this)" tabindex="-1" aria-label="Show/hide password">
+                        👁️
+                    </button>
+                </div>
+                <div class="field-error-msg" id="resetPwMatchMsg" style="display:none;">❌ Passwords do not match</div>
+            </div>
+            <button id="resetBtn" class="login-btn" onclick="handleSetNewPassword()">
+                <span id="resetBtnText">Set New Password</span>
+                <div class="spinner" id="resetSpinner"></div>
+            </button>
+        </div>
+
         <div class="footer">
             <p>Secure Medical Platform | Powered by Supabase | Data Protected</p>
             <p>© 2024 EaseMed - Clinical Clerk System</p>
@@ -651,9 +683,17 @@
 //  5. setLoading(false) called in EVERY code path — no stuck buttons
 //  6. Overlay shown on page load; hidden only after SDK+session check
 //  7. onAuthStateChange guards against INITIAL_SESSION double-redirect
+//  8. PASSWORD_RECOVERY event now shows a "Set New Password" form
+//     instead of silently logging the student in with their old
+//     password still active and skipping straight to the dashboard.
 // ================================================================
 
 const DASHBOARD_URL = 'modules.html';
+
+// Set to true while we're in the password-recovery flow, so the
+// normal getSession()/SIGNED_IN redirect logic backs off and lets
+// the student set a new password first.
+let inPasswordRecovery = false;
 
 // ── Helpers ──────────────────────────────────────────────────
 function showAlert(msg, type = 'error') {
@@ -676,7 +716,11 @@ function setLoading(btnId, spinnerId, textId, loading, label) {
 function switchTab(tab) {
     const lf   = document.getElementById('loginForm');
     const sf   = document.getElementById('signupForm');
-    const tabs = document.querySelectorAll('.tab');
+    const rf   = document.getElementById('resetForm');
+    const tabs = document.querySelectorAll('#mainTabs .tab');
+
+    rf.classList.remove('active');
+
     if (tab === 'login') {
         lf.classList.add('active');    sf.classList.remove('active');
         tabs[0].classList.add('active'); tabs[1].classList.remove('active');
@@ -684,6 +728,16 @@ function switchTab(tab) {
         lf.classList.remove('active'); sf.classList.add('active');
         tabs[0].classList.remove('active'); tabs[1].classList.add('active');
     }
+}
+
+// Show the "Set new password" form and hide the login/signup tabs,
+// since the student arrived here via a recovery link, not a normal visit.
+function showResetForm() {
+    document.getElementById('loginForm').classList.remove('active');
+    document.getElementById('signupForm').classList.remove('active');
+    document.getElementById('resetForm').classList.add('active');
+    document.getElementById('mainTabs').style.display = 'none';
+    showAlert('🔑 Please set a new password to finish resetting your account.', 'info');
 }
 
 function hideOverlay() {
@@ -759,15 +813,40 @@ let sb; // global Supabase client — set once SDK is ready
         return;
     }
 
+    // ── Listen for OAuth / email-confirm / password-recovery callbacks ─
+    // IMPORTANT: registered BEFORE the getSession() check below, and
+    // PASSWORD_RECOVERY is handled separately from SIGNED_IN so that
+    // clicking a reset-password link never silently logs the student
+    // straight into the dashboard with their old password unchanged.
+    sb.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+            inPasswordRecovery = true;
+            hideOverlay();
+            showResetForm();
+            return;
+        }
+        if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
+            localStorage.setItem('easemed_user', session.user.email);
+            localStorage.setItem('easemed_user_name',
+                session.user.user_metadata?.full_name ||
+                session.user.user_metadata?.name      ||
+                session.user.email);
+            await upsertProfile(session.user, {});
+            window.location.href = DASHBOARD_URL;
+        }
+    });
+
     // ── Check if already logged in ────────────────────────────
+    // Skipped/short-circuited if we're in the middle of a password
+    // recovery flow — that session is intentionally temporary and
+    // should NOT bounce the student straight to the dashboard.
     setOverlayStatus('Checking session...');
     try {
         const { data: { session } } = await withTimeout(
             sb.auth.getSession(), 8000, 'Session check'
         );
-        if (session) {
+        if (session && !inPasswordRecovery) {
             setOverlayStatus('✅ Session found! Redirecting...');
-            // Save user info to localStorage before redirecting
             const user = session.user;
             localStorage.setItem('easemed_user', user.email);
             localStorage.setItem('easemed_user_name', 
@@ -783,23 +862,10 @@ let sb; // global Supabase client — set once SDK is ready
         console.warn('[EaseMed] Session check failed:', e.message);
     }
 
-    // ── Listen for OAuth / email-confirm redirect callbacks ───
-    // Guard: only act on SIGNED_IN, never on INITIAL_SESSION,
-    // to avoid a double-redirect race with getSession() above.
-    sb.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-            localStorage.setItem('easemed_user', session.user.email);
-            localStorage.setItem('easemed_user_name',
-                session.user.user_metadata?.full_name ||
-                session.user.user_metadata?.name      ||
-                session.user.email);
-            await upsertProfile(session.user, {});
-            window.location.href = DASHBOARD_URL;
-        }
-    });
-
-    // ── SDK ready — show the login form ───────────────────────
-    hideOverlay();
+    // ── SDK ready — show the login form (unless recovery already showed) ──
+    if (!inPasswordRecovery) {
+        hideOverlay();
+    }
     createParticles();
 })();
 
@@ -1020,7 +1086,7 @@ async function socialLogin(provider) {
     }
 }
 
-// ── FORGOT PASSWORD ───────────────────────────────────────────
+// ── FORGOT PASSWORD (request reset email) ────────────────────
 async function handleForgotPassword() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
     const email = document.getElementById('loginEmail').value.trim();
@@ -1034,8 +1100,70 @@ async function handleForgotPassword() {
     if (error) {
         showAlert('❌ ' + error.message);
     } else {
-        showAlert(`📧 Password reset email sent to ${email}. Check your inbox.`, 'success');
+        showAlert(`📧 Password reset email sent to ${email}. Check your inbox, click the link, then set a new password right here.`, 'success');
     }
+}
+
+// ── SET NEW PASSWORD (after clicking the reset link) ─────────
+async function handleSetNewPassword() {
+    if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
+
+    const pw  = document.getElementById('resetPassword').value;
+    const cpw = document.getElementById('resetConfirmPassword').value;
+
+    clearAllErrors('resetForm');
+    let valid = true;
+
+    const pwEl  = document.getElementById('resetPassword');
+    const cpwEl = document.getElementById('resetConfirmPassword');
+
+    if (!pw) {
+        markFieldError(pwEl, 'New password is required');
+        valid = false;
+    } else if (pw.length < 6) {
+        markFieldError(pwEl, 'Password must be at least 6 characters');
+        valid = false;
+    }
+
+    if (!cpw) {
+        markFieldError(cpwEl, 'Please confirm your new password');
+        valid = false;
+    } else if (pw && pw !== cpw) {
+        markFieldError(cpwEl, 'Passwords do not match');
+        valid = false;
+    }
+
+    if (!valid) {
+        document.querySelector('#resetForm .field-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    setLoading('resetBtn', 'resetSpinner', 'resetBtnText', true, 'Set New Password');
+
+    let error;
+    try {
+        ({ error } = await withTimeout(
+            sb.auth.updateUser({ password: pw }),
+            10000, 'Password update'
+        ));
+    } catch (e) {
+        setLoading('resetBtn', 'resetSpinner', 'resetBtnText', false, 'Set New Password');
+        showAlert('❌ ' + (e.message.includes('timed out')
+            ? 'Connection timed out. Check your internet and try again.'
+            : 'Network error: ' + e.message));
+        return;
+    }
+
+    setLoading('resetBtn', 'resetSpinner', 'resetBtnText', false, 'Set New Password');
+
+    if (error) {
+        showAlert('❌ ' + error.message);
+        return;
+    }
+
+    inPasswordRecovery = false;
+    showAlert('✅ Password updated! Redirecting to your dashboard...', 'success');
+    setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
 }
 
 // ── FLOATING PARTICLES ────────────────────────────────────────
@@ -1068,9 +1196,12 @@ function togglePassword(inputId, btn) {
 }
 
 // ── PASSWORD STRENGTH METER ───────────────────────────────────
-function checkPasswordStrength(value) {
-    const bar   = document.getElementById('pwStrengthBar');
-    const label = document.getElementById('pwStrengthLabel');
+// barId/labelId default to the signup form's elements, but the
+// reset-password form passes its own IDs so both forms can share
+// this one function.
+function checkPasswordStrength(value, barId = 'pwStrengthBar', labelId = 'pwStrengthLabel') {
+    const bar   = document.getElementById(barId);
+    const label = document.getElementById(labelId);
     if (!bar || !label) return;
 
     let score = 0;
@@ -1095,12 +1226,29 @@ function checkPasswordStrength(value) {
     label.style.color   = lvl.color;
 }
 
-// ── REAL-TIME PASSWORD MATCH CHECK ───────────────────────────
+// ── REAL-TIME PASSWORD MATCH CHECK (signup form) ─────────────
 function checkPasswordMatch() {
     const pw   = document.getElementById('signupPassword')?.value;
     const cpw  = document.getElementById('signupConfirmPassword')?.value;
     const msg  = document.getElementById('pwMatchMsg');
     const conf = document.getElementById('signupConfirmPassword');
+    if (!msg || !conf || !cpw) return;
+
+    if (pw !== cpw) {
+        conf.classList.add('field-error');
+        msg.style.display = 'flex';
+    } else {
+        conf.classList.remove('field-error');
+        msg.style.display = 'none';
+    }
+}
+
+// ── REAL-TIME PASSWORD MATCH CHECK (reset-password form) ─────
+function checkResetPasswordMatch() {
+    const pw   = document.getElementById('resetPassword')?.value;
+    const cpw  = document.getElementById('resetConfirmPassword')?.value;
+    const msg  = document.getElementById('resetPwMatchMsg');
+    const conf = document.getElementById('resetConfirmPassword');
     if (!msg || !conf || !cpw) return;
 
     if (pw !== cpw) {
@@ -1136,8 +1284,8 @@ function clearAllErrors(formId) {
         el.classList.remove('field-error');
     });
     document.querySelectorAll(`#${formId} .field-error-msg`).forEach(el => {
-        // keep the pw match msg, only remove dynamically added ones
-        if (el.id !== 'pwMatchMsg') el.remove();
+        // keep the pw match msgs, only remove dynamically added ones
+        if (el.id !== 'pwMatchMsg' && el.id !== 'resetPwMatchMsg') el.remove();
     });
 }
 
@@ -1232,6 +1380,9 @@ document.getElementById('loginPassword').addEventListener('keypress', e => {
 });
 document.getElementById('signupConfirmPassword').addEventListener('keypress', e => {
     if (e.key === 'Enter') handleSignup();
+});
+document.getElementById('resetConfirmPassword').addEventListener('keypress', e => {
+    if (e.key === 'Enter') handleSetNewPassword();
 });
 
 // ── SERVICE WORKER ────────────────────────────────────────────
