@@ -58,6 +58,7 @@
         .status.good { color: #1e7d5a; background: #e8f7ef; }
         .status.warn { color: #936900; background: #fff6d8; }
         .status.risk { color: #b73128; background: #fdecea; }
+        .status.pending { color: #7f8c8d; background: #ecf0f1; }
         .activity-list { padding: 16px 18px 20px; display: grid; gap: 12px; }
         .activity { display: grid; grid-template-columns: 12px 1fr; gap: 12px; align-items: start; }
         .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; background: #2a9d8f; box-shadow: 0 0 0 5px rgba(42,157,143,0.12); }
@@ -79,7 +80,7 @@
         .live-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #2ecc71; margin-right: 6px; animation: pulse-dot 2s infinite; }
         @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         
-        /* NEW: activation toggle + expiry input */
+        /* activation toggle + expiry input */
         .toggle-btn {
             border: none;
             border-radius: 8px;
@@ -97,6 +98,10 @@
             background: linear-gradient(135deg, #c0392b, #e74c3c);
             color: #fff;
         }
+        .toggle-btn.create {
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            color: #fff;
+        }
         .expire-input {
             border: 1.5px solid #dbe7ef;
             border-radius: 8px;
@@ -107,6 +112,14 @@
         }
         #activationSection {
             display: none;
+        }
+        .user-count-badge {
+            background: #2a9d8f;
+            color: white;
+            border-radius: 20px;
+            padding: 2px 12px;
+            font-size: 0.75rem;
+            margin-left: 8px;
         }
 
         @media (max-width:1050px){ .shell, .content-grid { grid-template-columns:1fr; } .sidebar { position: static; min-height: auto; } .metrics, .quick-actions { grid-template-columns: repeat(2, minmax(0,1fr)); } }
@@ -256,14 +269,24 @@
             <section id="activationSection">
                 <div class="table-panel">
                     <div class="panel-title">
-                        <h3>🔑 User Activation</h3>
+                        <h3>🔑 User Activation <span class="user-count-badge" id="userCountBadge">0</span></h3>
                         <button onclick="loadAllUsers()">Refresh</button>
                     </div>
 
-                    <div style="padding:16px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0;">
+                    <div style="padding:16px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
                         <input id="userSearchInput" type="text" placeholder="Search by email..."
                             oninput="filterUsers()"
-                            style="width:100%; padding:10px 14px; border:1.5px solid #dbe7ef; border-radius:10px; font-size:0.9rem; outline:none;" />
+                            style="flex:1; min-width:200px; padding:10px 14px; border:1.5px solid #dbe7ef; border-radius:10px; font-size:0.9rem; outline:none;" />
+                        <select id="statusFilter" onchange="filterUsers()" style="padding:10px 14px; border:1.5px solid #dbe7ef; border-radius:10px; font-size:0.9rem; outline:none; background:white;">
+                            <option value="all">All Users</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="pending">Pending Profile</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                        <button onclick="loadAllUsers()" style="padding:10px 20px; border:none; border-radius:10px; background:linear-gradient(135deg,#1e3c72,#2a9d8f); color:white; font-weight:700; cursor:pointer;">
+                            🔄 Refresh
+                        </button>
                     </div>
 
                     <div class="table-scroll">
@@ -271,6 +294,7 @@
                             <thead>
                                 <tr>
                                     <th>Email</th>
+                                    <th>Name</th>
                                     <th>Status</th>
                                     <th>Expires</th>
                                     <th>Joined</th>
@@ -278,7 +302,7 @@
                                 </tr>
                             </thead>
                             <tbody id="allUsersBody">
-                                <tr><td colspan="5" style="text-align:center;">Click Refresh to load users</td></tr>
+                                <tr><td colspan="6" style="text-align:center;">Click Refresh to load users</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -292,6 +316,9 @@
         // ⚠️ REPLACE WITH YOUR ACTUAL SUPABASE CREDENTIALS ⚠️
         const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFrYWthcGVhYyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzgxMjE1NzYxLCJleHAiOjIwOTY3OTE3NjF9.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+        
+        // ⚠️ For viewing ALL users, you may need to add the service_role key:
+        // const SUPABASE_SERVICE_ROLE = 'your-service-role-key-here'; // Only for backend/admin use!
         
         const ADMIN_EMAILS = ['kigozigeorge04@gmail.com'];
         let supabaseClient = null;
@@ -350,7 +377,6 @@
 
         // ==================== Navigation ====================
         function showSection(event, section) {
-            // Hide all main sections
             document.querySelectorAll('.main > section').forEach(s => s.style.display = 'none');
 
             if (section === 'activation') {
@@ -360,7 +386,6 @@
                 document.getElementById('dashboardSection').style.display = 'block';
             }
 
-            // Update nav active state
             document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
             if (event && event.target) {
                 event.target.classList.add('active');
@@ -671,72 +696,199 @@
             }, 30000);
         }
 
-        // ==================== USER ACTIVATION FUNCTIONS ====================
+        // ==================== USER ACTIVATION FUNCTIONS - UPDATED ====================
         async function loadAllUsers() {
             const tbody = document.getElementById('allUsersBody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
 
             if (!supabaseClient) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">❌ Supabase not initialized</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">❌ Supabase not initialized</td></tr>';
                 return;
             }
 
             try {
-                const { data: profiles, error } = await supabaseClient
+                // First, get all users from the profiles table
+                const { data: profiles, error: profilesError } = await supabaseClient
                     .from('profiles')
-                    .select('id, is_active, expires_at, created_at, email')
+                    .select('id, is_active, expires_at, created_at, email, name')
                     .order('created_at', { ascending: false });
 
-                if (error) throw error;
+                if (profilesError) throw profilesError;
 
-                if (!profiles || profiles.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No users found</td></tr>';
-                    return;
+                // Get all auth users (this requires admin access)
+                // Since we can't directly query auth.users with anon key,
+                // we'll use a different approach - we'll look for users who 
+                // are in the profiles table and also check for any missing ones
+                
+                let allUsers = [];
+                
+                // Add all profile users
+                if (profiles && profiles.length > 0) {
+                    allUsers = profiles.map(p => ({
+                        id: p.id,
+                        email: p.email || 'No email',
+                        name: p.name || 'No name',
+                        is_active: p.is_active || false,
+                        expires_at: p.expires_at,
+                        created_at: p.created_at,
+                        has_profile: true
+                    }));
                 }
 
-                allUsersCache = profiles;
-                renderUsersTable(profiles);
+                // Try to get additional users from auth.users using a service role approach
+                // Note: This won't work with the anon key, so we'll skip it
+                // Instead, we'll just show all profile users
+                
+                // Also check if there are any users that might be missing from profiles
+                // by looking at the user_sessions table for users not in profiles
+                const { data: sessions, error: sessionsError } = await supabaseClient
+                    .from('user_sessions')
+                    .select('user_id, email')
+                    .order('login_time', { ascending: false });
+
+                if (!sessionsError && sessions) {
+                    const sessionUsers = new Map();
+                    sessions.forEach(s => {
+                        if (s.user_id && s.email) {
+                            sessionUsers.set(s.user_id, s.email);
+                        }
+                    });
+                    
+                    // Check if any session users are not in profiles
+                    const profileIds = new Set(allUsers.map(u => u.id));
+                    for (let [userId, email] of sessionUsers) {
+                        if (!profileIds.has(userId)) {
+                            // This is a user who has logged in but doesn't have a profile
+                            allUsers.push({
+                                id: userId,
+                                email: email || 'Unknown email',
+                                name: 'Pending Profile',
+                                is_active: false,
+                                expires_at: null,
+                                created_at: null,
+                                has_profile: false,
+                                is_pending: true
+                            });
+                        }
+                    }
+                }
+
+                // Remove duplicates by id
+                const userMap = new Map();
+                allUsers.forEach(u => {
+                    if (!userMap.has(u.id)) {
+                        userMap.set(u.id, u);
+                    }
+                });
+                allUsers = Array.from(userMap.values());
+
+                // Sort by creation date (newest first)
+                allUsers.sort((a, b) => {
+                    if (a.created_at && b.created_at) {
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    }
+                    return 0;
+                });
+
+                allUsersCache = allUsers;
+                document.getElementById('userCountBadge').textContent = allUsers.length;
+                renderUsersTable(allUsers);
 
             } catch (err) {
                 console.error('loadAllUsers error:', err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#c0392b;">❌ ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#c0392b;">❌ ${err.message}</td></tr>`;
             }
         }
 
-        function renderUsersTable(profiles) {
+        function renderUsersTable(users) {
             const tbody = document.getElementById('allUsersBody');
             tbody.innerHTML = '';
 
-            for (let p of profiles) {
-                const isActive = p.is_active;
-                const expires = p.expires_at ? new Date(p.expires_at).toLocaleDateString() : '—';
-                const joined = p.created_at ? new Date(p.created_at).toLocaleDateString() : '—';
-                const isExpired = p.expires_at && new Date(p.expires_at) < new Date();
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No users found</td></tr>';
+                return;
+            }
+
+            for (let u of users) {
+                const isActive = u.is_active;
+                const expires = u.expires_at ? new Date(u.expires_at).toLocaleDateString() : '—';
+                const joined = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
+                const isExpired = u.expires_at && new Date(u.expires_at) < new Date();
+                const isPending = u.is_pending || !u.has_profile;
 
                 let statusHtml;
-                if (isActive && !isExpired) {
-                    statusHtml = '<span class="status good">Active</span>';
+                if (isPending) {
+                    statusHtml = '<span class="status pending">⏳ Pending Profile</span>';
+                } else if (isActive && !isExpired) {
+                    statusHtml = '<span class="status good">✅ Active</span>';
                 } else if (isActive && isExpired) {
-                    statusHtml = '<span class="status risk">Expired</span>';
+                    statusHtml = '<span class="status risk">⏰ Expired</span>';
                 } else {
-                    statusHtml = '<span class="status warn">Inactive</span>';
+                    statusHtml = '<span class="status warn">⛔ Inactive</span>';
                 }
 
                 const row = tbody.insertRow();
+                
+                // Show actions based on user type
+                let actionsHtml = '';
+                if (isPending) {
+                    // For pending users, offer to create a profile
+                    actionsHtml = `
+                        <button class="toggle-btn create" onclick="createUserProfile('${u.id}', '${u.email}')">
+                            ✨ Create Profile
+                        </button>
+                    `;
+                } else {
+                    // For existing profile users, show activate/deactivate
+                    const expiryInput = `
+                        <input type="date" class="expire-input" id="exp-${u.id}"
+                            value="${u.expires_at ? u.expires_at.split('T')[0] : getDefaultExpiry()}" />
+                    `;
+                    actionsHtml = `
+                        ${expiryInput}
+                        ${isActive && !isExpired
+                            ? `<button class="toggle-btn deactivate" onclick="deactivateUser('${u.id}')">🔒 Deactivate</button>`
+                            : `<button class="toggle-btn activate" onclick="activateUser('${u.id}')">🔓 Activate</button>`
+                        }
+                    `;
+                }
+
                 row.innerHTML = `
-                    <td>${p.email || '—'}</td>
+                    <td>${u.email || '—'}</td>
+                    <td>${u.name || '—'}</td>
                     <td>${statusHtml}</td>
                     <td>${expires}</td>
                     <td>${joined}</td>
-                    <td style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                        <input type="date" class="expire-input" id="exp-${p.id}"
-                            value="${p.expires_at ? p.expires_at.split('T')[0] : getDefaultExpiry()}" />
-                        ${isActive
-                            ? `<button class="toggle-btn deactivate" onclick="deactivateUser('${p.id}')">Deactivate</button>`
-                            : `<button class="toggle-btn activate" onclick="activateUser('${p.id}')">Activate</button>`
-                        }
-                    </td>
+                    <td style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">${actionsHtml}</td>
                 `;
+            }
+        }
+
+        async function createUserProfile(userId, email) {
+            if (!confirm(`Create a profile for ${email}? This will allow them to access the system.`)) return;
+
+            if (!supabaseClient) {
+                alert('❌ Supabase not initialized');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .insert({
+                        id: userId,
+                        email: email,
+                        name: email.split('@')[0],
+                        is_active: true,
+                        expires_at: new Date(getDefaultExpiry()).toISOString()
+                    });
+
+                if (error) throw error;
+
+                showToastAdmin('✅ Profile created and user activated successfully!');
+                loadAllUsers();
+            } catch (err) {
+                alert('❌ Failed to create profile: ' + err.message);
             }
         }
 
@@ -794,9 +946,28 @@
 
         function filterUsers() {
             const query = document.getElementById('userSearchInput').value.toLowerCase();
-            const filtered = allUsersCache.filter(p =>
-                (p.email || '').toLowerCase().includes(query)
-            );
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            let filtered = allUsersCache.filter(u => {
+                const emailMatch = (u.email || '').toLowerCase().includes(query);
+                
+                if (!emailMatch) return false;
+                
+                if (statusFilter === 'all') return true;
+                
+                const isActive = u.is_active;
+                const isExpired = u.expires_at && new Date(u.expires_at) < new Date();
+                const isPending = u.is_pending || !u.has_profile;
+                
+                switch(statusFilter) {
+                    case 'active': return isActive && !isExpired && !isPending;
+                    case 'inactive': return !isActive && !isPending;
+                    case 'pending': return isPending;
+                    case 'expired': return isActive && isExpired;
+                    default: return true;
+                }
+            });
+            
             renderUsersTable(filtered);
         }
 
@@ -817,7 +988,6 @@
             document.getElementById('adminAuthBar').style.display = 'flex';
             document.getElementById('adminShell').style.display = 'grid';
             
-            // Load all dashboard data
             loadDashboardStats();
             loadRecentPatients();
             loadRecentActivity();
@@ -848,7 +1018,6 @@
         // ==================== Initialize ====================
         (async function checkAdminAccess() {
             try {
-                // Initialize Supabase first
                 if (!initSupabase()) {
                     document.getElementById('accessLock').innerHTML = `
                         <h2>⚠️ Configuration Error</h2>
