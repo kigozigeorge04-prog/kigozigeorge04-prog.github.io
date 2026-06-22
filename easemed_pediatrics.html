@@ -599,6 +599,39 @@
 <div class="floating-tip" onclick="alert('Use danger signs first. Growth monitoring – plot weight, MUAC. Immunizations – Uganda EPI schedule.')">💡 Pediatric Tip</div>
 
 <script>
+
+    (async function checkAuth() {
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        window.location.replace('easemed_login.html');
+        return;
+    }
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_active, expires_at')
+        .eq('id', session.user.id)
+        .single();
+
+    const isActive = profile?.is_active &&
+        (!profile.expires_at || new Date(profile.expires_at) > new Date());
+
+    if (!isActive) {
+        window.location.replace('easemed_payment.html');
+        return;
+    }
+
+    if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
+        await supabase.from('profiles')
+            .update({ is_active: false })
+            .eq('id', session.user.id);
+        window.location.replace('easemed_payment.html?reason=expired');
+        return;
+    }
+})();
     // === Prevent service worker interference ===
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
