@@ -3083,30 +3083,48 @@
         const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
-        (async function authCheck() {
-            try {
-                const { createClient } = supabase;
-                const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-                const { data: { session } } = await sb.auth.getSession();
-                if (!session) {
-                    window.location.href = 'easemed_login.html';
-                    return;
-                }
-                const user = session.user;
-                const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
-                document.getElementById('userGreeting').textContent = '👤 ' + displayName;
-                localStorage.setItem('easemed_user', user.email);
-                localStorage.setItem('easemed_user_name', displayName);
-                window._sb = sb;
-                window._currentUser = user;
-                renderRecords();
-                // Fix symptom button handlers after auth
-                fixSymptomButtons();
-            } catch (err) {
-                console.error('Auth error:', err);
-                window.location.href = 'easemed_login.html';
-            }
-        })();
+(async function authCheck() {
+    try {
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+            window.location.href = 'easemed_login.html';
+            return;
+        }
+
+        // Check subscription
+        const { data: profile } = await sb
+            .from('profiles')
+            .select('is_active, expires_at')
+            .eq('id', session.user.id)
+            .single();
+
+        if (!profile || !profile.is_active) {
+            window.location.href = 'easemed_payment.html';
+            return;
+        }
+
+        if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
+            await sb.from('profiles').update({ is_active: false }).eq('id', session.user.id);
+            window.location.href = 'easemed_payment.html?reason=expired';
+            return;
+        }
+
+        const user = session.user;
+        const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
+        document.getElementById('userGreeting').textContent = '👤 ' + displayName;
+        localStorage.setItem('easemed_user', user.email);
+        localStorage.setItem('easemed_user_name', displayName);
+        window._sb = sb;
+        window._currentUser = user;
+        renderRecords();
+        fixSymptomButtons();
+    } catch (err) {
+        console.error('Auth error:', err);
+        window.location.href = 'easemed_login.html';
+    }
+})();
 
         async function handleLogout() {
             if (window._sb) await window._sb.auth.signOut();
