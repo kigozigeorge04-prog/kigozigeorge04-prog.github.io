@@ -2041,15 +2041,23 @@ TEACHING POINT:
 
     <script>
         // ============================================================
-        // 1. SUPABASE CONFIG (optional – replace with your keys)
+        // 1. SUPABASE CONFIG (UPDATED with provided credentials)
         // ============================================================
-        const SUPABASE_URL = 'https://your-project.supabase.co';
-        const SUPABASE_ANON_KEY = 'your-anon-key';
-        // Uncomment when ready:
-        // const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+        // AUTH GUARD – runs immediately after constants
+        (async function checkAuth() {
+            const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.replace('easemed_login.html');
+            }
+        })();
 
         // ============================================================
-        // 2. GOOGLE CLOUD VISION API
+        // 2. GOOGLE CLOUD VISION API (legacy, kept for compatibility)
         // ============================================================
         let capturedImages = [];
         let aiAnalysisResults = null;
