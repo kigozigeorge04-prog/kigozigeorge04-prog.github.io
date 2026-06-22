@@ -2607,7 +2607,33 @@
   // ============================================================
   const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+(async function checkAuth() {
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+        window.location.replace('easemed_login.html');
+        return;
+    }
+
+    const { data: profile } = await sb
+        .from('profiles')
+        .select('is_active, expires_at')
+        .eq('id', session.user.id)
+        .single();
+
+    if (!profile || !profile.is_active) {
+        window.location.replace('easemed_payment.html');
+        return;
+    }
+
+    if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
+        await sb.from('profiles').update({ is_active: false }).eq('id', session.user.id);
+        window.location.replace('easemed_payment.html?reason=expired');
+        return;
+    }
+})();
   // ============================================================
   // 1. IMAGE CAPTURE FUNCTIONALITY
   // ============================================================
