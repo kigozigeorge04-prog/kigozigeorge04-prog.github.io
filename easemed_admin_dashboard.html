@@ -274,7 +274,7 @@
                     </div>
 
                     <div style="padding:16px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-                        <input id="userSearchInput" type="text" placeholder="Search by email..."
+                        <input id="userSearchInput" type="text" placeholder="Search by email or name..."
                             oninput="filterUsers()"
                             style="flex:1; min-width:200px; padding:10px 14px; border:1.5px solid #dbe7ef; border-radius:10px; font-size:0.9rem; outline:none;" />
                         <select id="statusFilter" onchange="filterUsers()" style="padding:10px 14px; border:1.5px solid #dbe7ef; border-radius:10px; font-size:0.9rem; outline:none; background:white;">
@@ -294,7 +294,7 @@
                             <thead>
                                 <tr>
                                     <th>Email</th>
-                                    <th>Name</th>
+                                    <th>Full Name</th>
                                     <th>Status</th>
                                     <th>Expires</th>
                                     <th>Joined</th>
@@ -313,12 +313,8 @@
 
     <script>
         // ==================== Configuration ====================
-        // ⚠️ REPLACE WITH YOUR ACTUAL SUPABASE CREDENTIALS ⚠️
         const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
-        
-        // ⚠️ For viewing ALL users, you may need to add the service_role key:
-        // const SUPABASE_SERVICE_ROLE = 'your-service-role-key-here'; // Only for backend/admin use!
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFrYWthcGVhYyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzgxMjE1NzYxLCJleHAiOjIwOTY3OTE3NjF9.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
         
         const ADMIN_EMAILS = ['kigozigeorge04@gmail.com'];
         let supabaseClient = null;
@@ -497,9 +493,9 @@
                 }
 
                 const userIds = [...new Set(sessions.map(s => s.user_id))];
-                const { data: profiles } = await supabaseClient.from('profiles').select('id, name, email').in('id', userIds);
+                const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, email').in('id', userIds);
                 const userMap = new Map();
-                if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
+                if (profiles) profiles.forEach(p => userMap.set(p.id, p.full_name || p.email || 'Unknown'));
 
                 tbody.innerHTML = '';
                 for (let s of sessions) {
@@ -551,9 +547,9 @@
                 }
 
                 const userIds = [...new Set(logins.map(s => s.user_id))];
-                const { data: profiles } = await supabaseClient.from('profiles').select('id, name, email').in('id', userIds);
+                const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, email').in('id', userIds);
                 const userMap = new Map();
-                if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
+                if (profiles) profiles.forEach(p => userMap.set(p.id, p.full_name || p.email || 'Unknown'));
 
                 tbody.innerHTML = '';
                 for (let s of logins) {
@@ -604,9 +600,9 @@
                 }
 
                 const userIds = [...new Set(records.map(r => r.user_id))];
-                const { data: profiles } = await supabaseClient.from('profiles').select('id, name, email').in('id', userIds);
+                const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, email').in('id', userIds);
                 const userMap = new Map();
-                if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
+                if (profiles) profiles.forEach(p => userMap.set(p.id, p.full_name || p.email || 'Unknown'));
 
                 tbody.innerHTML = '';
                 for (let rec of records) {
@@ -659,9 +655,9 @@
                 }
 
                 const userIds = [...new Set(activities.map(a => a.user_id))];
-                const { data: profiles } = await supabaseClient.from('profiles').select('id, name, email').in('id', userIds);
+                const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, email').in('id', userIds);
                 const userMap = new Map();
-                if (profiles) profiles.forEach(p => userMap.set(p.id, p.name || p.email || 'Unknown'));
+                if (profiles) profiles.forEach(p => userMap.set(p.id, p.full_name || p.email || 'Unknown'));
 
                 activityContainer.innerHTML = '';
                 for (let act of activities) {
@@ -696,7 +692,7 @@
             }, 30000);
         }
 
-        // ==================== USER ACTIVATION FUNCTIONS - UPDATED ====================
+        // ==================== USER ACTIVATION FUNCTIONS ====================
         async function loadAllUsers() {
             const tbody = document.getElementById('allUsersBody');
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
@@ -707,19 +703,14 @@
             }
 
             try {
-                // First, get all users from the profiles table
+                // Get all users from the profiles table with full_name
                 const { data: profiles, error: profilesError } = await supabaseClient
                     .from('profiles')
-                    .select('id, is_active, expires_at, created_at, email, name')
+                    .select('id, is_active, expires_at, created_at, email, full_name')
                     .order('created_at', { ascending: false });
 
                 if (profilesError) throw profilesError;
 
-                // Get all auth users (this requires admin access)
-                // Since we can't directly query auth.users with anon key,
-                // we'll use a different approach - we'll look for users who 
-                // are in the profiles table and also check for any missing ones
-                
                 let allUsers = [];
                 
                 // Add all profile users
@@ -727,20 +718,16 @@
                     allUsers = profiles.map(p => ({
                         id: p.id,
                         email: p.email || 'No email',
-                        name: p.name || 'No name',
+                        full_name: p.full_name || 'No name',
                         is_active: p.is_active || false,
                         expires_at: p.expires_at,
                         created_at: p.created_at,
-                        has_profile: true
+                        has_profile: true,
+                        is_pending: false
                     }));
                 }
 
-                // Try to get additional users from auth.users using a service role approach
-                // Note: This won't work with the anon key, so we'll skip it
-                // Instead, we'll just show all profile users
-                
-                // Also check if there are any users that might be missing from profiles
-                // by looking at the user_sessions table for users not in profiles
+                // Also check for users in sessions that might not have profiles
                 const { data: sessions, error: sessionsError } = await supabaseClient
                     .from('user_sessions')
                     .select('user_id, email')
@@ -762,7 +749,7 @@
                             allUsers.push({
                                 id: userId,
                                 email: email || 'Unknown email',
-                                name: 'Pending Profile',
+                                full_name: 'Pending Profile',
                                 is_active: false,
                                 expires_at: null,
                                 created_at: null,
@@ -855,7 +842,7 @@
 
                 row.innerHTML = `
                     <td>${u.email || '—'}</td>
-                    <td>${u.name || '—'}</td>
+                    <td>${u.full_name || '—'}</td>
                     <td>${statusHtml}</td>
                     <td>${expires}</td>
                     <td>${joined}</td>
@@ -878,7 +865,7 @@
                     .insert({
                         id: userId,
                         email: email,
-                        name: email.split('@')[0],
+                        full_name: email.split('@')[0],
                         is_active: true,
                         expires_at: new Date(getDefaultExpiry()).toISOString()
                     });
@@ -950,8 +937,9 @@
             
             let filtered = allUsersCache.filter(u => {
                 const emailMatch = (u.email || '').toLowerCase().includes(query);
+                const nameMatch = (u.full_name || '').toLowerCase().includes(query);
                 
-                if (!emailMatch) return false;
+                if (!emailMatch && !nameMatch) return false;
                 
                 if (statusFilter === 'all') return true;
                 
