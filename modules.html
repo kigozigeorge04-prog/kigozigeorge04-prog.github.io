@@ -114,6 +114,7 @@
     box-shadow:0 20px 44px rgba(4,12,16,0.42);
     transition:transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s ease;
     display:flex; flex-direction:column;
+    cursor:pointer;
   }
   .card:hover{
     transform:translateY(-6px);
@@ -213,7 +214,8 @@
   </section>
 
   <div class="modules">
-    <a href="easemed_dashboard.html" class="card medicine">
+    <!-- Internal Medicine -->
+    <div onclick="openModule('easemed_dashboard.html')" class="card medicine" style="cursor:pointer;">
       <div class="banner">
         <span class="num">01</span>
         <span class="icon-big">📚</span>
@@ -224,9 +226,10 @@
         <p class="desc">Full adult history: presenting complaint, HPC, PMH, HIV history, review of systems &amp; examination.</p>
         <span class="go">Open module <span class="arrow">→</span></span>
       </div>
-    </a>
+    </div>
 
-    <a href="surgery-clerking.html" class="card surgery">
+    <!-- Surgery -->
+    <div onclick="openModule('surgery-clerking.html')" class="card surgery" style="cursor:pointer;">
       <div class="banner">
         <span class="num">02</span>
         <span class="icon-big">🔪</span>
@@ -237,9 +240,10 @@
         <p class="desc">Surgical history taking: PC, HPC, PMH, ROS, physical examination &amp; assessment.</p>
         <span class="go">Open module <span class="arrow">→</span></span>
       </div>
-    </a>
+    </div>
 
-    <a href="easemed_pediatrics.html" class="card peds">
+    <!-- Pediatrics -->
+    <div onclick="openModule('easemed_pediatrics.html')" class="card peds" style="cursor:pointer;">
       <div class="banner">
         <span class="num">03</span>
         <span class="icon-big">👶</span>
@@ -250,9 +254,10 @@
         <p class="desc">Birth history, developmental milestones, immunisations, growth charts &amp; red flags.</p>
         <span class="go">Open module <span class="arrow">→</span></span>
       </div>
-    </a>
+    </div>
 
-    <a href="ObGyn.html" class="card obgyn">
+    <!-- Obstetrics & Gynaecology -->
+    <div onclick="openModule('ObGyn.html')" class="card obgyn" style="cursor:pointer;">
       <div class="banner">
         <span class="num">04</span>
         <span class="icon-big">🤰</span>
@@ -263,7 +268,7 @@
         <p class="desc">Menstrual, obstetric &amp; gynaecological history, ANC data, system-specific ROS &amp; examination.</p>
         <span class="go">Open module <span class="arrow">→</span></span>
       </div>
-    </a>
+    </div>
   </div>
 
   <footer>EASEMED · BUILT FOR UGANDAN MEDICAL STUDENTS</footer>
@@ -272,6 +277,11 @@
   <script>
     const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+    // Navigation function
+    function openModule(url) {
+      window.location.href = url;
+    }
 
     (async function authCheck() {
       try {
@@ -297,6 +307,26 @@
       if (window._sb) await window._sb.auth.signOut();
       window.location.href = 'easemed_login.html';
     }
+    async function openModule(url) {
+    const sb = window._sb;
+    if (!sb) { window.location.href = 'easemed_login.html'; return; }
+
+    const { data: profile } = await sb
+        .from('profiles')
+        .select('is_active, expires_at')
+        .eq('id', window._currentUser.id)
+        .single();
+
+    const isActive = profile?.is_active &&
+        (!profile.expires_at || new Date(profile.expires_at) > new Date());
+
+    if (!isActive) {
+        window.location.href = 'easemed_payment.html';
+        return;
+    }
+
+    window.location.href = url;
+}
   </script>
 
 </body>
