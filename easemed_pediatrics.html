@@ -13,14 +13,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* ======= COMPACT STYLES ======= */
+        /* ======= READABLE STYLES (larger fonts) ======= */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0b3b2f 0%, #1c6e5e 50%, #2a9d8f 100%);
             min-height: 100vh;
-            padding: 15px;
+            padding: 18px;
             position: relative;
+            font-size: 16px;
         }
         body::before {
             content: '';
@@ -33,159 +34,160 @@
             pointer-events: none;
             z-index: 0;
         }
-        .container { max-width: 1600px; margin: 0 auto; display: grid; grid-template-columns: 1fr 0.9fr; gap: 20px; position: relative; z-index: 1; }
-        .clerking-panel, .guidance-panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: 0 15px 40px -12px rgba(0,0,0,0.2); overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .container { max-width: 1600px; margin: 0 auto; display: grid; grid-template-columns: 1fr 0.9fr; gap: 24px; position: relative; z-index: 1; }
+        .clerking-panel, .guidance-panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 24px; box-shadow: 0 15px 40px -12px rgba(0,0,0,0.2); overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; }
         .clerking-panel:hover, .guidance-panel:hover { transform: translateY(-3px); box-shadow: 0 20px 50px -15px rgba(0,0,0,0.25); }
-        .panel-header { background: linear-gradient(135deg, #1b7e6b 0%, #2a9d8f 100%); color: white; padding: 20px 25px; position: relative; overflow: hidden; }
-        .panel-header::before { content: '👶'; position: absolute; right: -20px; top: -20px; font-size: 100px; opacity: 0.1; pointer-events: none; }
-        .panel-header h1 { font-size: 1.5rem; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; }
-        .panel-header p { opacity: 0.9; font-size: 0.85rem; }
-        .form-section { padding: 16px 18px; border-bottom: 1px solid rgba(0,0,0,0.06); transition: background 0.2s; }
+        .panel-header { background: linear-gradient(135deg, #1b7e6b 0%, #2a9d8f 100%); color: white; padding: 22px 28px; position: relative; overflow: hidden; }
+        .panel-header::before { content: '👶'; position: absolute; right: -20px; top: -20px; font-size: 120px; opacity: 0.1; pointer-events: none; }
+        .panel-header h1 { font-size: 1.8rem; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
+        .panel-header p { opacity: 0.9; font-size: 1rem; }
+        .form-section { padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.06); transition: background 0.2s; }
         .form-section:hover { background: rgba(30,110,94,0.03); }
-        .form-section h3 { color: #1b7e6b; margin-bottom: 12px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; padding-bottom: 6px; border-bottom: 2px solid #1b7e6b; display: inline-block; }
-        .demographics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        label { display: block; margin-bottom: 3px; font-weight: 600; color: #2d6a4f; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.4px; }
-        input, textarea, select { width: 100%; padding: 7px 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.85rem; transition: all 0.2s; background: white; }
+        .form-section h3 { color: #1b7e6b; margin-bottom: 16px; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 2px solid #1b7e6b; display: inline-block; }
+        .demographics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; color: #2d6a4f; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        input, textarea, select { width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; transition: all 0.2s; background: white; }
         input:focus, textarea:focus, select:focus { outline: none; border-color: #2a9d8f; box-shadow: 0 0 0 3px rgba(42,157,143,0.1); }
-        .symptom-buttons { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; max-height: 180px; overflow-y: auto; padding: 3px; }
+        .symptom-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; max-height: 220px; overflow-y: auto; padding: 4px; }
         .symptom-btn {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             border: none;
-            padding: 5px 12px;
-            border-radius: 25px;
+            padding: 8px 16px;
+            border-radius: 30px;
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 0.75rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: #2d3748;
             white-space: nowrap;
         }
-        .symptom-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(42,157,143,0.2); background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%); color: white; }
-        .symptom-btn.active { background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%); color: white; box-shadow: 0 4px 10px rgba(42,157,143,0.25); transform: scale(1.03); }
-        .btn-generate { background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%); color: white; border: none; padding: 10px 20px; border-radius: 35px; cursor: pointer; font-size: 0.9rem; font-weight: bold; width: 100%; margin-top: 6px; transition: all 0.3s; }
-        .btn-generate:hover { transform: scale(1.02); box-shadow: 0 6px 16px rgba(42,157,143,0.3); }
-        .records-panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; box-shadow: 0 15px 40px -12px rgba(0,0,0,0.2); overflow: hidden; margin-top: 20px; grid-column: 1 / -1; }
-        .records-header { background: linear-gradient(135deg, #1b7e6b, #2a9d8f); color: white; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-        .records-header h2 { font-size: 1rem; display: flex; align-items: center; gap: 6px; margin: 0; }
-        .records-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-        .btn-record { padding: 5px 12px; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        .symptom-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(42,157,143,0.25); background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%); color: white; }
+        .symptom-btn.active { background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%); color: white; box-shadow: 0 6px 14px rgba(42,157,143,0.3); transform: scale(1.05); }
+        .btn-generate { background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%); color: white; border: none; padding: 14px 28px; border-radius: 40px; cursor: pointer; font-size: 1.05rem; font-weight: bold; width: 100%; margin-top: 10px; transition: all 0.3s; }
+        .btn-generate:hover { transform: scale(1.02); box-shadow: 0 8px 24px rgba(42,157,143,0.35); }
+        .records-panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 24px; box-shadow: 0 15px 40px -12px rgba(0,0,0,0.2); overflow: hidden; margin-top: 24px; grid-column: 1 / -1; }
+        .records-header { background: linear-gradient(135deg, #1b7e6b, #2a9d8f); color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .records-header h2 { font-size: 1.2rem; display: flex; align-items: center; gap: 8px; margin: 0; }
+        .records-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-record { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
         .btn-record:hover { opacity: 0.85; }
         .btn-save { background: #2c6e49; color: white; }
         .btn-new { background: #e67e22; color: white; }
         .btn-export { background: #8e44ad; color: white; }
         .btn-import { background: #2980b9; color: white; }
-        .records-body { padding: 14px 20px; }
-        .records-search { width: 100%; padding: 6px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.8rem; margin-bottom: 10px; outline: none; }
+        .records-body { padding: 18px 24px; }
+        .records-search { width: 100%; padding: 10px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; margin-bottom: 14px; outline: none; }
         .records-search:focus { border-color: #2a9d8f; }
-        .records-empty { text-align: center; color: #a0aec0; padding: 16px; font-size: 0.85rem; }
-        .patient-card { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 8px 14px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-        .patient-card:hover { border-color: #2a9d8f; box-shadow: 0 2px 8px rgba(42,157,143,0.06); }
+        .records-empty { text-align: center; color: #a0aec0; padding: 24px; font-size: 0.95rem; }
+        .patient-card { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 12px 18px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .patient-card:hover { border-color: #2a9d8f; box-shadow: 0 3px 12px rgba(42,157,143,0.08); }
         .patient-card-info { flex: 1; min-width: 0; }
-        .patient-card-name { font-weight: 700; color: #1b7e6b; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .patient-card-meta { font-size: 0.68rem; color: #718096; margin-top: 1px; }
-        .patient-card-btns { display: flex; gap: 4px; }
-        .btn-card { padding: 3px 8px; border: none; border-radius: 5px; font-size: 0.68rem; font-weight: 600; cursor: pointer; }
+        .patient-card-name { font-weight: 700; color: #1b7e6b; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .patient-card-meta { font-size: 0.8rem; color: #718096; margin-top: 2px; }
+        .patient-card-btns { display: flex; gap: 6px; }
+        .btn-card { padding: 5px 12px; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
         .btn-card:hover { opacity: 0.8; }
         .btn-load { background: #ebf5fb; color: #2a9d8f; }
         .btn-delete { background: #fdf2f2; color: #e53e3e; }
-        .save-toast { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%) translateY(80px); background: #2a9d8f; color: white; padding: 8px 20px; border-radius: 10px; font-weight: 600; font-size: 0.8rem; box-shadow: 0 4px 14px rgba(0,0,0,0.12); z-index: 99999; transition: transform 0.3s cubic-bezier(.175,.885,.32,1.275); pointer-events: none; }
+        .save-toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: #2a9d8f; color: white; padding: 12px 28px; border-radius: 14px; font-weight: 600; font-size: 1rem; box-shadow: 0 6px 20px rgba(0,0,0,0.15); z-index: 99999; transition: transform 0.3s cubic-bezier(.175,.885,.32,1.275); pointer-events: none; }
         .save-toast.show { transform: translateX(-50%) translateY(0); }
-        .progress-bar { height: 3px; background: linear-gradient(90deg, #2a9d8f, #f4d35e, #e76f51); position: fixed; top: 0; left: 0; width: 0%; z-index: 1000; transition: width 0.3s; }
-        .floating-tip { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #2a9d8f, #1b7e6b); color: white; padding: 6px 14px; border-radius: 35px; font-size: 0.75rem; cursor: pointer; z-index: 100; animation: bounce 2s infinite; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-        @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        .alert { background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border-left: 5px solid #ffc107; padding: 10px 14px; border-radius: 10px; margin-bottom: 10px; font-size: 0.8rem; }
+        .progress-bar { height: 4px; background: linear-gradient(90deg, #2a9d8f, #f4d35e, #e76f51); position: fixed; top: 0; left: 0; width: 0%; z-index: 1000; transition: width 0.3s; }
+        .floating-tip { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #2a9d8f, #1b7e6b); color: white; padding: 10px 18px; border-radius: 40px; font-size: 0.9rem; cursor: pointer; z-index: 100; animation: bounce 2s infinite; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+        @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .alert { background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border-left: 5px solid #ffc107; padding: 14px 18px; border-radius: 12px; margin-bottom: 14px; font-size: 0.95rem; }
         .alert.warning { background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); border-left-color: #dc3545; }
-        .vaccine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 5px; margin-top: 6px; }
-        .vaccine-item { background: #f8fafc; border-radius: 6px; padding: 3px 8px; display: flex; align-items: center; gap: 5px; border: 1px solid #e2e8f0; font-size: 0.75rem; }
-        .vaccine-item input[type="checkbox"] { width: 16px; transform: scale(1); accent-color: #2a9d8f; margin: 0; }
-        .muac-feedback { margin-top: 5px; padding: 5px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 0.8rem; }
+        .vaccine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-top: 8px; }
+        .vaccine-item { background: #f8fafc; border-radius: 8px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; border: 1px solid #e2e8f0; font-size: 0.9rem; }
+        .vaccine-item input[type="checkbox"] { width: 20px; transform: scale(1); accent-color: #2a9d8f; margin: 0; }
+        .muac-feedback { margin-top: 8px; padding: 8px; border-radius: 10px; font-weight: bold; text-align: center; font-size: 0.95rem; }
         .muac-green { background: #d1fae5; color: #065f46; }
         .muac-yellow { background: #fef9c3; color: #854d0e; }
         .muac-red { background: #fee2e2; color: #991b1b; }
-        .growth-chart-container { margin-top: 10px; background: white; border-radius: 10px; padding: 8px; border: 1px solid #e2e8f0; }
-        .ros-grid, .exam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px; }
-        .ros-card, .exam-card { background: white; border-radius: 10px; border: 1px solid #dbe7ef; box-shadow: 0 3px 10px rgba(15,32,39,0.04); overflow: hidden; }
-        .ros-card-header, .exam-card-header { padding: 8px 12px; background: #f7fbfd; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .ros-icon, .exam-icon { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: linear-gradient(135deg, #2a9d8f, #1b7e6b); color: white; font-weight: bold; font-size: 0.85rem; flex-shrink: 0; }
-        .ros-title strong, .exam-title strong { display: block; color: #1b7e6b; font-size: 0.8rem; }
-        .ros-title small, .exam-title small { font-size: 0.55rem; opacity: 0.7; }
+        .growth-chart-container { margin-top: 14px; background: white; border-radius: 12px; padding: 12px; border: 1px solid #e2e8f0; }
+        .growth-chart-note { font-size: 0.9rem; color: #2d6a4f; background: #e8f4f8; padding: 10px 14px; border-radius: 8px; margin-top: 8px; border-left: 4px solid #2a9d8f; }
+        .ros-grid, .exam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 12px; }
+        .ros-card, .exam-card { background: white; border-radius: 12px; border: 1px solid #dbe7ef; box-shadow: 0 4px 14px rgba(15,32,39,0.05); overflow: hidden; }
+        .ros-card-header, .exam-card-header { padding: 12px 16px; background: #f7fbfd; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .ros-icon, .exam-icon { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg, #2a9d8f, #1b7e6b); color: white; font-weight: bold; font-size: 1.2rem; flex-shrink: 0; }
+        .ros-title strong, .exam-title strong { display: block; color: #1b7e6b; font-size: 1rem; }
+        .ros-title small, .exam-title small { font-size: 0.7rem; opacity: 0.7; }
         .ros-chevron, .exam-chevron { margin-left: auto; transition: transform 0.2s; }
         .ros-card.expanded .ros-chevron, .exam-card.expanded .exam-chevron { transform: rotate(180deg); }
-        .ros-content, .exam-content { display: none; padding: 10px 12px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+        .ros-content, .exam-content { display: none; padding: 14px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
         .ros-content.active, .exam-content.active { display: block; }
-        .toggle-pill-group { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+        .toggle-pill-group { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
         .toggle-pill {
             display: inline-flex;
             align-items: center;
-            gap: 3px;
-            padding: 3px 8px;
-            border-radius: 16px;
+            gap: 4px;
+            padding: 5px 12px;
+            border-radius: 20px;
             border: 1.5px solid #e2e8f0;
             background: #f8fafc;
             color: #4a5568;
-            font-size: 0.68rem;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s;
             user-select: none;
-            line-height: 1.3;
+            line-height: 1.4;
         }
         .toggle-pill.active {
             background: #2a9d8f;
             border-color: #2a9d8f;
             color: white;
-            box-shadow: 0 2px 6px rgba(42,157,143,0.2);
+            box-shadow: 0 2px 8px rgba(42,157,143,0.25);
         }
         .toggle-pill.active::before { content: "✓ "; }
         .toggle-pill-group.avpu-group .toggle-pill.active { background: #e76f51; border-color: #e76f51; }
-        .ros-narrative, .exam-notes { width: 100%; margin: 4px 0; resize: vertical; min-height: 40px; font-size: 0.8rem; padding: 5px 8px; }
-        .clinical-summary { background: #e8f4f8; padding: 12px 16px; border-radius: 10px; margin-top: 8px; font-size: 0.82rem; line-height: 1.6; }
-        .summary-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
-        .summary-document { background: white; border-radius: 10px; padding: 12px; border: 1px solid #e2e8f0; }
-        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } .demographics-grid { grid-template-columns: 1fr; } .guidance-panel { position: static; margin-top: 12px; } .summary-tabs { grid-template-columns: 1fr; } .ros-grid, .exam-grid { grid-template-columns: 1fr; } }
+        .ros-narrative, .exam-notes { width: 100%; margin: 6px 0; resize: vertical; min-height: 60px; font-size: 0.95rem; padding: 8px 12px; }
+        .clinical-summary { background: #e8f4f8; padding: 16px 20px; border-radius: 12px; margin-top: 10px; font-size: 0.95rem; line-height: 1.7; }
+        .summary-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
+        .summary-document { background: white; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; }
+        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } .demographics-grid { grid-template-columns: 1fr; } .guidance-panel { position: static; margin-top: 16px; } .summary-tabs { grid-template-columns: 1fr; } .ros-grid, .exam-grid { grid-template-columns: 1fr; } }
         @media (min-width: 1025px) {
-            .guidance-panel { position: sticky; top: 55px; max-height: calc(100vh - 65px); overflow-y: auto; }
+            .guidance-panel { position: sticky; top: 60px; max-height: calc(100vh - 70px); overflow-y: auto; }
         }
-        #authBar { position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(15,32,39,0.92); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: space-between; padding: 5px 16px; font-family: 'Segoe UI', sans-serif; font-size: 0.8rem; }
-        .ros-hint { font-size: 0.65rem; color: #2a9d8f; margin-top: 3px; font-style: italic; }
-        .milestone-warning { background: #fef9c3; color: #854d0e; padding: 4px 10px; border-radius: 6px; margin-top: 4px; display: none; font-size: 0.75rem; }
-        .guidance-header { background: linear-gradient(135deg, #1b7e6b 0%, #2a9d8f 100%); color: white; padding: 14px 18px; }
-        .guidance-header h2 { font-size: 1.1rem; margin-bottom: 3px; }
-        .guidance-header p { opacity: 0.9; font-size: 0.75rem; }
-        .guidance-content { padding: 12px; }
+        #authBar { position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(15,32,39,0.92); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: space-between; padding: 8px 20px; font-family: 'Segoe UI', sans-serif; font-size: 0.95rem; }
+        .ros-hint { font-size: 0.8rem; color: #2a9d8f; margin-top: 4px; font-style: italic; }
+        .milestone-warning { background: #fef9c3; color: #854d0e; padding: 8px 14px; border-radius: 8px; margin-top: 6px; display: none; font-size: 0.9rem; }
+        .guidance-header { background: linear-gradient(135deg, #1b7e6b 0%, #2a9d8f 100%); color: white; padding: 18px 24px; }
+        .guidance-header h2 { font-size: 1.4rem; margin-bottom: 4px; }
+        .guidance-header p { opacity: 0.9; font-size: 0.95rem; }
+        .guidance-content { padding: 16px; }
         .guidance-tip {
             background: white;
             border-left: 4px solid #2a9d8f;
-            border-radius: 0 6px 6px 0;
-            padding: 6px 12px;
-            margin-bottom: 6px;
-            font-size: 0.75rem;
-            line-height: 1.4;
+            border-radius: 0 8px 8px 0;
+            padding: 10px 16px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            line-height: 1.5;
             color: #2d3748;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
         .guidance-tip strong { color: #1b7e6b; }
-        .vitals-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; margin-bottom: 8px; }
-        .vital-item label { font-size: 0.55rem; margin-bottom: 1px; }
-        .vital-item input { padding: 3px 6px; font-size: 0.75rem; }
-        .gcs-input { width: 60px; margin-top: 3px; }
+        .vitals-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 14px; }
+        .vital-item label { font-size: 0.7rem; margin-bottom: 2px; }
+        .vital-item input { padding: 6px 10px; font-size: 0.95rem; }
+        .gcs-input { width: 80px; margin-top: 4px; }
         .exam-step-label {
-            font-size: 0.6rem;
+            font-size: 0.75rem;
             font-weight: 700;
             color: #1b7e6b;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
-            margin: 4px 0 3px;
-            padding-top: 5px;
+            letter-spacing: 0.5px;
+            margin: 8px 0 4px;
+            padding-top: 8px;
             border-top: 1px dashed #c8e6e0;
         }
         .exam-step-label:first-child { border-top: none; margin-top: 0; }
         .clue-pill {
             background: #f1f5f9;
             border: 1px solid #cbd5e1;
-            border-radius: 14px;
-            padding: 2px 7px;
-            font-size: 0.65rem;
+            border-radius: 16px;
+            padding: 3px 10px;
+            font-size: 0.75rem;
             font-weight: 500;
             color: #1e293b;
             margin: 2px;
@@ -202,69 +204,69 @@
         .expand-hiv {
             background: linear-gradient(135deg, #fef5e7 0%, #fdebd0 100%);
             border-left: 4px solid #e74c3c;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-top: 8px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-top: 12px;
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 0.8rem;
+            font-size: 0.95rem;
         }
         .expand-hiv:hover { background: linear-gradient(135deg, #fdebd0 0%, #fadbd8 100%); }
-        .hiv-details { display: none; margin-top: 8px; padding: 10px; background: white; border-radius: 8px; }
+        .hiv-details { display: none; margin-top: 12px; padding: 14px; background: white; border-radius: 10px; }
         .hiv-details.active { display: block; }
         .symptom-extra-note {
-            margin-top: 3px;
+            margin-top: 4px;
             width: 100%;
-            padding: 3px 6px;
-            border-radius: 6px;
+            padding: 6px 10px;
+            border-radius: 8px;
             border: 1px solid #e2e8f0;
-            font-size: 0.7rem;
+            font-size: 0.9rem;
         }
         .camera-section {
-            margin: 8px 0;
-            padding: 10px;
+            margin: 12px 0;
+            padding: 14px;
             background: #f0f7fa;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 2px dashed #2a9d8f;
         }
         .camera-section h4 {
             color: #1b7e6b;
-            margin-bottom: 6px;
-            font-size: 0.85rem;
+            margin-bottom: 10px;
+            font-size: 1rem;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
         }
         .camera-preview {
             width: 100%;
-            max-width: 320px;
-            border-radius: 8px;
+            max-width: 400px;
+            border-radius: 10px;
             border: 2px solid #e2e8f0;
             background: #000;
             aspect-ratio: 4/3;
             object-fit: cover;
             display: block;
-            margin: 0 auto 6px;
+            margin: 0 auto 10px;
         }
         .camera-controls {
             display: flex;
-            gap: 6px;
+            gap: 10px;
             flex-wrap: wrap;
             justify-content: center;
         }
         .btn-camera {
-            padding: 5px 12px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s;
-            font-size: 0.75rem;
+            font-size: 0.9rem;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
-        .btn-camera:hover { transform: scale(1.02); opacity: 0.9; }
+        .btn-camera:hover { transform: scale(1.03); opacity: 0.9; }
         .btn-camera-start { background: #2a9d8f; color: white; }
         .btn-camera-capture { background: #e67e22; color: white; }
         .btn-camera-stop { background: #e53e3e; color: white; }
@@ -272,55 +274,65 @@
         .captured-images {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 6px;
+            gap: 10px;
+            margin-top: 10px;
         }
         .captured-image-item {
             position: relative;
-            border-radius: 6px;
+            border-radius: 8px;
             overflow: hidden;
             border: 2px solid #e2e8f0;
-            width: 90px;
-            height: 68px;
+            width: 120px;
+            height: 90px;
             flex-shrink: 0;
         }
         .captured-image-item img { width: 100%; height: 100%; object-fit: cover; }
         .captured-image-item .remove-img {
             position: absolute;
-            top: 2px;
-            right: 2px;
+            top: 4px;
+            right: 4px;
             background: rgba(229,62,62,0.9);
             color: white;
             border: none;
             border-radius: 50%;
-            width: 18px;
-            height: 18px;
+            width: 22px;
+            height: 22px;
             cursor: pointer;
-            font-size: 10px;
+            font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .image-counter { font-size: 0.7rem; color: #4a5568; text-align: center; margin-top: 3px; }
+        .image-counter { font-size: 0.85rem; color: #4a5568; text-align: center; margin-top: 6px; }
         .camera-permission-banner {
             background: #fff3cd;
             border: 1px solid #ffc107;
-            border-radius: 8px;
-            padding: 6px 12px;
-            margin-bottom: 6px;
-            font-size: 0.75rem;
+            border-radius: 10px;
+            padding: 10px 16px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
             display: none;
         }
         .camera-permission-banner.visible { display: block; }
+        /* larger font for hints outside textareas */
+        .field-hint {
+            font-size: 0.9rem;
+            color: #2d6a4f;
+            font-style: italic;
+            margin-bottom: 4px;
+            background: #f0f8f4;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
 <div class="progress-bar" id="progressBar"></div>
 <div id="authBar">
-    <div style="display:flex; align-items:center; gap:6px;"><span style="font-size:18px;">👶</span><span style="color:#fff; font-weight:700;">EaseMed Pediatrics</span></div>
-    <div style="display:flex; align-items:center; gap:8px;"><span id="userGreeting" style="color:#90cdf4; font-size:0.75rem;"></span><button onclick="handleLogout()" style="background:#e53e3e; color:white; border:none; border-radius:5px; padding:3px 10px; cursor:pointer; font-size:0.75rem;">Logout</button></div>
+    <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:24px;">👶</span><span style="color:#fff; font-weight:700; font-size:1.1rem;">EaseMed Pediatrics</span></div>
+    <div style="display:flex; align-items:center; gap:12px;"><span id="userGreeting" style="color:#90cdf4; font-size:0.9rem;"></span><button onclick="handleLogout()" style="background:#e53e3e; color:white; border:none; border-radius:6px; padding:6px 14px; cursor:pointer; font-size:0.9rem;">Logout</button></div>
 </div>
-<div style="height: 42px;"></div>
+<div style="height: 52px;"></div>
 
 <div class="container">
     <div class="clerking-panel" id="clerkingPanel">
@@ -337,7 +349,7 @@
                 <div><label>Nearest Health Centre</label><input type="text" id="nearestHc" placeholder="Health facility"></div>
                 <div><label>Referral Status</label><select id="referralStatus"><option>Self‑referred</option><option>Referred from HC</option><option>Referred from hospital</option></select></div>
             </div>
-            <div id="referralDetails" style="display:none; margin-top:6px;" class="demographics-grid">
+            <div id="referralDetails" style="display:none; margin-top:10px;" class="demographics-grid">
                 <div><label>Referred from</label><input type="text" id="referralFrom" placeholder="Facility name"></div>
                 <div><label>Reason for referral</label><input type="text" id="referralReason" placeholder="Reason"></div>
             </div>
@@ -375,18 +387,19 @@
                 <button type="button" class="symptom-btn" onclick="setSymptom(this, 'malnutrition / wasting')">⚖️ Malnutrition / Wasting</button>
                 <button type="button" class="symptom-btn" onclick="setSymptom(this, 'neonatal problems')">🍼 Neonatal Problems</button>
             </div>
-            <label style="margin-top:6px;">Or type your own symptom:</label>
+            <label style="margin-top:10px;">Or type your own symptom:</label>
             <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
-            <div id="dynamicQuestions" style="margin-top:8px;"></div>
+            <div id="dynamicQuestions" style="margin-top:12px;"></div>
         </div>
 
         <!-- 3. HISTORY OF PRESENTING COMPLAINT -->
         <div class="form-section" data-section="hpc">
             <h3>📝 History of Presenting Complaint (HPC)</h3>
-            <textarea id="hpc" rows="3" placeholder="Chronological narrative: onset, progression, associated symptoms, treatments tried, impact on feeding/activity..."></textarea>
+            <div class="field-hint">💡 Chronological narrative: onset, progression, associated symptoms, treatments tried, impact on feeding/activity...</div>
+            <textarea id="hpc" rows="4" placeholder=""></textarea>
         </div>
 
-        <!-- 4. REVIEW OF SYSTEMS (moved after HPC) -->
+        <!-- 4. REVIEW OF SYSTEMS (without 'General') -->
         <div class="form-section" data-section="ros">
             <h3>🩺 Review of Systems (Pediatric)</h3>
             <div id="rosContainer"></div>
@@ -396,9 +409,9 @@
         <div class="form-section" data-section="pmh">
             <h3>📜 Past Medical History</h3>
             <div class="demographics-grid">
-                <div><label>Past illnesses</label><textarea id="pmh" rows="2" placeholder="Previous illnesses: Malaria, Pneumonia, TB, Asthma, Heart disease, Surgery, Hospitalisations..."></textarea></div>
-                <div><label>Current medications</label><textarea id="medications" rows="2" placeholder="All current medications with doses and frequency..."></textarea></div>
-                <div><label>Allergies</label><textarea id="allergies" rows="2" placeholder="Drug allergies, food allergies, reactions..."></textarea></div>
+                <div><label>Past illnesses</label><div class="field-hint">💡 Previous illnesses: Malaria, Pneumonia, TB, Asthma, Heart disease, Surgery, Hospitalisations...</div><textarea id="pmh" rows="2" placeholder=""></textarea></div>
+                <div><label>Current medications</label><div class="field-hint">💡 All current medications with doses and frequency...</div><textarea id="medications" rows="2" placeholder=""></textarea></div>
+                <div><label>Allergies</label><div class="field-hint">💡 Drug allergies, food allergies, reactions...</div><textarea id="allergies" rows="2" placeholder=""></textarea></div>
             </div>
             <div class="expand-hiv" onclick="toggleHIVDetails()">
                 <span style="font-weight: 600;">🩸 HIV History <span style="color: #e74c3c;">(Click to expand/collapse)</span></span><span style="float: right;">▼</span>
@@ -410,7 +423,7 @@
                     <div><label>How was HIV Diagnosed?</label><select id="hivDiagnosisMethod"><option value="">Select method</option><option>Rapid Test (HIV 1/2)</option><option>Determine + Stat-Pak + UniGold</option><option>DNA PCR (for <18 months)</option><option>Western Blot</option></select></div>
                     <div><label>WHO Clinical Stage at Diagnosis:</label><select id="hivWhoStage"><option value="">Select stage</option><option>Stage 1 - Asymptomatic</option><option>Stage 2 - Mild symptoms</option><option>Stage 3 - Advanced symptoms</option><option>Stage 4 - AIDS defining illness</option></select></div>
                 </div>
-                <h4 style="margin:8px 0 4px 0; color:#1b7e6b; font-size:0.9rem;">💊 Antiretroviral Therapy (ART)</h4>
+                <h4 style="margin:12px 0 6px 0; color:#1b7e6b; font-size:1.05rem;">💊 Antiretroviral Therapy (ART)</h4>
                 <div class="demographics-grid">
                     <div><label>On ART?</label><select id="hivOnArt" onchange="toggleARTDetails()"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
                     <div><label>ART Start Date:</label><input type="text" id="hivArtStartDate" placeholder="DD/MM/YYYY"></div>
@@ -423,19 +436,19 @@
                         <div><label>Barriers to Adherence:</label><input type="text" id="hivAdherenceBarriers" placeholder="Forgetfulness, side effects..."></div>
                     </div>
                 </div>
-                <h4 style="margin:8px 0 4px 0; color:#1b7e6b; font-size:0.9rem;">📊 Laboratory Monitoring</h4>
+                <h4 style="margin:12px 0 6px 0; color:#1b7e6b; font-size:1.05rem;">📊 Laboratory Monitoring</h4>
                 <div class="demographics-grid">
                     <div><label>Most Recent CD4 Count:</label><input type="text" id="hivCd4" placeholder="cells/µL"></div>
                     <div><label>Date of CD4:</label><input type="text" id="hivCd4Date" placeholder="DD/MM/YYYY"></div>
                     <div><label>Most Recent Viral Load:</label><input type="text" id="hivViralLoad" placeholder="copies/mL"></div>
                     <div><label>Date of Viral Load:</label><input type="text" id="hivVlDate" placeholder="DD/MM/YYYY"></div>
                 </div>
-                <h4 style="margin:8px 0 4px 0; color:#1b7e6b; font-size:0.9rem;">🩺 Opportunistic Infections</h4>
+                <h4 style="margin:12px 0 6px 0; color:#1b7e6b; font-size:1.05rem;">🩺 Opportunistic Infections</h4>
                 <div>
-                    <div style="display:flex; flex-wrap:wrap; gap:4px;"><label style="font-size:0.75rem;"><input type="checkbox" value="TB"> TB</label><label style="font-size:0.75rem;"><input type="checkbox" value="Cryptococcal Meningitis"> Cryptococcal Meningitis</label><label style="font-size:0.75rem;"><input type="checkbox" value="PCP"> PCP Pneumonia</label><label style="font-size:0.75rem;"><input type="checkbox" value="Esophageal Candidiasis"> Esophageal Candidiasis</label><label style="font-size:0.75rem;"><input type="checkbox" value="KS"> Kaposi's Sarcoma</label><label style="font-size:0.75rem;"><input type="checkbox" value="CMV"> CMV Retinitis</label></div>
-                    <div style="margin-top:4px;"><label>IPT (Isoniazid Preventive Therapy):</label><select id="hivIpt" style="font-size:0.8rem;"><option value="">Select status</option><option>Completed 6 months</option><option>Currently on IPT</option><option>Not started</option></select></div>
-                    <div style="margin-top:4px;"><label>Cotrimoxazole Preventive Therapy (CPT):</label><select id="hivCpt" style="font-size:0.8rem;"><option value="">Select status</option><option>Currently on CPT</option><option>Not on CPT</option><option>Allergic/Contraindicated</option></select></div>
-                    <div style="margin-top:4px;"><label>Partner/Family HIV Status:</label><input type="text" id="hivPartnerStatus" placeholder="Partner HIV status, children's status, disclosure" style="font-size:0.8rem;"></div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;"><label style="font-size:0.9rem;"><input type="checkbox" value="TB"> TB</label><label style="font-size:0.9rem;"><input type="checkbox" value="Cryptococcal Meningitis"> Cryptococcal Meningitis</label><label style="font-size:0.9rem;"><input type="checkbox" value="PCP"> PCP Pneumonia</label><label style="font-size:0.9rem;"><input type="checkbox" value="Esophageal Candidiasis"> Esophageal Candidiasis</label><label style="font-size:0.9rem;"><input type="checkbox" value="KS"> Kaposi's Sarcoma</label><label style="font-size:0.9rem;"><input type="checkbox" value="CMV"> CMV Retinitis</label></div>
+                    <div style="margin-top:6px;"><label>IPT (Isoniazid Preventive Therapy):</label><select id="hivIpt" style="font-size:0.95rem;"><option value="">Select status</option><option>Completed 6 months</option><option>Currently on IPT</option><option>Not started</option></select></div>
+                    <div style="margin-top:6px;"><label>Cotrimoxazole Preventive Therapy (CPT):</label><select id="hivCpt" style="font-size:0.95rem;"><option value="">Select status</option><option>Currently on CPT</option><option>Not on CPT</option><option>Allergic/Contraindicated</option></select></div>
+                    <div style="margin-top:6px;"><label>Partner/Family HIV Status:</label><input type="text" id="hivPartnerStatus" placeholder="Partner HIV status, children's status, disclosure" style="font-size:0.95rem;"></div>
                 </div>
             </div>
         </div>
@@ -444,18 +457,19 @@
         <div class="form-section" data-section="birth">
             <h3>🤱 Birth History</h3>
             <div class="demographics-grid">
-                <div><label>Antenatal course</label><textarea id="antenatal" rows="2" placeholder="Gestational age, complications, medications"></textarea></div>
-                <div><label>Delivery</label><textarea id="delivery" rows="2" placeholder="Mode, place, resuscitation"></textarea></div>
-                <div><label>Birth weight (kg)</label><input type="number" step="0.01" id="birthWeight"></div>
-                <div><label>Neonatal complications</label><textarea id="neonatalComp" rows="2" placeholder="Jaundice, sepsis, admission"></textarea></div>
+                <div><label>Antenatal course</label><div class="field-hint">💡 Gestational age, complications, medications</div><textarea id="antenatal" rows="2" placeholder=""></textarea></div>
+                <div><label>Delivery</label><div class="field-hint">💡 Mode, place, resuscitation</div><textarea id="delivery" rows="2" placeholder=""></textarea></div>
+                <div><label>Birth weight (kg)</label><input type="number" step="0.01" id="birthWeight" placeholder="e.g. 3.2"></div>
+                <div><label>Neonatal complications</label><div class="field-hint">💡 Jaundice, sepsis, admission</div><textarea id="neonatalComp" rows="2" placeholder=""></textarea></div>
             </div>
         </div>
 
-        <!-- 7. DEVELOPMENTAL MILESTONES -->
+        <!-- 7. DEVELOPMENTAL MILESTONES (expanded) -->
         <div class="form-section" data-section="milestones">
             <h3>🧸 Developmental Milestones</h3>
             <div class="toggle-pill-group" id="milestonesContainer"></div>
-            <textarea id="milestoneNotes" rows="2" placeholder="Additional concerns..."></textarea>
+            <div class="field-hint">💡 Additional concerns about development</div>
+            <textarea id="milestoneNotes" rows="2" placeholder=""></textarea>
             <div id="milestoneWarning" class="milestone-warning">⚠️ Warning: This milestone is not expected at this age (child is too young).</div>
         </div>
 
@@ -469,35 +483,39 @@
         <div class="form-section" data-section="nutrition">
             <h3>🍼 Nutrition & Growth</h3>
             <div class="demographics-grid">
-                <div><label>Feeding history</label><textarea id="feedingHistory" rows="2" placeholder="Breastfeeding, formula, complementary foods"></textarea></div>
-                <div><label>Current weight (kg)</label><input type="number" step="0.1" id="weight" oninput="updateGrowthChart()"></div>
-                <div><label>Height/length (cm)</label><input type="number" step="0.1" id="height"></div>
-                <div><label>MUAC (cm) [6–59 months]</label><input type="number" step="0.1" id="muac" oninput="updateMuac()"></div>
+                <div><label>Feeding history</label><div class="field-hint">💡 Breastfeeding, formula, complementary foods</div><textarea id="feedingHistory" rows="2" placeholder=""></textarea></div>
+                <div><label>Current weight (kg)</label><input type="number" step="0.1" id="weight" oninput="updateGrowthChart()" placeholder="e.g. 8.5"></div>
+                <div><label>Height/length (cm)</label><input type="number" step="0.1" id="height" placeholder="e.g. 72"></div>
+                <div><label>MUAC (cm) [6–59 months]</label><input type="number" step="0.1" id="muac" oninput="updateMuac()" placeholder="e.g. 13.5"></div>
             </div>
             <div id="muacFeedback" class="muac-feedback"></div>
-            <div class="growth-chart-container"><canvas id="growthChart" width="400" height="200"></canvas><p style="font-size:0.75rem; text-align:center;">Weight-for-age (WHO 0–60 months)</p></div>
+            <div class="growth-chart-container">
+                <canvas id="growthChart" width="400" height="200"></canvas>
+                <p style="font-size:0.9rem; text-align:center;">Weight-for-age (WHO 0–60 months)</p>
+                <div class="growth-chart-note">
+                    <strong>📊 Significance of Growth Chart:</strong> Plotting weight-for-age helps identify acute malnutrition (wasting) and chronic malnutrition (stunting). 
+                    A downward crossing of two major centile lines is a red flag. In Uganda, growth monitoring is a key component of the Child Health Card.
+                    Always interpret in context of the child’s age, sex, and clinical condition.
+                </div>
+            </div>
         </div>
 
-        <!-- 10. DANGER SIGNS -->
-        <div class="form-section" data-section="danger-signs">
-            <h3>🚨 Danger Signs (Red Flags)</h3>
-            <div class="toggle-pill-group" id="dangerSignsContainer"></div>
-        </div>
-
-        <!-- 11. SOCIAL & FAMILY HISTORY (now before Physical Exam) -->
+        <!-- 10. SOCIAL & FAMILY HISTORY (now before Physical Exam) -->
         <div class="form-section" data-section="social">
             <h3>🏠 Social & Family History</h3>
-            <textarea id="socialHistory" rows="2" placeholder="Living conditions, smoking in home, school, travel, pets..."></textarea>
-            <textarea id="familyHistory" rows="2" placeholder="Family history of chronic diseases, TB, HIV, congenital conditions..." class="mt-2"></textarea>
+            <div class="field-hint">💡 Living conditions, smoking in home, school, travel, pets...</div>
+            <textarea id="socialHistory" rows="2" placeholder=""></textarea>
+            <div class="field-hint" style="margin-top:8px;">💡 Family history of chronic diseases, TB, HIV, congenital conditions...</div>
+            <textarea id="familyHistory" rows="2" placeholder=""></textarea>
         </div>
 
-        <!-- 12. PHYSICAL EXAMINATION (moved after Social & Family) -->
+        <!-- 11. PHYSICAL EXAMINATION (moved after Social & Family) -->
         <div class="form-section" data-section="exam-general">
             <h3>❤️ Physical Examination</h3>
             <div id="examContainer" class="exam-grid"></div>
         </div>
 
-        <!-- 13. CLINICAL PHOTOGRAPHY (Camera) -->
+        <!-- 12. CLINICAL PHOTOGRAPHY (Camera) -->
         <div class="form-section" data-section="camera">
             <h3>📸 Clinical Photography</h3>
             <div class="camera-section">
@@ -518,24 +536,25 @@
             </div>
         </div>
 
-        <!-- 14. MANAGEMENT PLAN -->
+        <!-- 13. MANAGEMENT PLAN -->
         <div class="form-section" data-section="plan">
             <h3>📋 Assessment & Plan</h3>
-            <textarea id="managementPlan" rows="3" placeholder="Diagnosis, investigations, treatment, follow-up"></textarea>
+            <div class="field-hint">💡 Diagnosis, investigations, treatment, follow-up</div>
+            <textarea id="managementPlan" rows="4" placeholder=""></textarea>
         </div>
 
         <!-- Summary section -->
         <div class="form-section" id="summarySection" style="display:none;">
             <h3>📄 Clinical Summary & Ward Round</h3>
             <div class="summary-tabs">
-                <div class="summary-document"><h4 style="font-size:0.85rem;">Complete Summary</h4><div id="clinicalSummary" class="clinical-summary"></div>
+                <div class="summary-document"><h4 style="font-size:1rem;">Complete Summary</h4><div id="clinicalSummary" class="clinical-summary"></div>
                 <button class="btn-generate" onclick="copyToClipboard('clinicalSummary')" style="background:#3498db;">Copy Summary</button></div>
-                <div class="summary-document"><h4 style="font-size:0.85rem;">5‑Line Ward Round</h4><div id="wardRoundSummary" class="clinical-summary"></div>
+                <div class="summary-document"><h4 style="font-size:1rem;">5‑Line Ward Round</h4><div id="wardRoundSummary" class="clinical-summary"></div>
                 <button class="btn-generate" onclick="copyToClipboard('wardRoundSummary')" style="background:#2a9d8f;">Copy Ward Round</button></div>
             </div>
         </div>
 
-        <div class="form-section" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div class="form-section" style="display: flex; gap: 12px; flex-wrap: wrap;">
             <button class="btn-generate" onclick="generateClinicalSummary()" style="flex:1;">Generate Summary + Ward Round</button>
             <button class="btn-generate" onclick="window.location.href='easemed_admin_dashboard.html'" style="background: #8e44ad; flex:0.5;">🔐 Admin</button>
             <button class="btn-generate" onclick="savePatient()" style="background:#2c6e49; flex:0.5;">Save Record</button>
@@ -651,28 +670,29 @@ function togglePill(el) {
     }
 }
 
-// ==================== MILESTONES, DANGER SIGNS ====================
+// ==================== MILESTONES (expanded & chronological) ====================
 const milestonesData = [
-    { value: "Social smile by 2m", minAge: 2, label: "Social smile (by 2m)" },
-    { value: "Holds head up by 3m", minAge: 3, label: "Holds head up (3m)" },
-    { value: "Sits without support by 8m", minAge: 8, label: "Sits unsupported (8m)" },
-    { value: "Crawls by 10m", minAge: 10, label: "Crawls (10m)" },
-    { value: "Walks alone by 18m", minAge: 18, label: "Walks alone (18m)" },
-    { value: "Speaks single words by 18m", minAge: 18, label: "Speaks single words (18m)" },
-    { value: "Any regression", minAge: null, label: "⚠️ Regression (red flag)" }
+    { value: "Holds head up (3 months)", minAge: 3, label: "Holds head up (3m)" },
+    { value: "Social smile (6 weeks–2 months)", minAge: 2, label: "Social smile (by 2m)" },
+    { value: "Reaches for objects (4 months)", minAge: 4, label: "Reaches for objects (4m)" },
+    { value: "Sits without support (6–8 months)", minAge: 6, label: "Sits unsupported (6–8m)" },
+    { value: "Crawls (8–10 months)", minAge: 8, label: "Crawls (8–10m)" },
+    { value: "Pulls to stand (9–12 months)", minAge: 9, label: "Pulls to stand (9–12m)" },
+    { value: "Walks holding furniture (12–14 months)", minAge: 12, label: "Walks holding furniture (12–14m)" },
+    { value: "Walks alone (15–18 months)", minAge: 15, label: "Walks alone (15–18m)" },
+    { value: "Speaks first words (12–18 months)", minAge: 12, label: "First words (12–18m)" },
+    { value: "Runs (24 months)", minAge: 24, label: "Runs (24m)" },
+    { value: "Speaks simple sentences (24–30 months)", minAge: 24, label: "Simple sentences (24–30m)" },
+    { value: "Any regression (loss of skills)", minAge: null, label: "⚠️ Regression (red flag)" }
 ];
-const dangerSignsData = ["Lethargy/unconscious","Convulsions","Unable to drink/breastfeed","Vomiting everything","Stridor","Severe dehydration","Severe malnutrition (wasting)","Fast breathing (age‑specific)"];
+
+// Danger Signs removed — no longer used
 
 function buildTogglePills() {
     const milestonesContainer = document.getElementById('milestonesContainer');
     milestonesContainer.innerHTML = '';
     milestonesData.forEach(m => {
         const pill = document.createElement('button'); pill.type = 'button'; pill.className = 'toggle-pill'; pill.setAttribute('data-value', m.value); if (m.minAge !== null) pill.setAttribute('data-min-age', m.minAge); pill.textContent = m.label; pill.onclick = () => togglePill(pill); milestonesContainer.appendChild(pill);
-    });
-    const dangerContainer = document.getElementById('dangerSignsContainer');
-    dangerContainer.innerHTML = '';
-    dangerSignsData.forEach(ds => {
-        const pill = document.createElement('button'); pill.type = 'button'; pill.className = 'toggle-pill'; pill.setAttribute('data-value', ds); pill.textContent = ds; pill.onclick = () => togglePill(pill); dangerContainer.appendChild(pill);
     });
 }
 
@@ -690,9 +710,8 @@ function checkMilestoneWarnings() {
     warningDiv.style.display = tooYoung ? 'block' : 'none';
 }
 
-// ==================== REVIEW OF SYSTEMS ====================
+// ==================== REVIEW OF SYSTEMS (without 'General') ====================
 const pedsROS = {
-    general: { name: "General", icon: "🌡️", common: ["Fever","Fatigue","Poor appetite","Night sweats","Weight loss"] },
     resp: { name: "Respiratory", icon: "💨", common: ["Cough","Fast breathing","Wheeze","Chest indrawing","Nasal flaring"] },
     cardio: { name: "Cardiovascular", icon: "❤️", common: ["Poor feeding","Sweating while feeding","Bluish spells","Swollen feet"] },
     git: { name: "Gastrointestinal", icon: "🍽️", common: ["Diarrhoea","Vomiting","Abdominal pain","Constipation","Blood in stool"] },
@@ -704,7 +723,7 @@ function buildROS() {
     const container = document.getElementById('rosContainer');
     let html = '<div class="ros-grid">';
     for (const [key, sys] of Object.entries(pedsROS)) {
-        html += `<div class="ros-card" data-system="${key}"><div class="ros-card-header" onclick="toggleROS('${key}')"><div class="ros-icon">${sys.icon}</div><div class="ros-title"><strong>${sys.name}</strong><small></small></div><div class="ros-chevron">▼</div></div><div class="ros-content" id="ros-content-${key}"><div class="toggle-pill-group" id="ros-pills-${key}"></div><textarea class="ros-narrative" placeholder="Additional details..." oninput="updateProgress()"></textarea></div></div>`;
+        html += `<div class="ros-card" data-system="${key}"><div class="ros-card-header" onclick="toggleROS('${key}')"><div class="ros-icon">${sys.icon}</div><div class="ros-title"><strong>${sys.name}</strong><small></small></div><div class="ros-chevron">▼</div></div><div class="ros-content" id="ros-content-${key}"><div class="toggle-pill-group" id="ros-pills-${key}"></div><div class="field-hint" style="margin:4px 0;">💡 Additional details about this system</div><textarea class="ros-narrative" placeholder=""></textarea></div></div>`;
     }
     html += '</div>';
     container.innerHTML = html;
@@ -835,17 +854,17 @@ function buildExamCards() {
                 contentHtml += `<div class="exam-step-label">${step.name}</div><div class="toggle-pill-group">${step.pills.map(p => `<button type="button" class="toggle-pill" data-value="${p}">${p}</button>`).join('')}</div>`;
             });
             if (sys.murmurDetails) {
-                contentHtml += `<div><label style="font-size:0.65rem;">Murmur details (grade, location, radiation, timing):</label><input type="text" id="exam-${key}-murmur" class="exam-notes" style="min-height:auto; padding:4px;" placeholder="e.g., Grade 2/6 systolic murmur at LLSB"></div>`;
+                contentHtml += `<div><label style="font-size:0.8rem;">Murmur details (grade, location, radiation, timing):</label><input type="text" id="exam-${key}-murmur" class="exam-notes" style="min-height:auto; padding:8px;" placeholder="e.g., Grade 2/6 systolic murmur at LLSB"></div>`;
             }
             if (sys.hepatomegalySize) {
-                contentHtml += `<div><label style="font-size:0.65rem;">Hepatomegaly size (cm below costal margin):</label><input type="text" id="exam-${key}-hepatomegaly" placeholder="e.g., 3 cm" style="font-size:0.75rem;"></div><div><label style="font-size:0.65rem;">Spleen size (cm below costal margin):</label><input type="text" id="exam-${key}-spleen" placeholder="e.g., not palpable" style="font-size:0.75rem;"></div>`;
+                contentHtml += `<div><label style="font-size:0.8rem;">Hepatomegaly size (cm below costal margin):</label><input type="text" id="exam-${key}-hepatomegaly" placeholder="e.g., 3 cm" style="font-size:0.95rem;"></div><div><label style="font-size:0.8rem;">Spleen size (cm below costal margin):</label><input type="text" id="exam-${key}-spleen" placeholder="e.g., not palpable" style="font-size:0.95rem;"></div>`;
             }
             if (sys.rashDesc) {
-                contentHtml += `<div><label style="font-size:0.65rem;">Rash description (appearance, distribution):</label><input type="text" id="exam-${key}-rash" class="exam-notes" placeholder="e.g., maculopapular on trunk" style="font-size:0.75rem;"></div>`;
+                contentHtml += `<div><label style="font-size:0.8rem;">Rash description (appearance, distribution):</label><input type="text" id="exam-${key}-rash" class="exam-notes" placeholder="e.g., maculopapular on trunk" style="font-size:0.95rem;"></div>`;
             }
         }
         if (sys.hasGcs) {
-            contentHtml += `<div><label style="font-size:0.65rem;">Glasgow Coma Scale (3-15):</label><input type="number" id="gcs" min="3" max="15" class="gcs-input" placeholder="15" oninput="updateProgress()"></div>`;
+            contentHtml += `<div><label style="font-size:0.8rem;">Glasgow Coma Scale (3-15):</label><input type="number" id="gcs" min="3" max="15" class="gcs-input" placeholder="15" oninput="updateProgress()"></div>`;
         }
         if (sys.hasAvpu) {
             contentHtml += `<div class="exam-step-label">AVPU</div><div class="toggle-pill-group avpu-group" id="avpu-group">`;
@@ -856,7 +875,7 @@ function buildExamCards() {
             contentHtml += `</div>`;
         }
         if (sys.freeText) {
-            contentHtml += `<textarea id="exam-${key}-notes" class="exam-notes" placeholder="Additional notes..."></textarea>`;
+            contentHtml += `<div class="field-hint" style="margin:4px 0;">💡 Additional notes</div><textarea id="exam-${key}-notes" class="exam-notes" placeholder=""></textarea>`;
         }
         contentHtml += `</div>`;
         card.innerHTML = headerHtml + contentHtml;
@@ -1477,7 +1496,7 @@ const pediatricSymptomGuides = {
 };
 
 // ============================================================
-// EXTRA GUIDES FOR NEW SYMPTOM BUTTONS (keys must match onclick strings exactly)
+// EXTRA GUIDES FOR NEW SYMPTOM BUTTONS
 // ============================================================
 const extraGuides = {
     "abdominal distension": {
@@ -1650,9 +1669,7 @@ const extraGuides = {
     }
 };
 
-// ============================================================
-// MERGE EXTRA GUIDES INTO MAIN
-// ============================================================
+// Merge extra guides into main
 Object.assign(pediatricSymptomGuides, extraGuides);
 
 // ============================================================
@@ -1663,20 +1680,20 @@ function displayQuestions(symptom) {
     const container = document.getElementById('dynamicQuestions');
     if (!container) return;
     if (guide) {
-        let html = `<div style="background:#f0f7ff; padding:12px; border-radius:10px;">
-                            <h4 style="font-size:0.95rem;">${guide.title}</h4>
-                            <small style="font-size:0.7rem;">${guide.chapter}</small>
-                            <div style="margin-top:6px; font-style:italic; background:#e6f7f0; padding:5px 8px; border-radius:6px; font-size:0.8rem;">💡 ${guide.intro}</div>`;
+        let html = `<div style="background:#f0f7ff; padding:14px; border-radius:12px;">
+                            <h4 style="font-size:1.05rem;">${guide.title}</h4>
+                            <small style="font-size:0.8rem;">${guide.chapter}</small>
+                            <div style="margin-top:8px; font-style:italic; background:#e6f7f0; padding:6px 12px; border-radius:8px; font-size:0.9rem;">💡 ${guide.intro}</div>`;
         guide.questions.forEach((item, idx) => {
             const cluePills = item.clues.map((clue, cidx) => {
                 const selectedClass = (symptomDetails[symptom] && symptomDetails[symptom][`q${idx}`] === clue.label) ? 'selected' : '';
                 return `<span class="clue-pill ${selectedClass}" data-question="${idx}" data-value="${clue.label}" onclick="toggleCluePill(this, '${symptom}', ${idx}, '${clue.label}')" style="border-left-color: ${clue.color}; border-left-width: 4px;">${clue.label}</span>`;
             }).join('');
             const extraNoteValue = (symptomDetails[symptom] && symptomDetails[symptom][`q${idx}_note`]) || '';
-            html += `<div style="margin-bottom:10px; border-top:1px solid #cbd5e1; padding-top:6px;">
-                            <label style="font-weight:700; font-size:0.8rem;">${item.q}</label>
+            html += `<div style="margin-bottom:14px; border-top:1px solid #cbd5e1; padding-top:10px;">
+                            <label style="font-weight:700; font-size:0.95rem;">${item.q}</label>
                             <div class="ros-hint">${item.hint}</div>
-                            <div style="margin:3px 0;">${cluePills}</div>
+                            <div style="margin:4px 0;">${cluePills}</div>
                             <textarea class="symptom-extra-note" data-question="${idx}" placeholder="Additional notes..." oninput="saveExtraNote(this, '${symptom}', ${idx})">${escapeHtml(extraNoteValue)}</textarea>
                          </div>`;
         });
@@ -1730,7 +1747,7 @@ function setCustomSymptom() {
                     let questionsList = '';
                     guide.questions.forEach(q => { questionsList += `<li>${q.q}</li>`; });
                     guidanceHtml = `<div class="guidance-tip"><strong>📖 ${guide.title}</strong><br>${guide.chapter}</div>
-                                        <div class="guidance-tip"><strong>🎯 Key questions</strong><ul style="margin-top:3px; margin-left:14px;">${questionsList}</ul></div>
+                                        <div class="guidance-tip"><strong>🎯 Key questions</strong><ul style="margin-top:4px; margin-left:16px;">${questionsList}</ul></div>
                                         <div class="guidance-tip"><strong>💡 Intro</strong><br>${guide.intro}</div>
                                         <div class="alert warning"><strong>🚨 RED FLAGS</strong><br>${guide.redFlags.join('<br>')}</div>
                                         <div class="guidance-tip"><strong>💎 Clinical Tips</strong><br>${guide.tips.join('<br>')}</div>`;
@@ -1775,7 +1792,7 @@ function setSymptom(btn, symptom) {
         guide.questions.forEach(q => { questionsList += `<li>${q.q}</li>`; });
         guidanceHtml = `
                 <div class="guidance-tip"><strong>📖 ${guide.title}</strong><br>${guide.chapter}</div>
-                <div class="guidance-tip"><strong>🎯 Key questions</strong><ul style="margin-top:3px; margin-left:14px;">${questionsList}</ul></div>
+                <div class="guidance-tip"><strong>🎯 Key questions</strong><ul style="margin-top:4px; margin-left:16px;">${questionsList}</ul></div>
                 <div class="guidance-tip"><strong>💡 Intro</strong><br>${guide.intro}</div>
                 <div class="alert warning"><strong>🚨 RED FLAGS</strong><br>${guide.redFlags.join('<br>')}</div>
                 <div class="guidance-tip"><strong>💎 Clinical Tips</strong><br>${guide.tips.join('<br>')}</div>
@@ -1891,7 +1908,7 @@ function removeAllImages() {
 // ==================== CAPTURE / RESTORE ====================
 function captureFormData() {
     const milestones = Array.from(document.querySelectorAll('#milestonesContainer .toggle-pill.active')).map(p => p.getAttribute('data-value'));
-    const redFlags = Array.from(document.querySelectorAll('#dangerSignsContainer .toggle-pill.active')).map(p => p.getAttribute('data-value'));
+    const redFlags = []; // removed danger signs
     const immunizations = [];
     document.querySelectorAll('.vaccine-item').forEach(item => {
         const cb = item.querySelector('.vaccine-cb');
@@ -1960,7 +1977,7 @@ function captureFormData() {
         weight: document.getElementById('weight').value,
         height: document.getElementById('height').value,
         muac: document.getElementById('muac').value,
-        redFlags,
+        redFlags: [], // removed
         socialHistory: document.getElementById('socialHistory').value,
         familyHistory: document.getElementById('familyHistory').value,
         managementPlan: document.getElementById('managementPlan').value,
@@ -2025,11 +2042,6 @@ function restoreFormData(data) {
     document.querySelectorAll('#milestonesContainer .toggle-pill').forEach(pill => {
         const val = pill.getAttribute('data-value');
         if (data.milestones && data.milestones.includes(val)) pill.classList.add('active');
-        else pill.classList.remove('active');
-    });
-    document.querySelectorAll('#dangerSignsContainer .toggle-pill').forEach(pill => {
-        const val = pill.getAttribute('data-value');
-        if (data.redFlags && data.redFlags.includes(val)) pill.classList.add('active');
         else pill.classList.remove('active');
     });
     if (data.immunizations) {
@@ -2174,7 +2186,7 @@ async function savePatient() {
                     weight: formData.weight,
                     height: formData.height,
                     muac: formData.muac,
-                    danger_signs: formData.redFlags,
+                    danger_signs: [], // removed
                     ros_data: formData.rosData,
                     exam_data: formData.examData,
                     captured_images: formData.capturedImages,
@@ -2279,7 +2291,6 @@ function exportToWord() {
         <div><span class="label">Weight:</span> ${escapeHtml(formData.weight)} kg</div>
         <div><span class="label">Height:</span> ${escapeHtml(formData.height)} cm</div>
         <div><span class="label">MUAC:</span> ${escapeHtml(formData.muac)} cm</div></div>
-        <div class="section"><h2>Danger Signs</h2><div>${escapeHtml(formData.redFlags?.join(', ') || 'None')}</div></div>
         <div class="section"><h2>Review of Systems</h2>${Object.entries(pedsROS).map(([key, sys]) => {
             const ros = formData.rosData?.[key] || { selected: [], narrative: '' };
             return `<div><strong>${sys.name}:</strong> ${ros.selected.join(', ')} ${ros.narrative}</div>`;
@@ -2346,7 +2357,7 @@ function importRecords(event) {
 
 function generateClinicalSummary() {
     const data = captureFormData();
-    const redFlagsList = data.redFlags.join(', ') || 'None';
+    const redFlagsList = 'None'; // removed
     const milestonesAchieved = data.milestones.join(', ') || 'None';
     const immunizationsGiven = data.immunizations.map(i => `${i.vaccine}`).join(', ') || 'None';
     const pcHtml = data.currentSymptom ? `<div><strong>Presenting symptom:</strong> ${data.currentSymptom}</div><div>${Object.values(data.pcResponses).join('; ')}</div>` : '';
@@ -2396,7 +2407,6 @@ function generateClinicalSummary() {
             <div><strong>Milestones:</strong> ${milestonesAchieved} | Notes: ${data.milestoneNotes}</div>
             <div><strong>Immunizations:</strong> ${immunizationsGiven}</div>
             <div><strong>Growth:</strong> Wt ${data.weight}kg, Ht ${data.height}cm, MUAC ${data.muac}cm</div>
-            <div><strong>Danger signs:</strong> ${redFlagsList}</div>
             <div><strong>ROS:</strong><br>${rosText}</div>
             <div><strong>Physical Examination:</strong><br>${examHtml}</div>
             ${cameraHtml}
