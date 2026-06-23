@@ -2086,15 +2086,85 @@
           }
 
           // ── MAIN ANALYSIS PIPELINE ─────────────────────────────────────
-          window.runDocumentAnalysis = async function() {
-            if (docAnalysing || !docImages.length) return;
+         window.runDocumentAnalysis = async function() {
+    if (docAnalysing || !docImages.length) return;
 
-            const visionKey = document.getElementById('visionApiKey').value.trim();
-            if (!visionKey) {
-              docShowError('Please enter your Google Cloud Vision API key above.');
-              return;
+    // ─── Get authenticated session token ──────────────────────────────
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+        docShowError('You must be logged in to use AI features.');
+        return;
+    }
+
+    const token = session.access_token;
+
+    docAnalysing = true;
+    docSetLoading(true, 'Sending document to Vision OCR...');
+    docHideAll();
+
+    try {
+        // ─── Call your Edge Function ──────────────────────────────────
+        const response = await fetch(
+            `${SUPABASE_URL}/functions/v1/vision-ocr`,  // your deployed function name
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    images: docImages   // array of base64 data URLs
+                })
             }
+        );
 
+        if (!response.ok) {
+            let errorMsg = `Server error (${response.status})`;
+            try {
+                const errData = await response.json();
+                errorMsg = errData.error || errorMsg;
+            } catch (_) {}
+            throw new Error(errorMsg);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || 'OCR failed');
+        }
+
+        const allText = data.text;
+        if (!allText || allText.trim().length < 10) {
+            throw new Error('No readable text found in the document.');
+        }
+
+        document.getElementById('ocrText').value = allText;
+
+        // ─── Now proceed to Claude interpretation (if you have it) ──
+        docSetLoading(true, 'Sending to Claude for interpretation...');
+
+        // You can reuse your existing `interpretWithClaude` function
+        // but make sure it also uses the Edge Function with auth.
+        // We'll assume you have it:
+        const docType = document.getElementById('docTypeSelect').value;
+        const patientName = document.getElementById('patientName')?.value || '';
+        const age = document.getElementById('age')?.value || '';
+        const sex = document.getElementById('sex')?.value || '';
+        const complaint = document.getElementById('complaintVerbatim')?.value || '';
+
+        const claudeResult = await interpretWithClaude(allText, docType, { patientName, age, sex, complaint });
+
+        renderResults(allText, claudeResult, docType);
+
+    } catch (err) {
+        docShowError(err.message || 'Analysis failed. Please try again.');
+    } finally {
+        docAnalysing = false;
+        docSetLoading(false);
+    }
+};
             docAnalysing = true;
             docSetLoading(true, 'Step 1 of 2 — Extracting text from document...');
             docHideAll();
