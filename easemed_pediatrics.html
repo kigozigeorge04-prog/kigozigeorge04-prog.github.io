@@ -336,25 +336,112 @@
 
 <div class="container">
     <div class="clerking-panel" id="clerkingPanel">
-        <!-- 1. DEMOGRAPHICS -->
-        <div class="form-section" data-section="demographics">
-            <h3>📋 Child Demographics</h3>
-            <div class="demographics-grid">
-                <div><label>Full Name *</label><input type="text" id="childName" placeholder="Child's full name"></div>
-                <div><label>Age (months or years)</label><input type="text" id="childAge" placeholder="e.g., 14 months or 3 years" oninput="checkMilestoneWarnings(); checkVitals(); updateGrowthChart();"></div>
-                <div><label>Sex</label><select id="childSex"><option>Male</option><option>Female</option></select></div>
-                <div><label>Guardian/Parent</label><input type="text" id="guardian" placeholder="Parent/guardian name"></div>
-                <div><label>Contact Number</label><input type="text" id="contact" placeholder="Phone number"></div>
-                <div><label>Address / Village</label><input type="text" id="address" placeholder="Residence"></div>
-                <div><label>Nearest Health Centre</label><input type="text" id="nearestHc" placeholder="Health facility"></div>
-                <div><label>Referral Status</label><select id="referralStatus"><option>Self‑referred</option><option>Referred from HC</option><option>Referred from hospital</option></select></div>
+        
+       <!-- 1. DEMOGRAPHICS (expanded, without insurance) -->
+<div class="form-section" data-section="demographics">
+    <h3>📋 Child Demographics</h3>
+    <div class="card">
+        <div class="card-body">
+            <div class="grid-2">
+                <div>
+                    <label>Patient ID / File No.</label>
+                    <input type="text" id="patientId" placeholder="e.g. MUH-2025-0012">
+                </div>
+                <div>
+                    <label>Admission Date</label>
+                    <input type="date" id="admissionDate">
+                </div>
+                <div>
+                    <label>Child's Full Name *</label>
+                    <input type="text" id="childName" placeholder="Full name">
+                </div>
+                <div>
+                    <label>Date of Birth</label>
+                    <input type="date" id="dob" onchange="calculateAgeFromDOB()">
+                </div>
+                <div>
+                    <label>Age (years/months)</label>
+                    <input type="text" id="childAge" placeholder="e.g. 3 years 6 months" oninput="checkMilestoneWarnings(); checkVitals(); updateGrowthChart();">
+                </div>
+                <div>
+                    <label>Sex</label>
+                    <select id="childSex"><option>Male</option><option>Female</option></select>
+                </div>
+                <div>
+                    <label>Tribe / Ethnicity</label>
+                    <input type="text" id="tribe" placeholder="e.g. Muganda, Musoga, Munyankole">
+                </div>
+                <div>
+                    <label>Religion</label>
+                    <input type="text" id="religion" placeholder="e.g. Catholic, Protestant, Muslim">
+                </div>
+                <div>
+                    <label>Place of Birth</label>
+                    <input type="text" id="placeOfBirth" placeholder="Village / Hospital">
+                </div>
+                <div>
+                    <label>Guardian's Full Name</label>
+                    <input type="text" id="guardian" placeholder="Parent/guardian name">
+                </div>
+                <div>
+                    <label>Guardian Relationship</label>
+                    <input type="text" id="guardianRelation" placeholder="e.g. Mother, Father, Aunt">
+                </div>
+                <div>
+                    <label>Guardian Contact</label>
+                    <input type="text" id="contact" placeholder="Phone number">
+                </div>
+                <div>
+                    <label>Guardian Occupation</label>
+                    <input type="text" id="guardianOccupation" placeholder="e.g. Farmer, Teacher, Business">
+                </div>
+                <div>
+                    <label>Village / Cell</label>
+                    <input type="text" id="village" placeholder="e.g. Kireka">
+                </div>
+                <div>
+                    <label>Parish / Ward</label>
+                    <input type="text" id="parish" placeholder="e.g. Banda">
+                </div>
+                <div>
+                    <label>Sub‑County / Division</label>
+                    <input type="text" id="subCounty" placeholder="e.g. Nakawa">
+                </div>
+                <div>
+                    <label>District</label>
+                    <input type="text" id="district" placeholder="e.g. Kampala">
+                </div>
+                <div>
+                    <label>Nearest Health Centre</label>
+                    <input type="text" id="nearestHc" placeholder="Health facility name">
+                </div>
+                <div>
+                    <label>Referral Status</label>
+                    <select id="referralStatus">
+                        <option>Self‑referred</option>
+                        <option>Referred from HC</option>
+                        <option>Referred from hospital</option>
+                    </select>
+                </div>
             </div>
-            <div id="referralDetails" style="display:none; margin-top:10px;" class="demographics-grid">
-                <div><label>Referred from</label><input type="text" id="referralFrom" placeholder="Facility name"></div>
-                <div><label>Reason for referral</label><input type="text" id="referralReason" placeholder="Reason"></div>
+            <!-- Referral details (appears when not self-referred) -->
+            <div id="referralDetails" style="display:none; margin-top:12px;" class="grid-2">
+                <div>
+                    <label>Referred from</label>
+                    <input type="text" id="referralFrom" placeholder="Facility name">
+                </div>
+                <div>
+                    <label>Reason for referral</label>
+                    <input type="text" id="referralReason" placeholder="Reason">
+                </div>
+            </div>
+            <!-- Helper for DOB → Age -->
+            <div style="margin-top:8px; font-size:0.85rem; color: var(--text-secondary);">
+                <small>💡 If Date of Birth is entered, age will be auto‑calculated. You may also enter age manually.</small>
             </div>
         </div>
-
+    </div>
+</div>
         <!-- 2. PRESENTING COMPLAINT -->
         <div class="form-section" data-section="presenting-complaint">
             <h3>🩺 Presenting Complaint</h3>
@@ -967,7 +1054,34 @@ function restoreExamData(examData) {
 }
 
 // ==================== AGE-SPECIFIC VITALS ====================
-function getAgeCategory(ageMonths) {
+function calculateAgeFromDOB() {
+    const dobInput = document.getElementById('dob').value;
+    if (!dobInput) return;
+    const dob = new Date(dobInput);
+    if (isNaN(dob)) return;
+    const now = new Date();
+    let years = now.getFullYear() - dob.getFullYear();
+    let months = now.getMonth() - dob.getMonth();
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+    let ageString = '';
+    if (years > 0) ageString += years + ' year' + (years > 1 ? 's' : '');
+    if (months > 0) {
+        if (ageString) ageString += ' ';
+        ageString += months + ' month' + (months > 1 ? 's' : '');
+    }
+    if (!ageString) ageString = '< 1 month';
+    document.getElementById('childAge').value = ageString;
+    // Trigger dependent functions
+    checkMilestoneWarnings();
+    checkVitals();
+    updateGrowthChart();
+    updateProgress();
+}
+    
+    function getAgeCategory(ageMonths) {
     if (ageMonths < 1) return 'neonate';
     if (ageMonths < 12) return 'infant';
     if (ageMonths < 36) return 'toddler';
@@ -1929,18 +2043,33 @@ function captureFormData() {
             const val = document.getElementById(`pc_q${idx}`)?.value || '';
             if (val) pcResponses[`q${idx}`] = val;
         });
-    }
+    } 
+
+    
     const examData = captureExamData();
     const oiList = Array.from(document.querySelectorAll('#hivDetails input[type="checkbox"]:checked')).map(cb => cb.value);
 
     return {
+        // demographics
+        patientId: document.getElementById('patientId').value,
+        admissionDate: document.getElementById('admissionDate').value,
         childName: document.getElementById('childName').value,
+        dob: document.getElementById('dob').value,
         childAge: document.getElementById('childAge').value,
         childSex: document.getElementById('childSex').value,
+        tribe: document.getElementById('tribe').value,
+        religion: document.getElementById('religion').value,
+        placeOfBirth: document.getElementById('placeOfBirth').value,
         guardian: document.getElementById('guardian').value,
+        guardianRelation: document.getElementById('guardianRelation').value,
         contact: document.getElementById('contact').value,
-        address: document.getElementById('address').value,
+        guardianOccupation: document.getElementById('guardianOccupation').value,
+        village: document.getElementById('village').value,
+        parish: document.getElementById('parish').value,
+        subCounty: document.getElementById('subCounty').value,
+        district: document.getElementById('district').value,
         nearestHc: document.getElementById('nearestHc').value,
+        insuranceStatus: document.getElementById('insuranceStatus').value,
         referralStatus: document.getElementById('referralStatus').value,
         referralFrom: document.getElementById('referralFrom').value,
         referralReason: document.getElementById('referralReason').value,
@@ -1989,13 +2118,25 @@ function captureFormData() {
 
 function restoreFormData(data) {
     if (!data) return;
+    document.getElementById('patientId').value = data.patientId || '';
+    document.getElementById('admissionDate').value = data.admissionDate || '';
     document.getElementById('childName').value = data.childName || '';
+    document.getElementById('dob').value = data.dob || '';
     document.getElementById('childAge').value = data.childAge || '';
     document.getElementById('childSex').value = data.childSex || 'Male';
+    document.getElementById('tribe').value = data.tribe || '';
+    document.getElementById('religion').value = data.religion || '';
+    document.getElementById('placeOfBirth').value = data.placeOfBirth || '';
     document.getElementById('guardian').value = data.guardian || '';
+    document.getElementById('guardianRelation').value = data.guardianRelation || '';
     document.getElementById('contact').value = data.contact || '';
-    document.getElementById('address').value = data.address || '';
+    document.getElementById('guardianOccupation').value = data.guardianOccupation || '';
+    document.getElementById('village').value = data.village || '';
+    document.getElementById('parish').value = data.parish || '';
+    document.getElementById('subCounty').value = data.subCounty || '';
+    document.getElementById('district').value = data.district || '';
     document.getElementById('nearestHc').value = data.nearestHc || '';
+    document.getElementById('insuranceStatus').value = data.insuranceStatus || 'None';
     document.getElementById('referralStatus').value = data.referralStatus || 'Self‑referred';
     document.getElementById('referralFrom').value = data.referralFrom || '';
     document.getElementById('referralReason').value = data.referralReason || '';
