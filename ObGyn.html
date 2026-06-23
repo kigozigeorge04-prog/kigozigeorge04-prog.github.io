@@ -7,6 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
   </script>
   <style>
+    
     :root {
       --bg: #f7f9fb; --surface: #ffffff; --border: #dde3ea;
       --primary: #1a5f7a; --primary-light: #e8f4f8; --accent: #e05c2a;
@@ -236,6 +237,91 @@
     .save-toast.show { transform: translateX(-50%) translateY(0); }
     .save-toast.error { background: var(--danger); }
     .save-toast.warning { background: #e67e22; }
+
+    /* Clinical Summary Modal */
+.summary-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 9999;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+.summary-modal-overlay.open {
+  display: flex;
+}
+.summary-modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 780px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+  overflow: hidden;
+  margin: auto;
+}
+.summary-modal-header {
+  background: linear-gradient(135deg, #1a5f7a, #6a3d9a);
+  color: #fff;
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.summary-modal-header h3 { font-size: 1.1rem; font-weight: 700; }
+.summary-modal-header .modal-actions { display: flex; gap: 0.6rem; }
+.summary-modal-body {
+  padding: 1.5rem;
+  max-height: 70vh;
+  overflow-y: auto;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: #1c2b36;
+}
+.summary-section {
+  margin-bottom: 1.2rem;
+  border-left: 4px solid var(--primary);
+  padding-left: 1rem;
+}
+.summary-section.gyn { border-left-color: var(--gyn-color); }
+.summary-section.obs { border-left-color: var(--obs-color); }
+.summary-section.pe  { border-left-color: var(--pe-color); }
+.summary-section-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+.summary-section p { margin: 0.15rem 0; }
+.summary-section strong { color: #1a5f7a; }
+.btn-download {
+  background: linear-gradient(135deg, #1a7a4a, #2ecc71);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.btn-close-modal {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
   </style>
 </head>
 <body>
@@ -247,8 +333,7 @@
     <div class="topbar-subtitle" id="topbarSubtitle">ObGyn Clerkship</div>
   </div>
   <div class="topbar-right">
-    <button class="btn-outline-white" onclick="savePatient()">💾 Save Record</button>
-    <button class="btn-outline-white" onclick="window.location.href='easemed_index.html'">← Dashboard</button>
+    <button class="btn-outline-white" onclick="savePatient()">💾 Save Record</button><button class="btn-outline-white" onclick="window.location.href='easemed_dashboard.html'">← Dashboard</button>
   </div>
 </nav>
 <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:12%;"></div></div>
@@ -2595,7 +2680,10 @@
 <!-- Footer -->
 <div class="footer-nav">
   <div class="step-indicator">Step <strong id="stepNum">1</strong> of 13 — <span id="stepLabel">Demographics & History</span></div>
-  <button class="btn-primary" onclick="goNext()">Complete History →</button>
+  <div style="display:flex; gap:0.6rem;">
+    <button class="btn-secondary" onclick="generateSummary()" style="background:linear-gradient(135deg,#6a3d9a,#b5006e); color:#fff; border:none;">📋 Generate Summary</button>
+    <button class="btn-primary" onclick="goNext()">Complete History →</button>
+  </div>
 </div>
 
 <!-- Save Toast -->
@@ -3514,6 +3602,209 @@
   window.toggleReferral = toggleReferral;
   window.checkAge = checkAge;
   window.updateProgress = updateProgress;
+  // ============================================================
+// GENERATE CLINICAL SUMMARY
+// ============================================================
+function generateSummary() {
+  const g = id => (document.getElementById(id)?.value || '').trim();
+  const radio = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
+  const checkboxList = selector => Array.from(document.querySelectorAll(selector + ':checked')).map(c => c.value).join(', ');
+
+  // ROS summary
+  const rosData = getRosData();
+  const rosSummary = Object.entries(rosData).map(([sys, d]) => {
+    const parts = [];
+    if (d.present.length) parts.push(`Present: ${d.present.join(', ')}`);
+    if (d.absent.length) parts.push(`Absent: ${d.absent.join(', ')}`);
+    if (d.other) parts.push(`Other: ${d.other}`);
+    return parts.length ? `<p><strong>${sys.toUpperCase()}:</strong> ${parts.join(' | ')}</p>` : '';
+  }).join('');
+
+  // PE summary
+  const peData = getPeData();
+  const peSummary = Object.entries(peData).map(([sys, d]) => {
+    const narrative = d.narrative || (d.present.length ? d.present.join(', ') : 'Not recorded');
+    return `<p><strong>${sys.toUpperCase()}:</strong> ${narrative}</p>`;
+  }).join('');
+
+  // ANC meds
+  const ancMeds = getAncMedications().join(', ') || 'None documented';
+
+  // Contraception
+  const contraception = checkboxList('#contraceptionGroup input[type="checkbox"]') || 'Not documented';
+
+  const now = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+  const html = `
+    <div style="text-align:center; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:2px solid #dde3ea;">
+      <div style="font-size:1.1rem; font-weight:800; color:#1a5f7a;">EaseMed — ObGyn Clerkship</div>
+      <div style="font-size:0.8rem; color:#6b7f8c; margin-top:0.2rem;">Clinical Summary generated ${now}</div>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-section-title">1. Patient Demographics</div>
+      <p><strong>Name:</strong> ${g('patientName') || '—'}</p>
+      <p><strong>Age:</strong> ${g('age') || '—'} years</p>
+      <p><strong>IP/OP No:</strong> ${g('ipNumber') || '—'}</p>
+      <p><strong>Address:</strong> ${g('address') || '—'}</p>
+      <p><strong>Occupation:</strong> ${g('occupation') || '—'} &nbsp;|&nbsp; <strong>Tribe:</strong> ${g('tribe') || '—'}</p>
+      <p><strong>Religion:</strong> ${g('religion') || '—'} &nbsp;|&nbsp; <strong>Education:</strong> ${g('education') || '—'}</p>
+      <p><strong>Admission Date:</strong> ${g('admissionDate') || '—'}</p>
+      <p><strong>Next of Kin:</strong> ${g('nokName') || '—'} (${g('nokRelationship') || '—'}) — ${g('nokContact') || '—'}</p>
+    </div>
+
+    <div class="summary-section obs">
+      <div class="summary-section-title">2. Obstetric Details</div>
+      <p><strong>Gravida:</strong> ${g('gravida') || '—'} &nbsp;|&nbsp; <strong>Parity:</strong> ${g('parity') || '—'}</p>
+      <p><strong>LNMP:</strong> ${g('lnmp') || '—'} &nbsp;|&nbsp; <strong>EDD:</strong> ${g('edd') || '—'} &nbsp;|&nbsp; <strong>WOA:</strong> ${g('woa') || '—'}</p>
+      <p><strong>PMTCT Status:</strong> ${radio('hivStatus') || '—'} &nbsp;|&nbsp; <strong>ARV Regimen:</strong> ${g('arvRegimen') || 'N/A'}</p>
+      <p><strong>Referral:</strong> ${radio('referred') || '—'} ${g('referralFacility') ? '— ' + g('referralFacility') : ''}</p>
+      <p><strong>Nearest Facility:</strong> ${g('nearestFacility') || '—'}</p>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-section-title">3. Presenting Complaint</div>
+      <p><strong>Complaint (patient's words):</strong> "${g('complaintVerbatim') || '—'}"</p>
+      <p><strong>Duration:</strong> ${g('durationValue') || '—'} ${g('durationUnit') || ''}</p>
+      <p><strong>Category:</strong> ${g('complaintCategory') || '—'}</p>
+      <p><strong>Onset:</strong> ${radio('onset') || '—'} &nbsp;|&nbsp; <strong>Course:</strong> ${radio('course') || '—'}</p>
+      ${g('associatedComplaints') ? `<p><strong>Associated complaints:</strong> ${g('associatedComplaints')}</p>` : ''}
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-section-title">4. History of Presenting Complaint</div>
+      <p>${g('hpcNarrative') || '—'}</p>
+      ${g('hpcSite') ? `<p><strong>SOCRATES —</strong> Site: ${g('hpcSite')} | Onset: ${g('hpcOnset')} | Character: ${g('hpcCharacter')} | Radiation: ${g('hpcRadiation')} | Severity: ${g('hpcSeverity')}/10 | Time: ${g('hpcTime')} | Exacerbating: ${g('hpcExacerbating')} | Relieving: ${g('hpcRelieving')} | Associations: ${g('hpcAssociations')}</p>` : ''}
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-section-title">5. Review of Systems</div>
+      ${rosSummary || '<p>Not recorded</p>'}
+    </div>
+
+    <div class="summary-section obs">
+      <div class="summary-section-title">6. Obstetric History</div>
+      <p><strong>Previous pregnancies:</strong> ${g('prevPregnancies') || '—'}</p>
+      <p><strong>Previous CS:</strong> ${g('prevCS') || '0'} &nbsp;|&nbsp; <strong>Previous abortions:</strong> ${g('prevAbortions') || '0'}</p>
+      <p><strong>Previous obstetric complications:</strong> ${g('prevObsComplications') || 'None'}</p>
+      <p><strong>ANC visits so far:</strong> ${g('ancTotalVisits') || '—'} &nbsp;|&nbsp; <strong>First ANC at:</strong> ${g('ancFirstWeeks') || '—'} weeks</p>
+      <p><strong>ANC facility:</strong> ${g('ancFacility') || '—'}</p>
+      <p><strong>ANC medications:</strong> ${ancMeds}</p>
+      ${g('ancFindings') ? `<p><strong>ANC findings:</strong> ${g('ancFindings')}</p>` : ''}
+      ${g('ancUltrasound') ? `<p><strong>USS findings:</strong> ${g('ancUltrasound')}</p>` : ''}
+    </div>
+
+    <div class="summary-section gyn">
+      <div class="summary-section-title">7. Gynaecological History</div>
+      <p><strong>Last smear:</strong> ${g('lastSmear') || '—'}</p>
+      ${g('gynConditions') ? `<p><strong>Gyn conditions:</strong> ${g('gynConditions')}</p>` : ''}
+      ${g('gynSurgeries') ? `<p><strong>Gyn surgeries:</strong> ${g('gynSurgeries')}</p>` : ''}
+      ${g('sexualHistory') ? `<p><strong>Sexual history:</strong> ${g('sexualHistory')}</p>` : ''}
+    </div>
+
+    <div class="summary-section menstrual">
+      <div class="summary-section-title">8. Menstrual History</div>
+      <p><strong>Menarche:</strong> ${g('menarche') || '—'} years &nbsp;|&nbsp; <strong>LMP:</strong> ${g('lmpDate') || '—'}</p>
+      <p><strong>Cycle:</strong> ${g('cycleLength') || '—'} &nbsp;|&nbsp; <strong>Duration:</strong> ${g('flowDuration') || '—'} &nbsp;|&nbsp; <strong>Flow:</strong> ${g('flowAmount') || '—'}</p>
+      <p><strong>Dysmenorrhoea:</strong> ${g('dysmenorrhoea') || '—'} &nbsp;|&nbsp; <strong>Status:</strong> ${radio('menstrualStatus') || '—'}</p>
+      ${g('menstrualNotes') ? `<p>${g('menstrualNotes')}</p>` : ''}
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-section-title">9. Contraceptive History</div>
+      <p><strong>Current method:</strong> ${contraception}</p>
+      ${g('previousContraception') ? `<p><strong>Previous methods:</strong> ${g('previousContraception')}</p>` : ''}
+    </div>
+
+    <div class="summary-section pmh">
+      <div class="summary-section-title">10. Past Medical & Surgical History</div>
+      ${g('chronicConditions') ? `<p><strong>Chronic conditions:</strong> ${g('chronicConditions')}</p>` : ''}
+      ${g('currentMeds') ? `<p><strong>Medications:</strong> ${g('currentMeds')}</p>` : ''}
+      <p><strong>Allergies:</strong> ${g('allergies') || 'None known'}</p>
+      ${g('transfusionHistory') ? `<p><strong>Transfusion history:</strong> ${g('transfusionHistory')}</p>` : ''}
+      ${g('previousSurgeries') ? `<p><strong>Previous surgeries:</strong> ${g('previousSurgeries')}</p>` : ''}
+    </div>
+
+    <div class="summary-section social">
+      <div class="summary-section-title">11. Social & Family History</div>
+      ${g('livingSituation') ? `<p><strong>Living situation:</strong> ${g('livingSituation')}</p>` : ''}
+      <p><strong>Smoking:</strong> ${radio('smoking') || '—'} &nbsp;|&nbsp; <strong>Alcohol:</strong> ${radio('alcohol') || '—'}</p>
+      ${g('familyConditions') ? `<p><strong>Family history:</strong> ${g('familyConditions')}</p>` : ''}
+    </div>
+
+    <div class="summary-section pe">
+      <div class="summary-section-title">12. Physical Examination</div>
+      ${peSummary || '<p>Not recorded</p>'}
+    </div>
+
+    <div style="margin-top:1.5rem; padding-top:1rem; border-top:2px solid #dde3ea; font-size:0.78rem; color:#6b7f8c; text-align:center;">
+      Generated by EaseMed Clinical Clerkship Tool &nbsp;|&nbsp; ${now} &nbsp;|&nbsp; <em>For educational use only</em>
+    </div>
+  `;
+
+  document.getElementById('summaryContent').innerHTML = html;
+  document.getElementById('summaryModal').classList.add('open');
+}
+
+function closeSummaryModal() {
+  document.getElementById('summaryModal').classList.remove('open');
+}
+
+// Close modal on overlay click
+document.getElementById('summaryModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSummaryModal();
+});
+
+// ============================================================
+// DOWNLOAD SUMMARY AS PDF
+// ============================================================
+function downloadSummaryPDF() {
+  const content = document.getElementById('summaryContent').innerHTML;
+  const name = document.getElementById('patientName')?.value.trim() || 'patient';
+  const date = new Date().toISOString().split('T')[0];
+  const filename = `obgyn_summary_${name.replace(/\s+/g,'_')}_${date}.html`;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ObGyn Summary — ${name}</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1c2b36; line-height: 1.7; padding: 2cm; max-width: 800px; margin: 0 auto; }
+    .summary-section { margin-bottom: 1.2rem; border-left: 4px solid #1a5f7a; padding-left: 1rem; page-break-inside: avoid; }
+    .summary-section-title { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #6b7f8c; margin-bottom: 0.4rem; }
+    p { margin: 0.15rem 0; }
+    strong { color: #1a5f7a; }
+    @media print { body { padding: 1cm; } }
+  </style>
+</head>
+<body>${content}</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  showToast('⬇️ Downloaded', `Saved as ${filename}. Open in browser → Print → Save as PDF.`, 'success');
+}
 </script>
+<!-- CLINICAL SUMMARY MODAL -->
+<div class="summary-modal-overlay" id="summaryModal">
+  <div class="summary-modal">
+    <div class="summary-modal-header">
+      <h3>📋 ObGyn Clinical Summary</h3>
+      <div class="modal-actions">
+        <button class="btn-download" onclick="downloadSummaryPDF()">⬇️ Download PDF</button>
+        <button class="btn-close-modal" onclick="closeSummaryModal()">✕ Close</button>
+      </div>
+    </div>
+    <div class="summary-modal-body" id="summaryContent"></div>
+  </div>
+</div>
+              
 </body>
 </html>
