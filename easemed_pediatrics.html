@@ -5,339 +5,346 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>EaseMed - Pediatric Clerking Module</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1b7e6b">
+    <meta name="theme-color" content="#0E6B5C">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EaseMed Peds">
     <meta name="description" content="EaseMed Pediatric Clerking — structured history, birth, milestones, immunisations, growth monitoring">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* ======= READABLE STYLES (larger fonts) ======= */
+        /* ============================================================
+           EASEMED DESIGN SYSTEM — "Chart Tabs"
+           A clinical record reads like a tabbed paper chart: a spine of
+           labeled dividers on the left, ledger-style serif headings for
+           each section, and monospace numerals wherever a measurement
+           is recorded (vitals, growth, MUAC) so clinical figures are
+           always visually distinct from prose.
+           ============================================================ */
+        :root {
+            --ink: #16302A;
+            --ink-soft: #45564F;
+            --muted: #748079;
+            --paper: #F8F6EF;
+            --card: #FFFFFF;
+            --line: #DEE3D9;
+            --primary: #0E6B5C;
+            --primary-dark: #0A4F44;
+            --primary-tint: #E7F1ED;
+            --accent: #D98E33;
+            --accent-tint: #FBF0DE;
+            --danger: #B23A32;
+            --danger-tint: #FBE9E6;
+            --good: #2C7A4B;
+            --good-tint: #E6F3EA;
+            --font-display: 'Fraunces', Georgia, serif;
+            --font-body: 'Inter', 'Segoe UI', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --radius: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 10px 30px -14px rgba(22,48,42,0.22);
+            --shadow-lg: 0 24px 60px -20px rgba(22,48,42,0.28);
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
-            font-family: 'Segoe UI', 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0b3b2f 0%, #1c6e5e 50%, #2a9d8f 100%);
+            font-family: var(--font-body);
+            background: var(--paper);
+            background-image:
+                radial-gradient(circle at 100% 0%, rgba(14,107,92,0.06), transparent 45%),
+                radial-gradient(circle at 0% 100%, rgba(217,142,51,0.05), transparent 40%);
             min-height: 100vh;
             padding: 18px;
             position: relative;
             font-size: 16px;
+            color: var(--ink);
         }
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.03)" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x bottom;
+        ::selection { background: var(--primary); color: white; }
+        :focus-visible { outline: 2.5px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+        .layout { max-width: 1680px; margin: 0 auto; display: grid; grid-template-columns: 64px 1fr 0.85fr; gap: 20px; align-items: start; position: relative; }
+
+        /* ---------- Section spine (tab nav) ---------- */
+        .section-spine {
+            position: sticky;
+            top: 70px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 5;
+        }
+        .spine-tab {
+            width: 64px;
+            height: 64px;
+            border-radius: var(--radius-sm);
+            background: var(--card);
+            border: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all .18s ease;
+            position: relative;
+            color: var(--ink-soft);
+        }
+        .spine-tab::after {
+            content: attr(data-label);
+            position: absolute;
+            left: 72px;
+            top: 50%;
+            transform: translateY(-50%) translateX(-6px);
+            background: var(--ink);
+            color: #fff;
+            font-family: var(--font-body);
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 6px 11px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
             pointer-events: none;
-            z-index: 0;
+            transition: all .15s ease;
         }
-        .container { max-width: 1600px; margin: 0 auto; display: grid; grid-template-columns: 1fr 0.9fr; gap: 24px; position: relative; z-index: 1; }
-        .clerking-panel, .guidance-panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 24px; box-shadow: 0 15px 40px -12px rgba(0,0,0,0.2); overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .clerking-panel:hover, .guidance-panel:hover { transform: translateY(-3px); box-shadow: 0 20px 50px -15px rgba(0,0,0,0.25); }
-        .panel-header { background: linear-gradient(135deg, #1b7e6b 0%, #2a9d8f 100%); color: white; padding: 22px 28px; position: relative; overflow: hidden; }
-        .panel-header::before { content: '👶'; position: absolute; right: -20px; top: -20px; font-size: 120px; opacity: 0.1; pointer-events: none; }
-        .panel-header h1 { font-size: 1.8rem; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
-        .panel-header p { opacity: 0.9; font-size: 1rem; }
-        .form-section { padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.06); transition: background 0.2s; }
-        .form-section:hover { background: rgba(30,110,94,0.03); }
-        .form-section h3 { color: #1b7e6b; margin-bottom: 16px; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 2px solid #1b7e6b; display: inline-block; }
-        .demographics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-        label { display: block; margin-bottom: 4px; font-weight: 600; color: #2d6a4f; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, textarea, select { width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; transition: all 0.2s; background: white; }
-        input:focus, textarea:focus, select:focus { outline: none; border-color: #2a9d8f; box-shadow: 0 0 0 3px rgba(42,157,143,0.1); }
-        .symptom-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; max-height: 220px; overflow-y: auto; padding: 4px; }
+        .spine-tab:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+        .spine-tab:hover { border-color: var(--primary); color: var(--primary); transform: translateX(2px); }
+        .spine-tab.active { background: var(--primary); border-color: var(--primary); color: white; box-shadow: var(--shadow); }
+
+        .container { display: contents; }
+        .clerking-panel, .guidance-panel { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--line); }
+
+        .panel-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); color: white; padding: 26px 30px; position: relative; overflow: hidden; }
+        .panel-header::before { content: '👶'; position: absolute; right: -10px; top: -24px; font-size: 130px; opacity: 0.12; pointer-events: none; }
+        .panel-header h1 { font-family: var(--font-display); font-weight: 600; font-size: 2rem; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; letter-spacing: 0.2px; }
+        .panel-header p { opacity: 0.88; font-size: 0.98rem; }
+
+        .form-section { padding: 26px 30px; border-bottom: 1px solid var(--line); transition: background 0.2s; scroll-margin-top: 80px; }
+        .form-section:hover { background: rgba(14,107,92,0.025); }
+        .form-section h3 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 18px;
+            font-size: 1.42rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+            display: inline-flex;
+        }
+        .demographics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        label { display: block; margin-bottom: 5px; font-weight: 700; color: var(--ink-soft); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.6px; font-family: var(--font-body); }
+        input, textarea, select {
+            width: 100%; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: var(--radius-sm);
+            font-size: 1rem; font-family: var(--font-body); transition: all 0.2s; background: #fff; color: var(--ink);
+        }
+        input[type="number"], #weight, #height, #muac, #hr, #rr, #temp, #spo2, #gcs { font-family: var(--font-mono); font-weight: 600; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,107,92,0.12); }
+
+        .symptom-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; max-height: 230px; overflow-y: auto; padding: 4px; }
         .symptom-btn {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border: none;
-            padding: 8px 16px;
+            background: var(--primary-tint);
+            border: 1.5px solid transparent;
+            padding: 9px 16px;
             border-radius: 30px;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #2d3748;
+            transition: all 0.15s;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--primary-dark);
             white-space: nowrap;
+            font-family: var(--font-body);
         }
-        .symptom-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(42,157,143,0.25); background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%); color: white; }
-        .symptom-btn.active { background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%); color: white; box-shadow: 0 6px 14px rgba(42,157,143,0.3); transform: scale(1.05); }
-        .btn-generate { background: linear-gradient(135deg, #2a9d8f 0%, #1b7e6b 100%); color: white; border: none; padding: 14px 28px; border-radius: 40px; cursor: pointer; font-size: 1.05rem; font-weight: bold; width: 100%; margin-top: 10px; transition: all 0.3s; }
-        .btn-generate:hover { transform: scale(1.02); box-shadow: 0 8px 24px rgba(42,157,143,0.35); }
-        .records-panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 24px; box-shadow: 0 15px 40px -12px rgba(0,0,0,0.2); overflow: hidden; margin-top: 24px; grid-column: 1 / -1; }
-        .records-header { background: linear-gradient(135deg, #1b7e6b, #2a9d8f); color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-        .records-header h2 { font-size: 1.2rem; display: flex; align-items: center; gap: 8px; margin: 0; }
+        .symptom-btn:hover { background: var(--primary); color: white; transform: translateY(-1px); }
+        .symptom-btn.active { background: var(--ink); border-color: var(--ink); color: white; box-shadow: var(--shadow); }
+
+        .btn-generate {
+            background: var(--primary); color: white; border: none; padding: 15px 28px;
+            border-radius: 40px; cursor: pointer; font-size: 1.02rem; font-weight: 700;
+            width: 100%; margin-top: 10px; transition: all 0.2s; font-family: var(--font-body);
+        }
+        .btn-generate:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow); }
+
+        /* ---------- Records ---------- */
+        .records-panel { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-top: 22px; grid-column: 1 / -1; border: 1px solid var(--line); }
+        .records-header { background: var(--ink); color: white; padding: 18px 26px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .records-header h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; display: flex; align-items: center; gap: 8px; margin: 0; }
         .records-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .btn-record { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        .btn-record { padding: 9px 16px; border: none; border-radius: var(--radius-sm); font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; font-family: var(--font-body); }
         .btn-record:hover { opacity: 0.85; }
-        .btn-save { background: #2c6e49; color: white; }
-        .btn-new { background: #e67e22; color: white; }
-        .btn-export { background: #8e44ad; color: white; }
-        .btn-import { background: #2980b9; color: white; }
-        .records-body { padding: 18px 24px; }
-        .records-search { width: 100%; padding: 10px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; margin-bottom: 14px; outline: none; }
-        .records-search:focus { border-color: #2a9d8f; }
-        .records-empty { text-align: center; color: #a0aec0; padding: 24px; font-size: 0.95rem; }
-        .patient-card { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 12px 18px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-        .patient-card:hover { border-color: #2a9d8f; box-shadow: 0 3px 12px rgba(42,157,143,0.08); }
+        .btn-save { background: var(--good); color: white; }
+        .btn-new { background: var(--accent); color: white; }
+        .btn-export { background: #6B4C9A; color: white; }
+        .btn-import { background: #2E6DA8; color: white; }
+        .records-body { padding: 22px 26px; }
+        .records-search { width: 100%; padding: 11px 16px; border: 1.5px solid var(--line); border-radius: var(--radius-sm); font-size: 0.95rem; margin-bottom: 16px; outline: none; font-family: var(--font-body); }
+        .records-search:focus { border-color: var(--primary); }
+        .records-empty { text-align: center; color: var(--muted); padding: 28px; font-size: 0.95rem; font-family: var(--font-display); font-size: 1.05rem; }
+        #recordsList { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+        .patient-card { background: var(--paper); border: 1.5px solid var(--line); border-radius: var(--radius-sm); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; transition: all .15s; }
+        .patient-card:hover { border-color: var(--primary); box-shadow: var(--shadow); transform: translateY(-2px); }
         .patient-card-info { flex: 1; min-width: 0; }
-        .patient-card-name { font-weight: 700; color: #1b7e6b; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .patient-card-meta { font-size: 0.8rem; color: #718096; margin-top: 2px; }
+        .patient-card-name { font-weight: 700; color: var(--primary-dark); font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-display); }
+        .patient-card-meta { font-size: 0.78rem; color: var(--muted); margin-top: 3px; font-family: var(--font-mono); }
         .patient-card-btns { display: flex; gap: 6px; }
-        .btn-card { padding: 5px 12px; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .btn-card { padding: 6px 13px; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: var(--font-body); }
         .btn-card:hover { opacity: 0.8; }
-        .btn-load { background: #ebf5fb; color: #2a9d8f; }
-        .btn-delete { background: #fdf2f2; color: #e53e3e; }
-        .save-toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: #2a9d8f; color: white; padding: 12px 28px; border-radius: 14px; font-weight: 600; font-size: 1rem; box-shadow: 0 6px 20px rgba(0,0,0,0.15); z-index: 99999; transition: transform 0.3s cubic-bezier(.175,.885,.32,1.275); pointer-events: none; }
+        .btn-load { background: var(--primary-tint); color: var(--primary-dark); }
+        .btn-delete { background: var(--danger-tint); color: var(--danger); }
+
+        .save-toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--ink); color: white; padding: 13px 28px; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.98rem; box-shadow: var(--shadow-lg); z-index: 99999; transition: transform 0.3s cubic-bezier(.175,.885,.32,1.275); pointer-events: none; font-family: var(--font-body); }
         .save-toast.show { transform: translateX(-50%) translateY(0); }
-        .progress-bar { height: 4px; background: linear-gradient(90deg, #2a9d8f, #f4d35e, #e76f51); position: fixed; top: 0; left: 0; width: 0%; z-index: 1000; transition: width 0.3s; }
-        .floating-tip { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #2a9d8f, #1b7e6b); color: white; padding: 10px 18px; border-radius: 40px; font-size: 0.9rem; cursor: pointer; z-index: 100; animation: bounce 2s infinite; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
-        @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        .alert { background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%); border-left: 5px solid #ffc107; padding: 14px 18px; border-radius: 12px; margin-bottom: 14px; font-size: 0.95rem; }
-        .alert.warning { background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); border-left-color: #dc3545; }
-        .vaccine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-top: 8px; }
-        .vaccine-item { background: #f8fafc; border-radius: 8px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; border: 1px solid #e2e8f0; font-size: 0.9rem; }
-        .vaccine-item input[type="checkbox"] { width: 20px; transform: scale(1); accent-color: #2a9d8f; margin: 0; }
-        .muac-feedback { margin-top: 8px; padding: 8px; border-radius: 10px; font-weight: bold; text-align: center; font-size: 0.95rem; }
-        .muac-green { background: #d1fae5; color: #065f46; }
-        .muac-yellow { background: #fef9c3; color: #854d0e; }
-        .muac-red { background: #fee2e2; color: #991b1b; }
-        .growth-chart-container { margin-top: 14px; background: white; border-radius: 12px; padding: 12px; border: 1px solid #e2e8f0; }
-        .growth-chart-note { font-size: 0.9rem; color: #2d6a4f; background: #e8f4f8; padding: 10px 14px; border-radius: 8px; margin-top: 8px; border-left: 4px solid #2a9d8f; }
+        .progress-bar { height: 4px; background: linear-gradient(90deg, var(--primary), var(--accent)); position: fixed; top: 0; left: 0; width: 0%; z-index: 1000; transition: width 0.3s; }
+
+        .alert { background: var(--accent-tint); border-left: 4px solid var(--accent); padding: 14px 18px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 0.95rem; color: var(--ink); }
+        .alert.warning { background: var(--danger-tint); border-left-color: var(--danger); }
+
+        .vaccine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-top: 8px; }
+        .vaccine-item { background: var(--paper); border-radius: var(--radius-sm); padding: 8px 12px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); font-size: 0.88rem; transition: all .15s; }
+        .vaccine-item:has(.vaccine-cb:checked) { background: var(--good-tint); border-color: var(--good); }
+        .vaccine-item input[type="checkbox"] { width: 19px; height: 19px; accent-color: var(--primary); margin: 0; }
+
+        .muac-feedback { margin-top: 10px; padding: 10px; border-radius: var(--radius-sm); font-weight: 700; text-align: center; font-size: 0.95rem; font-family: var(--font-mono); }
+        .muac-green { background: var(--good-tint); color: var(--good); }
+        .muac-yellow { background: var(--accent-tint); color: #8a5a13; }
+        .muac-red { background: var(--danger-tint); color: var(--danger); }
+
+        .growth-chart-container { margin-top: 16px; background: #fff; border-radius: var(--radius-sm); padding: 14px; border: 1px solid var(--line); }
+        .growth-chart-note { font-size: 0.88rem; color: var(--ink-soft); background: var(--primary-tint); padding: 10px 14px; border-radius: var(--radius-sm); margin-top: 10px; border-left: 4px solid var(--primary); }
+
         .ros-grid, .exam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 12px; }
-        .ros-card, .exam-card { background: white; border-radius: 12px; border: 1px solid #dbe7ef; box-shadow: 0 4px 14px rgba(15,32,39,0.05); overflow: hidden; }
-        .ros-card-header, .exam-card-header { padding: 12px 16px; background: #f7fbfd; display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .ros-icon, .exam-icon { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg, #2a9d8f, #1b7e6b); color: white; font-weight: bold; font-size: 1.2rem; flex-shrink: 0; }
-        .ros-title strong, .exam-title strong { display: block; color: #1b7e6b; font-size: 1rem; }
+        .ros-card, .exam-card { background: #fff; border-radius: var(--radius-sm); border: 1px solid var(--line); box-shadow: 0 4px 14px rgba(22,48,42,0.04); overflow: hidden; }
+        .ros-card-header, .exam-card-header { padding: 13px 16px; background: var(--paper); display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .ros-icon, .exam-icon { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--primary); color: white; font-weight: bold; font-size: 1.2rem; flex-shrink: 0; }
+        .ros-title strong, .exam-title strong { display: block; color: var(--primary-dark); font-size: 1rem; font-family: var(--font-display); font-weight: 600; }
         .ros-title small, .exam-title small { font-size: 0.7rem; opacity: 0.7; }
-        .ros-chevron, .exam-chevron { margin-left: auto; transition: transform 0.2s; }
+        .ros-chevron, .exam-chevron { margin-left: auto; transition: transform 0.2s; color: var(--muted); }
         .ros-card.expanded .ros-chevron, .exam-card.expanded .exam-chevron { transform: rotate(180deg); }
-        .ros-content, .exam-content { display: none; padding: 14px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+        .ros-content, .exam-content { display: none; padding: 16px; background: #fff; border-top: 1px solid var(--line); }
         .ros-content.active, .exam-content.active { display: block; }
+
         .toggle-pill-group { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
         .toggle-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 5px 12px;
-            border-radius: 20px;
-            border: 1.5px solid #e2e8f0;
-            background: #f8fafc;
-            color: #4a5568;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-            user-select: none;
-            line-height: 1.4;
+            display: inline-flex; align-items: center; gap: 4px; padding: 6px 13px; border-radius: 20px;
+            border: 1.5px solid var(--line); background: var(--paper); color: var(--ink-soft);
+            font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.15s; user-select: none; line-height: 1.4;
+            font-family: var(--font-body);
         }
-        .toggle-pill.active {
-            background: #2a9d8f;
-            border-color: #2a9d8f;
-            color: white;
-            box-shadow: 0 2px 8px rgba(42,157,143,0.25);
-        }
+        .toggle-pill.active { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 2px 8px rgba(14,107,92,0.25); }
         .toggle-pill.active::before { content: "✓ "; }
-        .toggle-pill-group.avpu-group .toggle-pill.active { background: #e76f51; border-color: #e76f51; }
-        .ros-narrative, .exam-notes { width: 100%; margin: 6px 0; resize: vertical; min-height: 60px; font-size: 0.95rem; padding: 8px 12px; }
-        .clinical-summary { background: #e8f4f8; padding: 16px 20px; border-radius: 12px; margin-top: 10px; font-size: 0.95rem; line-height: 1.7; }
+        .toggle-pill-group.avpu-group .toggle-pill.active { background: var(--accent); border-color: var(--accent); }
+        .ros-narrative, .exam-notes { width: 100%; margin: 6px 0; resize: vertical; min-height: 60px; font-size: 0.95rem; padding: 9px 12px; }
+
+        .clinical-summary { background: var(--primary-tint); padding: 18px 20px; border-radius: var(--radius-sm); margin-top: 10px; font-size: 0.95rem; line-height: 1.75; }
         .summary-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
-        .summary-document { background: white; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; }
-        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } .demographics-grid { grid-template-columns: 1fr; } .guidance-panel { position: static; margin-top: 16px; } .summary-tabs { grid-template-columns: 1fr; } .ros-grid, .exam-grid { grid-template-columns: 1fr; } }
+        .summary-document { background: #fff; border-radius: var(--radius-sm); padding: 18px; border: 1px solid var(--line); }
+        .summary-document h4 { font-family: var(--font-display); font-weight: 600; }
+
+        @media (max-width: 1024px) {
+            .layout { grid-template-columns: 1fr; }
+            .section-spine { position: static; flex-direction: row; overflow-x: auto; top: auto; width: 100%; padding-bottom: 4px; }
+            .spine-tab::after { display: none; }
+            .demographics-grid { grid-template-columns: 1fr; }
+            .guidance-panel { position: static; margin-top: 16px; }
+            .summary-tabs { grid-template-columns: 1fr; }
+            .ros-grid, .exam-grid { grid-template-columns: 1fr; }
+        }
         @media (min-width: 1025px) {
-            .guidance-panel { position: sticky; top: 60px; max-height: calc(100vh - 70px); overflow-y: auto; }
+            .guidance-panel { position: sticky; top: 70px; max-height: calc(100vh - 80px); overflow-y: auto; }
         }
-        #authBar { position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(15,32,39,0.92); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: space-between; padding: 8px 20px; font-family: 'Segoe UI', sans-serif; font-size: 0.95rem; }
-        .ros-hint { font-size: 0.8rem; color: #2a9d8f; margin-top: 4px; font-style: italic; }
-        .milestone-warning { background: #fef9c3; color: #854d0e; padding: 8px 14px; border-radius: 8px; margin-top: 6px; display: none; font-size: 0.9rem; }
-        .guidance-header { background: linear-gradient(135deg, #1b7e6b 0%, #2a9d8f 100%); color: white; padding: 18px 24px; }
-        .guidance-header h2 { font-size: 1.4rem; margin-bottom: 4px; }
-        .guidance-header p { opacity: 0.9; font-size: 0.95rem; }
-        .guidance-content { padding: 16px; }
+
+        #authBar { position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: rgba(22,48,42,0.95); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; padding: 10px 22px; font-family: var(--font-body); font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .ros-hint { font-size: 0.78rem; color: var(--primary); margin-top: 4px; font-style: italic; }
+        .milestone-warning { background: var(--accent-tint); color: #8a5a13; padding: 10px 14px; border-radius: var(--radius-sm); margin-top: 8px; display: none; font-size: 0.9rem; }
+
+        .guidance-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); color: white; padding: 20px 24px; }
+        .guidance-header h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.45rem; margin-bottom: 4px; }
+        .guidance-header p { opacity: 0.88; font-size: 0.93rem; }
+        .guidance-content { padding: 18px; }
         .guidance-tip {
-            background: white;
-            border-left: 4px solid #2a9d8f;
-            border-radius: 0 8px 8px 0;
-            padding: 10px 16px;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: #2d3748;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            background: var(--paper); border-left: 4px solid var(--primary); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            padding: 11px 16px; margin-bottom: 10px; font-size: 0.9rem; line-height: 1.55; color: var(--ink-soft);
         }
-        .guidance-tip strong { color: #1b7e6b; }
-        .vitals-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 14px; }
-        .vital-item label { font-size: 0.7rem; margin-bottom: 2px; }
-        .vital-item input { padding: 6px 10px; font-size: 0.95rem; }
+        .guidance-tip strong { color: var(--primary-dark); font-family: var(--font-display); }
+
+        .vitals-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; margin-bottom: 16px; background: var(--ink); padding: 14px; border-radius: var(--radius-sm); }
+        .vital-item label { font-size: 0.66rem; margin-bottom: 3px; color: rgba(255,255,255,0.65); }
+        .vital-item input { padding: 7px 10px; font-size: 1rem; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); color: #fff; font-family: var(--font-mono); }
+        .vital-item input::placeholder { color: rgba(255,255,255,0.35); }
         .gcs-input { width: 80px; margin-top: 4px; }
-        .exam-step-label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #1b7e6b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 8px 0 4px;
-            padding-top: 8px;
-            border-top: 1px dashed #c8e6e0;
-        }
+
+        .exam-step-label { font-size: 0.72rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.7px; margin: 10px 0 5px; padding-top: 10px; border-top: 1px dashed var(--line); }
         .exam-step-label:first-child { border-top: none; margin-top: 0; }
-        .clue-pill {
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            border-radius: 16px;
-            padding: 3px 10px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #1e293b;
-            margin: 2px;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: inline-block;
-        }
-        .clue-pill.selected {
-            background: #2a9d8f;
-            border-color: #2a9d8f;
-            color: white;
-        }
-        .clue-pill:hover:not(.selected) { background: #cbd5e1; }
-        .expand-hiv {
-            background: linear-gradient(135deg, #fef5e7 0%, #fdebd0 100%);
-            border-left: 4px solid #e74c3c;
-            padding: 12px 16px;
-            border-radius: 10px;
-            margin-top: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.95rem;
-        }
-        .expand-hiv:hover { background: linear-gradient(135deg, #fdebd0 0%, #fadbd8 100%); }
-        .hiv-details { display: none; margin-top: 12px; padding: 14px; background: white; border-radius: 10px; }
+
+        .clue-pill { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 4px 11px; font-size: 0.74rem; font-weight: 600; color: var(--ink-soft); margin: 2px; cursor: pointer; transition: all 0.15s; display: inline-block; }
+        .clue-pill.selected { background: var(--primary); border-color: var(--primary); color: white; }
+        .clue-pill:hover:not(.selected) { background: var(--line); }
+
+        .expand-hiv { background: var(--danger-tint); border-left: 4px solid var(--danger); padding: 13px 16px; border-radius: var(--radius-sm); margin-top: 14px; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; }
+        .expand-hiv:hover { filter: brightness(0.97); }
+        .hiv-details { display: none; margin-top: 12px; padding: 16px; background: var(--paper); border-radius: var(--radius-sm); }
         .hiv-details.active { display: block; }
-        .symptom-extra-note {
-            margin-top: 4px;
-            width: 100%;
-            padding: 6px 10px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            font-size: 0.9rem;
-        }
-        .camera-section {
-            margin: 12px 0;
-            padding: 14px;
-            background: #f0f7fa;
-            border-radius: 12px;
-            border: 2px dashed #2a9d8f;
-        }
-        .camera-section h4 {
-            color: #1b7e6b;
-            margin-bottom: 10px;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .camera-preview {
-            width: 100%;
-            max-width: 400px;
-            border-radius: 10px;
-            border: 2px solid #e2e8f0;
-            background: #000;
-            aspect-ratio: 4/3;
-            object-fit: cover;
-            display: block;
-            margin: 0 auto 10px;
-        }
-        .camera-controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .btn-camera {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-camera:hover { transform: scale(1.03); opacity: 0.9; }
-        .btn-camera-start { background: #2a9d8f; color: white; }
-        .btn-camera-capture { background: #e67e22; color: white; }
-        .btn-camera-stop { background: #e53e3e; color: white; }
-        .btn-camera-remove { background: #95a5a6; color: white; }
-        .captured-images {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .captured-image-item {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 2px solid #e2e8f0;
-            width: 120px;
-            height: 90px;
-            flex-shrink: 0;
-        }
+        .hiv-details h4 { font-family: var(--font-display); font-weight: 600; }
+
+        .symptom-extra-note { margin-top: 4px; width: 100%; padding: 7px 10px; border-radius: var(--radius-sm); border: 1px solid var(--line); font-size: 0.9rem; }
+
+        .camera-section { margin: 14px 0; padding: 18px; background: var(--ink); border-radius: var(--radius); border: none; color: white; }
+        .camera-section h4 { color: white; margin-bottom: 12px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 600; }
+        .camera-preview { width: 100%; max-width: 420px; border-radius: var(--radius-sm); border: 2px solid rgba(255,255,255,0.2); background: #000; aspect-ratio: 4/3; object-fit: cover; display: block; margin: 0 auto 12px; }
+        .camera-controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .btn-camera { padding: 9px 17px; border: none; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; transition: all 0.15s; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-body); }
+        .btn-camera:hover { transform: scale(1.03); opacity: 0.92; }
+        .btn-camera-start { background: var(--primary); color: white; }
+        .btn-camera-capture { background: var(--accent); color: white; }
+        .btn-camera-stop { background: var(--danger); color: white; }
+        .btn-camera-remove { background: rgba(255,255,255,0.15); color: white; }
+        .captured-images { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+        .captured-image-item { position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 2px solid rgba(255,255,255,0.2); width: 120px; height: 90px; flex-shrink: 0; }
         .captured-image-item img { width: 100%; height: 100%; object-fit: cover; }
-        .captured-image-item .remove-img {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: rgba(229,62,62,0.9);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .image-counter { font-size: 0.85rem; color: #4a5568; text-align: center; margin-top: 6px; }
-        .camera-permission-banner {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 10px;
-            padding: 10px 16px;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            display: none;
-        }
+        .captured-image-item .remove-img { position: absolute; top: 4px; right: 4px; background: rgba(178,58,50,0.92); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+        .image-counter { font-size: 0.85rem; color: rgba(255,255,255,0.7); text-align: center; margin-top: 8px; font-family: var(--font-mono); }
+        .camera-permission-banner { background: var(--accent-tint); color: #8a5a13; border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 10px 16px; margin-bottom: 10px; font-size: 0.9rem; display: none; }
         .camera-permission-banner.visible { display: block; }
-        /* larger font for hints outside textareas */
-        .field-hint {
-            font-size: 0.9rem;
-            color: #2d6a4f;
-            font-style: italic;
-            margin-bottom: 4px;
-            background: #f0f8f4;
-            padding: 4px 10px;
-            border-radius: 6px;
-        }
+
+        .field-hint { font-size: 0.86rem; color: var(--primary-dark); font-style: italic; margin-bottom: 5px; background: var(--primary-tint); padding: 5px 11px; border-radius: 6px; }
     </style>
 </head>
 <body>
 <div class="progress-bar" id="progressBar"></div>
 <div id="authBar">
-    <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:24px;">👶</span><span style="color:#fff; font-weight:700; font-size:1.1rem;">EaseMed Pediatrics</span></div>
-    <div style="display:flex; align-items:center; gap:12px;"><span id="userGreeting" style="color:#90cdf4; font-size:0.9rem;"></span><button onclick="handleLogout()" style="background:#e53e3e; color:white; border:none; border-radius:6px; padding:6px 14px; cursor:pointer; font-size:0.9rem;">Logout</button></div>
+    <div style="display:flex; align-items:center; gap:10px;"><span style="font-size:24px;">👶</span><span style="color:#fff; font-weight:700; font-size:1.1rem; font-family:var(--font-display);">EaseMed Pediatrics</span></div>
+    <div style="display:flex; align-items:center; gap:12px;"><span id="userGreeting" style="color:#9CC9BD; font-size:0.9rem;"></span><button onclick="handleLogout()" style="background:#B23A32; color:white; border:none; border-radius:6px; padding:7px 15px; cursor:pointer; font-size:0.9rem; font-weight:600;">Logout</button></div>
 </div>
-<div style="height: 52px;"></div>
+<div style="height: 54px;"></div>
 
-<div class="container">
+<div class="layout">
+    <nav class="section-spine" id="sectionSpine">
+        <a class="spine-tab" data-label="Demographics" href="#sec-demographics">📋</a>
+        <a class="spine-tab" data-label="Presenting complaint" href="#sec-presenting-complaint">🩺</a>
+        <a class="spine-tab" data-label="History (HPC)" href="#sec-hpc">📝</a>
+        <a class="spine-tab" data-label="Review of systems" href="#sec-ros">🔎</a>
+        <a class="spine-tab" data-label="Past medical history" href="#sec-pmh">📜</a>
+        <a class="spine-tab" data-label="Birth history" href="#sec-birth">🤱</a>
+        <a class="spine-tab" data-label="Milestones" href="#sec-milestones">🧸</a>
+        <a class="spine-tab" data-label="Immunizations" href="#sec-immunizations">💉</a>
+        <a class="spine-tab" data-label="Nutrition & growth" href="#sec-nutrition">🍼</a>
+        <a class="spine-tab" data-label="Social & family" href="#sec-social">🏠</a>
+        <a class="spine-tab" data-label="Physical exam" href="#sec-exam-general">❤️</a>
+        <a class="spine-tab" data-label="Clinical photography" href="#sec-camera">📸</a>
+        <a class="spine-tab" data-label="Assessment & plan" href="#sec-plan">📋</a>
+    </nav>
+
+    <div class="container">
     <div class="clerking-panel" id="clerkingPanel">
+        <div class="panel-header">
+            <h1>👶 Pediatric Clerking</h1>
+            <p>EaseMed — structured history, growth, immunisations & exam, built around the Uganda Clinical Guidelines</p>
+        </div>
         <!-- 1. DEMOGRAPHICS -->
-        <div class="form-section" data-section="demographics">
+        <div class="form-section" data-section="demographics" id="sec-demographics">
             <h3>📋 Child Demographics</h3>
             <div class="demographics-grid">
                 <div><label>Full Name *</label><input type="text" id="childName" placeholder="Child's full name"></div>
@@ -356,7 +363,7 @@
         </div>
 
         <!-- 2. PRESENTING COMPLAINT -->
-        <div class="form-section" data-section="presenting-complaint">
+        <div class="form-section" data-section="presenting-complaint" id="sec-presenting-complaint">
             <h3>🩺 Presenting Complaint</h3>
             <label>Select or type the main symptom:</label>
             <div class="symptom-buttons" id="symptomButtons">
@@ -393,20 +400,20 @@
         </div>
 
         <!-- 3. HISTORY OF PRESENTING COMPLAINT -->
-        <div class="form-section" data-section="hpc">
+        <div class="form-section" data-section="hpc" id="sec-hpc">
             <h3>📝 History of Presenting Complaint (HPC)</h3>
             <div class="field-hint">💡 Chronological narrative: onset, progression, associated symptoms, treatments tried, impact on feeding/activity...</div>
             <textarea id="hpc" rows="4" placeholder=""></textarea>
         </div>
 
         <!-- 4. REVIEW OF SYSTEMS (without 'General') -->
-        <div class="form-section" data-section="ros">
+        <div class="form-section" data-section="ros" id="sec-ros">
             <h3>🩺 Review of Systems (Pediatric)</h3>
             <div id="rosContainer"></div>
         </div>
 
         <!-- 5. PAST MEDICAL HISTORY (with HIV) -->
-        <div class="form-section" data-section="pmh">
+        <div class="form-section" data-section="pmh" id="sec-pmh">
             <h3>📜 Past Medical History</h3>
             <div class="demographics-grid">
                 <div><label>Past illnesses</label><div class="field-hint">💡 Previous illnesses: Malaria, Pneumonia, TB, Asthma, Heart disease, Surgery, Hospitalisations...</div><textarea id="pmh" rows="2" placeholder=""></textarea></div>
@@ -414,7 +421,7 @@
                 <div><label>Allergies</label><div class="field-hint">💡 Drug allergies, food allergies, reactions...</div><textarea id="allergies" rows="2" placeholder=""></textarea></div>
             </div>
             <div class="expand-hiv" onclick="toggleHIVDetails()">
-                <span style="font-weight: 600;">🩸 HIV History <span style="color: #e74c3c;">(Click to expand/collapse)</span></span><span style="float: right;">▼</span>
+                <span style="font-weight: 600;">🩸 HIV History <span style="color: var(--danger);">(Click to expand/collapse)</span></span><span style="float: right;">▼</span>
             </div>
             <div id="hivDetails" class="hiv-details">
                 <div class="demographics-grid">
@@ -423,7 +430,7 @@
                     <div><label>How was HIV Diagnosed?</label><select id="hivDiagnosisMethod"><option value="">Select method</option><option>Rapid Test (HIV 1/2)</option><option>Determine + Stat-Pak + UniGold</option><option>DNA PCR (for <18 months)</option><option>Western Blot</option></select></div>
                     <div><label>WHO Clinical Stage at Diagnosis:</label><select id="hivWhoStage"><option value="">Select stage</option><option>Stage 1 - Asymptomatic</option><option>Stage 2 - Mild symptoms</option><option>Stage 3 - Advanced symptoms</option><option>Stage 4 - AIDS defining illness</option></select></div>
                 </div>
-                <h4 style="margin:12px 0 6px 0; color:#1b7e6b; font-size:1.05rem;">💊 Antiretroviral Therapy (ART)</h4>
+                <h4 style="margin:12px 0 6px 0; color:var(--primary-dark); font-size:1.05rem;">💊 Antiretroviral Therapy (ART)</h4>
                 <div class="demographics-grid">
                     <div><label>On ART?</label><select id="hivOnArt" onchange="toggleARTDetails()"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
                     <div><label>ART Start Date:</label><input type="text" id="hivArtStartDate" placeholder="DD/MM/YYYY"></div>
@@ -436,16 +443,16 @@
                         <div><label>Barriers to Adherence:</label><input type="text" id="hivAdherenceBarriers" placeholder="Forgetfulness, side effects..."></div>
                     </div>
                 </div>
-                <h4 style="margin:12px 0 6px 0; color:#1b7e6b; font-size:1.05rem;">📊 Laboratory Monitoring</h4>
+                <h4 style="margin:12px 0 6px 0; color:var(--primary-dark); font-size:1.05rem;">📊 Laboratory Monitoring</h4>
                 <div class="demographics-grid">
                     <div><label>Most Recent CD4 Count:</label><input type="text" id="hivCd4" placeholder="cells/µL"></div>
                     <div><label>Date of CD4:</label><input type="text" id="hivCd4Date" placeholder="DD/MM/YYYY"></div>
                     <div><label>Most Recent Viral Load:</label><input type="text" id="hivViralLoad" placeholder="copies/mL"></div>
                     <div><label>Date of Viral Load:</label><input type="text" id="hivVlDate" placeholder="DD/MM/YYYY"></div>
                 </div>
-                <h4 style="margin:12px 0 6px 0; color:#1b7e6b; font-size:1.05rem;">🩺 Opportunistic Infections</h4>
+                <h4 style="margin:12px 0 6px 0; color:var(--primary-dark); font-size:1.05rem;">🩺 Opportunistic Infections</h4>
                 <div>
-                    <div style="display:flex; flex-wrap:wrap; gap:6px;"><label style="font-size:0.9rem;"><input type="checkbox" value="TB"> TB</label><label style="font-size:0.9rem;"><input type="checkbox" value="Cryptococcal Meningitis"> Cryptococcal Meningitis</label><label style="font-size:0.9rem;"><input type="checkbox" value="PCP"> PCP Pneumonia</label><label style="font-size:0.9rem;"><input type="checkbox" value="Esophageal Candidiasis"> Esophageal Candidiasis</label><label style="font-size:0.9rem;"><input type="checkbox" value="KS"> Kaposi's Sarcoma</label><label style="font-size:0.9rem;"><input type="checkbox" value="CMV"> CMV Retinitis</label></div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;"><label style="font-size:0.9rem; text-transform:none; font-weight:500;"><input type="checkbox" value="TB"> TB</label><label style="font-size:0.9rem; text-transform:none; font-weight:500;"><input type="checkbox" value="Cryptococcal Meningitis"> Cryptococcal Meningitis</label><label style="font-size:0.9rem; text-transform:none; font-weight:500;"><input type="checkbox" value="PCP"> PCP Pneumonia</label><label style="font-size:0.9rem; text-transform:none; font-weight:500;"><input type="checkbox" value="Esophageal Candidiasis"> Esophageal Candidiasis</label><label style="font-size:0.9rem; text-transform:none; font-weight:500;"><input type="checkbox" value="KS"> Kaposi's Sarcoma</label><label style="font-size:0.9rem; text-transform:none; font-weight:500;"><input type="checkbox" value="CMV"> CMV Retinitis</label></div>
                     <div style="margin-top:6px;"><label>IPT (Isoniazid Preventive Therapy):</label><select id="hivIpt" style="font-size:0.95rem;"><option value="">Select status</option><option>Completed 6 months</option><option>Currently on IPT</option><option>Not started</option></select></div>
                     <div style="margin-top:6px;"><label>Cotrimoxazole Preventive Therapy (CPT):</label><select id="hivCpt" style="font-size:0.95rem;"><option value="">Select status</option><option>Currently on CPT</option><option>Not on CPT</option><option>Allergic/Contraindicated</option></select></div>
                     <div style="margin-top:6px;"><label>Partner/Family HIV Status:</label><input type="text" id="hivPartnerStatus" placeholder="Partner HIV status, children's status, disclosure" style="font-size:0.95rem;"></div>
@@ -454,7 +461,7 @@
         </div>
 
         <!-- 6. BIRTH HISTORY -->
-        <div class="form-section" data-section="birth">
+        <div class="form-section" data-section="birth" id="sec-birth">
             <h3>🤱 Birth History</h3>
             <div class="demographics-grid">
                 <div><label>Antenatal course</label><div class="field-hint">💡 Gestational age, complications, medications</div><textarea id="antenatal" rows="2" placeholder=""></textarea></div>
@@ -465,7 +472,7 @@
         </div>
 
         <!-- 7. DEVELOPMENTAL MILESTONES (expanded) -->
-        <div class="form-section" data-section="milestones">
+        <div class="form-section" data-section="milestones" id="sec-milestones">
             <h3>🧸 Developmental Milestones</h3>
             <div class="toggle-pill-group" id="milestonesContainer"></div>
             <div class="field-hint">💡 Additional concerns about development</div>
@@ -474,13 +481,13 @@
         </div>
 
         <!-- 8. IMMUNIZATIONS (without date input) -->
-        <div class="form-section" data-section="immunizations">
+        <div class="form-section" data-section="immunizations" id="sec-immunizations">
             <h3>💉 Immunizations (Uganda EPI)</h3>
             <div id="immunizationGrid" class="vaccine-grid"></div>
         </div>
 
         <!-- 9. NUTRITION & GROWTH -->
-        <div class="form-section" data-section="nutrition">
+        <div class="form-section" data-section="nutrition" id="sec-nutrition">
             <h3>🍼 Nutrition & Growth</h3>
             <div class="demographics-grid">
                 <div><label>Feeding history</label><div class="field-hint">💡 Breastfeeding, formula, complementary foods</div><textarea id="feedingHistory" rows="2" placeholder=""></textarea></div>
@@ -491,17 +498,17 @@
             <div id="muacFeedback" class="muac-feedback"></div>
             <div class="growth-chart-container">
                 <canvas id="growthChart" width="400" height="200"></canvas>
-                <p style="font-size:0.9rem; text-align:center;">Weight-for-age (WHO 0–60 months)</p>
+                <p style="font-size:0.9rem; text-align:center; color:var(--muted);">Weight-for-age (WHO 0–60 months)</p>
                 <div class="growth-chart-note">
-                    <strong>📊 Significance of Growth Chart:</strong> Plotting weight-for-age helps identify acute malnutrition (wasting) and chronic malnutrition (stunting). 
+                    <strong>📊 Significance of Growth Chart:</strong> Plotting weight-for-age helps identify acute malnutrition (wasting) and chronic malnutrition (stunting).
                     A downward crossing of two major centile lines is a red flag. In Uganda, growth monitoring is a key component of the Child Health Card.
-                    Always interpret in context of the child’s age, sex, and clinical condition.
+                    Always interpret in context of the child's age, sex, and clinical condition.
                 </div>
             </div>
         </div>
 
         <!-- 10. SOCIAL & FAMILY HISTORY (now before Physical Exam) -->
-        <div class="form-section" data-section="social">
+        <div class="form-section" data-section="social" id="sec-social">
             <h3>🏠 Social & Family History</h3>
             <div class="field-hint">💡 Living conditions, smoking in home, school, travel, pets...</div>
             <textarea id="socialHistory" rows="2" placeholder=""></textarea>
@@ -510,13 +517,13 @@
         </div>
 
         <!-- 11. PHYSICAL EXAMINATION (moved after Social & Family) -->
-        <div class="form-section" data-section="exam-general">
+        <div class="form-section" data-section="exam-general" id="sec-exam-general">
             <h3>❤️ Physical Examination</h3>
             <div id="examContainer" class="exam-grid"></div>
         </div>
 
         <!-- 12. CLINICAL PHOTOGRAPHY (Camera) -->
-        <div class="form-section" data-section="camera">
+        <div class="form-section" data-section="camera" id="sec-camera">
             <h3>📸 Clinical Photography</h3>
             <div class="camera-section">
                 <h4>📷 Capture Images</h4>
@@ -537,7 +544,7 @@
         </div>
 
         <!-- 13. MANAGEMENT PLAN -->
-        <div class="form-section" data-section="plan">
+        <div class="form-section" data-section="plan" id="sec-plan">
             <h3>📋 Assessment & Plan</h3>
             <div class="field-hint">💡 Diagnosis, investigations, treatment, follow-up</div>
             <textarea id="managementPlan" rows="4" placeholder=""></textarea>
@@ -548,17 +555,17 @@
             <h3>📄 Clinical Summary & Ward Round</h3>
             <div class="summary-tabs">
                 <div class="summary-document"><h4 style="font-size:1rem;">Complete Summary</h4><div id="clinicalSummary" class="clinical-summary"></div>
-                <button class="btn-generate" onclick="copyToClipboard('clinicalSummary')" style="background:#3498db;">Copy Summary</button></div>
+                <button class="btn-generate" onclick="copyToClipboard('clinicalSummary')" style="background:#2E6DA8;">Copy Summary</button></div>
                 <div class="summary-document"><h4 style="font-size:1rem;">5‑Line Ward Round</h4><div id="wardRoundSummary" class="clinical-summary"></div>
-                <button class="btn-generate" onclick="copyToClipboard('wardRoundSummary')" style="background:#2a9d8f;">Copy Ward Round</button></div>
+                <button class="btn-generate" onclick="copyToClipboard('wardRoundSummary')" style="background:var(--primary);">Copy Ward Round</button></div>
             </div>
         </div>
 
         <div class="form-section" style="display: flex; gap: 12px; flex-wrap: wrap;">
             <button class="btn-generate" onclick="generateClinicalSummary()" style="flex:1;">Generate Summary + Ward Round</button>
-            <button class="btn-generate" onclick="window.location.href='easemed_admin_dashboard.html'" style="background: #8e44ad; flex:0.5;">🔐 Admin</button>
-            <button class="btn-generate" onclick="savePatient()" style="background:#2c6e49; flex:0.5;">Save Record</button>
-            <button class="btn-generate" onclick="resetForm()" style="background:#e67e22; flex:0.5;">Reset</button>
+            <button class="btn-generate" onclick="window.location.href='easemed_admin_dashboard.html'" style="background: #6B4C9A; flex:0.5;">🔐 Admin</button>
+            <button class="btn-generate" onclick="savePatient()" style="background:var(--good); flex:0.5;">Save Record</button>
+            <button class="btn-generate" onclick="resetForm()" style="background:var(--accent); flex:0.5;">Reset</button>
         </div>
     </div>
 
@@ -568,6 +575,7 @@
             <div class="guidance-tip"><strong>👶 Pediatric Principles</strong><br>Always check danger signs first. Use age‑appropriate equipment.</div>
             <div class="guidance-tip"><strong>🚨 Emergency signs</strong><br>Convulsions, lethargy, inability to feed, stridor, severe dehydration, fast breathing.</div>
         </div>
+    </div>
     </div>
 </div>
 
@@ -581,7 +589,6 @@
     <div class="records-body"><input class="records-search" type="text" id="recordSearch" placeholder="🔍 Search by child name..." oninput="renderRecords()"><div id="recordsList"></div></div>
 </div>
 <div class="save-toast" id="saveToast">✅ Saved!</div>
-<div class="floating-tip" onclick="alert('Use danger signs first. Growth monitoring – plot weight, MUAC. Immunizations – Uganda EPI schedule.')">💡 Pediatric Tip</div>
 
 <script>
 // ============================================================
@@ -654,8 +661,8 @@ function renderRecords() {
     if (!filtered.length) { container.innerHTML = '<div class="records-empty">📭 No saved pediatric records</div>'; return; }
     container.innerHTML = filtered.map(r => `<div class="patient-card"><div class="patient-card-info"><div class="patient-card-name">👶 ${escapeHtml(r.childName)}</div><div class="patient-card-meta">${r.age || '?'} | ${r.guardian || ''} | ${new Date(r.savedAt).toLocaleString()}</div></div><div class="patient-card-btns"><button class="btn-card btn-load" onclick="loadPatient(${r.id})">📋 Load</button><button class="btn-card btn-delete" onclick="deletePatient(${r.id})">🗑️ Delete</button></div></div>`).join('');
 }
-function showToast(msg, color) { const toast = document.getElementById('saveToast'); toast.textContent = msg; toast.style.background = color || '#2a9d8f'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2500); }
-function deletePatient(id) { if (!confirm('Delete record?')) return; const records = getRecords().filter(r => r.id !== id); saveRecords(records); showToast('Deleted', '#e53e3e'); }
+function showToast(msg, color) { const toast = document.getElementById('saveToast'); toast.textContent = msg; toast.style.background = color || '#0E6B5C'; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2500); }
+function deletePatient(id) { if (!confirm('Delete record?')) return; const records = getRecords().filter(r => r.id !== id); saveRecords(records); showToast('Deleted', '#B23A32'); }
 
 // ==================== TOGGLE PILL ====================
 function togglePill(el) {
@@ -685,8 +692,6 @@ const milestonesData = [
     { value: "Speaks simple sentences (24–30 months)", minAge: 24, label: "Simple sentences (24–30m)" },
     { value: "Any regression (loss of skills)", minAge: null, label: "⚠️ Regression (red flag)" }
 ];
-
-// Danger Signs removed — no longer used
 
 function buildTogglePills() {
     const milestonesContainer = document.getElementById('milestonesContainer');
@@ -1006,7 +1011,7 @@ function initGrowthChart() {
     const ctx = document.getElementById('growthChart').getContext('2d');
     const ageMonths = [0,2,4,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48,51,54,57,60];
     const medianWeight = [3.3,5.1,6.5,7.5,8.5,9.6,10.2,11.2,11.8,12.3,12.9,13.4,14.0,14.5,15.0,15.5,16.0,16.5,17.0,17.5,18.0,18.3];
-    growthChart = new Chart(ctx, { type: 'line', data: { labels: ageMonths, datasets: [{ label: 'WHO median weight (kg)', data: medianWeight, borderColor: '#2a9d8f', tension: 0.3, fill: false }] }, options: { responsive: true, maintainAspectRatio: true, scales: { x: { title: { display: true, text: 'Age (months)' } }, y: { title: { display: true, text: 'Weight (kg)' } } } } });
+    growthChart = new Chart(ctx, { type: 'line', data: { labels: ageMonths, datasets: [{ label: 'WHO median weight (kg)', data: medianWeight, borderColor: '#0E6B5C', tension: 0.3, fill: false }] }, options: { responsive: true, maintainAspectRatio: true, scales: { x: { title: { display: true, text: 'Age (months)' } }, y: { title: { display: true, text: 'Weight (kg)' } } } } });
 }
 function updateGrowthChart() {
     const weight = parseFloat(document.getElementById('weight').value);
@@ -1016,7 +1021,7 @@ function updateGrowthChart() {
     else if (ageStr.includes('year')) ageMonths = parseFloat(ageStr) * 12;
     if (!isNaN(weight) && ageMonths && growthChart && ageMonths <= 60) {
         if (growthChart.data.datasets.length > 1) growthChart.data.datasets.pop();
-        growthChart.data.datasets.push({ label: 'Current patient', data: [{x: ageMonths, y: weight}], type: 'scatter', pointBackgroundColor: '#e76f51', pointRadius: 6, showLine: false });
+        growthChart.data.datasets.push({ label: 'Current patient', data: [{x: ageMonths, y: weight}], type: 'scatter', pointBackgroundColor: '#D98E33', pointRadius: 6, showLine: false });
         growthChart.update();
     }
 }
@@ -1680,17 +1685,17 @@ function displayQuestions(symptom) {
     const container = document.getElementById('dynamicQuestions');
     if (!container) return;
     if (guide) {
-        let html = `<div style="background:#f0f7ff; padding:14px; border-radius:12px;">
+        let html = `<div style="background:var(--primary-tint); padding:14px; border-radius:12px;">
                             <h4 style="font-size:1.05rem;">${guide.title}</h4>
                             <small style="font-size:0.8rem;">${guide.chapter}</small>
-                            <div style="margin-top:8px; font-style:italic; background:#e6f7f0; padding:6px 12px; border-radius:8px; font-size:0.9rem;">💡 ${guide.intro}</div>`;
+                            <div style="margin-top:8px; font-style:italic; background:#fff; padding:6px 12px; border-radius:8px; font-size:0.9rem;">💡 ${guide.intro}</div>`;
         guide.questions.forEach((item, idx) => {
             const cluePills = item.clues.map((clue, cidx) => {
                 const selectedClass = (symptomDetails[symptom] && symptomDetails[symptom][`q${idx}`] === clue.label) ? 'selected' : '';
                 return `<span class="clue-pill ${selectedClass}" data-question="${idx}" data-value="${clue.label}" onclick="toggleCluePill(this, '${symptom}', ${idx}, '${clue.label}')" style="border-left-color: ${clue.color}; border-left-width: 4px;">${clue.label}</span>`;
             }).join('');
             const extraNoteValue = (symptomDetails[symptom] && symptomDetails[symptom][`q${idx}_note`]) || '';
-            html += `<div style="margin-bottom:14px; border-top:1px solid #cbd5e1; padding-top:10px;">
+            html += `<div style="margin-bottom:14px; border-top:1px solid var(--line); padding-top:10px;">
                             <label style="font-weight:700; font-size:0.95rem;">${item.q}</label>
                             <div class="ros-hint">${item.hint}</div>
                             <div style="margin:4px 0;">${cluePills}</div>
@@ -1760,7 +1765,7 @@ function setCustomSymptom() {
                         }, 150);
                     }
                 }
-                showToast(`Matched symptom: ${matched}`, '#8e44ad');
+                showToast(`Matched symptom: ${matched}`, '#6B4C9A');
             }
             document.getElementById('customSymptom').value = '';
         } else {
@@ -1851,12 +1856,12 @@ async function startCamera() {
         document.getElementById('btnCameraCapture').style.display = 'inline-flex';
         document.getElementById('btnCameraStop').style.display = 'inline-flex';
         banner.classList.remove('visible');
-        showToast('📷 Camera started', '#2a9d8f');
+        showToast('📷 Camera started', '#0E6B5C');
     } catch (err) {
         console.error('Camera error:', err);
         banner.textContent = '⚠️ Camera access denied. Please allow camera permissions in your browser settings.';
         banner.classList.add('visible');
-        showToast('❌ Camera access denied', '#e53e3e');
+        showToast('❌ Camera access denied', '#B23A32');
     }
 }
 
@@ -1871,13 +1876,13 @@ function stopCamera() {
     document.getElementById('btnCameraStart').style.display = 'inline-flex';
     document.getElementById('btnCameraCapture').style.display = 'none';
     document.getElementById('btnCameraStop').style.display = 'none';
-    showToast('⏹ Camera stopped', '#95a5a6');
+    showToast('⏹ Camera stopped', '#748079');
 }
 
 function captureImage() {
     const video = document.getElementById('cameraPreview');
     if (!video.srcObject) {
-        showToast('⚠️ Please start the camera first', '#e67e22');
+        showToast('⚠️ Please start the camera first', '#D98E33');
         return;
     }
     const canvas = document.createElement('canvas');
@@ -1888,13 +1893,13 @@ function captureImage() {
     const imageData = canvas.toDataURL('image/jpeg', 0.85);
     capturedImages.push(imageData);
     renderCapturedImages();
-    showToast('📸 Image captured!', '#2a9d8f');
+    showToast('📸 Image captured!', '#0E6B5C');
 }
 
 function removeImage(index) {
     capturedImages.splice(index, 1);
     renderCapturedImages();
-    showToast('🗑️ Image removed', '#95a5a6');
+    showToast('🗑️ Image removed', '#748079');
 }
 
 function removeAllImages() {
@@ -1902,7 +1907,7 @@ function removeAllImages() {
     if (!confirm('Remove all captured images?')) return;
     capturedImages = [];
     renderCapturedImages();
-    showToast('🗑️ All images removed', '#95a5a6');
+    showToast('🗑️ All images removed', '#748079');
 }
 
 // ==================== CAPTURE / RESTORE ====================
@@ -2112,7 +2117,7 @@ function resetForm() {
     renderCapturedImages();
     if (cameraStream) stopCamera();
     updateMuac(); updateGrowthChart(); checkVitals(); checkMilestoneWarnings(); updateProgress();
-    showToast('Form cleared', '#e67e22');
+    showToast('Form cleared', '#D98E33');
 }
 
 async function savePatient() {
@@ -2120,10 +2125,10 @@ async function savePatient() {
     const referralStatus = document.getElementById('referralStatus').value;
     const referralFrom = document.getElementById('referralFrom').value.trim();
     if (referralStatus !== 'Self‑referred' && !referralFrom) {
-        showToast('Please enter the referring facility name', '#e67e22');
+        showToast('Please enter the referring facility name', '#D98E33');
         return;
     }
-    if (!name) { showToast('Enter child name', '#e67e22'); return; }
+    if (!name) { showToast('Enter child name', '#D98E33'); return; }
 
     const formData = captureFormData();
 
@@ -2197,18 +2202,18 @@ async function savePatient() {
                 });
             if (error) {
                 console.error('Supabase insert failed:', error);
-                showToast('Saved locally only (cloud sync failed): ' + error.message, '#e67e22');
+                showToast('Saved locally only (cloud sync failed): ' + error.message, '#D98E33');
             } else {
                 console.log('Supabase insert succeeded');
-                showToast('Record saved to cloud + local', '#2c6e49');
+                showToast('Record saved to cloud + local', '#2C7A4B');
             }
         } catch (err) {
             console.error('Supabase error:', err);
-            showToast('Saved locally only (offline mode): ' + err.message, '#e67e22');
+            showToast('Saved locally only (offline mode): ' + err.message, '#D98E33');
         }
     } else {
         console.warn('No valid Supabase session – saving only to localStorage');
-        showToast('You are offline – saved locally only', '#e67e22');
+        showToast('You are offline – saved locally only', '#D98E33');
     }
 
     const records = getRecords();
@@ -2246,8 +2251,8 @@ function exportToWord() {
         <head><meta charset="UTF-8"><title>EaseMed Pediatric Record - ${patientName}</title>
         <style>
             body { font-family: 'Times New Roman', Times, serif; margin: 2cm; line-height: 1.4; color: #000; }
-            h1 { color: #1b7e6b; font-size: 24pt; margin-bottom: 5px; }
-            h2 { color: #1b7e6b; font-size: 18pt; border-bottom: 1px solid #aaa; margin-top: 20px; }
+            h1 { color: #0E6B5C; font-size: 24pt; margin-bottom: 5px; }
+            h2 { color: #0E6B5C; font-size: 18pt; border-bottom: 1px solid #aaa; margin-top: 20px; }
             .header { text-align: center; margin-bottom: 30px; }
             .section { margin-bottom: 20px; }
             .label { font-weight: bold; display: inline-block; min-width: 180px; }
@@ -2317,19 +2322,19 @@ function exportToWord() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    showToast('Word document exported', '#2c6e49');
+    showToast('Word document exported', '#2C7A4B');
 }
 
 function exportRecords() {
     const records = getRecords();
-    if (!records.length) { showToast('No records to export', '#e67e22'); return; }
+    if (!records.length) { showToast('No records to export', '#D98E33'); return; }
     const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `easemed_peds_backup_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
-    showToast('Backup downloaded', '#8e44ad');
+    showToast('Backup downloaded', '#6B4C9A');
 }
 
 function importRecords(event) {
@@ -2425,7 +2430,7 @@ function generateClinicalSummary() {
 function copyToClipboard(elementId) {
     const text = document.getElementById(elementId).innerText;
     navigator.clipboard.writeText(text);
-    showToast('Copied!', '#3498db');
+    showToast('Copied!', '#2E6DA8');
 }
 
 function updateProgress() {
@@ -2461,7 +2466,7 @@ function buildImmunizationGrid() {
 }
 
 // ==================== INIT ====================
-function newPatient() { resetForm(); showToast('New record ready', '#e67e22'); }
+function newPatient() { resetForm(); showToast('New record ready', '#D98E33'); }
 
 buildTogglePills();
 buildImmunizationGrid();
@@ -2489,6 +2494,29 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.warn('❌ SW registration failed:', err));
     });
 }
+
+// ============================================================
+// SECTION SPINE — ADDITIVE NAV (does not touch any logic above)
+// ============================================================
+(function setupSectionSpine() {
+    const tabs = Array.from(document.querySelectorAll('.spine-tab'));
+    const sections = tabs.map(t => document.querySelector(t.getAttribute('href')));
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = document.querySelector(tab.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+    function highlightActive() {
+        let activeIdx = 0;
+        const scrollY = window.scrollY + 140;
+        sections.forEach((sec, i) => { if (sec && sec.offsetTop <= scrollY) activeIdx = i; });
+        tabs.forEach((t, i) => t.classList.toggle('active', i === activeIdx));
+    }
+    window.addEventListener('scroll', highlightActive, { passive: true });
+    highlightActive();
+})();
 </script>
 </body>
 </html>
