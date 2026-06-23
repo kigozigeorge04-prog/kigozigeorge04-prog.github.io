@@ -3529,6 +3529,8 @@
                 const percent = Math.min(((filled / totalInputs) * 60) + imgBonus + aiBonus + 10, 100);
                 document.getElementById('progressFill').style.width = percent + '%';
             }
+
+            
 /**
  * Generates a structured clerkship summary from all user inputs
  * and populates the #summary textarea.
@@ -3784,6 +3786,24 @@ function generateClerkshipSummary() {
                     }
                 });
             });
-        </script>
+            // ─── Simple In‑Memory Cache ──────────────────────────────────────────────
+const memoryCache = new Map();
+
+function cachedFetch(key, fetchFunction, ttl = 300000) { // default 5 min TTL
+    const cached = memoryCache.get(key);
+    if (cached && (Date.now() - cached.timestamp) < ttl) {
+        console.log('✅ Serving from memory cache:', key);
+        return Promise.resolve(cached.data);
+    }
+    return fetchFunction().then(data => {
+        memoryCache.set(key, { data, timestamp: Date.now() });
+        return data;
+    });
+}
+
+// Example usage in runDocumentAnalysis():
+// Instead of calling extractTextWithVision() directly, do:
+// const allText = await cachedFetch('vision_' + docImages.length, () => extractTextWithVision(visionKey));
+        </script> 
     </body>
     </html>
