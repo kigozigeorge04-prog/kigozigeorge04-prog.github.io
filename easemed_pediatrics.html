@@ -409,6 +409,19 @@
                 <button type="button" class="symptom-btn" onclick="setSymptom(this, 'neck stiffness')">🦟 Neck stiffness</button>
                 <button type="button" class="symptom-btn" onclick="setSymptom(this, 'ear discharge')">👂 Ear discharge</button>
                 <button type="button" class="symptom-btn" onclick="setSymptom(this, 'oedema')">💧 Oedema (kwashiorkor)</button>
+    <button type="button" class="symptom-btn" onclick="setSymptom(this, 'abdominal distension')">🫃 Abdominal Distension</button>
+<button type="button" class="symptom-btn" onclick="setSymptom(this, 'failure to thrive')">📉 Failure to Thrive</button>
+<button type="button" class="symptom-btn" onclick="setSymptom(this, 'limping / bone pain')">🦴 Limping / Bone Pain</button>
+<button type="button" class="symptom-btn" onclick="setSymptom(this, 'haematuria')">🔴 Haematuria</button>
+<button type="button" class="symptom-btn" onclick="setSymptom(this, 'dysuria / frequency')">🚿 Dysuria / Frequency</button>
+<button type="button" class="symptom-btn" onclick="setSymptom(this, 'delayed speech / developmental concern')">🗣️ Developmental Delay</button>
+<button type="button" class="symptom-btn" onclick="setSymptom(this, 'eye problems')">👁️ Eye Problems</button>
+<button type="button" class="symptom-btn" onclick="setSymptom(this, 'bleeding / bruising')">🩸 Bleeding / Bruising</button>
+<button type="button" class="symptom-btn" onclick="setSymptom(this, 'unconsciousness / coma')">😶 Unconsciousness / Coma</button>
+<button type="button" class="symptom-btn" onclick="setSymptom(this, 'malnutrition / wasting')">⚖️ Malnutrition / Wasting</button>
+<button type="button" class="symptom-btn" onclick="setSymptom(this, 'neonatal problems')">🍼 Neonatal Problems</button>
+            
+            
             </div>
             <label style="margin-top:15px;">Or type your own symptom:</label>
             <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
@@ -1651,7 +1664,609 @@ const pediatricSymptomGuides = {
             "Cerebral malaria is the most common cause of severe lethargy with fever in Uganda.",
             "A high-pitched cry in an infant is meningism — treat as meningitis until LP proves otherwise."
         ]
+    },  ==================== Presenting Complaint (with clue pills + extra notes) ====================
+let currentSymptom = '';
+let symptomDetails = {};
+
+const pediatricSymptomGuides = {
+    fever: {
+        title: "🌡️ Fever",
+        intro: "Fever is the most common pediatric presentation in Uganda. Always exclude malaria first — it is the leading cause of fever in children under 5.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 275",
+        questions: [
+            { q: "How long has the child had fever?", hint: "Duration helps classify urgency", clues: [
+                { text: "< 7 days", label: "Acute", color: "#e67e22", desc: "Think: malaria, viral URTI, pneumonia, UTI" },
+                { text: "7–14 days", label: "Subacute", color: "#8e44ad", desc: "Think: typhoid, TB, brucellosis, EBV" },
+                { text: "> 14 days", label: "Prolonged / PUO", color: "#c0392b", desc: "Think: TB, HIV, lymphoma, endocarditis" }
+            ] },
+            { q: "What is the highest temperature recorded?", hint: "Measure axillary or rectal", clues: [
+                { text: "37.5–38.4°C", label: "Low-grade", color: "#27ae60", desc: "May be viral" },
+                { text: "38.5–39.4°C", label: "Moderate", color: "#e67e22", desc: "Treat with paracetamol" },
+                { text: "≥ 39.5°C", label: "High-grade", color: "#c0392b", desc: "Risk of febrile convulsions" }
+            ] },
+            { q: "What is the pattern of the fever?", hint: "Pattern is a powerful clue", clues: [
+                { text: "Continuous", label: "Continuous", color: "#2980b9", desc: "Typhoid, pneumonia" },
+                { text: "Intermittent (spikes then normal)", label: "Intermittent", color: "#e67e22", desc: "Classic for malaria" },
+                { text: "Remittent (fluctuates, never normal)", label: "Remittent", color: "#8e44ad", desc: "TB, viral infections" }
+            ] },
+            { q: "Are there chills or rigors?", hint: "True rigors = uncontrollable shaking", clues: [
+                { text: "Yes — rigors", label: "Rigors present", color: "#c0392b", desc: "Malaria or bacteraemia" },
+                { text: "Mild chills only", label: "Chills only", color: "#e67e22", desc: "Less specific" },
+                { text: "No", label: "No rigors", color: "#27ae60", desc: "Doesn't exclude malaria in young children" }
+            ] },
+            { q: "Any associated symptoms?", hint: "Localise the source", clues: [
+                { text: "Cough + fast breathing", label: "→ Pneumonia", color: "#2980b9", desc: "Count RR" },
+                { text: "Rash", label: "→ Measles / meningococcaemia", color: "#c0392b", desc: "Non-blanching = emergency" },
+                { text: "Vomiting + headache + neck stiffness", label: "→ Meningitis", color: "#c0392b", desc: "LP if safe" },
+                { text: "Dysuria / frequency", label: "→ UTI", color: "#8e44ad", desc: "Urine dipstick" }
+            ] },
+            { q: "What treatments have been tried at home?", hint: "Track prior antibiotic use", clues: [
+                { text: "Paracetamol given", label: "Antipyretic used", color: "#27ae60", desc: "Ask if temperature came down" },
+                { text: "Antimalarials without RDT", label: "Empiric antimalarial", color: "#e67e22", desc: "Resistance possible" },
+                { text: "Traditional herbs", label: "Traditional treatment", color: "#8e44ad", desc: "Document — may mask symptoms" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Fever + altered consciousness → cerebral malaria or meningitis",
+            "🚨 Fever + non-blanching rash → meningococcaemia",
+            "🚨 Fever + convulsions → treat seizure first",
+            "🚨 Fever + inability to drink → severe illness"
+        ],
+        tips: [
+            "Always test for malaria (RDT or smear) first.",
+            "Children with HIV are at higher risk.",
+            "Fever without focus in a child < 3 months = sepsis until proven."
+        ]
+    },
+    cough: {
+        title: "🤧 Cough",
+        intro: "Cough is the second most common pediatric complaint. Duration and character are key.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 409",
+        questions: [
+            { q: "How long has the child been coughing?", hint: "Duration is the single most important classifier", clues: [
+                { text: "< 2 weeks", label: "Acute", color: "#27ae60", desc: "Viral URTI, pneumonia" },
+                { text: "2–8 weeks", label: "Subacute", color: "#e67e22", desc: "Pertussis, early TB" },
+                { text: "> 8 weeks", label: "Chronic", color: "#c0392b", desc: "TB, asthma, HIV-related" }
+            ] },
+            { q: "Is the cough productive? Sputum appearance?", hint: "Sputum character indicates pathogen", clues: [
+                { text: "Dry / non-productive", label: "Dry cough", color: "#2980b9", desc: "Viral, early pneumonia, TB" },
+                { text: "Yellow / green sputum", label: "Purulent", color: "#e67e22", desc: "Bacterial pneumonia" },
+                { text: "Blood-stained", label: "Haemoptysis", color: "#c0392b", desc: "TB until proven otherwise" }
+            ] },
+            { q: "Is the cough worse at any particular time?", hint: "Timing reveals mechanism", clues: [
+                { text: "Worse at night / early morning", label: "Nocturnal", color: "#8e44ad", desc: "Asthma, post-nasal drip" },
+                { text: "With feeding / lying flat", label: "Positional", color: "#e67e22", desc: "GORD, aspiration" },
+                { text: "Paroxysmal (whooping)", label: "Paroxysmal", color: "#c0392b", desc: "Pertussis" }
+            ] },
+            { q: "Is there fast or difficult breathing?", hint: "Fast breathing = pneumonia by IMCI", clues: [
+                { text: "RR > 60/min (<2m)", label: "Tachypnoea — neonate", color: "#c0392b", desc: "Severe pneumonia" },
+                { text: "RR > 50/min (2–12m)", label: "Tachypnoea — infant", color: "#c0392b", desc: "Pneumonia" },
+                { text: "RR > 40/min (1–5y)", label: "Tachypnoea — child", color: "#e67e22", desc: "Pneumonia" }
+            ] },
+            { q: "Any choking history or playing with small objects?", hint: "Foreign body peaks 6m–3y", clues: [
+                { text: "Sudden onset while playing/eating", label: "Foreign body likely", color: "#c0392b", desc: "CXR + bronchoscopy" },
+                { text: "No choking history", label: "Less likely", color: "#27ae60", desc: "Still ask about coins, groundnuts" }
+            ] },
+            { q: "Any TB contact or household chronic cough?", hint: "TB contact is a major risk factor", clues: [
+                { text: "Close contact with TB case", label: "TB contact", color: "#c0392b", desc: "TST, CXR, sputum" },
+                { text: "No known contact", label: "No contact", color: "#27ae60", desc: "TB still possible" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Cough + fast breathing + chest indrawing → severe pneumonia",
+            "🚨 Cough + stridor → upper airway obstruction",
+            "🚨 Cough + haemoptysis → TB until proven",
+            "🚨 Sudden onset in toddler → inhaled foreign body"
+        ],
+        tips: [
+            "TB is the most important cause of chronic cough in Uganda.",
+            "Wheeze in infant is more likely bronchiolitis than asthma.",
+            "Count RR for a full 60 seconds."
+        ]
+    },
+    diarrhea: {
+        title: "💩 Diarrhoea / Vomiting",
+        intro: "Diarrhoea is a leading cause of child mortality in Uganda. Dehydration assessment is critical.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 354",
+        questions: [
+            { q: "How long has the child had diarrhoea?", hint: "Duration changes diagnosis", clues: [
+                { text: "< 14 days", label: "Acute", color: "#27ae60", desc: "Infectious: rotavirus, ETEC" },
+                { text: "14 days – 1 month", label: "Persistent", color: "#e67e22", desc: "Giardia, cryptosporidium" },
+                { text: "> 1 month", label: "Chronic", color: "#c0392b", desc: "HIV, TB, malabsorption" }
+            ] },
+            { q: "How many stools/day? Appearance?", hint: "Frequency and character localise", clues: [
+                { text: "Watery, large volume, no blood", label: "Secretory", color: "#2980b9", desc: "Cholera, rotavirus" },
+                { text: "Small volume, bloody, mucus", label: "Dysentery", color: "#c0392b", desc: "Shigella, Campylobacter" },
+                { text: "Fatty, foul-smelling, floats", label: "Steatorrhoea", color: "#8e44ad", desc: "Giardia, coeliac" }
+            ] },
+            { q: "Is there vomiting? Describe it.", hint: "Vomiting pattern helps", clues: [
+                { text: "Vomiting with diarrhoea", label: "Gastroenteritis", color: "#e67e22", desc: "Viral" },
+                { text: "Projectile, no diarrhoea", label: "Pyloric stenosis", color: "#c0392b", desc: "Olive mass" },
+                { text: "Bile-stained", label: "Bilious vomiting", color: "#c0392b", desc: "Intestinal obstruction" }
+            ] },
+            { q: "Assess dehydration signs", hint: "Determines treatment (ORS vs IV)", clues: [
+                { text: "Drinking normally, no signs", label: "No dehydration — Plan A", color: "#27ae60", desc: "ORS at home" },
+                { text: "Restless, sunken eyes, drinks eagerly", label: "Some dehydration — Plan B", color: "#e67e22", desc: "ORS 75 ml/kg over 4h" },
+                { text: "Lethargic, unable to drink", label: "Severe dehydration — Plan C", color: "#c0392b", desc: "IV Ringer's lactate" }
+            ] },
+            { q: "Blood in stool?", hint: "Blood = dysentery", clues: [
+                { text: "Yes — fresh blood/mucus", label: "Dysentery", color: "#c0392b", desc: "Ciprofloxacin" },
+                { text: "No blood", label: "Non-dysenteric", color: "#27ae60", desc: "Antibiotics not indicated" }
+            ] },
+            { q: "Is the child able to drink/breastfeed?", hint: "Inability to drink is a danger sign", clues: [
+                { text: "Drinking well", label: "Safe at home", color: "#27ae60", desc: "ORS + zinc" },
+                { text: "Unable to drink", label: "DANGER SIGN", color: "#c0392b", desc: "Admit, IV access" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Severe dehydration → IV Ringer's lactate",
+            "🚨 Bloody diarrhoea + fever → dysentery, ciprofloxacin",
+            "🚨 Inability to drink → danger sign, do not send home",
+            "🚨 Rice-water stool → suspect cholera"
+        ],
+        tips: [
+            "Zinc 20 mg/day for 10 days reduces severity.",
+            "Rotavirus vaccine is in EPI schedule — check card.",
+            "Do not give antibiotics routinely."
+        ]
+    },
+    "poor feeding": {
+        title: "🍼 Poor Feeding",
+        intro: "Poor feeding in infants is a non-specific but serious symptom. May be the first sign of sepsis, cardiac disease, or neurological problems.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 51",
+        questions: [
+            { q: "How long has the child been feeding poorly?", hint: "Acute vs chronic", clues: [
+                { text: "Acute onset (hours–days)", label: "Acute", color: "#c0392b", desc: "Sepsis, meningitis, severe dehydration" },
+                { text: "Gradual over weeks", label: "Subacute/chronic", color: "#e67e22", desc: "Cardiac failure, HIV, malnutrition" }
+            ] },
+            { q: "Describe the feeding (breast/formula)", hint: "Breastfeeding problems are common", clues: [
+                { text: "Weak suck, doesn't sustain", label: "Weak suck", color: "#e67e22", desc: "Sepsis, neurological, hypoglycaemia" },
+                { text: "Refuses breast entirely", label: "Refusing feeds", color: "#c0392b", desc: "Danger sign in neonate" },
+                { text: "Tires easily, stops", label: "Tires easily", color: "#8e44ad", desc: "Congenital heart disease" }
+            ] },
+            { q: "Is there vomiting after feeds?", hint: "Vomiting pattern helps", clues: [
+                { text: "Posseting (small amounts)", label: "Normal", color: "#27ae60", desc: "Reassure parents" },
+                { text: "Large volume regurgitation", label: "GORD", color: "#e67e22", desc: "Check weight gain" },
+                { text: "Projectile vomiting", label: "Pyloric stenosis", color: "#c0392b", desc: "Olive mass, surgical" }
+            ] },
+            { q: "Weight loss or failure to gain?", hint: "Weight trend is objective", clues: [
+                { text: "Weight loss documented", label: "Weight loss", color: "#c0392b", desc: "Investigate urgently" },
+                { text: "Weight plateaued", label: "Failure to thrive", color: "#e67e22", desc: "Malnutrition, chronic infection" },
+                { text: "Weight gain adequate", label: "Growing well", color: "#27ae60", desc: "Reassuring" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Unable to feed at all → admit immediately",
+            "🚨 Poor feeding + lethargy + fever in neonate → sepsis",
+            "🚨 Poor feeding + projectile vomiting → pyloric stenosis",
+            "🚨 Poor feeding + rapid breathing → congenital heart disease"
+        ],
+        tips: [
+            "In neonates, poor feeding is sepsis until proven.",
+            "Always check blood glucose — hypoglycaemia is missed.",
+            "Ask mother to demonstrate breastfeeding — poor latch is common."
+        ]
+    },
+    convulsions: {
+        title: "⚠️ Convulsions",
+        intro: "Convulsions in children require rapid assessment. In Uganda, the most common causes are febrile seizures and cerebral malaria. Always check blood glucose.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 193",
+        questions: [
+            { q: "How long did the seizure last?", hint: "Duration determines if status epilepticus", clues: [
+                { text: "< 5 minutes", label: "Brief", color: "#27ae60", desc: "Febrile seizure likely" },
+                { text: "5–30 minutes", label: "Prolonged", color: "#e67e22", desc: "Give diazepam" },
+                { text: "> 30 minutes or recurring", label: "Status epilepticus", color: "#c0392b", desc: "EMERGENCY" }
+            ] },
+            { q: "What type of movement?", hint: "Semiology localises", clues: [
+                { text: "Generalised tonic-clonic", label: "Generalised", color: "#e67e22", desc: "Febrile, cerebral malaria" },
+                { text: "One limb or one side", label: "Focal", color: "#c0392b", desc: "Structural lesion" },
+                { text: "Staring / lapse", label: "Absence-like", color: "#8e44ad", desc: "Absence epilepsy" }
+            ] },
+            { q: "Fever at the time?", hint: "Febrile seizure vs serious CNS infection", clues: [
+                { text: "Fever present", label: "Febrile possible", color: "#e67e22", desc: "Exclude malaria, meningitis" },
+                { text: "Fever + focal signs/altered consciousness", label: "Complicated", color: "#c0392b", desc: "Cerebral malaria, meningitis" },
+                { text: "No fever", label: "Afebrile", color: "#8e44ad", desc: "Epilepsy, hypoglycaemia" }
+            ] },
+            { q: "Post-ictal state?", hint: "Recovery pattern", clues: [
+                { text: "Back to normal within 30 min", label: "Normal", color: "#27ae60", desc: "Simple febrile seizure" },
+                { text: "Drowsy > 1 hour", label: "Prolonged post-ictal", color: "#e67e22", desc: "Cerebral malaria" },
+                { text: "Unresponsive", label: "Reduced consciousness", color: "#c0392b", desc: "Emergency" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Seizure > 5 minutes → diazepam IV/PR",
+            "🚨 Seizure + fever + altered consciousness → cerebral malaria/meningitis",
+            "🚨 Afebrile seizure → check blood glucose immediately",
+            "🚨 Focal seizure → structural lesion"
+        ],
+        tips: [
+            "Check bedside glucose in every child with a seizure.",
+            "Cerebral malaria is the most dangerous cause in Uganda.",
+            "Diazepam PR is as effective as IV when IV access is not yet established."
+        ]
+    },
+    rash: {
+        title: "🔴 Skin Rash",
+        intro: "Rash ranges from trivial viral exanthems to life-threatening meningococcaemia. The glass test is critical.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 252",
+        questions: [
+            { q: "Does the rash blanch on pressure?", hint: "Blanching vs non-blanching", clues: [
+                { text: "Blanches", label: "Blanching", color: "#27ae60", desc: "Viral, inflammatory" },
+                { text: "Does NOT blanch", label: "Non-blanching — URGENT", color: "#c0392b", desc: "Petechiae/purpura = meningococcaemia" }
+            ] },
+            { q: "Describe the type of rash", hint: "Morphology narrows differential", clues: [
+                { text: "Flat red spots", label: "Macular", color: "#2980b9", desc: "Viral exanthem, measles" },
+                { text: "Raised red spots", label: "Papular", color: "#2980b9", desc: "Drug reaction, scabies" },
+                { text: "Fluid-filled blisters", label: "Vesicular", color: "#8e44ad", desc: "Chickenpox" },
+                { text: "Pinpoint red dots", label: "Petechiae", color: "#c0392b", desc: "Meningococcaemia, ITP" }
+            ] },
+            { q: "Where did it start and spread?", hint: "Distribution and direction are diagnostic", clues: [
+                { text: "Face → downward", label: "Centrifugal", color: "#e67e22", desc: "Measles" },
+                { text: "Trunk → outward", label: "Centripetal", color: "#2980b9", desc: "Chickenpox, roseola" },
+                { text: "Flexures, between fingers", label: "Flexural", color: "#8e44ad", desc: "Scabies" }
+            ] },
+            { q: "Fever with rash?", hint: "Sequence is important", clues: [
+                { text: "Rash as fever rises", label: "Concurrent", color: "#e67e22", desc: "Measles, scarlet fever" },
+                { text: "Rash after fever breaks", label: "Post-febrile", color: "#27ae60", desc: "Roseola" },
+                { text: "No fever", label: "Afebrile", color: "#27ae60", desc: "Allergic, contact dermatitis" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Non-blanching rash + fever → benzylpenicillin immediately",
+            "🚨 Rash + altered consciousness → meningitis/cerebral malaria",
+            "🚨 Widespread purpura → DIC, leukaemia",
+            "🚨 Measles rash in malnourished child → vitamin A immediately"
+        ],
+        tips: [
+            "Always use the glass test for non-blanching rash.",
+            "Measles is still common due to incomplete coverage.",
+            "Scabies is very common in crowded housing."
+        ]
+    },
+    jaundice: {
+        title: "🟡 Jaundice",
+        intro: "Jaundice must be classified by age of onset and type (unconjugated vs conjugated).",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 368",
+        questions: [
+            { q: "At what age did jaundice appear?", hint: "Age of onset classifies", clues: [
+                { text: "< 24 hours", label: "Pathological — URGENT", color: "#c0392b", desc: "Haemolytic disease" },
+                { text: "Day 2–7", label: "Physiological possible", color: "#e67e22", desc: "Peaks day 3–5" },
+                { text: "> 14 days (term)", label: "Prolonged", color: "#c0392b", desc: "Biliary atresia, hepatitis" }
+            ] },
+            { q: "Stool and urine colour?", hint: "Differentiates unconjugated vs conjugated", clues: [
+                { text: "Normal stool, normal urine", label: "Unconjugated", color: "#e67e22", desc: "Haemolysis, physiological" },
+                { text: "Pale/clay stools + dark urine", label: "Conjugated — URGENT", color: "#c0392b", desc: "Biliary obstruction" }
+            ] },
+            { q: "Fever or systemic illness?", hint: "Points to infectious causes", clues: [
+                { text: "Fever + jaundice + pallor", label: "Haemolytic crisis", color: "#c0392b", desc: "G6PD, malaria" },
+                { text: "Fever + jaundice + hepatomegaly", label: "Hepatitis/malaria", color: "#e67e22", desc: "Viral hepatitis" }
+            ] },
+            { q: "Pallor alongside jaundice?", hint: "Pallor + jaundice = haemolysis", clues: [
+                { text: "Yes — pale + jaundiced", label: "Haemolytic anaemia", color: "#c0392b", desc: "Check FBC, film, retics" },
+                { text: "No pallor", label: "Less likely haemolytic", color: "#27ae60", desc: "Hepatic or obstructive" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Jaundice < 24 hours → haemolytic disease, phototherapy",
+            "🚨 Pale stools + dark urine → conjugated jaundice, urgent referral",
+            "🚨 Jaundice + severe pallor + dark urine → G6PD crisis",
+            "🚨 Jaundice + altered consciousness → kernicterus, exchange transfusion"
+        ],
+        tips: [
+            "Biliary atresia — Kasai procedure before 8 weeks.",
+            "G6PD deficiency is common in Uganda — avoid trigger drugs.",
+            "Transcutaneous bilirubinometry unreliable in pigmented skin."
+        ]
+    },
+    pain: {
+        title: "🩺 Pain — SOCRATES",
+        intro: "Use SOCRATES framework. Use age-appropriate pain scales (Wong-Baker faces).",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 22",
+        questions: [
+            { q: "S — Site: Where exactly is the pain?", hint: "Localisation narrows differential", clues: [
+                { text: "Right iliac fossa", label: "→ Appendicitis", color: "#c0392b", desc: "Rebound tenderness, migration" },
+                { text: "Periumbilical → RIF", label: "Classic migration", color: "#c0392b", desc: "Appendicitis" },
+                { text: "Loin/flank", label: "→ UTI/renal colic", color: "#8e44ad", desc: "CVA tenderness" }
+            ] },
+            { q: "O — Onset: How did it start?", hint: "Onset speed is a red flag", clues: [
+                { text: "Sudden, severe", label: "Acute/surgical", color: "#c0392b", desc: "Appendicitis, torsion" },
+                { text: "Gradual over hours–days", label: "Subacute", color: "#e67e22", desc: "Mesenteric adenitis" },
+                { text: "Recurrent episodic", label: "Recurrent", color: "#8e44ad", desc: "Intussusception, constipation" }
+            ] },
+            { q: "C — Character: What does it feel like?", hint: "Mechanism", clues: [
+                { text: "Colicky (waves)", label: "Colic/obstruction", color: "#e67e22", desc: "Intestinal obstruction" },
+                { text: "Constant, dull ache", label: "Visceral", color: "#e67e22", desc: "Appendicitis early" },
+                { text: "Sharp, worse on movement", label: "Peritoneal", color: "#c0392b", desc: "Peritonitis" }
+            ] },
+            { q: "R — Radiation: Does it move?", hint: "Classic patterns", clues: [
+                { text: "Periumbilical → RIF", label: "Appendicitis", color: "#c0392b", desc: "Highly specific" },
+                { text: "Loin → groin → testicle", label: "Renal colic/torsion", color: "#e67e22", desc: "Examine testis" },
+                { text: "Shoulder tip", label: "Diaphragmatic irritation", color: "#8e44ad", desc: "Hepatic abscess" }
+            ] },
+            { q: "S — Severity (0–10, faces scale)", hint: "Use Wong-Baker faces", clues: [
+                { text: "Mild (1–3/10)", label: "Mild", color: "#27ae60", desc: "Paracetamol" },
+                { text: "Moderate (4–6/10)", label: "Moderate", color: "#e67e22", desc: "Ibuprofen" },
+                { text: "Severe (7–10/10)", label: "Severe", color: "#c0392b", desc: "Surgical emergency" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Severe abdominal pain + guarding + rebound → surgical abdomen",
+            "🚨 Colicky pain + red currant jelly stool → intussusception",
+            "🚨 Pain + scrotal swelling → testicular torsion (6-hour window)",
+            "🚨 Pain + fever + jaundice → ascending cholangitis"
+        ],
+        tips: [
+            "Give analgesia before examination — pain relief does not mask peritonism.",
+            "Functional abdominal pain is a diagnosis of exclusion.",
+            "Malaria commonly causes abdominal pain with hepatosplenomegaly."
+        ]
+    },
+    "difficulty breathing": {
+        title: "💨 Difficulty Breathing",
+        intro: "Respiratory distress is a common emergency. Count RR for a full 60 seconds.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 409",
+        questions: [
+            { q: "How quickly did it come on?", hint: "Speed of onset", clues: [
+                { text: "Sudden (seconds–minutes)", label: "Acute/obstructive", color: "#c0392b", desc: "Foreign body, anaphylaxis" },
+                { text: "Hours to a day", label: "Subacute", color: "#e67e22", desc: "Pneumonia, croup" },
+                { text: "Gradual over days–weeks", label: "Chronic", color: "#8e44ad", desc: "TB, cardiac failure" }
+            ] },
+            { q: "What sounds does the breathing make?", hint: "Localise obstruction", clues: [
+                { text: "Stridor (inspiratory)", label: "Stridor — upper airway", color: "#c0392b", desc: "Croup, epiglottitis" },
+                { text: "Wheeze (expiratory)", label: "Wheeze — lower airway", color: "#e67e22", desc: "Asthma, bronchiolitis" },
+                { text: "Grunting", label: "Grunting", color: "#c0392b", desc: "Neonatal RDS, severe pneumonia" }
+            ] },
+            { q: "What does the chest look like?", hint: "Work of breathing indicates severity", clues: [
+                { text: "Chest indrawing", label: "Chest indrawing", color: "#c0392b", desc: "Severe pneumonia, admit" },
+                { text: "Nasal flaring + accessory muscles", label: "Severe distress", color: "#c0392b", desc: "Respiratory failure" },
+                { text: "Head nodding", label: "Head bobbing", color: "#c0392b", desc: "Extreme effort" }
+            ] },
+            { q: "SpO₂?", hint: "Determines urgency of oxygen", clues: [
+                { text: "≥ 95%", label: "Normal", color: "#27ae60", desc: "Reassuring" },
+                { text: "90–94%", label: "Mild hypoxaemia", color: "#e67e22", desc: "Give oxygen" },
+                { text: "< 90%", label: "Severe hypoxaemia", color: "#c0392b", desc: "High-flow oxygen, emergency" }
+            ] },
+            { q: "Difficulty feeding?", hint: "Feeding difficulty reflects severity", clues: [
+                { text: "Feeding normally", label: "Mild", color: "#27ae60", desc: "Monitor" },
+                { text: "Unable to feed", label: "Severe — DANGER SIGN", color: "#c0392b", desc: "Admit, NG tube, oxygen" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Stridor + drooling + tripod → epiglottitis, do NOT examine throat",
+            "🚨 SpO₂ < 90% → high-flow oxygen",
+            "🚨 Chest indrawing + inability to feed → severe pneumonia",
+            "🚨 Silent chest in asthma → near-fatal asthma"
+        ],
+        tips: [
+            "Count RR for a full 60 seconds — 15s count ×4 is inaccurate.",
+            "Most common cause of respiratory distress in Uganda is pneumonia.",
+            "Pulse oximetry is the fifth vital sign."
+        ]
+    },
+    pallor: {
+        title: "🩸 Pallor (Anaemia)",
+        intro: "Pallor indicates anaemia. In Uganda, most common causes: malaria, iron deficiency, sickle cell.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 462",
+        questions: [
+            { q: "How long has pallor been present?", hint: "Acute vs chronic", clues: [
+                { text: "Sudden (hours–days)", label: "Acute anaemia", color: "#c0392b", desc: "Haemolysis, acute blood loss" },
+                { text: "Gradual (weeks–months)", label: "Chronic anaemia", color: "#e67e22", desc: "Iron deficiency, chronic infection" }
+            ] },
+            { q: "Dark or cola-coloured urine?", hint: "Intravascular haemolysis", clues: [
+                { text: "Yes — dark urine", label: "Haemoglobinaemia", color: "#c0392b", desc: "Malaria, G6PD crisis" },
+                { text: "No", label: "Less likely haemolysis", color: "#27ae60", desc: "Iron deficiency, chronic disease" }
+            ] },
+            { q: "Jaundice with pallor?", hint: "Pallor + jaundice = haemolysis", clues: [
+                { text: "Yes — pallor + jaundice", label: "Haemolytic anaemia", color: "#c0392b", desc: "Sickle cell, G6PD, malaria" },
+                { text: "No jaundice", label: "Less likely haemolytic", color: "#e67e22", desc: "Iron deficiency" }
+            ] },
+            { q: "Diet and pica?", hint: "Dietary history", clues: [
+                { text: "Poor diet, no meat/veg", label: "Iron deficiency likely", color: "#e67e22", desc: "Microcytic anaemia" },
+                { text: "Pica (eating soil)", label: "Iron deficiency / lead", color: "#e67e22", desc: "Check lead" }
+            ] },
+            { q: "Family history of anaemia?", hint: "Genetic conditions", clues: [
+                { text: "Sickle cell in family", label: "Sickle cell trait/disease", color: "#c0392b", desc: "Hb electrophoresis" },
+                { text: "No family history", label: "Acquired likely", color: "#27ae60", desc: "Malaria, iron deficiency" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Severe pallor + lethargy + RR > 40 → severe anaemia, transfuse",
+            "🚨 Pallor + dark urine + fever → blackwater fever / G6PD crisis",
+            "🚨 Pallor + splenomegaly + acute collapse in sickle cell → splenic sequestration",
+            "🚨 Pallor + petechiae + lymphadenopathy → leukaemia"
+        ],
+        tips: [
+            "Always do malaria RDT/smear in any anaemic child.",
+            "Hb electrophoresis for unexplained haemolytic anaemia.",
+            "Never transfuse in cardiac failure without a diuretic."
+        ]
+    },
+    "neck stiffness": {
+        title: "🦟 Neck Stiffness",
+        intro: "Neck stiffness in a febrile child is meningitis until proven otherwise. Do not delay antibiotics.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 193",
+        questions: [
+            { q: "Fever with neck stiffness?", hint: "Fever + neck stiffness = meningitis", clues: [
+                { text: "Yes — fever + neck stiffness", label: "Meningitis — URGENT", color: "#c0392b", desc: "Ceftriaxone IV" },
+                { text: "No fever", label: "Non-infectious", color: "#e67e22", desc: "Torticollis, drug reaction" }
+            ] },
+            { q: "Rash present?", hint: "Non-blanching rash = meningococcaemia", clues: [
+                { text: "Non-blanching petechiae/purpura", label: "Meningococcaemia", color: "#c0392b", desc: "Benzylpenicillin immediately" },
+                { text: "Blanching rash", label: "Viral meningitis", color: "#e67e22", desc: "Enterovirus" }
+            ] },
+            { q: "Level of consciousness?", hint: "Altered consciousness = raised ICP", clues: [
+                { text: "Alert", label: "GCS 15", color: "#27ae60", desc: "Proceed to LP" },
+                { text: "Confused/drowsy", label: "Reduced", color: "#c0392b", desc: "Do NOT do LP, CT first" },
+                { text: "Unresponsive", label: "Severe", color: "#c0392b", desc: "ABC first, antibiotics" }
+            ] },
+            { q: "TB or meningitis contact?", hint: "Contact history is critical", clues: [
+                { text: "TB contact", label: "TB meningitis", color: "#c0392b", desc: "Anti-TB + dexamethasone" },
+                { text: "Meningitis contact", label: "Bacterial spread", color: "#e67e22", desc: "Prophylaxis" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Neck stiffness + fever → ceftriaxone IV immediately",
+            "🚨 Non-blanching rash + neck stiffness → benzylpenicillin",
+            "🚨 Neck stiffness + reduced consciousness → raised ICP, do NOT do LP",
+            "🚨 TB contact + subacute onset → TB meningitis"
+        ],
+        tips: [
+            "In children < 18 months, neck stiffness may be absent — bulging fontanelle is equivalent.",
+            "Cryptococcal meningitis is common in HIV-positive children.",
+            "Give first dose of antibiotics before LP if LP will be delayed."
+        ]
+    },
+    "ear discharge": {
+        title: "👂 Ear Discharge",
+        intro: "Ear discharge is usually acute otitis media with perforation (AOMP). Leading cause of preventable hearing loss in Uganda.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 221",
+        questions: [
+            { q: "How long has there been discharge?", hint: "Duration classifies otitis", clues: [
+                { text: "< 2 weeks", label: "Acute (AOMP)", color: "#e67e22", desc: "Amoxicillin" },
+                { text: "> 12 weeks", label: "CSOM", color: "#c0392b", desc: "Chronic, risk of hearing loss" }
+            ] },
+            { q: "Discharge appearance?", hint: "Character identifies organism", clues: [
+                { text: "Purulent, odourless", label: "Acute bacterial", color: "#e67e22", desc: "Streptococcus, H. influenzae" },
+                { text: "Foul-smelling, thick", label: "CSOM / Pseudomonas", color: "#c0392b", desc: "Topical ciprofloxacin" },
+                { text: "Blood-stained", label: "Trauma / cholesteatoma", color: "#c0392b", desc: "ENT referral" }
+            ] },
+            { q: "Ear pain (otalgia)?", hint: "Pain before and after discharge", clues: [
+                { text: "Severe pain relieved when discharge started", label: "TM perforation", color: "#e67e22", desc: "Classic AOMP" },
+                { text: "Pain ongoing despite discharge", label: "Mastoiditis", color: "#c0392b", desc: "Mastoid tenderness" }
+            ] },
+            { q: "Tenderness behind ear?", hint: "Mastoid tenderness = mastoiditis", clues: [
+                { text: "Yes — mastoid tenderness", label: "Mastoiditis", color: "#c0392b", desc: "Admit, IV ceftriaxone" },
+                { text: "No", label: "Less likely", color: "#27ae60", desc: "Oral antibiotics, dry mopping" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Ear discharge + mastoid tenderness → mastoiditis, admit for IV antibiotics",
+            "🚨 Ear discharge + headache + fever + altered consciousness → intracranial extension",
+            "🚨 Blood-stained discharge after head trauma → CSF leak, neurosurgical emergency",
+            "🚨 Chronic foul-smelling discharge + hearing loss → cholesteatoma"
+        ],
+        tips: [
+            "Dry mopping (not syringing) is correct for CSOM.",
+            "CSOM is a leading cause of preventable hearing loss.",
+            "Amoxicillin 80–90 mg/kg/day for 5–7 days is first-line for AOMP."
+        ]
+    },
+    oedema: {
+        title: "💧 Oedema (including Kwashiorkor)",
+        intro: "Oedema in a Ugandan child: first think of severe acute malnutrition (kwashiorkor). Also cardiac, renal, hepatic.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 535",
+        questions: [
+            { q: "Where is the oedema? Symmetrical?", hint: "Distribution narrows cause", clues: [
+                { text: "Bilateral lower limbs, ascends", label: "Hypoalbuminaemic/cardiac", color: "#e67e22", desc: "Kwashiorkor, nephrotic" },
+                { text: "Face (periorbital) + lower limbs", label: "Nephrotic syndrome", color: "#e67e22", desc: "Frothy urine" },
+                { text: "One limb only", label: "Local", color: "#8e44ad", desc: "DVT, cellulitis" }
+            ] },
+            { q: "Pitting or non-pitting?", hint: "Pitting vs non-pitting", clues: [
+                { text: "Pits on pressure", label: "Pitting oedema", color: "#e67e22", desc: "Low oncotic pressure" },
+                { text: "Does not pit", label: "Non-pitting", color: "#8e44ad", desc: "Lymphoedema, myxoedema" }
+            ] },
+            { q: "Nutritional history? Diet?", hint: "Protein intake is key for kwashiorkor", clues: [
+                { text: "Low protein diet (posho, cassava)", label: "Kwashiorkor likely", color: "#c0392b", desc: "Oedema + skin changes + misery" },
+                { text: "Adequate diet, weight loss", label: "Cardiac/renal/hepatic", color: "#e67e22", desc: "Echo, urine protein, LFTs" }
+            ] },
+            { q: "Frothy urine or reduced output?", hint: "Renal cause", clues: [
+                { text: "Frothy urine", label: "Proteinuria → nephrotic", color: "#e67e22", desc: "Urine dipstick 3+" },
+                { text: "Reduced urine output", label: "Renal failure", color: "#c0392b", desc: "Acute kidney injury" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Oedema + severe wasting + hypothermia → complicated SAM, F-75 milk",
+            "🚨 Oedema + anuria → acute kidney injury",
+            "🚨 Oedema + orthopnoea + gallop rhythm → cardiac failure, furosemide",
+            "🚨 Oedema + flaky paint skin + hair changes → kwashiorkor"
+        ],
+        tips: [
+            "Always check for kwashiorkor first in Uganda.",
+            "Never use ReSoMal in kwashiorkor with oedema — worsens sodium overload.",
+            "MUAC < 11.5 cm + bilateral pitting oedema = SAM, admit to nutrition unit."
+        ]
+    },
+    swelling: {
+        title: "💧 Swelling / Lump",
+        intro: "Systematically characterise: location, pain, duration, consistency. Painless lumps need urgent investigation.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 471",
+        questions: [
+            { q: "Where exactly is the swelling?", hint: "Location narrows differential", clues: [
+                { text: "Neck", label: "Cervical node/thyroid/cyst", color: "#2980b9", desc: "Reactive, TB, lymphoma" },
+                { text: "Abdomen", label: "Organomegaly/mass/hernia", color: "#e67e22", desc: "Wilms, Burkitt, malaria" },
+                { text: "Groin/scrotum", label: "Hernia/hydrocele/torsion", color: "#c0392b", desc: "Incarcerated hernia = surgery" },
+                { text: "Limb/bone", label: "Soft tissue/bony mass", color: "#8e44ad", desc: "Abscess, Ewing's, Burkitt's jaw" }
+            ] },
+            { q: "Is it painful?", hint: "Pain suggests inflammation or rapid growth", clues: [
+                { text: "Yes — tender, hot, red", label: "Inflammatory/infective", color: "#c0392b", desc: "Abscess, cellulitis" },
+                { text: "Painless", label: "Non-inflammatory", color: "#e67e22", desc: "Lymphoma, Wilms, Burkitt's" }
+            ] },
+            { q: "How long has it been present?", hint: "Duration affects urgency", clues: [
+                { text: "Days — rapidly growing", label: "Acute/malignancy", color: "#c0392b", desc: "Burkitt's lymphoma" },
+                { text: "Weeks–months, slowly enlarging", label: "TB/lymphoma", color: "#e67e22", desc: "FNA/biopsy" }
+            ] },
+            { q: "Fluctuant (fluid-filled) or hard?", hint: "Consistency guides management", clues: [
+                { text: "Soft, fluctuant", label: "Abscess/cyst/hydrocele", color: "#e67e22", desc: "Drainage if abscess" },
+                { text: "Hard/stony hard", label: "Bony/lymphoma/calcified", color: "#c0392b", desc: "Urgent FNA/biopsy" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Rapidly enlarging painless jaw/abdominal mass → Burkitt's lymphoma, oncology referral",
+            "🚨 Groin swelling + pain + unable to reduce → incarcerated hernia, surgical emergency",
+            "🚨 Painless abdominal mass in child < 5 years → Wilms' tumour, abdominal USS",
+            "🚨 Neck swelling + fever + difficulty swallowing → retropharyngeal abscess"
+        ],
+        tips: [
+            "Burkitt's lymphoma is endemic in Uganda — rapidly growing mass requires urgent referral.",
+            "Painless, rubbery, non-tender cervical node > 2 cm for > 4 weeks warrants FNA.",
+            "Transillumination differentiates hydrocele (transilluminates) from hernia (does not)."
+        ]
+    },
+    lethargy: {
+        title: "😴 Lethargy / Irritability",
+        intro: "Lethargy is always a serious symptom. May be the only presenting feature of sepsis, cerebral malaria, or meningitis in young children.",
+        chapter: "Nelson Textbook of Pediatrics, Ch. 177",
+        questions: [
+            { q: "How severe is the altered behaviour?", hint: "Severity determines urgency", clues: [
+                { text: "Quieter, less playful", label: "Mild", color: "#e67e22", desc: "Viral illness, early sepsis" },
+                { text: "Very drowsy, wakes with effort", label: "Moderate — AVPU: V", color: "#c0392b", desc: "Cerebral malaria, meningitis" },
+                { text: "Unresponsive", label: "Severe — AVPU: P/U", color: "#c0392b", desc: "Emergency — airway, glucose, malaria treatment" },
+                { text: "Inconsolable crying, high-pitched", label: "Irritability", color: "#c0392b", desc: "Meningeal irritation" }
+            ] },
+            { q: "Fever present?", hint: "Lethargy + fever = CNS infection", clues: [
+                { text: "Yes — fever + lethargy", label: "Infectious cause", color: "#c0392b", desc: "Malaria, meningitis, sepsis" },
+                { text: "No fever", label: "Metabolic/toxic", color: "#e67e22", desc: "Hypoglycaemia, poisoning, DKA" }
+            ] },
+            { q: "Any convulsions?", hint: "Convulsions + lethargy = CNS involvement", clues: [
+                { text: "Yes — post-ictal lethargy", label: "Post-ictal or ongoing", color: "#c0392b", desc: "Should improve in 30 min — if not, investigate" },
+                { text: "No convulsions", label: "Non-epileptic", color: "#e67e22", desc: "Sepsis, metabolic" }
+            ] },
+            { q: "Check blood glucose — what is it?", hint: "Hypoglycaemia is common and lethal if missed", clues: [
+                { text: "< 2.5 mmol/L", label: "Hypoglycaemia — treat NOW", color: "#c0392b", desc: "2 ml/kg 10% dextrose IV" },
+                { text: "2.5–6.0 mmol/L", label: "Normal", color: "#27ae60", desc: "Exclude other causes" },
+                { text: "> 11 mmol/L", label: "Hyperglycaemia", color: "#e67e22", desc: "DKA or stress" }
+            ] },
+            { q: "Recent medication or traditional remedies?", hint: "Toxic causes are common", clues: [
+                { text: "Medications given", label: "Drug toxicity", color: "#c0392b", desc: "Paracetamol overdose, chloroquine" },
+                { text: "Traditional herbs", label: "Herbal toxicity", color: "#c0392b", desc: "Hepatotoxins, convulsants" }
+            ] }
+        ],
+        redFlags: [
+            "🚨 Unable to wake the child → ABC first",
+            "🚨 Lethargy + fever → cerebral malaria or meningitis — treat both empirically",
+            "🚨 Glucose < 2.5 mmol/L → 10% dextrose 2 ml/kg IV immediately",
+            "🚨 Lethargy + bulging fontanelle → raised ICP, do NOT do LP yet"
+        ],
+        tips: [
+            "Always check bedside glucose in any lethargic child — takes 30 seconds.",
+            "Cerebral malaria is the most common cause of severe lethargy with fever in Uganda.",
+            "A high-pitched cry in an infant is meningism — treat as meningitis until LP proves otherwise."
+        ]
     }
+};
+
+
+    
 };
 
 function displayQuestions(symptom) {
