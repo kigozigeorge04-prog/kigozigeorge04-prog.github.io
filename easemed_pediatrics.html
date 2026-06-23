@@ -2458,5 +2458,15 @@
     document.querySelectorAll('.toggle-pill').forEach(p => p.addEventListener('click', updateProgress));
     document.getElementById('milestonesContainer').addEventListener('click', (e) => { if (e.target.classList && e.target.classList.contains('toggle-pill')) checkMilestoneWarnings(); });
 </script>
+
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('✅ Service Worker registered'))
+                .catch(err => console.warn('❌ SW registration failed:', err));
+        });
+    }
+</script>
 </body>
 </html>
