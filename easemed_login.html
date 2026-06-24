@@ -867,13 +867,33 @@ if (tokenType === 'recovery') {
         return;
     }
     if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
+        // In the auth state listener, update this:
+sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
+        const user = session.user;
+        const email = user.email || user.user_metadata?.email;
+        
+        // Pass email explicitly
+        await upsertProfile(user, {
+            name: user.user_metadata?.full_name || 
+                  user.user_metadata?.name || 
+                  email || 
+                  'Unknown',
+            email: email  // ← Pass email explicitly
+        });
+        
+        localStorage.setItem('easemed_user', email);
+        window.location.href = DASHBOARD_URL;
+    }
+});
+        
         // normal login flow
         localStorage.setItem('easemed_user', session.user.email);
         localStorage.setItem('easemed_user_name',
             session.user.user_metadata?.full_name ||
             session.user.user_metadata?.name ||
             session.user.email);
-        await upsertProfile(session.user, {
+         await upsertProfile(session.user, {
             name: session.user.user_metadata?.full_name ||
                   session.user.user_metadata?.name ||
                   session.user.email
@@ -924,27 +944,63 @@ if (session && !inPasswordRecovery) {  // ← already there, just make sure it's
 
 // ── Upsert profile ──────────────────────────────────────────
 async function upsertProfile(user, extra) {
-    if (!sb) return;
+    if (!sb) {
+        console.warn('[EaseMed] Supabase client not initialized');
+        return;
+    }
+    
+    if (!user || !user.id) {
+        console.warn('[EaseMed] Invalid user object provided');
+        return;
+    }
+    
+    // Try multiple sources for email
+    const email = user.email || 
+                  extra?.email || 
+                  user.user_metadata?.email || 
+                  user.user_metadata?.email_address || 
+                  null;
+    
+    if (!email) {
+        console.warn('[EaseMed] No email available for profile upsert');
+        return;
+    }
+    
+    const fullName = extra?.name || 
+                     user.user_metadata?.full_name || 
+                     user.user_metadata?.name || 
+                     email.split('@')[0] || 
+                     'Unknown';
+    
     try {
-        await sb.from('profiles').upsert({
-            id:            user.id,
-            email:         user.email,
-            full_name: extra.name || user.user_metadata?.full_name || user.user_metadata?.name || user.email,
-            role:          extra.role       || user.user_metadata?.role      || 'Medical Student',
-            university:    extra.university || '',
-            year_of_study: extra.yearOfStudy || '',
-            phone:         extra.phone      || '',
-            license_no:    extra.license    || '',
-            location:      extra.location   || '',
-            provider:      user.app_metadata?.provider || 'email',
-            updated_at:    new Date().toISOString(),
-        }, { onConflict: 'id' });
+        const profileData = {
+            id: user.id,
+            email: email,
+            full_name: fullName,
+            role: extra?.role || user.user_metadata?.role || 'Medical Student',
+            university: extra?.university || '',
+            year_of_study: extra?.yearOfStudy || '',
+            phone: extra?.phone || '',
+            license_no: extra?.license || '',
+            location: extra?.location || '',
+            provider: user.app_metadata?.provider || 'email',
+            updated_at: new Date().toISOString(),
+        };
+        
+        const { error } = await sb.from('profiles').upsert(profileData, { 
+            onConflict: 'id' 
+        });
+        
+        if (error) {
+            console.warn('[EaseMed] Profile upsert failed:', error.message);
+        } else {
+            console.log('[EaseMed] Profile upserted successfully for:', email);
+        }
     } catch (e) {
-        console.warn('[EaseMed] Profile upsert skipped:', e.message);
+        console.warn('[EaseMed] Profile upsert exception:', e.message);
     }
 }
-
-// ── EMAIL / PASSWORD LOGIN (unchanged) ─────────────────────
+    // ── EMAIL / PASSWORD LOGIN (unchanged) ─────────────────────
 async function handleLogin() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
