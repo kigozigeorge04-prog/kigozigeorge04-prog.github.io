@@ -195,17 +195,19 @@
             transition: all 0.2s;
             color: var(--text);
         }
+        /* --- COMPACT TEXTAREAS --- */
+        textarea {
+            resize: vertical;
+            min-height: 48px;
+            height: auto;
+            line-height: 1.5;
+        }
         input:focus,
         select:focus,
         textarea:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
             outline: none;
-        }
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-            line-height: 1.5;
         }
 
         .grid-2 {
@@ -219,7 +221,49 @@
             }
         }
 
-        /* --- Buttons --- */
+        /* --- Buttons & Pills: unified hover/active --- */
+        .btn-primary,
+        .btn-secondary,
+        .btn-record,
+        .btn-card,
+        .btn-camera,
+        .symptom-btn,
+        .toggle-pill {
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .btn-primary:hover,
+        .btn-secondary:hover,
+        .btn-record:hover,
+        .btn-card:hover,
+        .btn-camera:hover,
+        .symptom-btn:hover,
+        .toggle-pill:hover {
+            background: #bbf7d0 !important;
+            border-color: #16a34a !important;
+            color: #166534 !important;
+        }
+        .btn-primary:active,
+        .btn-secondary:active,
+        .btn-record:active,
+        .btn-card:active,
+        .btn-camera:active,
+        .symptom-btn:active,
+        .toggle-pill:active,
+        .btn-primary.active,
+        .btn-secondary.active,
+        .btn-record.active,
+        .btn-card.active,
+        .btn-camera.active,
+        .symptom-btn.active,
+        .toggle-pill.active {
+            background: #16a34a !important;
+            border-color: #16a34a !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+        }
+
+        /* keep original button overrides where needed */
         .btn-primary {
             background: var(--primary);
             color: white;
@@ -228,16 +272,19 @@
             border-radius: 8px;
             font-weight: 600;
             font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.15s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
         .btn-primary:hover {
-            background: #0d5c56;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(15, 118, 110, 0.25);
+            background: #bbf7d0 !important;
+            border-color: #16a34a !important;
+            color: #166534 !important;
+        }
+        .btn-primary:active {
+            background: #16a34a !important;
+            border-color: #16a34a !important;
+            color: #ffffff !important;
         }
         .btn-secondary {
             background: #e2e8f0;
@@ -247,11 +294,16 @@
             border-radius: 8px;
             font-weight: 600;
             font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.15s;
         }
         .btn-secondary:hover {
-            background: #cbd5e1;
+            background: #bbf7d0 !important;
+            border-color: #16a34a !important;
+            color: #166534 !important;
+        }
+        .btn-secondary:active {
+            background: #16a34a !important;
+            border-color: #16a34a !important;
+            color: #ffffff !important;
         }
 
         /* --- Tags / Pills --- */
@@ -272,16 +324,14 @@
             color: var(--text-secondary);
             font-size: 0.85rem;
             font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s;
             user-select: none;
         }
         .toggle-pill.active {
-            background: var(--primary-light);
-            border-color: var(--primary);
-            color: var(--primary);
+            background: #16a34a !important;
+            border-color: #16a34a !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.2);
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(15, 118, 110, 0.1);
         }
         .toggle-pill.active::before {
             content: "✓ ";
@@ -305,20 +355,13 @@
             font-size: 0.9rem;
             font-weight: 500;
             color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.15s;
             white-space: nowrap;
         }
-        .symptom-btn:hover {
-            background: #e2e8f0;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
         .symptom-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+            background: #16a34a !important;
+            border-color: #16a34a !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
         }
 
         /* --- Vaccine Grid --- */
@@ -480,12 +523,6 @@
             border-radius: 8px;
             font-weight: 600;
             font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .btn-camera:hover {
-            transform: scale(1.03);
-            opacity: 0.9;
         }
         .btn-camera-start {
             background: var(--primary);
@@ -625,11 +662,6 @@
             border-radius: 6px;
             font-weight: 600;
             font-size: 0.85rem;
-            cursor: pointer;
-            transition: opacity 0.15s;
-        }
-        .btn-record:hover {
-            opacity: 0.85;
         }
         .btn-save {
             background: #2c6e49;
@@ -701,11 +733,6 @@
             border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.15s;
-        }
-        .btn-card:hover {
-            opacity: 0.8;
         }
         .btn-load {
             background: #e2e8f0;
@@ -1109,7 +1136,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="field-hint">💡 Chronological narrative: onset, progression, associated symptoms, treatments tried, impact on feeding/activity...</div>
-                        <textarea id="hpc" rows="4" placeholder=""></textarea>
+                        <textarea id="hpc" rows="2" placeholder=""></textarea>
                     </div>
                 </div>
             </div>
@@ -1335,7 +1362,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="field-hint">💡 Diagnosis, investigations, treatment, follow-up</div>
-                        <textarea id="managementPlan" rows="4" placeholder=""></textarea>
+                        <textarea id="managementPlan" rows="3" placeholder=""></textarea>
                     </div>
                 </div>
             </div>
@@ -1564,24 +1591,9 @@
             warningDiv.style.display = tooYoung ? 'block' : 'none';
         }
 
-        // ==================== ROS (Hutchinson-style - 11 systems) ====================
+        // ==================== ROS (Hutchinson-style) ====================
+        // --- Removed 'general' and 'psychiatric' systems ---
         const pedsROS = {
-            general: {
-                name: "General / Constitutional",
-                icon: "🌡️",
-                common: [
-                    "Fever (document pattern)",
-                    "Fatigue / Lethargy",
-                    "Poor appetite / Anorexia",
-                    "Weight loss (document amount)",
-                    "Night sweats",
-                    "Failure to thrive / Poor weight gain",
-                    "Irritability / Fussiness",
-                    "Lethargy / Excessive sleepiness",
-                    "Reduced activity / Playfulness",
-                    "Easy fatigability"
-                ]
-            },
             cardiovascular: {
                 name: "Cardiovascular",
                 icon: "❤️",
@@ -1733,22 +1745,6 @@
                     "Excessive sweating",
                     "Delayed puberty (older child)",
                     "Hypoglycaemic episodes"
-                ]
-            },
-            psychiatric: {
-                name: "Psychological / Behavioural",
-                icon: "🧠",
-                common: [
-                    "Developmental regression (loss of skills)",
-                    "Poor concentration / Short attention span",
-                    "Hyperactivity / Restlessness",
-                    "Withdrawn / Social isolation",
-                    "Anxiety / Excessive worrying",
-                    "Depressed mood / Sadness",
-                    "Self-harm / Aggression (older child)",
-                    "Sleep disturbance / Nightmares",
-                    "Enuresis / Encopresis",
-                    "School refusal / Poor academic performance"
                 ]
             }
         };
@@ -2965,7 +2961,7 @@
         };
 
         // ============================================================
-        // EXTRA GUIDES FOR NEW SYMPTOMS
+        // EXTRA GUIDES FOR NEW SYMPTOMS (merged into pediatricSymptomGuides)
         // ============================================================
         const extraGuides = {
             "abdominal distension": {
