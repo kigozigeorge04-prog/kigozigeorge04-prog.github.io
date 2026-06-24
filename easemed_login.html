@@ -861,7 +861,7 @@ if (tokenType === 'recovery') {
     }
 
     // ── Auth state listener ──────────────────────────────────
-    sb.auth.onAuthStateChange(async (event, session) => {
+
        sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'PASSWORD_RECOVERY') {
         inPasswordRecovery = true;
@@ -884,7 +884,6 @@ if (tokenType === 'recovery') {
         window.location.href = DASHBOARD_URL;
     }
 });
-
     // ── Check existing session ──────────────────────────────
     setOverlayStatus('Checking session...');
     try {
@@ -1157,7 +1156,6 @@ async function handleForgotPassword() {
    const { error } = await sb.auth.resetPasswordForEmail(email, {
     redirectTo: 'https://easemedapp.site/easemed_login.html',
 });
-    });
     if (error) {
         showAlert('❌ ' + error.message);
     } else {
