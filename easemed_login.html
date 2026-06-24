@@ -726,7 +726,7 @@
 
         <div class="footer">
             <p>Secure Medical Platform | Powered by Supabase | Data Protected</p>
-            <p>© 2024 EaseMed - Clinical Clerk System</p>
+            <p>© 2026 EaseMed - Clinical Clerk System</p>
         </div>
     </div>
 </div>
@@ -832,7 +832,12 @@ function waitForSDK(maxWaitMs = 8000) {
 
 // ── Boot sequence ─────────────────────────────────────────────
 let sb;
-
+// Check if this is a password recovery link
+const hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
+const tokenType = hashParams.get('type');
+if (tokenType === 'recovery') {
+    inPasswordRecovery = true;
+}
 (async function boot() {
     setOverlayStatus('Loading SDK...');
 
@@ -857,40 +862,38 @@ let sb;
 
     // ── Auth state listener ──────────────────────────────────
     sb.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-            inPasswordRecovery = true;
-            hideOverlay();
-            showResetForm();
-            return;
-        }
-        if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
-            localStorage.setItem('easemed_user', session.user.email);
-            localStorage.setItem('easemed_user_name',
-                session.user.user_metadata?.full_name ||
-                session.user.user_metadata?.name      ||
-                session.user.email);
-            await upsertProfile(session.user, {});
-            window.location.href = DASHBOARD_URL;
-        }
-    });
+       sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+        inPasswordRecovery = true;
+        hideOverlay();
+        showResetForm();
+        return;
+    }
+    if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
+        // normal login flow
+        localStorage.setItem('easemed_user', session.user.email);
+        localStorage.setItem('easemed_user_name',
+            session.user.user_metadata?.full_name ||
+            session.user.user_metadata?.name ||
+            session.user.email);
+        await upsertProfile(session.user, {
+            name: session.user.user_metadata?.full_name ||
+                  session.user.user_metadata?.name ||
+                  session.user.email
+        });
+        window.location.href = DASHBOARD_URL;
+    }
+});
 
     // ── Check existing session ──────────────────────────────
     setOverlayStatus('Checking session...');
     try {
-        const { data: { session } } = await withTimeout(
-            sb.auth.getSession(), 8000, 'Session check'
-        );
-        if (session && !inPasswordRecovery) {
-            setOverlayStatus('✅ Session found! Redirecting...');
-            const user = session.user;
-            localStorage.setItem('easemed_user', user.email);
-            localStorage.setItem('easemed_user_name', 
-                user.user_metadata?.full_name || 
-                user.user_metadata?.name || 
-                user.email
-            );
-            window.location.href = DASHBOARD_URL;
-            return;
+       const { data: { session } } = await withTimeout(
+    sb.auth.getSession(), 8000, 'Session check'
+);
+if (session && !inPasswordRecovery) {  // ← already there, just make sure it's checking the flag set above
+    window.location.href = DASHBOARD_URL;
+    return;
         }
     } catch (e) {
         console.warn('[EaseMed] Session check failed:', e.message);
@@ -930,7 +933,7 @@ async function upsertProfile(user, extra) {
         await sb.from('profiles').upsert({
             id:            user.id,
             email:         user.email,
-            name:          extra.name       || user.user_metadata?.full_name || user.email,
+            full_name: extra.name || user.user_metadata?.full_name || user.user_metadata?.name || user.email,
             role:          extra.role       || user.user_metadata?.role      || 'Medical Student',
             university:    extra.university || '',
             year_of_study: extra.yearOfStudy || '',
@@ -1151,8 +1154,9 @@ async function handleForgotPassword() {
         showAlert('Enter your email address first, then click "Forgot password".', 'info');
         return;
     }
-    const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/easemed_login.html',
+   const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://easemedapp.site/easemed_login.html',
+});
     });
     if (error) {
         showAlert('❌ ' + error.message);
