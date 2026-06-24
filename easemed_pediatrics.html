@@ -50,37 +50,42 @@
         }
 
         /* --- Top Navigation --- */
-        #authBar {
-            background: var(--primary-dark);
-            color: #fff;
-            padding: 12px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-        #authBar .brand {
-            font-size: 1.2rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        #authBar .brand span {
-            color: #99f6e4;
-        }
-        #authBar .user-area {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        #authBar .user-area #userGreeting {
-            color: #cbd5e1;
-            font-size: 0.9rem;
-        }
+      /* In your <style> block — replace the existing #authBar rule */
+#authBar {
+    background: var(--primary-dark);
+    color: #fff;
+    padding: 12px 20px;          /* reduced side padding for mobile */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;   /* smooth hide/show */
+}
+#authBar.hidden {
+    transform: translateY(-100%);
+}
+
+/* Also make the brand text wrap on mobile */
+#authBar .brand {
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 1;
+    min-width: 0;
+}
+#authBar .user-area #userGreeting {
+    display: none;          /* hide greeting on mobile to save space */
+}
+@media (min-width: 600px) {
+    #authBar .user-area #userGreeting {
+        display: inline;
+    }
+}
         #authBar .user-area button {
             background: #dc2626;
             border: none;
@@ -111,7 +116,87 @@
             width: 0%;
             transition: width 0.4s ease;
         }
+/* ---- MOBILE OVERFLOW FIXES ---- */
 
+/* Prevent anything from busting out of the viewport */
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* Container padding on small screens */
+.container {
+    padding: 12px;
+}
+
+/* ROS and exam grids: force single column below 600px */
+.ros-grid,
+.exam-grid {
+    grid-template-columns: 1fr;
+}
+@media (min-width: 700px) {
+    .ros-grid,
+    .exam-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+}
+
+/* Vitals row: 2 per row on mobile instead of all in one line */
+.vitals-row {
+    grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 600px) {
+    .vitals-row {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+}
+
+/* Vaccine grid: 2 columns on mobile */
+.vaccine-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 500px) {
+    .vaccine-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+}
+
+/* Symptom buttons: allow wrapping without overflow */
+.symptom-buttons {
+    max-height: 180px;
+}
+
+/* Records actions: wrap on mobile */
+.records-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.btn-record {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+}
+
+/* Summary tabs: already handled but ensure wraps */
+.summary-tabs {
+    grid-template-columns: 1fr;
+}
+@media (min-width: 700px) {
+    .summary-tabs {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Action buttons at bottom: stack on very small screens */
+@media (max-width: 480px) {
+    .form-section > div[style*="display: flex"] {
+        flex-direction: column;
+    }
+    .form-section > div[style*="display: flex"] .btn-primary {
+        flex: none;
+        width: 100%;
+        justify-content: center;
+    }
+}
         /* --- Main Layout --- */
         .container {
             max-width: 1440px;
@@ -130,7 +215,11 @@
                 order: 2;
             }
         }
-
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+}
         /* --- Cards --- */
         .card {
             background: var(--surface);
@@ -4083,6 +4172,20 @@
                     .catch(err => console.warn('❌ SW registration failed:', err));
             });
         }
+        // Auto-hide nav on scroll down, reveal on scroll up
+(function() {
+    let lastScroll = 0;
+    const authBar = document.getElementById('authBar');
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.scrollY;
+        if (currentScroll > lastScroll && currentScroll > 80) {
+            authBar.classList.add('hidden');
+        } else {
+            authBar.classList.remove('hidden');
+        }
+        lastScroll = currentScroll;
+    }, { passive: true });
+})();
     </script>
 </body>
 </html>
