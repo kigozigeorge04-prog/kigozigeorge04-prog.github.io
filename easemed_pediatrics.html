@@ -1575,12 +1575,45 @@
                 milestonesContainer.appendChild(pill);
             });
         }
+// ==================== AGE PARSER ====================
+function parseAgeToMonths(ageStr) {
+    if (!ageStr) return null;
+    let totalMonths = 0;
+    const yearMatch = ageStr.match(/(\d+\.?\d*)\s*year/i);
+    if (yearMatch) totalMonths += parseFloat(yearMatch[1]) * 12;
+    const monthMatch = ageStr.match(/(\d+\.?\d*)\s*month/i);
+    if (monthMatch) totalMonths += parseFloat(monthMatch[1]);
+    if (!yearMatch && !monthMatch) {
+        const plain = parseFloat(ageStr);
+        if (!isNaN(plain)) totalMonths = plain;
+    }
+    return isNaN(totalMonths) || totalMonths === 0 ? null : totalMonths;
+}
+        
 
         function checkMilestoneWarnings() {
-            const ageStr = document.getElementById('childAge').value;
-            let ageMonths = null;
-            if (ageStr.includes('month')) ageMonths = parseFloat(ageStr);
-            else if (ageStr.includes('year')) ageMonths = parseFloat(ageStr) * 12;
+          const ageMonths = parseAgeToMonths(document.getElementById('childAge').value);
+if (ageMonths === null) { 
+    document.getElementById('milestoneWarning').style.display = 'none'; 
+    return; 
+}
+    
+    // Extract years if present e.g. "3 years"
+    const yearMatch = ageStr.match(/(\d+\.?\d*)\s*year/i);
+    if (yearMatch) totalMonths += parseFloat(yearMatch[1]) * 12;
+    
+    // Extract months if present e.g. "6 months"
+    const monthMatch = ageStr.match(/(\d+\.?\d*)\s*month/i);
+    if (monthMatch) totalMonths += parseFloat(monthMatch[1]);
+    
+    // If neither matched, try plain number (assume months)
+    if (!yearMatch && !monthMatch) {
+        const plain = parseFloat(ageStr);
+        if (!isNaN(plain)) totalMonths = plain;
+    }
+    
+    return isNaN(totalMonths) || totalMonths === 0 ? null : totalMonths;
+}
             else ageMonths = parseFloat(ageStr);
             if (isNaN(ageMonths)) { document.getElementById('milestoneWarning').style.display = 'none'; return; }
             const warningDiv = document.getElementById('milestoneWarning');
@@ -2091,18 +2124,12 @@
         }
 
         function checkVitals() {
-            const ageStr = document.getElementById('childAge').value;
-            let ageMonths = null;
-            if (ageStr.includes('month')) ageMonths = parseFloat(ageStr);
-            else if (ageStr.includes('year')) ageMonths = parseFloat(ageStr) * 12;
-            else ageMonths = parseFloat(ageStr);
+          const ageMonths = parseAgeToMonths(document.getElementById('childAge').value);
             const hr = parseInt(document.getElementById('hr').value);
             const rr = parseInt(document.getElementById('rr').value);
             let hrLow, hrHigh, rrLow, rrHigh;
-            if (isNaN(ageMonths)) { hrLow = 70;
-                hrHigh = 160;
-                rrLow = 20;
-                rrHigh = 50; } else {
+          if (ageMonths === null) { hrLow = 70; hrHigh = 160; rrLow = 20; rrHigh = 50; }
+          else {
                 const cat = getAgeCategory(ageMonths);
                 if (cat === 'neonate') { hrLow = 120;
                     hrHigh = 160;
@@ -2156,11 +2183,7 @@
         }
 
         function updateGrowthChart() {
-            const weight = parseFloat(document.getElementById('weight').value);
-            const ageStr = document.getElementById('childAge').value;
-            let ageMonths = null;
-            if (ageStr.includes('month')) ageMonths = parseFloat(ageStr);
-            else if (ageStr.includes('year')) ageMonths = parseFloat(ageStr) * 12;
+           const ageMonths = parseAgeToMonths(document.getElementById('childAge').value);
             if (!isNaN(weight) && ageMonths && growthChart && ageMonths <= 60) {
                 if (growthChart.data.datasets.length > 1) growthChart.data.datasets.pop();
                 growthChart.data.datasets.push({
