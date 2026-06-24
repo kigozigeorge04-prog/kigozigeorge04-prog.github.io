@@ -1311,57 +1311,302 @@
             left: 0;
             width: 100%;
             z-index: 9999;
-            background: rgba(15, 32, 39, 0.92);
-            backdrop-filter: blur(6px);
+            background: rgba(15, 32, 39, 0.95);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 6px 18px;
+            padding: 8px 24px;
             font-family: 'Segoe UI', sans-serif;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3)
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.25);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
         #authBar .brand {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             color: #fff;
             font-weight: 700;
-            font-size: 0.95rem
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
         }
         #authBar .brand span {
-            font-size: 18px
+            font-size: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+        #authBar .brand .brand-highlight {
+            color: #90cdf4;
+            font-weight: 300;
+        }
+        #authBar .brand .module-badge {
+            background: rgba(42, 157, 143, 0.25);
+            border: 1px solid rgba(42, 157, 143, 0.3);
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #90cdf4;
+            letter-spacing: 0.5px;
+            margin-left: 4px;
         }
         #authBar .user-area {
             display: flex;
             align-items: center;
-            gap: 10px
+            gap: 12px;
         }
         #authBar .user-area #userGreeting {
-            color: #90cdf4;
-            font-size: 0.8rem
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        #authBar .user-area .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2a9d8f, #1e7d5a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+            border: 2px solid rgba(255, 255, 255, 0.15);
         }
         #authBar .user-area .btn-logout {
             background: linear-gradient(135deg, #e53e3e, #c53030);
             color: white;
             border: none;
-            border-radius: 6px;
-            padding: 4px 12px;
-            font-size: 0.75rem;
+            border-radius: 8px;
+            padding: 6px 16px;
+            font-size: 0.78rem;
             font-weight: 600;
-            cursor: pointer
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        #authBar .user-area .btn-modules {
-            color: #90cdf4;
-            font-size: 0.8rem;
-            font-weight: 500;
-            text-decoration: none;
-            padding: 4px 10px;
+        #authBar .user-area .btn-logout:hover {
+            transform: scale(1.04);
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.35);
+        }
+        #authBar .user-area .btn-logout svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* GCS specific styles */
+        .gcs-container {
+            background: #f0f7ff;
+            border: 1.5px solid #1e3c72;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin: 8px 0 12px 0;
+        }
+        .gcs-container h5 {
+            color: #1e3c72;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .gcs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .gcs-item {
+            background: white;
+            border-radius: 8px;
+            padding: 6px 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .gcs-item label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .gcs-item select {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid #e2e8f0;
             border-radius: 6px;
-            background: rgba(255, 255, 255, 0.06);
-            transition: background 0.15s
+            font-size: 0.8rem;
+            background: white;
+            margin-top: 2px;
         }
-        #authBar .user-area .btn-modules:hover {
-            background: rgba(255, 255, 255, 0.14)
+        .gcs-total {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .gcs-total label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #1e3c72;
+        }
+        .gcs-total input {
+            width: 60px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            border: 2px solid #1e3c72;
+            border-radius: 8px;
+            padding: 4px 8px;
+            color: #1e3c72;
+        }
+        .gcs-total input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.15);
+        }
+        .gcs-text {
+            margin-top: 8px;
+        }
+        .gcs-text textarea {
+            font-size: 0.8rem;
+            min-height: 50px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 100%;
+            resize: vertical;
+        }
+        .gcs-text textarea:focus {
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.06);
+            outline: none;
+        }
+        .gcs-guide {
+            font-size: 0.7rem;
+            color: #4a5568;
+            background: #f8fafc;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-top: 6px;
+            border-left: 3px solid #2a9d8f;
+        }
+        .gcs-guide strong {
+            color: #1e3c72;
+        }
+
+        /* Social history enhanced */
+        .social-sub-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .social-sub-grid .full-width {
+            grid-column: 1 / -1;
+        }
+        @media (max-width: 640px) {
+            .social-sub-grid {
+                grid-template-columns: 1fr;
+            }
+            .social-sub-grid .full-width {
+                grid-column: 1;
+            }
+            .gcs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Differential Diagnosis styles */
+        .ddx-container {
+            background: #f0f7ff;
+            border: 2px solid #1e3c72;
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-top: 10px;
+        }
+        .ddx-container h4 {
+            color: #1e3c72;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ddx-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .ddx-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ddx-item .ddx-rank {
+            background: #1e3c72;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .ddx-item .ddx-name {
+            font-weight: 600;
+            color: #1e3c72;
+        }
+        .ddx-item .ddx-reason {
+            font-size: 0.7rem;
+            color: #718096;
+            margin-left: auto;
+            text-align: right;
+            max-width: 45%;
+        }
+        .ddx-empty {
+            color: #718096;
+            font-style: italic;
+            font-size: 0.85rem;
+            padding: 8px 0;
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+        .ddx-generate-btn {
+            background: linear-gradient(135deg, #2a9d8f, #1e7d5a);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+        .ddx-generate-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 14px rgba(42, 157, 143, 0.35);
+        }
+        @media (max-width: 640px) {
+            .ddx-list {
+                grid-template-columns: 1fr;
+            }
+            .ddx-item .ddx-reason {
+                max-width: 100%;
+                text-align: left;
+                margin-left: 0;
+            }
         }
     </style>
 </head>
@@ -1373,20 +1618,27 @@
     <div class="progress-bar" id="progressBar"></div>
 
     <!-- ============================================================
-    TOP BAR (AUTH)
+    TOP BAR (AUTH) — Now showing "Internal Medicine Clerkship"
     ============================================================ -->
     <div id="authBar">
         <div class="brand">
-            <span>🩺</span> EaseMed
+            <span>🩺</span> EaseMed <span class="brand-highlight">Clinical Clerk</span>
+            <span class="module-badge">🏥 Internal Medicine</span>
         </div>
         <div class="user-area">
-            <a href="easemed_modules.html" class="btn-modules">📚 Modules</a>
+            <div class="user-avatar" id="userAvatar">👤</div>
             <span id="userGreeting">Loading...</span>
-            <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
-            <a href="javascript:void(0)" onclick="openTermlyPreferences(event)" style="color:#90cdf4;font-size:0.7rem;text-decoration:none;padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.06);">🍪 Preferences</a>
+            <button class="btn-logout" onclick="handleLogout()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Logout
+            </button>
         </div>
     </div>
-    <div style="height: 44px;"></div>
+    <div style="height: 52px;"></div>
 
     <!-- ============================================================
     MAIN CONTAINER
@@ -1400,7 +1652,7 @@
                 <p>Comprehensive history taking &amp; physical examination guide</p>
             </div>
 
-            <!-- 1. DEMOGRAPHICS -->
+            <!-- 1. DEMOGRAPHICS — Restored to original format -->
             <div class="form-section">
                 <h3>📋 Patient Demographics</h3>
                 <div class="demographics-grid">
@@ -1511,18 +1763,48 @@
                 </div>
             </div>
 
-            <!-- 5. REVIEW OF SYSTEMS (General removed, expanded symptoms) -->
+            <!-- 5. REVIEW OF SYSTEMS -->
             <div class="form-section">
                 <h3>🔄 Review of Systems <span class="stat-card">Hutchison's</span></h3>
                 <div id="rosContainer"></div>
             </div>
 
-            <!-- 6. SOCIAL & FAMILY HISTORY -->
+            <!-- 6. SOCIAL & FAMILY HISTORY (enhanced with smoking and alcohol) -->
             <div class="form-section">
-                <h3>🏠 Social History</h3>
-                <textarea id="social" placeholder="Smoking, alcohol, drugs, living conditions, occupation, diet, travel, support network..."></textarea>
-                <label style="margin-top:8px;">Family History</label>
-                <textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders, TB, HIV, cancer..."></textarea>
+                <h3>🏠 Social & Family History</h3>
+                <div class="social-sub-grid">
+                    <div class="full-width">
+                        <label>Social Circumstances</label>
+                        <textarea id="social" placeholder="Living conditions, occupation, diet, travel, support network, education..."></textarea>
+                    </div>
+                    <div>
+                        <label>Smoking History (Hutchison's)</label>
+                        <select id="smokingStatus">
+                            <option value="">Select status</option>
+                            <option value="Never smoked">Never smoked</option>
+                            <option value="Current smoker">Current smoker</option>
+                            <option value="Ex-smoker">Ex-smoker</option>
+                            <option value="Passive exposure">Passive exposure</option>
+                        </select>
+                        <input type="text" id="smokingDetails" placeholder="Pack-years, type, duration..." style="margin-top:4px;">
+                    </div>
+                    <div>
+                        <label>Alcohol History (Hutchison's)</label>
+                        <select id="alcoholStatus">
+                            <option value="">Select status</option>
+                            <option value="Never drinks">Never drinks</option>
+                            <option value="Social drinker">Social drinker</option>
+                            <option value="Regular drinker">Regular drinker</option>
+                            <option value="Heavy drinker">Heavy drinker</option>
+                            <option value="Ex-drinker">Ex-drinker</option>
+                        </select>
+                        <input type="text" id="alcoholDetails" placeholder="Type, units/week, duration..." style="margin-top:4px;">
+                    </div>
+                    <div class="full-width">
+                        <label>Family History</label>
+                        <textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders, TB, HIV, cancer..."></textarea>
+                    </div>
+                </div>
             </div>
 
             <!-- 7. MANAGEMENT PLAN -->
@@ -1531,13 +1813,27 @@
                 <textarea id="managementPlan" rows="3" placeholder="Diagnosis, investigations, treatment, referrals, follow-up..."></textarea>
             </div>
 
-            <!-- 8. SUMMARY ACTIONS -->
+            <!-- 8. DIFFERENTIAL DIAGNOSIS -->
+            <div class="form-section">
+                <h3>🧠 Differential Diagnosis <span class="stat-card">Based on clinical data</span></h3>
+                <div class="ddx-container">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <h4 style="margin:0;">📊 Suggested Differentials</h4>
+                        <button class="ddx-generate-btn" onclick="generateDifferentials()">🔄 Generate Differentials</button>
+                    </div>
+                    <div id="ddxList" class="ddx-list">
+                        <div class="ddx-empty">Click "Generate Differentials" to see suggestions based on the clinical data entered.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. SUMMARY ACTIONS -->
             <div class="summary-actions">
                 <button class="btn-generate" onclick="generateClinicalSummary()">📄 Generate Summary + Ward Round</button>
                 <button class="btn-generate" onclick="savePatient()" style="background:linear-gradient(135deg,#27ae60,#1e8449);">💾 Save Patient Record</button>
             </div>
 
-            <!-- 9. SUMMARY DISPLAY -->
+            <!-- 10. SUMMARY DISPLAY -->
             <div class="form-section" id="summarySection" style="display:none;">
                 <h3>📄 Clinical Summary</h3>
                 <div class="summary-tabs">
@@ -1591,7 +1887,7 @@
     </div>
 
     <!-- ============================================================
-    PHYSICAL EXAMINATION (XP — Hutchison's steps)
+    PHYSICAL EXAMINATION (XP — Hutchison's steps with GCS)
     ============================================================ -->
     <div class="xp-shell">
         <div class="xp-panel">
@@ -1665,6 +1961,11 @@
                 const displayName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser
                     .email;
                 document.getElementById('userGreeting').textContent = '👤 ' + displayName;
+                const avatar = document.getElementById('userAvatar');
+                if (avatar) {
+                    const initial = displayName ? displayName.charAt(0).toUpperCase() : '👤';
+                    avatar.textContent = initial;
+                }
                 localStorage.setItem('easemed_user', currentUser.email);
                 window._sb = sb;
                 window._currentUser = currentUser;
@@ -1679,15 +1980,6 @@
             if (window._sb) await window._sb.auth.signOut();
             localStorage.removeItem('easemed_user');
             window.location.href = 'easemed_login.html';
-        }
-
-        function openTermlyPreferences(e) {
-            if (e) e.preventDefault();
-            if (typeof window.Termly !== 'undefined' && typeof window.Termly.displayPreferences === 'function') {
-                window.Termly.displayPreferences();
-            } else {
-                alert('Consent preferences are loading. Please refresh and try again.');
-            }
         }
 
         // ============================================================
@@ -1772,7 +2064,7 @@
         }
 
         // ============================================================
-        // REVIEW OF SYSTEMS — General removed, expanded symptoms
+        // REVIEW OF SYSTEMS
         // ============================================================
         const reviewOfSystems = {
             cardiovascular: {
@@ -2098,7 +2390,7 @@
         }
 
         // ============================================================
-        // FULL SYMPTOM GUIDES — All 16 symptoms with SOCRATES / structured questions
+        // FULL SYMPTOM GUIDES
         // ============================================================
         const symptomGuides = {
             pain: {
@@ -2412,6 +2704,332 @@
         }
 
         // ============================================================
+        // DIFFERENTIAL DIAGNOSIS GENERATOR
+        // ============================================================
+        function generateDifferentials() {
+            const container = document.getElementById('ddxList');
+            const data = collectPatientSummaryData();
+            const symptom = data.mainSymptom.toLowerCase();
+            const age = parseInt(data.age) || 0;
+            const gender = data.gender || '';
+            const pmh = data.pmh.toLowerCase();
+            const hpc = data.hpc.toLowerCase();
+            const smoking = data.smokingStatus || '';
+            const alcohol = data.alcoholStatus || '';
+            const ros = data.ros || [];
+            const rosFindings = ros.map(r => r.findings.toLowerCase()).join(' ');
+
+            // Collect positive ROS findings
+            const positiveROS = ros.filter(r => r.findings !== 'No findings documented').map(r => r.findings);
+
+            // Collect abnormal exam findings from XP data
+            const abnormalExam = [];
+            Object.keys(xpData).forEach(key => {
+                const d = xpData[key];
+                if (d && d.checked && d.checked.length > 0) {
+                    abnormalExam.push(...d.checked);
+                }
+                if (d && d.narrative && d.narrative !== XP[key]?.normal) {
+                    abnormalExam.push(d.narrative);
+                }
+            });
+
+            const allData = {
+                symptom,
+                age,
+                gender,
+                pmh,
+                hpc,
+                smoking,
+                alcohol,
+                rosFindings,
+                positiveROS,
+                abnormalExam,
+                gcsTotal: data.gcsTotal || ''
+            };
+
+            // Generate differentials based on clinical data
+            let ddx = [];
+
+            // Symptom-based differentials
+            const symptomMap = {
+                'chest pain': [
+                    { name: 'Acute Coronary Syndrome', reason: 'Classic presentation with chest pain' },
+                    { name: 'Pulmonary Embolism', reason: 'Chest pain + dyspnoea + risk factors' },
+                    { name: 'Aortic Dissection', reason: 'Sudden tearing chest pain' },
+                    { name: 'Pericarditis', reason: 'Pleuritic chest pain, worse lying flat' },
+                    { name: 'Pneumonia', reason: 'Chest pain + fever + productive cough' },
+                    { name: 'Costochondritis', reason: 'Localised chest wall tenderness' },
+                    { name: 'Gastroesophageal Reflux', reason: 'Burning chest pain after meals' },
+                    { name: 'Anxiety/Panic', reason: 'Chest pain with normal cardiac workup' }
+                ],
+                'shortness of breath': [
+                    { name: 'Heart Failure', reason: 'Dyspnoea + orthopnoea + oedema' },
+                    { name: 'COPD/Asthma', reason: 'Wheeze + chronic cough + smoking history' },
+                    { name: 'Pneumonia', reason: 'Dyspnoea + fever + productive cough' },
+                    { name: 'Pulmonary Embolism', reason: 'Sudden dyspnoea + risk factors' },
+                    { name: 'Anaemia', reason: 'Dyspnoea + pallor + fatigue' },
+                    { name: 'Anxiety', reason: 'Dyspnoea with normal oxygen saturations' }
+                ],
+                'cough': [
+                    { name: 'Pneumonia', reason: 'Cough + fever + sputum production' },
+                    { name: 'Tuberculosis', reason: 'Chronic cough + weight loss + night sweats' },
+                    { name: 'COPD/Asthma', reason: 'Chronic cough + wheeze + smoking history' },
+                    { name: 'Gastroesophageal Reflux', reason: 'Cough worse after meals + heartburn' },
+                    { name: 'Lung Cancer', reason: 'Chronic cough + haemoptysis + smoking history' },
+                    { name: 'Post-nasal Drip', reason: 'Cough worse at night + sinus symptoms' }
+                ],
+                'fever': [
+                    { name: 'Malaria', reason: 'Fever + rigors + travel/residence in endemic area' },
+                    { name: 'Pneumonia', reason: 'Fever + cough + tachypnoea' },
+                    { name: 'Urinary Tract Infection', reason: 'Fever + dysuria + frequency' },
+                    { name: 'Typhoid', reason: 'Prolonged fever + headache + constipation' },
+                    { name: 'TB', reason: 'Fever + night sweats + weight loss' },
+                    { name: 'HIV-related', reason: 'Prolonged fever + lymphadenopathy' }
+                ],
+                'headache': [
+                    { name: 'Migraine', reason: 'Unilateral throbbing headache + photophobia' },
+                    { name: 'Tension Headache', reason: 'Bilateral band-like headache' },
+                    { name: 'Subarachnoid Haemorrhage', reason: 'Sudden thunderclap headache' },
+                    { name: 'Meningitis', reason: 'Headache + fever + neck stiffness' },
+                    { name: 'Sinusitis', reason: 'Frontal headache + nasal congestion' },
+                    { name: 'Giant Cell Arteritis', reason: 'Headache + jaw claudication + age >50' }
+                ],
+                'dizziness': [
+                    { name: 'BPPV', reason: 'Vertigo triggered by head movement' },
+                    { name: 'Meniere\'s Disease', reason: 'Vertigo + tinnitus + hearing loss' },
+                    { name: 'Vestibular Neuritis', reason: 'Acute vertigo without hearing loss' },
+                    { name: 'Postural Hypotension', reason: 'Dizziness on standing' },
+                    { name: 'Cardiac Arrhythmia', reason: 'Dizziness + palpitations' },
+                    { name: 'Cerebrovascular Disease', reason: 'Dizziness + neurological deficit' }
+                ],
+                'diarrhea': [
+                    { name: 'Acute Gastroenteritis', reason: 'Diarrhoea + vomiting + fever' },
+                    { name: 'Dysentery', reason: 'Bloody diarrhoea + tenesmus' },
+                    { name: 'Giardiasis', reason: 'Chronic diarrhoea + bloating + foul stool' },
+                    { name: 'Typhoid', reason: 'Prolonged fever + diarrhoea/constipation' },
+                    { name: 'IBD', reason: 'Chronic diarrhoea + abdominal pain + weight loss' }
+                ],
+                'constipation': [
+                    { name: 'Functional Constipation', reason: 'Infrequent hard stools + straining' },
+                    { name: 'Hypothyroidism', reason: 'Constipation + fatigue + weight gain' },
+                    { name: 'Bowel Obstruction', reason: 'Absolute constipation + distension' },
+                    { name: 'Colorectal Cancer', reason: 'New constipation + blood in stool' },
+                    { name: 'IBS-C', reason: 'Constipation + abdominal pain' }
+                ],
+                'swelling': [
+                    { name: 'Heart Failure', reason: 'Bilateral oedema + dyspnoea + orthopnoea' },
+                    { name: 'Nephrotic Syndrome', reason: 'Facial oedema + frothy urine + hypoalbuminaemia' },
+                    { name: 'Liver Cirrhosis', reason: 'Oedema + ascites + jaundice' },
+                    { name: 'DVT', reason: 'Unilateral leg swelling + calf pain' },
+                    { name: 'Hypoalbuminaemia', reason: 'Generalised oedema + low protein intake' }
+                ],
+                'palpitations': [
+                    { name: 'SVT', reason: 'Sudden fast regular palpitations' },
+                    { name: 'Atrial Fibrillation', reason: 'Irregular palpitations + risk factors' },
+                    { name: 'Anxiety', reason: 'Palpitations with normal cardiac workup' },
+                    { name: 'Thyrotoxicosis', reason: 'Palpitations + weight loss + heat intolerance' },
+                    { name: 'Anaemia', reason: 'Palpitations + fatigue + pallor' }
+                ],
+                'fatigue': [
+                    { name: 'Depression', reason: 'Chronic fatigue + low mood + sleep disturbance' },
+                    { name: 'Anaemia', reason: 'Fatigue + pallor + dyspnoea' },
+                    { name: 'Hypothyroidism', reason: 'Fatigue + weight gain + cold intolerance' },
+                    { name: 'Diabetes', reason: 'Fatigue + polyuria + polydipsia' },
+                    { name: 'CFS/ME', reason: 'Post-exertional fatigue + unrefreshing sleep' }
+                ],
+                'weight loss': [
+                    { name: 'Hyperthyroidism', reason: 'Weight loss + increased appetite + tremors' },
+                    { name: 'Diabetes', reason: 'Weight loss + polyuria + polydipsia' },
+                    { name: 'TB', reason: 'Weight loss + fever + night sweats' },
+                    { name: 'Malignancy', reason: 'Unexplained weight loss + risk factors' },
+                    { name: 'Malabsorption', reason: 'Weight loss + diarrhoea + bloating' }
+                ],
+                'joint pain': [
+                    { name: 'Osteoarthritis', reason: 'Joint pain worse with activity + age' },
+                    { name: 'Rheumatoid Arthritis', reason: 'Morning stiffness >1 hour + symmetrical joint pain' },
+                    { name: 'Gout', reason: 'Acute monoarthritis + red hot joint' },
+                    { name: 'Septic Arthritis', reason: 'Acute monoarthritis + fever' },
+                    { name: 'Reactive Arthritis', reason: 'Joint pain + URTI/UTI history' }
+                ],
+                'rash': [
+                    { name: 'Viral Exanthem', reason: 'Rash + fever + viral symptoms' },
+                    { name: 'Drug Reaction', reason: 'Rash + new medication' },
+                    { name: 'Scabies', reason: 'Intensely itchy rash + flexural distribution' },
+                    { name: 'Urticaria', reason: 'Raised itchy wheals' },
+                    { name: 'Meningococcaemia', reason: 'Petechial rash + fever + ill appearance' }
+                ],
+                'nausea': [
+                    { name: 'Gastroenteritis', reason: 'Nausea + vomiting + diarrhoea' },
+                    { name: 'Peptic Ulcer', reason: 'Nausea + epigastric pain' },
+                    { name: 'Bowel Obstruction', reason: 'Nausea + vomiting + abdominal distension' },
+                    { name: 'Pregnancy', reason: 'Nausea + missed period' },
+                    { name: 'Medication Side Effect', reason: 'Nausea + new medication' }
+                ],
+                'pain': [
+                    { name: 'Somatic Pain', reason: 'Well-localised pain from skin/muscle/bone' },
+                    { name: 'Visceral Pain', reason: 'Poorly localised pain from internal organs' },
+                    { name: 'Neuropathic Pain', reason: 'Burning/shooting pain with neurological distribution' },
+                    { name: 'Referred Pain', reason: 'Pain perceived distant from source' }
+                ]
+            };
+
+            // Get symptom-specific differentials
+            let symptomDdx = [];
+            for (const [key, list] of Object.entries(symptomMap)) {
+                if (symptom.includes(key) || key.includes(symptom)) {
+                    symptomDdx = list;
+                    break;
+                }
+            }
+
+            // If no specific match, try partial match
+            if (symptomDdx.length === 0) {
+                for (const [key, list] of Object.entries(symptomMap)) {
+                    if (key.includes(symptom) || symptom.includes(key)) {
+                        symptomDdx = list;
+                        break;
+                    }
+                }
+            }
+
+            // Add to ddx list
+            if (symptomDdx.length > 0) {
+                ddx = [...symptomDdx];
+            }
+
+            // Modify based on additional data
+            // HIV positive
+            if (data.hivStatus && data.hivStatus.toLowerCase() === 'positive') {
+                ddx = ddx.map(item => {
+                    if (item.name === 'Pneumonia') return { ...item, reason: item.reason + ' — consider PCP' };
+                    if (item.name === 'TB') return { ...item, reason: item.reason + ' — high risk in HIV' };
+                    return item;
+                });
+                const hivDdx = [
+                    { name: 'Opportunistic Infection', reason: 'HIV + CD4 <200 + fever' },
+                    { name: 'TB', reason: 'HIV + chronic cough + night sweats' },
+                    { name: 'Cryptococcal Meningitis', reason: 'HIV + headache + fever' }
+                ];
+                hivDdx.forEach(d => {
+                    if (!ddx.some(ex => ex.name === d.name)) ddx.push(d);
+                });
+            }
+
+            // Smoking
+            if (smoking.toLowerCase().includes('current') || smoking.toLowerCase().includes('ex-smoker')) {
+                ddx = ddx.map(item => {
+                    if (item.name === 'COPD/Asthma') return { ...item, reason: item.reason + ' — smoking history' };
+                    if (item.name === 'Lung Cancer') return { ...item, reason: item.reason + ' — smoking risk' };
+                    if (item.name === 'Pneumonia') return { ...item, reason: item.reason + ' — smoking increases risk' };
+                    return item;
+                });
+                const smokeDdx = [
+                    { name: 'COPD', reason: 'Chronic cough + smoking + dyspnoea' },
+                    { name: 'Lung Cancer', reason: 'Smoking history + haemoptysis + weight loss' }
+                ];
+                smokeDdx.forEach(d => {
+                    if (!ddx.some(ex => ex.name === d.name)) ddx.push(d);
+                });
+            }
+
+            // Alcohol
+            if (alcohol.toLowerCase().includes('regular') || alcohol.toLowerCase().includes('heavy')) {
+                const alcoholDdx = [
+                    { name: 'Liver Cirrhosis', reason: 'Chronic alcohol use + jaundice + ascites' },
+                    { name: 'Alcoholic Hepatitis', reason: 'Alcohol use + hepatomegaly + jaundice' },
+                    { name: 'Pancreatitis', reason: 'Alcohol + epigastric pain' }
+                ];
+                alcoholDdx.forEach(d => {
+                    if (!ddx.some(ex => ex.name === d.name)) ddx.push(d);
+                });
+            }
+
+            // Age-based modifiers
+            if (age > 60) {
+                ddx = ddx.map(item => {
+                    if (item.name === 'Colorectal Cancer') return { ...item, reason: item.reason + ' — age >60' };
+                    if (item.name === 'Osteoarthritis') return { ...item, reason: item.reason + ' — age-related' };
+                    if (item.name === 'ACS' || item.name === 'Acute Coronary Syndrome')
+                    return { ...item, reason: item.reason + ' — age >60' };
+                    return item;
+                });
+            }
+            if (age < 18) {
+                ddx = ddx.filter(item => !['Colorectal Cancer', 'Osteoarthritis', 'Lung Cancer'].includes(item.name));
+            }
+
+            // GCS < 15
+            if (data.gcsTotal && parseInt(data.gcsTotal) < 15) {
+                const neuroDdx = [
+                    { name: 'Stroke', reason: 'Acute neurological deficit + GCS <15' },
+                    { name: 'Cerebral Malaria', reason: 'Fever + reduced GCS' },
+                    { name: 'Meningitis', reason: 'Fever + neck stiffness + GCS <15' },
+                    { name: 'Metabolic Encephalopathy', reason: 'Reduced GCS + metabolic derangement' }
+                ];
+                neuroDdx.forEach(d => {
+                    if (!ddx.some(ex => ex.name === d.name)) ddx.push(d);
+                });
+            }
+
+            // Abnormal exam findings
+            if (abnormalExam.length > 0) {
+                const examStr = abnormalExam.join(' ').toLowerCase();
+                if (examStr.includes('crackles') || examStr.includes('wheeze')) {
+                    const respDdx = [
+                        { name: 'Pneumonia', reason: 'Crackles on chest auscultation' },
+                        { name: 'Pulmonary Oedema', reason: 'Crackles + dyspnoea' }
+                    ];
+                    respDdx.forEach(d => {
+                        if (!ddx.some(ex => ex.name === d.name)) ddx.push(d);
+                    });
+                }
+                if (examStr.includes('murmur')) {
+                    const cardDdx = [
+                        { name: 'Valvular Heart Disease', reason: 'Cardiac murmur on examination' }
+                    ];
+                    cardDdx.forEach(d => {
+                        if (!ddx.some(ex => ex.name === d.name)) ddx.push(d);
+                    });
+                }
+                if (examStr.includes('hepatomegaly') || examStr.includes('splenomegaly')) {
+                    const abdoDdx = [
+                        { name: 'Liver Cirrhosis', reason: 'Hepatomegaly + risk factors' },
+                        { name: 'Malaria', reason: 'Splenomegaly + fever' }
+                    ];
+                    abdoDdx.forEach(d => {
+                        if (!ddx.some(ex => ex.name === d.name)) ddx.push(d);
+                    });
+                }
+            }
+
+            // Remove duplicates (by name)
+            const seen = new Set();
+            ddx = ddx.filter(item => {
+                const key = item.name;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+
+            // Limit to top 10 and rank by relevance
+            const ranked = ddx.slice(0, 10);
+
+            // Render
+            if (ranked.length === 0) {
+                container.innerHTML = `<div class="ddx-empty">No specific differentials generated. Please ensure you have entered clinical data and try again.</div>`;
+            } else {
+                container.innerHTML = ranked.map((item, index) =>
+                    `<div class="ddx-item">
+                        <span class="ddx-rank">${index + 1}</span>
+                        <span class="ddx-name">${escapeHTML(item.name)}</span>
+                        <span class="ddx-reason">${escapeHTML(item.reason)}</span>
+                    </div>`
+                ).join('');
+            }
+        }
+
+        // ============================================================
         // SUMMARY GENERATION
         // ============================================================
         function getHIVSummaryItems() {
@@ -2462,9 +3080,16 @@
                 allergies: fieldValue('allergies', 'None documented'),
                 hivItems: getHIVSummaryItems(),
                 ros: getROSFindings(),
+                smokingStatus: fieldValue('smokingStatus'),
+                smokingDetails: fieldValue('smokingDetails'),
+                alcoholStatus: fieldValue('alcoholStatus'),
+                alcoholDetails: fieldValue('alcoholDetails'),
                 social: fieldValue('social', 'Not documented'),
                 familyHistory: fieldValue('familyHistory', 'Not documented'),
-                managementPlan: fieldValue('managementPlan', 'Not documented')
+                managementPlan: fieldValue('managementPlan', 'Not documented'),
+                gcsTotal: fieldValue('gcsTotal'),
+                gcsDetails: fieldValue('gcsDetails'),
+                hivStatus: fieldValue('hivStatus')
             };
         }
 
@@ -2476,6 +3101,15 @@
                 `<ul class="summary-list">${data.ros.map(item => `<li><strong>${escapeHTML(item.name)}:</strong> ${escapeHTML(item.findings)}</li>`).join('')}</ul>`;
             const hivList =
                 `<ul class="summary-list">${data.hivItems.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>`;
+            const socialExtra = [];
+            if (data.smokingStatus && data.smokingStatus !== '') {
+                socialExtra.push(`Smoking: ${data.smokingStatus}${data.smokingDetails ? ' — '+data.smokingDetails : ''}`);
+            }
+            if (data.alcoholStatus && data.alcoholStatus !== '') {
+                socialExtra.push(`Alcohol: ${data.alcoholStatus}${data.alcoholDetails ? ' — '+data.alcoholDetails : ''}`);
+            }
+            const socialExtraHtml = socialExtra.length ? `<ul class="summary-list">${socialExtra.map(s => `<li>${escapeHTML(s)}</li>`).join('')}</ul>` : '';
+            const gcsHtml = data.gcsTotal ? `<div><strong>GCS:</strong> ${data.gcsTotal}${data.gcsDetails ? ' — '+escapeHTML(data.gcsDetails) : ''}</div>` : '';
             return `<div class="summary-banner"><strong>EaseMed Clinical Summary</strong> ${escapeHTML(data.generatedAt)}</div>
                         <div class="summary-grid">
                             ${summaryField('Name', data.fullName)}${summaryField('Age', data.age)}${summaryField('Sex', data.gender)}
@@ -2484,6 +3118,9 @@
                             ${summaryField('Address', data.address)}${summaryField('Next of Kin', data.nextOfKin)}
                             ${summaryField('Health Centre', data.nearestHealthCentre)}${summaryField('Referral', data.referralText)}
                             ${summaryField('Main Symptom', data.mainSymptom)}
+                            ${summaryField('Smoking', data.smokingStatus)}
+                            ${summaryField('Alcohol', data.alcoholStatus)}
+                            ${data.gcsTotal ? summaryField('GCS', data.gcsTotal) : ''}
                         </div>
                         ${summaryBlock('Presenting Complaint', complaintDetails)}
                         ${summaryBlock('HPC', formatParagraph(data.hpc))}
@@ -2491,8 +3128,9 @@
                         ${summaryBlock('Medications & Allergies', `<strong>Medications:</strong><br>${formatParagraph(data.medications)}<br><br><strong>Allergies:</strong><br>${formatParagraph(data.allergies)}`)}
                         ${summaryBlock('HIV History', hivList)}
                         ${summaryBlock('Review of Systems', rosList)}
-                        ${summaryBlock('Social History', formatParagraph(data.social))}
+                        ${summaryBlock('Social History', formatParagraph(data.social) + (socialExtraHtml ? '<br>'+socialExtraHtml : ''))}
                         ${summaryBlock('Family History', formatParagraph(data.familyHistory))}
+                        ${gcsHtml ? summaryBlock('GCS Assessment', gcsHtml) : ''}
                         ${summaryBlock('Management Plan', formatParagraph(data.managementPlan))}
                         <div style="margin-top:8px;color:#718096;font-style:italic;font-size:0.8rem;">Based on Hutchison's Clinical Methods, 25th Edition.</div>`;
         }
@@ -2504,11 +3142,15 @@
             .name);
             const hivHighlights = data.hivItems.filter(i => !/not documented/i.test(i)).slice(0, 4).map(i => escapeHTML(i))
                 .join('; ') || 'HIV history not contributory';
+            const smoking = data.smokingStatus && data.smokingStatus !== '' ? `Smoking: ${data.smokingStatus}` : '';
+            const alcohol = data.alcoholStatus && data.alcoholStatus !== '' ? `Alcohol: ${data.alcoholStatus}` : '';
+            const socialBrief = [smoking, alcohol].filter(Boolean).join('; ');
+            const gcsBrief = data.gcsTotal ? `GCS ${data.gcsTotal}` : '';
             const items = [
                 `<strong>Patient:</strong> ${escapeHTML(data.fullName)}, ${escapeHTML(data.age)}-year-old ${escapeHTML(data.gender)}, ${escapeHTML(data.occupation)}, ${escapeHTML(data.maritalStatus)}. ${escapeHTML(data.referralText)}`,
                 `<strong>Presenting problem:</strong> ${escapeHTML(data.mainSymptom)} — ${escapeHTML(data.hpc)}`,
-                `<strong>Major positives:</strong> ${keyRos.length ? escapeHTML(keyRos.join('; ')) : 'No positive ROS findings documented'}; PMH: ${escapeHTML(data.pmh)}; HIV: ${hivHighlights}`,
-                `<strong>Important negatives:</strong> ${negRos.length ? escapeHTML(negRos.join(', ')) + ' — no symptoms' : 'No key negatives documented'}; allergies: ${escapeHTML(data.allergies)}`,
+                `<strong>Major positives:</strong> ${keyRos.length ? escapeHTML(keyRos.join('; ')) : 'No positive ROS findings documented'}; PMH: ${escapeHTML(data.pmh)}; HIV: ${hivHighlights}; ${gcsBrief}`,
+                `<strong>Important negatives:</strong> ${negRos.length ? escapeHTML(negRos.join(', ')) + ' — no symptoms' : 'No key negatives documented'}; allergies: ${escapeHTML(data.allergies)}; ${socialBrief}`,
                 `<strong>Working impression:</strong> Overall pattern points toward the clinician's working diagnosis based on the presenting complaint, major positives, important negatives, PMH, medications (${escapeHTML(data.medications)}), and bedside assessment.`
             ];
             return `<div class="summary-banner"><strong>5‑Line Ward Round Summary</strong> ${escapeHTML(data.generatedAt)}</div><ol class="summary-list">${items.map(item => `<li>${item}</li>`).join('')}</ol>`;
@@ -2532,6 +3174,7 @@
             document.getElementById('wardRoundSummary').innerHTML = buildWardRoundHTML(data);
             document.getElementById('summarySection').style.display = 'block';
             document.getElementById('summarySection').scrollIntoView({ behavior: 'smooth' });
+            generateDifferentials();
             updateProgress();
         }
 
@@ -2599,6 +3242,12 @@
                 });
                 xpRefreshAll();
             }
+            if (data.gcsTotal) {
+                document.getElementById('gcsTotal').value = data.gcsTotal;
+            }
+            if (data.gcsDetails) {
+                document.getElementById('gcsDetails').value = data.gcsDetails;
+            }
             updateProgress();
         }
 
@@ -2613,12 +3262,16 @@
             document.getElementById('wardRoundSummary').innerHTML = '';
             document.getElementById('summarySection').style.display = 'none';
             document.getElementById('dynamicQuestions').innerHTML = '';
+            document.getElementById('ddxList').innerHTML = `<div class="ddx-empty">Click "Generate Differentials" to see suggestions based on the clinical data entered.</div>`;
             currentSymptom = '';
             symptomDetails = {};
             rosData = {};
             xpData = {};
             xpRefreshAll();
             toggleReferralDetails();
+            document.getElementById('gcsTotal').value = '';
+            document.getElementById('gcsDetails').value = '';
+            document.querySelectorAll('.gcs-item select').forEach(s => s.value = '');
             updateProgress();
             showToast('New patient ready', '#2471a3');
         }
@@ -2633,6 +3286,7 @@
                 document.getElementById('wardRoundSummary').innerHTML = record.wardRound || '';
                 document.getElementById('summarySection').style.display = 'block';
             }
+            generateDifferentials();
             updateProgress();
             window.scrollTo(0, 0);
             showToast(`Loaded ${record.name}`, '#2471a3');
@@ -2731,6 +3385,12 @@
                             xp_data: formData._xpData || {},
                             social_history: formData.social || '',
                             family_history: formData.familyHistory || '',
+                            smoking_status: formData.smokingStatus || '',
+                            smoking_details: formData.smokingDetails || '',
+                            alcohol_status: formData.alcoholStatus || '',
+                            alcohol_details: formData.alcoholDetails || '',
+                            gcs_total: formData.gcsTotal || '',
+                            gcs_details: formData.gcsDetails || '',
                             management_plan: formData.managementPlan || '',
                             created_at: new Date().toISOString()
                         });
@@ -2770,7 +3430,7 @@
         }
 
         // ============================================================
-        // PHYSICAL EXAMINATION (XP) — HUTCHISON'S STEPS (full)
+        // PHYSICAL EXAMINATION (XP) — WITH GCS
         // ============================================================
         const XP = {
             general: {
@@ -2868,6 +3528,7 @@
                 chapter: "Ch. 19",
                 guide: "Assess mental status, cranial nerves, motor, sensory, reflexes, coordination, gait.",
                 normal: "GCS 15/15. Oriented. Cranial nerves intact. Power 5/5. Tone normal. Coordination intact. DTRs present. Plantars downgoing. Sensation intact. Gait normal.",
+                hasGCS: true,
                 steps: [
                     { label: "Higher functions / Mental status",
                         items: ["GCS 15/15", "Oriented (time, place, person)", "Memory intact",
@@ -3024,8 +3685,9 @@
                 const sys = XP[key];
                 tabsHtml +=
                     `<button class="xp-tab ${i === 0 ? 'active' : ''}" id="xp-tab-${key}" onclick="xpSwitchTab('${key}')">${sys.icon} ${sys.label}<div class="xp-tab-dot" id="xp-dot-${key}"></div></button>`;
-                const vitalsHtml = sys.hasVitals ?
-                    `<div class="xp-vitals-grid">
+                let vitalsHtml = '';
+                if (sys.hasVitals) {
+                    vitalsHtml = `<div class="xp-vitals-grid">
                                 <div class="xp-vital"><label>HR</label><input type="number" id="xp_hr" placeholder="72" oninput="xpSave('${key}')"><span class="xp-vital-unit">bpm</span></div>
                                 <div class="xp-vital"><label>BP</label><input type="text" id="xp_bp" placeholder="120/80" oninput="xpSave('${key}')"><span class="xp-vital-unit">mmHg</span></div>
                                 <div class="xp-vital"><label>RR</label><input type="number" id="xp_rr" placeholder="16" oninput="xpSave('${key}')"><span class="xp-vital-unit">/min</span></div>
@@ -3034,23 +3696,83 @@
                                 <div class="xp-vital"><label>Weight</label><input type="number" id="xp_weight" placeholder="65" oninput="xpCalcBMI()"><span class="xp-vital-unit">kg</span></div>
                                 <div class="xp-vital"><label>Height</label><input type="number" id="xp_height" placeholder="170" oninput="xpCalcBMI()"><span class="xp-vital-unit">cm</span></div>
                                 <div class="xp-vital bmi-card"><label>BMI</label><input type="text" id="xp_bmi" placeholder="—" readonly><span class="xp-vital-unit">kg/m²</span></div>
-                            </div>` :
-                    '';
+                            </div>`;
+                }
+                let gcsHtml = '';
+                if (sys.hasGCS) {
+                    gcsHtml = `
+                        <div class="gcs-container">
+                            <h5>🧠 Glasgow Coma Scale (GCS) — Hutchison's Assessment</h5>
+                            <div class="gcs-grid">
+                                <div class="gcs-item">
+                                    <label>Eyes (E)</label>
+                                    <select id="gcsEyes" onchange="updateGCSTotal()">
+                                        <option value="">Select</option>
+                                        <option value="4">4 — Spontaneous</option>
+                                        <option value="3">3 — To speech</option>
+                                        <option value="2">2 — To pain</option>
+                                        <option value="1">1 — None</option>
+                                    </select>
+                                </div>
+                                <div class="gcs-item">
+                                    <label>Verbal (V)</label>
+                                    <select id="gcsVerbal" onchange="updateGCSTotal()">
+                                        <option value="">Select</option>
+                                        <option value="5">5 — Oriented</option>
+                                        <option value="4">4 — Confused</option>
+                                        <option value="3">3 — Inappropriate words</option>
+                                        <option value="2">2 — Incomprehensible sounds</option>
+                                        <option value="1">1 — None</option>
+                                    </select>
+                                </div>
+                                <div class="gcs-item">
+                                    <label>Motor (M)</label>
+                                    <select id="gcsMotor" onchange="updateGCSTotal()">
+                                        <option value="">Select</option>
+                                        <option value="6">6 — Obeys commands</option>
+                                        <option value="5">5 — Localises pain</option>
+                                        <option value="4">4 — Withdraws to pain</option>
+                                        <option value="3">3 — Flexion (decorticate)</option>
+                                        <option value="2">2 — Extension (decerebrate)</option>
+                                        <option value="1">1 — None</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="gcs-total">
+                                <label>Total GCS (3–15):</label>
+                                <input type="number" id="gcsTotal" min="3" max="15" placeholder="15" readonly>
+                                <span style="font-size:0.7rem;color:#718096;">(auto-calculated)</span>
+                            </div>
+                            <div class="gcs-text">
+                                <label>GCS Narrative / Details</label>
+                                <textarea id="gcsDetails" placeholder="Describe eye opening, verbal response, motor response in detail..." oninput="xpSave('${key}')"></textarea>
+                                <div class="gcs-guide">
+                                    <strong>📖 Hutchison's Guidance:</strong> GCS is the cornerstone of neurological assessment. 
+                                    <strong>E</strong>ye opening (1–4), <strong>V</strong>erbal response (1–5), <strong>M</strong>otor response (1–6). 
+                                    Total 3–15. < 8 indicates coma. Document any localising signs, pupillary responses, and limb movements.
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
                 let findingsHtml = '';
-                sys.steps.forEach((step, stepIdx) => {
-                    findingsHtml += `<div class="xp-step-label">${step.label}</div>`;
-                    findingsHtml += `<div class="xp-findings-wrap">`;
-                    step.items.forEach(item => {
-                        findingsHtml +=
-                            `<label class="xp-finding-tag" onclick="xpToggleTag(this, '${key}')"><input type="checkbox" value="${item}"><span class="xp-tag-check">✓</span>${item}<span class="xp-diff-tooltip">${xpDifferentialClue(item, key)}</span></label>`;
+                if (sys.steps) {
+                    sys.steps.forEach((step, stepIdx) => {
+                        findingsHtml += `<div class="xp-step-label">${step.label}</div>`;
+                        findingsHtml += `<div class="xp-findings-wrap">`;
+                        step.items.forEach(item => {
+                            findingsHtml +=
+                                `<label class="xp-finding-tag" onclick="xpToggleTag(this, '${key}')"><input type="checkbox" value="${item}"><span class="xp-tag-check">✓</span>${item}<span class="xp-diff-tooltip">${xpDifferentialClue(item, key)}</span></label>`;
+                        });
+                        findingsHtml += `</div>`;
                     });
-                    findingsHtml += `</div>`;
-                });
+                }
                 panesHtml +=
                     `<div class="xp-pane ${i === 0 ? 'active' : ''}" id="xp-pane-${key}">
                                 <div class="xp-guide"><span class="xp-guide-icon">${sys.icon}</span><div><strong>${sys.label} — ${sys.chapter}</strong><br>${sys.guide}</div></div>
                                 ${vitalsHtml}
-                                <div class="xp-two-col">
+                                ${gcsHtml}
+                                ${sys.steps ? `<div class="xp-two-col">
                                     <div>
                                         <div class="xp-col-label">Findings <span class="xp-col-count" id="xp-count-${key}">0</span></div>
                                         ${findingsHtml}
@@ -3064,7 +3786,7 @@
                                             <div class="xp-abnormal" id="xp-alert-${key}">⚠️ Abnormal findings noted. Document in assessment.</div>
                                         </div>
                                     </div>
-                                </div>
+                                </div>` : ''}
                                 <div class="xp-status-bar">
                                     <span class="xp-status-pill" id="xp-status-${key}"><span class="xp-status-dot"></span> Not examined</span>
                                 </div>
@@ -3073,6 +3795,27 @@
             tabsEl.innerHTML = tabsHtml;
             panesEl.innerHTML = panesHtml;
             xpRefreshAll();
+        }
+
+        function updateGCSTotal() {
+            const eyes = parseInt(document.getElementById('gcsEyes')?.value) || 0;
+            const verbal = parseInt(document.getElementById('gcsVerbal')?.value) || 0;
+            const motor = parseInt(document.getElementById('gcsMotor')?.value) || 0;
+            const total = eyes + verbal + motor;
+            const totalEl = document.getElementById('gcsTotal');
+            if (totalEl) {
+                totalEl.value = total > 0 ? total : '';
+            }
+            const gcsDetails = document.getElementById('gcsDetails')?.value || '';
+            if (total > 0) {
+                if (!xpData['neuro']) xpData['neuro'] = {};
+                xpData['neuro'].gcsTotal = total;
+                xpData['neuro'].gcsDetails = gcsDetails;
+                xpSave('neuro');
+            }
+            if (total > 0) {
+                generateDifferentials();
+            }
         }
 
         function xpTogglePanel() {
@@ -3106,6 +3849,7 @@
             label.classList.toggle('selected', chk.checked);
             if (chk.checked) xpShowDifferentialClue(label);
             xpSave(key);
+            generateDifferentials();
         }
 
         function xpShowDifferentialClue(label) {
@@ -3125,6 +3869,7 @@
             const narr = document.getElementById(`xp-narr-${key}`);
             if (narr) narr.value = XP[key]?.normal || '';
             xpSave(key);
+            generateDifferentials();
         }
 
         function xpCalcBMI() {
@@ -3144,8 +3889,15 @@
             if (!xpData[key]) xpData[key] = {};
             xpData[key].checked = checked;
             xpData[key].narrative = narr;
+            if (key === 'neuro') {
+                const gcsTotal = document.getElementById('gcsTotal')?.value || '';
+                const gcsDetails = document.getElementById('gcsDetails')?.value || '';
+                xpData[key].gcsTotal = gcsTotal;
+                xpData[key].gcsDetails = gcsDetails;
+            }
             xpRefreshCard(key);
             xpRefreshProgressPill();
+            updateProgress();
         }
 
         function xpRefreshCard(key) {
@@ -3176,6 +3928,12 @@
         function xpRefreshAll() {
             Object.keys(XP).forEach(k => xpRefreshCard(k));
             xpRefreshProgressPill();
+            if (xpData['neuro'] && xpData['neuro'].gcsTotal) {
+                const totalEl = document.getElementById('gcsTotal');
+                if (totalEl) totalEl.value = xpData['neuro'].gcsTotal;
+                const detailsEl = document.getElementById('gcsDetails');
+                if (detailsEl) detailsEl.value = xpData['neuro'].gcsDetails || '';
+            }
         }
 
         function xpRefreshProgressPill() {
@@ -3221,7 +3979,7 @@
             xpInit();
             updateProgress();
             toggleReferralDetails();
-            console.log('✅ EaseMed Clinical Clerk System loaded with full symptom guides and Hutchison\'s Examination steps.');
+            console.log('✅ EaseMed Clinical Clerk System loaded with Internal Medicine module badge.');
         });
     </script>
 </body>
