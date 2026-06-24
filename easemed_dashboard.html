@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* ============================================================
-           COMPLETE FIXED STYLES — Compact, clean, functional
+           COMPLETE STYLES — Full version
            ============================================================ */
         * {
             margin: 0;
@@ -589,7 +589,7 @@
         }
 
         /* ============================================================
-           ROS — COMPACT CARDS (General removed)
+           ROS — COMPACT CARDS
            ============================================================ */
         .ros-grid {
             display: grid;
@@ -778,7 +778,7 @@
         }
 
         /* ============================================================
-           XP — PHYSICAL EXAMINATION (fixed toggle)
+           XP — PHYSICAL EXAMINATION (Hutchison's steps)
            ============================================================ */
         .xp-shell {
             max-width: 1600px;
@@ -1074,6 +1074,16 @@
             padding: 1px 8px;
             border-radius: 12px
         }
+        .xp-step-label {
+            font-weight: 700;
+            color: #1e3c72;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin: 8px 0 4px;
+            padding-top: 6px;
+            border-top: 1px dashed #dbe7ef
+        }
         .xp-findings-wrap {
             display: flex;
             flex-wrap: wrap;
@@ -1157,16 +1167,6 @@
         .xp-finding-tag.show-clue .xp-diff-tooltip {
             opacity: 1;
             transform: translateX(-50%) translateY(0)
-        }
-        .xp-subsection-label {
-            font-size: 0.6rem;
-            font-weight: 800;
-            color: #718096;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin: 8px 0 4px;
-            padding-top: 8px;
-            border-top: 1px dashed #e8f0f5
         }
         .xp-narrative-wrap {
             display: flex;
@@ -1587,7 +1587,7 @@
     </div>
 
     <!-- ============================================================
-    PHYSICAL EXAMINATION (XP — fixed toggle)
+    PHYSICAL EXAMINATION (XP — Hutchison's steps)
     ============================================================ -->
     <div class="xp-shell">
         <div class="xp-panel">
@@ -1597,7 +1597,7 @@
                         <div class="xp-topbar-icon">🩺</div>
                         <div class="xp-topbar-text">
                             <h2>Physical Examination</h2>
-                            <p>Hutchison's Clinical Methods · Structured guide</p>
+                            <p>Hutchison's Clinical Methods · Step‑by‑step guide</p>
                         </div>
                     </div>
                     <div class="xp-topbar-right">
@@ -1620,7 +1620,7 @@
     <div class="floating-tip" onclick="showTip()">💡 Tip: SOCRATES only for pain!</div>
 
     <!-- ============================================================
-    JAVASCRIPT — FULLY FUNCTIONAL
+    JAVASCRIPT — FULL WITH ALL SYMPTOM GUIDES
     ============================================================ -->
     <script>
         // ============================================================
@@ -2094,7 +2094,7 @@
         }
 
         // ============================================================
-        // SYMPTOM GUIDES (Hutchison's)
+        // FULL SYMPTOM GUIDES — All 16 symptoms with SOCRATES / structured questions
         // ============================================================
         const symptomGuides = {
             pain: {
@@ -2323,6 +2323,12 @@
             }
         };
 
+        // ============================================================
+        // SYMPTOM HANDLERS
+        // ============================================================
+        let currentSymptom = '';
+        let symptomDetails = {};
+
         function displayQuestions(symptom) {
             const guide = symptomGuides[symptom];
             const container = document.getElementById('dynamicQuestions');
@@ -2348,9 +2354,6 @@
             symptomDetails[currentSymptom][idx] = value;
             updateProgress();
         }
-
-        let currentSymptom = '';
-        let symptomDetails = {};
 
         function setSymptom(symptom, event) {
             currentSymptom = symptom;
@@ -2419,11 +2422,8 @@
                 `ART start: ${fieldValue('hivArtStartDate')}`,
                 `Regimen: ${fieldValue('hivArtRegimen')}`,
                 `Adherence: ${fieldValue('hivAdherence')}`,
-                `Missed doses: ${fieldValue('hivMissedDoses')}`,
                 `CD4: ${fieldValue('hivCd4')} (${fieldValue('hivCd4Date')})`,
-                `VL: ${fieldValue('hivViralLoad')} (${fieldValue('hivVlDate')})`,
-                `IPT: ${fieldValue('hivIpt')}`,
-                `CPT: ${fieldValue('hivCpt')}`
+                `VL: ${fieldValue('hivViralLoad')} (${fieldValue('hivVlDate')})`
             ];
             const oi = Array.from(document.querySelectorAll('#hivDetails input[type="checkbox"]:checked')).map(c => c.value);
             items.push(`OIs: ${oi.length ? oi.join(', ') : 'None'}`);
@@ -2535,7 +2535,6 @@
             const el = document.getElementById(id);
             if (!el) return;
             navigator.clipboard.writeText(el.innerText).then(() => showToast('📋 Copied!', '#3498db')).catch(() => {
-                // fallback
                 const range = document.createRange();
                 range.selectNode(el);
                 window.getSelection().removeAllRanges();
@@ -2557,6 +2556,7 @@
             data._currentSymptom = currentSymptom || '';
             data._rosData = rosData || {};
             data._symptomDetails = symptomDetails || {};
+            data._xpData = xpData || {};
             return data;
         }
 
@@ -2573,6 +2573,7 @@
             currentSymptom = data._currentSymptom || currentSymptom || '';
             rosData = data._rosData || rosData || {};
             symptomDetails = data._symptomDetails || symptomDetails || {};
+            if (data._xpData) xpData = data._xpData;
             toggleReferralDetails();
             if (typeof toggleARTDetails === 'function') toggleARTDetails();
             Object.keys(reviewOfSystems).forEach(key => refreshROSCardState(key));
@@ -2587,6 +2588,12 @@
                     displayQuestions(data._currentSymptom);
                     updateGuidancePanel(data._currentSymptom);
                 }
+            }
+            if (data._xpData) {
+                Object.keys(data._xpData).forEach(key => {
+                    xpData[key] = data._xpData[key];
+                });
+                xpRefreshAll();
             }
             updateProgress();
         }
@@ -2605,6 +2612,8 @@
             currentSymptom = '';
             symptomDetails = {};
             rosData = {};
+            xpData = {};
+            xpRefreshAll();
             toggleReferralDetails();
             updateProgress();
             showToast('New patient ready', '#2471a3');
@@ -2715,6 +2724,7 @@
                             hiv_cpt: formData.hivCpt || '',
                             hiv_partner_status: formData.hivPartnerStatus || '',
                             ros_data: formData._rosData || {},
+                            xp_data: formData._xpData || {},
                             social_history: formData.social || '',
                             family_history: formData.familyHistory || '',
                             management_plan: formData.managementPlan || '',
@@ -2756,7 +2766,7 @@
         }
 
         // ============================================================
-        // PHYSICAL EXAMINATION (XP) — FIXED TOGGLE
+        // PHYSICAL EXAMINATION (XP) — HUTCHISON'S STEPS (full)
         // ============================================================
         const XP = {
             general: {
@@ -2766,12 +2776,13 @@
                 guide: "Inspect from the end of the bed: general appearance, nutrition, hydration, pallor, jaundice, cyanosis, clubbing, lymphadenopathy, oedema.",
                 hasVitals: true,
                 normal: "Patient appears well, alert and orientated. No pallor, jaundice, cyanosis or clubbing. Hydration adequate. No oedema.",
-                findings: ["Pallor", "Jaundice", "Central cyanosis", "Peripheral cyanosis", "Clubbing", "Koilonychia",
-                    "Lymphadenopathy", "Pedal oedema", "Wasting / cachexia", "Dehydration", "Pyrexia"
-                ],
-                subs: [
-                    { label: "Nutritional status", items: ["Well-nourished", "Malnourished (mild)",
-                            "Malnourished (severe)", "Obese"
+                steps: [
+                    { label: "Inspection", items: ["Pallor", "Jaundice", "Central cyanosis", "Peripheral cyanosis",
+                            "Clubbing", "Koilonychia", "Lymphadenopathy", "Pedal oedema", "Wasting / cachexia",
+                            "Dehydration", "Pyrexia"
+                        ] },
+                    { label: "Nutrition", items: ["Well-nourished", "Malnourished (mild)", "Malnourished (severe)",
+                            "Obese"
                         ] },
                     { label: "Conscious level (AVPU)", items: ["Alert", "Responds to voice", "Responds to pain",
                             "Unresponsive"
@@ -2784,14 +2795,19 @@
                 chapter: "Ch. 13",
                 guide: "Position at 45°. Inspect JVP. Palpate apex beat (5th ICS MCL). Auscultate S1/S2, added sounds and murmurs.",
                 normal: "JVP not elevated. Apex beat at 5th ICS MCL. No heaves or thrills. S1 + S2 heard. No murmurs.",
-                findings: ["Elevated JVP", "Displaced apex beat", "LV heave", "RV heave", "Thrill", "S3 gallop", "S4",
-                    "Systolic murmur", "Diastolic murmur", "Pericardial rub", "Irregular rhythm"
-                ],
-                subs: [
-                    { label: "Peripheral pulses", items: ["Radial ✓ (R)", "Radial ✓ (L)", "Femoral ✓ (R)",
-                            "Femoral ✓ (L)", "Radiofemoral delay"
+                steps: [
+                    { label: "Inspection", items: ["Elevated JVP", "Scars", "Visible pulsations", "Peripheral oedema",
+                            "Cyanosis"
                         ] },
-                    { label: "Blood pressure", items: ["Normal", "Hypertension", "Hypotension"] }
+                    { label: "Palpation", items: ["Displaced apex beat", "LV heave", "RV heave", "Thrill",
+                            "Apex beat normal", "Pulses (radial, femoral, dorsalis pedis)"
+                        ] },
+                    { label: "Auscultation", items: ["S3 gallop", "S4", "Systolic murmur", "Diastolic murmur",
+                            "Pericardial rub", "Irregular rhythm", "Muffled heart sounds"
+                        ] },
+                    { label: "Blood pressure", items: ["Normal", "Hypertension", "Hypotension",
+                            "BP differential >20 mmHg"
+                        ] }
                 ]
             },
             resp: {
@@ -2800,12 +2816,20 @@
                 chapter: "Ch. 12",
                 guide: "Inspect: chest shape, accessory muscles, RR. Palpate: trachea, expansion, tactile fremitus. Percuss. Auscultate breath sounds and added sounds.",
                 normal: "Chest symmetrical. Trachea central. Equal expansion. Resonant. Vesicular breath sounds. No added sounds.",
-                findings: ["Tracheal deviation", "Reduced expansion (R)", "Reduced expansion (L)",
-                    "Dull to percussion", "Stony dull", "Hyperresonant", "Coarse crackles", "Fine crackles",
-                    "Expiratory wheeze", "Inspiratory wheeze", "Pleural rub", "Bronchial breathing",
-                    "Reduced breath sounds", "Accessory muscle use"
-                ],
-                subs: [
+                steps: [
+                    { label: "Inspection", items: ["Tracheal deviation", "Barrel chest", "Chest asymmetry",
+                            "Accessory muscle use", "Subcostal recession", "Nasal flaring", "Cyanosis"
+                        ] },
+                    { label: "Palpation", items: ["Reduced expansion (R)", "Reduced expansion (L)",
+                            "Tactile fremitus increased", "Tactile fremitus reduced", "Trachea central"
+                        ] },
+                    { label: "Percussion", items: ["Dull to percussion", "Stony dull", "Hyperresonant",
+                            "Resonant normal"
+                        ] },
+                    { label: "Auscultation", items: ["Coarse crackles", "Fine crackles", "Expiratory wheeze",
+                            "Inspiratory wheeze", "Pleural rub", "Bronchial breathing", "Reduced breath sounds",
+                            "Vesicular breath sounds"
+                        ] },
                     { label: "Vocal resonance", items: ["Normal", "Reduced", "Increased (consolidation)",
                             "Aegophony"
                         ] }
@@ -2815,15 +2839,21 @@
                 label: "Abdominal",
                 icon: "🍽️",
                 chapter: "Ch. 15",
-                guide: "Inspect: shape, scars, veins. Palpate lightly then deeply — start AWAY from pain. Check liver, spleen, kidneys. Percuss for shifting dullness. Auscultate bowel sounds.",
+                guide: "Inspect: shape, scars, veins. Auscultate before palpation. Palpate lightly then deeply — start AWAY from pain. Percuss for liver/spleen and shifting dullness.",
                 normal: "Abdomen soft, non-tender, not distended. No masses. Bowel sounds present. Liver/spleen not palpable.",
-                findings: ["Distension", "Scaphoid", "Visible peristalsis", "Guarding", "Rigidity", "Rebound tenderness",
-                    "Hepatomegaly", "Splenomegaly", "Palpable kidney", "Palpable mass", "Shifting dullness",
-                    "Absent bowel sounds", "Hyperactive bowel sounds", "Murphy's sign", "McBurney's tenderness"
-                ],
-                subs: [
-                    { label: "Liver (if enlarged)", items: ["Smooth edge", "Irregular/nodular", "Tender",
-                            "Pulsatile"
+                steps: [
+                    { label: "Inspection", items: ["Distension", "Scaphoid", "Visible peristalsis",
+                            "Caput medusae", "Surgical scars", "Striae"
+                        ] },
+                    { label: "Auscultation (first)", items: ["Absent bowel sounds", "Hyperactive bowel sounds",
+                            "Bruits (renal, aortic, iliac)"
+                        ] },
+                    { label: "Palpation", items: ["Guarding", "Rigidity", "Rebound tenderness", "Hepatomegaly",
+                            "Splenomegaly", "Palpable kidney", "Palpable mass", "Murphy's sign",
+                            "McBurney's tenderness"
+                        ] },
+                    { label: "Percussion", items: ["Liver dullness normal", "Spleen dullness",
+                            "Shifting dullness (ascites)", "Tympanic"
                         ] },
                     { label: "Hernia/groin", items: ["No hernia", "Inguinal (R)", "Inguinal (L)", "Umbilical"] }
                 ]
@@ -2832,18 +2862,32 @@
                 label: "Neurological",
                 icon: "🧠",
                 chapter: "Ch. 19",
-                guide: "Assess GCS, higher functions, cranial nerves I–XII, motor (tone, power MRC 0–5), coordination, reflexes, plantars, sensation, gait.",
+                guide: "Assess mental status, cranial nerves, motor, sensory, reflexes, coordination, gait.",
                 normal: "GCS 15/15. Oriented. Cranial nerves intact. Power 5/5. Tone normal. Coordination intact. DTRs present. Plantars downgoing. Sensation intact. Gait normal.",
-                findings: ["Reduced GCS", "Disorientation", "Cranial nerve palsy", "UMN pattern", "LMN pattern",
-                    "Reduced power", "Spasticity", "Rigidity", "Flaccidity", "Cerebellar signs",
-                    "Sensory deficit", "Upgoing plantars (Babinski +)", "Absent reflexes", "Brisk reflexes",
-                    "Papilloedema", "Meningism — neck stiffness"
-                ],
-                subs: [
-                    { label: "Cranial nerve screen",
-                        items: ["CN II — acuity/fields", "CN III/IV/VI — EOMs", "CN V — sensation",
-                            "CN VII — facial", "CN VIII — hearing", "CN IX/X — gag/swallow",
+                steps: [
+                    { label: "Higher functions / Mental status",
+                        items: ["GCS 15/15", "Oriented (time, place, person)", "Memory intact",
+                            "Speech normal (fluent, coherent)"
+                        ] },
+                    { label: "Cranial nerves", items: ["CN I — smell", "CN II — vision, fields, fundi",
+                            "CN III/IV/VI — EOMs, pupils", "CN V — sensation, muscles", "CN VII — facial",
+                            "CN VIII — hearing", "CN IX/X — gag, swallow", "CN XI — shoulder shrug",
                             "CN XII — tongue"
+                        ] },
+                    { label: "Motor", items: ["Tone normal", "Power 5/5 all limbs", "Muscle bulk normal",
+                            "No involuntary movements"
+                        ] },
+                    { label: "Sensory", items: ["Light touch normal", "Pain normal", "Temperature normal",
+                            "Vibration normal", "Proprioception normal"
+                        ] },
+                    { label: "Reflexes", items: ["Biceps normal", "Triceps normal", "Knee normal", "Ankle normal",
+                            "Plantars downgoing", "Abdominal reflexes present"
+                        ] },
+                    { label: "Coordination", items: ["Finger-nose normal", "Heel-shin normal",
+                            "Rapid alternating movements normal"
+                        ] },
+                    { label: "Gait", items: ["Normal gait", "Ataxic", "Hemiplegic", "Parkinsonian",
+                            "High-stepping"
                         ] }
                 ]
             },
@@ -2853,11 +2897,16 @@
                 chapter: "Ch. 20",
                 guide: "Look → Feel → Move for joints. Inspect: deformity, swelling, erythema, wasting. Palpate: warmth, tenderness, effusion. Move: active then passive ROM.",
                 normal: "No joint deformity, swelling or erythema. Full active and passive ROM. No crepitus.",
-                findings: ["Joint swelling", "Joint erythema", "Joint warmth", "Joint tenderness", "Restricted ROM",
-                    "Crepitus", "Deformity", "Muscle wasting", "Synovial thickening", "Effusion",
-                    "Bony enlargement", "Heberden's nodes", "Bouchard's nodes"
-                ],
-                subs: [
+                steps: [
+                    { label: "Inspection", items: ["Joint swelling", "Joint erythema", "Deformity",
+                            "Muscle wasting", "Limb asymmetry"
+                        ] },
+                    { label: "Palpation", items: ["Joint warmth", "Joint tenderness", "Synovial thickening",
+                            "Effusion", "Bony enlargement"
+                        ] },
+                    { label: "Range of Motion", items: ["Restricted ROM", "Crepitus", "Full ROM",
+                            "Heberden's nodes", "Bouchard's nodes"
+                        ] },
                     { label: "Joints affected",
                         items: ["Hands", "Elbows", "Shoulders", "Hips", "Knees", "Ankles", "Cervical spine",
                             "Lumbar spine"
@@ -2868,14 +2917,20 @@
                 label: "Eyes",
                 icon: "👁️",
                 chapter: "Ch. 22",
-                guide: "VA, visual fields, pupils (PERLA), EOMs (H-pattern), external exam, fundoscopy.",
+                guide: "Visual acuity, visual fields, pupils (PERLA), extra‑ocular movements, external exam, fundoscopy.",
                 normal: "VA normal. Visual fields full. PERLA. EOMs intact. Sclerae white. Fundoscopy: discs sharp, no haemorrhages.",
-                findings: ["Reduced VA", "Visual field defect", "Anisocoria", "Sluggish pupils",
-                    "Conjunctival pallor", "Conjunctival injection", "Scleral jaundice", "Corneal opacity",
-                    "Papilloedema", "Diabetic retinopathy", "Hypertensive retinopathy", "Nystagmus",
-                    "Ptosis", "Proptosis"
-                ],
-                subs: []
+                steps: [
+                    { label: "Visual acuity / fields", items: ["Reduced VA", "Visual field defect"] },
+                    { label: "Pupils & EOMs", items: ["Anisocoria", "Sluggish pupils", "Nystagmus", "Ptosis",
+                            "Proptosis"
+                        ] },
+                    { label: "External inspection", items: ["Conjunctival pallor", "Conjunctival injection",
+                            "Scleral jaundice", "Corneal opacity"
+                        ] },
+                    { label: "Fundoscopy", items: ["Papilloedema", "Diabetic retinopathy",
+                            "Hypertensive retinopathy", "Normal discs"
+                        ] }
+                ]
             },
             ent: {
                 label: "ENT",
@@ -2883,12 +2938,16 @@
                 chapter: "Ch. 22",
                 guide: "Ears: otoscope (TM), Rinne & Weber. Nose: mucosa, septum, turbinates. Throat: tonsils, pharynx, uvula. Neck: lymph nodes, thyroid.",
                 normal: "TMs intact. Hearing normal. Nasal mucosa pink. Septum central. Throat clear. No lymphadenopathy. Thyroid not palpable.",
-                findings: ["TM perforation", "Otitis media", "Hearing loss", "Nasal polyps", "Deviated septum",
-                    "Turbinate hypertrophy", "Tonsillar enlargement", "Tonsillar exudate", "Pharyngeal erythema",
-                    "Uvular deviation", "Cervical lymphadenopathy", "Thyromegaly", "Thyroid nodule",
-                    "Thyroid bruit"
-                ],
-                subs: []
+                steps: [
+                    { label: "Ears", items: ["TM perforation", "Otitis media", "Hearing loss"] },
+                    { label: "Nose", items: ["Nasal polyps", "Deviated septum", "Turbinate hypertrophy"] },
+                    { label: "Throat", items: ["Tonsillar enlargement", "Tonsillar exudate", "Pharyngeal erythema",
+                            "Uvular deviation"
+                        ] },
+                    { label: "Neck", items: ["Cervical lymphadenopathy", "Thyromegaly", "Thyroid nodule",
+                            "Thyroid bruit"
+                        ] }
+                ]
             },
             pr: {
                 label: "PR / Rectal",
@@ -2896,11 +2955,13 @@
                 chapter: "Ch. 15",
                 guide: "Left lateral. Inspect perianal region. Assess sphincter tone, rectal mucosa, masses, prostate (males). Note stool on glove.",
                 normal: "Perianal normal. Sphincter tone normal. Rectum empty. Mucosa smooth. No masses. Prostate normal. No blood.",
-                findings: ["External haemorrhoids", "Anal fissure", "Fistula", "Reduced sphincter tone",
-                    "Rectal mass", "Blood on glove", "Mucus on glove", "Enlarged prostate", "Tender prostate",
-                    "Hard/irregular prostate", "Loss of central sulcus"
-                ],
-                subs: []
+                steps: [
+                    { label: "Inspection", items: ["External haemorrhoids", "Anal fissure", "Fistula"] },
+                    { label: "Palpation", items: ["Reduced sphincter tone", "Rectal mass", "Blood on glove",
+                            "Mucus on glove", "Enlarged prostate", "Tender prostate", "Hard/irregular prostate",
+                            "Loss of central sulcus"
+                        ] }
+                ]
             }
         };
 
@@ -2932,6 +2993,7 @@
             "Shifting dullness": "Ascites — liver, cardiac, malignant causes.",
             "Absent bowel sounds": "Ileus or peritonitis.",
             "Reduced GCS": "Metabolic, neurological, toxic, or septic causes.",
+            "Cranial nerve palsy": "Localize lesion.",
             "UMN pattern": "Stroke, cord lesion, MS.",
             "LMN pattern": "Peripheral nerve, root, plexus, or anterior horn lesion.",
             "Upgoing plantars": "Corticospinal tract lesion.",
@@ -2970,12 +3032,16 @@
                                 <div class="xp-vital bmi-card"><label>BMI</label><input type="text" id="xp_bmi" placeholder="—" readonly><span class="xp-vital-unit">kg/m²</span></div>
                             </div>` :
                     '';
-                const mainTags = sys.findings.map(f =>
-                    `<label class="xp-finding-tag" onclick="xpToggleTag(this, '${key}')"><input type="checkbox" value="${f}"><span class="xp-tag-check">✓</span>${f}<span class="xp-diff-tooltip">${xpDifferentialClue(f, key)}</span></label>`
-                ).join('');
-                const subTagsHtml = sys.subs.map(sub =>
-                    `<div class="xp-subsection-label">${sub.label}</div><div class="xp-findings-wrap">${sub.items.map(item => `<label class="xp-finding-tag sub" onclick="xpToggleTag(this, '${key}')"><input type="checkbox" value="${item}"><span class="xp-tag-check">✓</span>${item}<span class="xp-diff-tooltip">${xpDifferentialClue(item, key)}</span></label>`).join('')}</div>`
-                ).join('');
+                let findingsHtml = '';
+                sys.steps.forEach((step, stepIdx) => {
+                    findingsHtml += `<div class="xp-step-label">${step.label}</div>`;
+                    findingsHtml += `<div class="xp-findings-wrap">`;
+                    step.items.forEach(item => {
+                        findingsHtml +=
+                            `<label class="xp-finding-tag" onclick="xpToggleTag(this, '${key}')"><input type="checkbox" value="${item}"><span class="xp-tag-check">✓</span>${item}<span class="xp-diff-tooltip">${xpDifferentialClue(item, key)}</span></label>`;
+                    });
+                    findingsHtml += `</div>`;
+                });
                 panesHtml +=
                     `<div class="xp-pane ${i === 0 ? 'active' : ''}" id="xp-pane-${key}">
                                 <div class="xp-guide"><span class="xp-guide-icon">${sys.icon}</span><div><strong>${sys.label} — ${sys.chapter}</strong><br>${sys.guide}</div></div>
@@ -2983,8 +3049,7 @@
                                 <div class="xp-two-col">
                                     <div>
                                         <div class="xp-col-label">Findings <span class="xp-col-count" id="xp-count-${key}">0</span></div>
-                                        <div class="xp-findings-wrap" id="xp-main-${key}">${mainTags}</div>
-                                        ${subTagsHtml}
+                                        ${findingsHtml}
                                     </div>
                                     <div>
                                         <div class="xp-col-label">Narrative</div>
@@ -3013,7 +3078,6 @@
             if (!body || !btn) return;
             body.classList.toggle('open', xpOpen);
             btn.classList.toggle('open', xpOpen);
-            // Update button text while preserving the arrow
             const arrow = btn.querySelector('.xp-toggle-arrow');
             if (arrow) {
                 btn.innerHTML = '';
@@ -3140,7 +3204,6 @@
         // INITIALISATION
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
-            // Fix symptom button click handlers
             document.querySelectorAll('.symptom-btn').forEach(btn => {
                 const symptom = btn.dataset.symptom;
                 if (symptom) {
@@ -3150,20 +3213,11 @@
                 }
             });
 
-            // Build ROS
             buildROS();
-
-            // Init XP (Physical Examination)
             xpInit();
-
-            // Update progress
             updateProgress();
-
-            // Toggle referral details on load
             toggleReferralDetails();
-
-            console.log('✅ EaseMed Clinical Clerk System loaded');
-            console.log('📖 Based on Hutchison\'s Clinical Methods, 25th Edition');
+            console.log('✅ EaseMed Clinical Clerk System loaded with full symptom guides and Hutchison\'s Examination steps.');
         });
     </script>
 </body>
