@@ -736,6 +736,48 @@
             font-size: 3rem;
             margin-bottom: 0.5rem;
         }
+
+        /* ─── ROS Collapsible styles ─── */
+        .ros-toggle {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.2rem 0;
+        }
+        .ros-toggle .chevron {
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+        }
+        .ros-toggle.open .chevron {
+            transform: rotate(180deg);
+        }
+        .ros-body {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease;
+        }
+        .ros-body.open {
+            max-height: 2000px;
+        }
+        .ros-card-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin-bottom: 0;
+        }
+        .ros-card-title .chevron {
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+        }
+        .ros-card-title.open .chevron {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body>
@@ -1405,19 +1447,85 @@
         </div>
         <div class="callout">
             <strong>How to use:</strong> Tap each symptom to toggle — <span style="color:var(--success);font-weight:700;">✓ Present</span> · <span style="color:var(--danger);font-weight:700;">✗ Absent</span> · grey = not asked.
+            <br><strong>Click a system title</strong> to expand or collapse its symptom list.
         </div>
         <div id="ros-pc-banner" style="display:none;" class="card ros-banner">
             <div class="card-title" id="ros-pc-title" style="color:var(--accent);">🎯 Presenting System</div>
             <div id="ros-pc-chips" class="sym-chips"></div>
             <textarea class="sys-notes" placeholder="Additional notes on the presenting system..." style="min-height:50px;"></textarea>
         </div>
-        <div class="card" id="ros-card-cvs"><div class="card-title">❤️ Cardiovascular</div><div class="sym-chips" id="chips-cvs"></div><textarea class="sys-notes" placeholder="Additional CVS notes..." style="min-height:50px;"></textarea></div>
-        <div class="card" id="ros-card-resp"><div class="card-title">🫁 Respiratory</div><div class="sym-chips" id="chips-resp"></div><textarea class="sys-notes" placeholder="Additional respiratory notes..." style="min-height:50px;"></textarea></div>
-        <div class="card" id="ros-card-git"><div class="card-title">🫃 Gastrointestinal</div><div class="sym-chips" id="chips-git"></div><textarea class="sys-notes" placeholder="Additional GIT notes..." style="min-height:50px;"></textarea></div>
-        <div class="card" id="ros-card-uro"><div class="card-title">💧 Genitourinary</div><div class="sym-chips" id="chips-uro"></div><textarea class="sys-notes" placeholder="Additional GU notes..." style="min-height:50px;"></textarea></div>
-        <div class="card" id="ros-card-neuro"><div class="card-title">🧠 Neurological</div><div class="sym-chips" id="chips-neuro"></div><textarea class="sys-notes" placeholder="Additional neuro notes..." style="min-height:50px;"></textarea></div>
-        <div class="card" id="ros-card-msk"><div class="card-title">🦴 Musculoskeletal</div><div class="sym-chips" id="chips-msk"></div><textarea class="sys-notes" placeholder="Additional MSK notes..." style="min-height:50px;"></textarea></div>
-        <div class="card" id="ros-card-endo"><div class="card-title">⚗️ Endocrine</div><div class="sym-chips" id="chips-endo"></div><textarea class="sys-notes" placeholder="Additional endocrine notes..." style="min-height:50px;"></textarea></div>
+
+        <!-- ─── ROS Collapsible Cards ─── -->
+        <div class="card" id="ros-card-cvs">
+            <div class="ros-toggle" onclick="toggleROS(this)">
+                <div class="ros-card-title">❤️ Cardiovascular</div>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="ros-body open">
+                <div class="sym-chips" id="chips-cvs"></div>
+                <textarea class="sys-notes" placeholder="Additional CVS notes..." style="min-height:50px;"></textarea>
+            </div>
+        </div>
+        <div class="card" id="ros-card-resp">
+            <div class="ros-toggle" onclick="toggleROS(this)">
+                <div class="ros-card-title">🫁 Respiratory</div>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="ros-body open">
+                <div class="sym-chips" id="chips-resp"></div>
+                <textarea class="sys-notes" placeholder="Additional respiratory notes..." style="min-height:50px;"></textarea>
+            </div>
+        </div>
+        <div class="card" id="ros-card-git">
+            <div class="ros-toggle" onclick="toggleROS(this)">
+                <div class="ros-card-title">🫃 Gastrointestinal</div>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="ros-body open">
+                <div class="sym-chips" id="chips-git"></div>
+                <textarea class="sys-notes" placeholder="Additional GIT notes..." style="min-height:50px;"></textarea>
+            </div>
+        </div>
+        <div class="card" id="ros-card-uro">
+            <div class="ros-toggle" onclick="toggleROS(this)">
+                <div class="ros-card-title">💧 Genitourinary</div>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="ros-body open">
+                <div class="sym-chips" id="chips-uro"></div>
+                <textarea class="sys-notes" placeholder="Additional GU notes..." style="min-height:50px;"></textarea>
+            </div>
+        </div>
+        <div class="card" id="ros-card-neuro">
+            <div class="ros-toggle" onclick="toggleROS(this)">
+                <div class="ros-card-title">🧠 Neurological</div>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="ros-body open">
+                <div class="sym-chips" id="chips-neuro"></div>
+                <textarea class="sys-notes" placeholder="Additional neuro notes..." style="min-height:50px;"></textarea>
+            </div>
+        </div>
+        <div class="card" id="ros-card-msk">
+            <div class="ros-toggle" onclick="toggleROS(this)">
+                <div class="ros-card-title">🦴 Musculoskeletal</div>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="ros-body open">
+                <div class="sym-chips" id="chips-msk"></div>
+                <textarea class="sys-notes" placeholder="Additional MSK notes..." style="min-height:50px;"></textarea>
+            </div>
+        </div>
+        <div class="card" id="ros-card-endo">
+            <div class="ros-toggle" onclick="toggleROS(this)">
+                <div class="ros-card-title">⚗️ Endocrine</div>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="ros-body open">
+                <div class="sym-chips" id="chips-endo"></div>
+                <textarea class="sys-notes" placeholder="Additional endocrine notes..." style="min-height:50px;"></textarea>
+            </div>
+        </div>
 
         <hr class="divider" />
 
@@ -1689,6 +1797,64 @@
                 <span class="chevron">▼</span>
             </div>
             <div class="pe-body open">
+                <!-- ★ GCS SECTION (ADDED) ★ -->
+                <div class="pe-section" style="border-left: 4px solid var(--accent); background:#f9f4f0;">
+                    <div class="pe-section-title">🧠 Glasgow Coma Scale (GCS) – Systematic Assessment</div>
+                    <div class="pe-hint-box">
+                        <strong>Systematic Approach:</strong> Assess in order: <strong>Eye opening (E)</strong>, <strong>Verbal response (V)</strong>, <strong>Motor response (M)</strong>. Use the <em>best</em> response in each category. Record as <code>E_V_M</code> (e.g., E4V5M6 = 15/15). If intubated, record V as “Intubated” and note it. If eyes swollen, record E as “Swollen”. Total = E + V + M (max 15).
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-bottom:0.5rem;">
+                        <div>
+                            <label style="font-weight:600; font-size:0.85rem;">Eye Opening (E)</label>
+                            <select id="gcsEye" onchange="calculateGCS()">
+                                <option value="">Select</option>
+                                <option value="4">4 – Spontaneous</option>
+                                <option value="3">3 – To speech</option>
+                                <option value="2">2 – To pain</option>
+                                <option value="1">1 – None</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-weight:600; font-size:0.85rem;">Verbal Response (V)</label>
+                            <select id="gcsVerbal" onchange="calculateGCS()">
+                                <option value="">Select</option>
+                                <option value="5">5 – Oriented</option>
+                                <option value="4">4 – Confused</option>
+                                <option value="3">3 – Inappropriate words</option>
+                                <option value="2">2 – Incomprehensible sounds</option>
+                                <option value="1">1 – None</option>
+                            </select>
+                            <div style="margin-top:0.2rem; font-size:0.75rem; color:var(--muted);">
+                                <span style="display:inline-block;">If intubated: </span>
+                                <input type="checkbox" id="gcsIntubated" onchange="calculateGCS()" style="margin-left:0.3rem;"> Intubated
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-weight:600; font-size:0.85rem;">Motor Response (M)</label>
+                            <select id="gcsMotor" onchange="calculateGCS()">
+                                <option value="">Select</option>
+                                <option value="6">6 – Obeys commands</option>
+                                <option value="5">5 – Localises to pain</option>
+                                <option value="4">4 – Withdraws from pain</option>
+                                <option value="3">3 – Flexion (decorticate)</option>
+                                <option value="2">2 – Extension (decerebrate)</option>
+                                <option value="1">1 – None</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:1rem; margin-top:0.5rem; padding:0.5rem 0.8rem; background:#f0f4f8; border-radius:8px; flex-wrap:wrap;">
+                        <div style="font-weight:700; font-size:1rem;">GCS Score:</div>
+                        <div id="gcsDisplay" style="font-size:1.5rem; font-weight:700; color:var(--primary);">E_V_M / 15</div>
+                        <div style="font-size:0.85rem; color:var(--muted); margin-left:auto;">
+                            Total: <span id="gcsTotal">-</span> / 15
+                        </div>
+                    </div>
+                    <div class="field-group" style="margin-top:0.5rem;">
+                        <label style="font-size:0.82rem;">Additional GCS notes</label>
+                        <textarea id="gcsNotes" placeholder="e.g., Patient intubated, E1V1M?; withdrawal to pain only..." style="min-height:40px;"></textarea>
+                    </div>
+                </div>
+
                 <div class="pe-section">
                     <div class="pe-section-title">🔍 Inspection & Mental Status</div>
                     <div class="pe-hint-box"><strong>Assess:</strong> GCS (E/V/M), pupil size & reaction, speech, level of consciousness, posture.</div>
@@ -3082,7 +3248,13 @@ div.appendChild(safeText);
                         neuro: getText('peNeuro'),
                         msk: getText('peMSK'),
                         wound: getText('peWound'),
-                        other: getText('peOther')
+                        other: getText('peOther'),
+                        // GCS fields
+                        gcsEye: getVal('gcsEye'),
+                        gcsVerbal: getVal('gcsVerbal'),
+                        gcsMotor: getVal('gcsMotor'),
+                        gcsIntubated: document.getElementById('gcsIntubated')?.checked || false,
+                        gcsNotes: getText('gcsNotes')
                     },
                     assessment: {
                         summary: getText('summary'),
@@ -3371,6 +3543,15 @@ div.appendChild(safeText);
             function togglePE(headerEl) {
                 const body = headerEl.nextElementSibling;
                 if (!body || !body.classList.contains('pe-body')) return;
+                body.classList.toggle('open');
+                headerEl.classList.toggle('open');
+            }
+
+            // ─── ROS Toggle ──────────────────────────────────────────────
+            function toggleROS(headerEl) {
+                const card = headerEl.closest('.card');
+                const body = card.querySelector('.ros-body');
+                if (!body) return;
                 body.classList.toggle('open');
                 headerEl.classList.toggle('open');
             }
@@ -3792,6 +3973,16 @@ function generateClerkshipSummary() {
                     setVal('peMSK', d.physicalExam.msk);
                     setVal('peWound', d.physicalExam.wound);
                     setVal('peOther', d.physicalExam.other);
+                    // GCS
+                    setVal('gcsEye', d.physicalExam.gcsEye);
+                    setVal('gcsVerbal', d.physicalExam.gcsVerbal);
+                    setVal('gcsMotor', d.physicalExam.gcsMotor);
+                    if (d.physicalExam.gcsIntubated !== undefined) {
+                        document.getElementById('gcsIntubated').checked = d.physicalExam.gcsIntubated;
+                    }
+                    setVal('gcsNotes', d.physicalExam.gcsNotes);
+                    // Recalculate GCS display after loading
+                    calculateGCS();
                 }
                 if (d.assessment) {
                     setVal('summary', d.assessment.summary);
@@ -3835,7 +4026,36 @@ function generateClerkshipSummary() {
             }
 
             // ============================================================
-            // 7. INIT
+            // 7. GCS CALCULATION
+            // ============================================================
+            function calculateGCS() {
+                const eye = parseInt(document.getElementById('gcsEye').value) || 0;
+                const verbalRaw = parseInt(document.getElementById('gcsVerbal').value) || 0;
+                const motor = parseInt(document.getElementById('gcsMotor').value) || 0;
+                const intubated = document.getElementById('gcsIntubated').checked;
+
+                // If intubated, verbal is not counted; display "Intubated"
+                let verbalDisplay = verbalRaw;
+                let verbalScore = verbalRaw;
+                if (intubated) {
+                    verbalDisplay = 'Intubated';
+                    verbalScore = 0; // don't count for total
+                }
+
+                const total = eye + (intubated ? 0 : verbalRaw) + motor;
+                const maxTotal = 4 + (intubated ? 0 : 5) + 6;
+
+                let displayStr = `E${eye} V${verbalDisplay} M${motor}`;
+                if (intubated) {
+                    displayStr += ' (intubated)';
+                }
+                document.getElementById('gcsDisplay').textContent = `${displayStr} / ${maxTotal + (intubated ? 5 : 0)}`; // show max with V not counted
+
+                document.getElementById('gcsTotal').textContent = total;
+            }
+
+            // ============================================================
+            // 8. INIT
             // ============================================================
             document.addEventListener('DOMContentLoaded', function() {
                 checkAge();
@@ -3878,6 +4098,9 @@ function generateClerkshipSummary() {
                         localStorage.setItem('google_vision_api_key', this.value.trim());
                     }
                 });
+
+                // GCS initial calculation
+                calculateGCS();
             });
             // ─── Simple In‑Memory Cache ──────────────────────────────────────────────
 const memoryCache = new Map();
