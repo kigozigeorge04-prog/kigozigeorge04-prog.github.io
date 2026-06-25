@@ -38,6 +38,8 @@
     display:flex; align-items:center; justify-content:space-between;
     padding:20px 36px;
     border-bottom:1px solid var(--rule);
+    flex-wrap:wrap;
+    gap:12px;
   }
   .topline .brand{display:flex;align-items:center;gap:11px;}
   .topline .crest{
@@ -53,6 +55,53 @@
     color:rgba(246,243,234,0.45);
     border:1px solid var(--rule);
     padding:5px 10px;border-radius:999px;
+  }
+  .topline .right-group{
+    display:flex;align-items:center;gap:14px;
+    flex-wrap:wrap;
+  }
+
+  /* ---- admin button in top bar ---- */
+  .btn-admin-top {
+    background: linear-gradient(135deg, #f2b545, #e6a020);
+    color: #0c1b22;
+    border: none;
+    border-radius: 7px;
+    padding: 6px 16px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(242, 181, 69, 0.25);
+  }
+  .btn-admin-top:hover {
+    transform: scale(1.04);
+    box-shadow: 0 4px 14px rgba(242, 181, 69, 0.4);
+  }
+  .btn-admin-top svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .btn-logout {
+    background:rgba(255,255,255,0.08);
+    border:1px solid var(--rule);
+    color:var(--paper);
+    border-radius:7px;
+    padding:6px 13px;
+    font-size:0.76rem;
+    font-weight:600;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    transition: background 0.2s;
+  }
+  .btn-logout:hover {
+    background:rgba(255,255,255,0.16);
   }
 
   /* ---- hero ---- */
@@ -200,10 +249,17 @@
       <div class="crest">🩺</div>
       <span class="brand-name">EaseMed</span>
     </div>
-    <div style="display:flex;align-items:center;gap:14px;">
+    <div class="right-group">
       <span id="userGreeting" style="font-family:'Inter',sans-serif;font-size:0.82rem;color:rgba(246,243,234,0.7);"></span>
       <span class="edition">Hutchison's, 25th Ed.</span>
-      <button onclick="handleLogout()" style="background:rgba(255,255,255,0.08);border:1px solid var(--rule);color:var(--paper);border-radius:7px;padding:6px 13px;font-size:0.76rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">Logout</button>
+      <!-- ADMIN BUTTON - TOP BAR -->
+      <a href="easemed_admin_dashboard.html" class="btn-admin-top" title="Admin Dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"/>
+        </svg>
+        Admin
+      </a>
+      <button class="btn-logout" onclick="handleLogout()">Logout</button>
     </div>
   </div>
 
