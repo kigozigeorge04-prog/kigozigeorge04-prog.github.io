@@ -1497,7 +1497,7 @@
             color: #1e3c72;
         }
 
-        /* Social history enhanced */
+        /* Social history enhanced - ObGyn style radio buttons */
         .social-sub-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1507,6 +1507,43 @@
         .social-sub-grid .full-width {
             grid-column: 1 / -1;
         }
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.2rem;
+        }
+        .radio-group label {
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.86rem;
+            transition: border-color 0.15s, background 0.15s;
+            margin-bottom: 0;
+        }
+        .radio-group input[type="radio"] {
+            width: auto;
+            accent-color: #1e3c72;
+        }
+        .radio-group label:has(input:checked) {
+            border-color: #1e3c72;
+            background: #e8f4f8;
+            color: #1e3c72;
+            font-weight: 600;
+        }
+        .hint-sm {
+            font-size: 0.7rem;
+            color: #718096;
+            margin-top: 0.2rem;
+            font-style: italic;
+        }
+
         @media (max-width: 640px) {
             .social-sub-grid {
                 grid-template-columns: 1fr;
@@ -1769,7 +1806,7 @@
                 <div id="rosContainer"></div>
             </div>
 
-            <!-- 6. SOCIAL & FAMILY HISTORY (enhanced with smoking and alcohol) -->
+            <!-- 6. SOCIAL & FAMILY HISTORY (Updated with ObGyn-style smoking and alcohol) -->
             <div class="form-section">
                 <h3>🏠 Social & Family History</h3>
                 <div class="social-sub-grid">
@@ -1777,29 +1814,62 @@
                         <label>Social Circumstances</label>
                         <textarea id="social" placeholder="Living conditions, occupation, diet, travel, support network, education..."></textarea>
                     </div>
-                    <div>
-                        <label>Smoking History (Hutchison's)</label>
-                        <select id="smokingStatus">
-                            <option value="">Select status</option>
-                            <option value="Never smoked">Never smoked</option>
-                            <option value="Current smoker">Current smoker</option>
-                            <option value="Ex-smoker">Ex-smoker</option>
-                            <option value="Passive exposure">Passive exposure</option>
-                        </select>
-                        <input type="text" id="smokingDetails" placeholder="Pack-years, type, duration..." style="margin-top:4px;">
+
+                    <!-- SMOKING HISTORY - Radio buttons with conditional fields -->
+                    <div class="full-width">
+                        <label>Smoking History <span style="font-weight:400;text-transform:none;color:#718096;font-size:0.8rem;">(Hutchison's)</span></label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="smoking" value="never" onchange="toggleSmokingDetails()" /> Never smoked</label>
+                            <label><input type="radio" name="smoking" value="former" onchange="toggleSmokingDetails()" /> Former smoker</label>
+                            <label><input type="radio" name="smoking" value="current" onchange="toggleSmokingDetails()" /> Current smoker</label>
+                        </div>
+                        <div id="smokingDetailsWrap" style="display:none; margin-top:0.5rem;">
+                            <div class="inline-row">
+                                <div class="field-group">
+                                    <label>Pack Years</label>
+                                    <div class="hint-sm">(Packs per day) × (Years smoked)</div>
+                                    <input type="text" id="smokingPackYears" placeholder="e.g. 10 pack-years" />
+                                </div>
+                                <div class="field-group">
+                                    <label>Quit Date (if former smoker)</label>
+                                    <input type="date" id="smokingQuitDate" />
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label>Additional Smoking Details</label>
+                                <input type="text" id="smokingDetails" placeholder="e.g. Started at 18, smokes 1 pack/day" />
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label>Alcohol History (Hutchison's)</label>
-                        <select id="alcoholStatus">
-                            <option value="">Select status</option>
-                            <option value="Never drinks">Never drinks</option>
-                            <option value="Social drinker">Social drinker</option>
-                            <option value="Regular drinker">Regular drinker</option>
-                            <option value="Heavy drinker">Heavy drinker</option>
-                            <option value="Ex-drinker">Ex-drinker</option>
-                        </select>
-                        <input type="text" id="alcoholDetails" placeholder="Type, units/week, duration..." style="margin-top:4px;">
+
+                    <!-- ALCOHOL HISTORY - Radio buttons with conditional fields -->
+                    <div class="full-width">
+                        <label>Alcohol Consumption <span style="font-weight:400;text-transform:none;color:#718096;font-size:0.8rem;">(Hutchison's)</span></label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="alcohol" value="never" onchange="toggleAlcoholDetails()" /> Never</label>
+                            <label><input type="radio" name="alcohol" value="social" onchange="toggleAlcoholDetails()" /> Social / Occasional</label>
+                            <label><input type="radio" name="alcohol" value="moderate" onchange="toggleAlcoholDetails()" /> Moderate</label>
+                            <label><input type="radio" name="alcohol" value="heavy" onchange="toggleAlcoholDetails()" /> Heavy</label>
+                        </div>
+                        <div id="alcoholDetailsWrap" style="display:none; margin-top:0.5rem;">
+                            <div class="inline-row">
+                                <div class="field-group">
+                                    <label>Units per week</label>
+                                    <div class="hint-sm">1 unit = 8g alcohol (e.g. 1 small beer, 1 glass of wine)</div>
+                                    <input type="text" id="alcoholUnits" placeholder="e.g. 14 units/week" />
+                                </div>
+                                <div class="field-group">
+                                    <label>Type of Alcohol</label>
+                                    <input type="text" id="alcoholType" placeholder="e.g. Beer, Wine, Spirits" />
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label>Additional Alcohol Details</label>
+                                <input type="text" id="alcoholDetails" placeholder="e.g. Started at 20, drinks on weekends" />
+                            </div>
+                        </div>
                     </div>
+
                     <div class="full-width">
                         <label>Family History</label>
                         <textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders, TB, HIV, cancer..."></textarea>
@@ -2061,6 +2131,38 @@
 
         function showTip() {
             alert('📖 Hutchison\'s Tip:\n\n• SOCRATES is for PAIN only (site, onset, character, radiation, associations, timing, exacerbating, severity).\n• For non‑pain complaints, use the specific structured questions provided.');
+        }
+
+        // ============================================================
+        // SMOKING TOGGLE (ObGyn style)
+        // ============================================================
+        function toggleSmokingDetails() {
+            const selected = document.querySelector('input[name="smoking"]:checked');
+            const wrap = document.getElementById('smokingDetailsWrap');
+            if (selected && selected.value !== 'never') {
+                wrap.style.display = 'block';
+            } else {
+                wrap.style.display = 'none';
+                document.getElementById('smokingPackYears').value = '';
+                document.getElementById('smokingQuitDate').value = '';
+                document.getElementById('smokingDetails').value = '';
+            }
+        }
+
+        // ============================================================
+        // ALCOHOL TOGGLE (ObGyn style)
+        // ============================================================
+        function toggleAlcoholDetails() {
+            const selected = document.querySelector('input[name="alcohol"]:checked');
+            const wrap = document.getElementById('alcoholDetailsWrap');
+            if (selected && selected.value !== 'never') {
+                wrap.style.display = 'block';
+            } else {
+                wrap.style.display = 'none';
+                document.getElementById('alcoholUnits').value = '';
+                document.getElementById('alcoholType').value = '';
+                document.getElementById('alcoholDetails').value = '';
+            }
         }
 
         // ============================================================
@@ -3080,9 +3182,13 @@
                 allergies: fieldValue('allergies', 'None documented'),
                 hivItems: getHIVSummaryItems(),
                 ros: getROSFindings(),
-                smokingStatus: fieldValue('smokingStatus'),
+                smokingStatus: document.querySelector('input[name="smoking"]:checked')?.value || '',
+                smokingPackYears: fieldValue('smokingPackYears'),
+                smokingQuitDate: fieldValue('smokingQuitDate'),
                 smokingDetails: fieldValue('smokingDetails'),
-                alcoholStatus: fieldValue('alcoholStatus'),
+                alcoholStatus: document.querySelector('input[name="alcohol"]:checked')?.value || '',
+                alcoholUnits: fieldValue('alcoholUnits'),
+                alcoholType: fieldValue('alcoholType'),
                 alcoholDetails: fieldValue('alcoholDetails'),
                 social: fieldValue('social', 'Not documented'),
                 familyHistory: fieldValue('familyHistory', 'Not documented'),
@@ -3103,10 +3209,16 @@
                 `<ul class="summary-list">${data.hivItems.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>`;
             const socialExtra = [];
             if (data.smokingStatus && data.smokingStatus !== '') {
-                socialExtra.push(`Smoking: ${data.smokingStatus}${data.smokingDetails ? ' — '+data.smokingDetails : ''}`);
+                let smokingText = `Smoking: ${data.smokingStatus}`;
+                if (data.smokingPackYears) smokingText += ` (${data.smokingPackYears})`;
+                if (data.smokingDetails) smokingText += ` — ${data.smokingDetails}`;
+                socialExtra.push(smokingText);
             }
             if (data.alcoholStatus && data.alcoholStatus !== '') {
-                socialExtra.push(`Alcohol: ${data.alcoholStatus}${data.alcoholDetails ? ' — '+data.alcoholDetails : ''}`);
+                let alcoholText = `Alcohol: ${data.alcoholStatus}`;
+                if (data.alcoholUnits) alcoholText += ` (${data.alcoholUnits})`;
+                if (data.alcoholDetails) alcoholText += ` — ${data.alcoholDetails}`;
+                socialExtra.push(alcoholText);
             }
             const socialExtraHtml = socialExtra.length ? `<ul class="summary-list">${socialExtra.map(s => `<li>${escapeHTML(s)}</li>`).join('')}</ul>` : '';
             const gcsHtml = data.gcsTotal ? `<div><strong>GCS:</strong> ${data.gcsTotal}${data.gcsDetails ? ' — '+escapeHTML(data.gcsDetails) : ''}</div>` : '';
@@ -3200,6 +3312,12 @@
                 if (el.type === 'checkbox') data[el.id] = el.checked;
                 else data[el.id] = el.value;
             });
+            data.smokingPackYears = document.getElementById('smokingPackYears')?.value || '';
+            data.smokingQuitDate = document.getElementById('smokingQuitDate')?.value || '';
+            data.smokingDetails = document.getElementById('smokingDetails')?.value || '';
+            data.alcoholUnits = document.getElementById('alcoholUnits')?.value || '';
+            data.alcoholType = document.getElementById('alcoholType')?.value || '';
+            data.alcoholDetails = document.getElementById('alcoholDetails')?.value || '';
             data._currentSymptom = currentSymptom || '';
             data._rosData = rosData || {};
             data._symptomDetails = symptomDetails || {};
@@ -3217,6 +3335,12 @@
                     else el.value = val;
                 }
             });
+            document.getElementById('smokingPackYears').value = data.smokingPackYears || '';
+            document.getElementById('smokingQuitDate').value = data.smokingQuitDate || '';
+            document.getElementById('smokingDetails').value = data.smokingDetails || '';
+            document.getElementById('alcoholUnits').value = data.alcoholUnits || '';
+            document.getElementById('alcoholType').value = data.alcoholType || '';
+            document.getElementById('alcoholDetails').value = data.alcoholDetails || '';
             currentSymptom = data._currentSymptom || currentSymptom || '';
             rosData = data._rosData || rosData || {};
             symptomDetails = data._symptomDetails || symptomDetails || {};
@@ -3248,6 +3372,17 @@
             if (data.gcsDetails) {
                 document.getElementById('gcsDetails').value = data.gcsDetails;
             }
+            // Restore smoking and alcohol radio buttons
+            if (data.smokingStatus) {
+                const radio = document.querySelector(`input[name="smoking"][value="${data.smokingStatus}"]`);
+                if (radio) radio.checked = true;
+                toggleSmokingDetails();
+            }
+            if (data.alcoholStatus) {
+                const radio = document.querySelector(`input[name="alcohol"][value="${data.alcoholStatus}"]`);
+                if (radio) radio.checked = true;
+                toggleAlcoholDetails();
+            }
             updateProgress();
         }
 
@@ -3272,6 +3407,11 @@
             document.getElementById('gcsTotal').value = '';
             document.getElementById('gcsDetails').value = '';
             document.querySelectorAll('.gcs-item select').forEach(s => s.value = '');
+            // Clear smoking and alcohol
+            document.querySelectorAll('input[name="smoking"]').forEach(r => r.checked = false);
+            document.querySelectorAll('input[name="alcohol"]').forEach(r => r.checked = false);
+            document.getElementById('smokingDetailsWrap').style.display = 'none';
+            document.getElementById('alcoholDetailsWrap').style.display = 'none';
             updateProgress();
             showToast('New patient ready', '#2471a3');
         }
@@ -3386,8 +3526,12 @@
                             social_history: formData.social || '',
                             family_history: formData.familyHistory || '',
                             smoking_status: formData.smokingStatus || '',
+                            smoking_pack_years: formData.smokingPackYears || '',
+                            smoking_quit_date: formData.smokingQuitDate || '',
                             smoking_details: formData.smokingDetails || '',
                             alcohol_status: formData.alcoholStatus || '',
+                            alcohol_units: formData.alcoholUnits || '',
+                            alcohol_type: formData.alcoholType || '',
                             alcohol_details: formData.alcoholDetails || '',
                             gcs_total: formData.gcsTotal || '',
                             gcs_details: formData.gcsDetails || '',
@@ -3979,7 +4123,7 @@
             xpInit();
             updateProgress();
             toggleReferralDetails();
-            console.log('✅ EaseMed Clinical Clerk System loaded with Internal Medicine module badge.');
+            console.log('✅ EaseMed Clinical Clerk System loaded with Internal Medicine module badge and enhanced smoking/alcohol assessment.');
         });
     </script>
 </body>
