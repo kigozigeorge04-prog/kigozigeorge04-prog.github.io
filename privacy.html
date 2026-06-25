@@ -6,600 +6,406 @@
   <title>Privacy Policy — EaseMed</title>
   <meta name="description" content="EaseMed Privacy Policy — how we collect, use, and protect your data.">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #0c4a6e 0%, #1e3a5f 25%, #2d3748 50%, #1a3a4f 75%, #0f2c44 100%);
-      color: #2d3748;
-    }
-
-    /* ── Animated background (same as login) ── */
-    .medical-bg {
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: 0; overflow: hidden; pointer-events: none;
-    }
-    .medical-bg::before {
-      content: '🔒';
-      position: absolute; font-size: 280px; opacity: 0.025;
-      bottom: -60px; right: -60px;
-      animation: float 20s infinite ease-in-out;
-    }
-    .medical-bg::after {
-      content: '🛡️';
-      position: absolute; font-size: 220px; opacity: 0.025;
-      top: -40px; left: -40px;
-      animation: float 15s infinite ease-in-out reverse;
-    }
-    @keyframes float {
-      0%, 100% { transform: translate(0,0) rotate(0deg); }
-      50%       { transform: translate(-20px,-20px) rotate(8deg); }
-    }
-    .cross {
-      position: absolute; font-size: 36px; opacity: 0.04;
-      animation: crossRotate 30s linear infinite;
-      color: white;
-    }
-    @keyframes crossRotate {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-
-    /* ── Page wrapper ── */
-    .page-wrapper {
-      position: relative; z-index: 1;
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 40px 20px 60px;
-    }
-
-    /* ── Back button ── */
-    .back-btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      color: rgba(255,255,255,0.75);
-      text-decoration: none;
-      font-size: 0.88rem; font-weight: 600;
-      margin-bottom: 28px;
-      transition: color 0.2s;
-      background: rgba(255,255,255,0.1);
-      padding: 8px 16px;
-      border-radius: 30px;
-      border: 1px solid rgba(255,255,255,0.15);
-    }
-    .back-btn:hover { color: white; background: rgba(255,255,255,0.16); }
-
-    /* ── Document card ── */
-    .doc-card {
-      background: rgba(255,255,255,0.98);
-      border-radius: 32px;
-      padding: 50px 56px;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2);
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* Top gradient bar */
-    .doc-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 5px;
-      background: linear-gradient(90deg, #2ecc71, #3498db, #e74c3c, #f39c12, #2ecc71);
-      background-size: 200% 100%;
-      animation: gradientMove 3s linear infinite;
-    }
-    @keyframes gradientMove {
-      0%   { background-position: 0% 0%; }
-      100% { background-position: 200% 0%; }
-    }
-
-    /* ── Header ── */
-    .doc-header {
-      text-align: center;
-      margin-bottom: 40px;
-      padding-bottom: 32px;
-      border-bottom: 2px solid #e2e8f0;
-    }
-    .doc-icon { font-size: 56px; margin-bottom: 14px; display: block; }
-    .doc-header h1 {
-      font-size: 2rem; font-weight: 800;
-      background: linear-gradient(135deg, #1e3a5f, #2c5282);
-      -webkit-background-clip: text; background-clip: text;
-      color: transparent;
-      margin-bottom: 8px;
-    }
-    .doc-header .subtitle {
-      color: #718096; font-size: 0.88rem;
-    }
-    .doc-header .meta {
-      display: flex; justify-content: center; gap: 14px;
-      margin-top: 14px; flex-wrap: wrap;
-    }
-    .meta-pill {
-      background: #ebf8ff; color: #2c5282;
-      padding: 5px 14px; border-radius: 20px;
-      font-size: 0.75rem; font-weight: 700;
-      border: 1px solid #bee3f8;
-    }
-
-    /* ── Intro summary ── */
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-bottom: 36px;
-    }
-    @media (max-width: 580px) { .summary-grid { grid-template-columns: 1fr; } }
-    .summary-item {
-      background: #f7fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 16px 14px;
-      text-align: center;
-    }
-    .summary-item .s-icon { font-size: 26px; margin-bottom: 8px; display: block; }
-    .summary-item strong { font-size: 0.82rem; color: #1e3a5f; display: block; margin-bottom: 4px; }
-    .summary-item span { font-size: 0.76rem; color: #718096; line-height: 1.5; }
-
-    /* ── Sections ── */
-    .section { margin-bottom: 36px; }
-    .section-header {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 14px;
-    }
-    .section-num {
-      background: linear-gradient(135deg, #2c5282, #1e3a5f);
-      color: white;
-      width: 30px; height: 30px;
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.78rem; font-weight: 800;
-      flex-shrink: 0;
-    }
-    .section h2 {
-      font-size: 1.08rem; font-weight: 700;
-      color: #1e3a5f;
-    }
-    .section p, .section li {
-      font-size: 0.9rem;
-      line-height: 1.75;
-      color: #4a5568;
-    }
-    .section ul, .section ol {
-      padding-left: 22px;
-      margin-top: 8px;
-      display: grid;
-      gap: 6px;
-    }
-    .section ul li { list-style: disc; }
-    .section ol li { list-style: decimal; }
-    .section p + p { margin-top: 10px; }
-
-    /* ── Teal highlight box ── */
-    .teal-box {
-      background: linear-gradient(135deg, #f0fff4, #e6fffa);
-      border: 1px solid #9ae6b4;
-      border-left: 4px solid #38a169;
-      border-radius: 12px;
-      padding: 14px 18px;
-      margin-top: 12px;
-      font-size: 0.88rem;
-      color: #276749;
-      line-height: 1.65;
-    }
-    .teal-box strong { color: #22543d; }
-
-    /* ── Warning box ── */
-    .warn-box {
-      background: #fff5f5;
-      border: 1px solid #fed7d7;
-      border-left: 4px solid #e53e3e;
-      border-radius: 12px;
-      padding: 14px 18px;
-      margin-top: 12px;
-      font-size: 0.88rem;
-      color: #742a2a;
-      line-height: 1.65;
-    }
-
-    /* ── Data table ── */
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 14px;
-      font-size: 0.86rem;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #e2e8f0;
-    }
-    .data-table th {
-      background: linear-gradient(135deg, #2c5282, #1e3a5f);
-      color: white;
-      padding: 12px 16px;
-      text-align: left;
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .data-table td {
-      padding: 11px 16px;
-      border-bottom: 1px solid #e2e8f0;
-      color: #4a5568;
-      vertical-align: top;
-    }
-    .data-table tr:last-child td { border-bottom: none; }
-    .data-table tr:nth-child(even) td { background: #f7fafc; }
-
-    /* ── Divider ── */
-    .divider {
-      height: 1px; background: #e2e8f0;
-      margin: 8px 0 36px;
-    }
-
-    /* ── Rights list ── */
-    .rights-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 12px;
-    }
-    @media (max-width: 580px) { .rights-grid { grid-template-columns: 1fr; } }
-    .right-item {
-      background: #f7fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 14px 16px;
-      display: flex; align-items: flex-start; gap: 10px;
-    }
-    .right-item .r-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
-    .right-item strong { font-size: 0.84rem; color: #1e3a5f; display: block; margin-bottom: 3px; }
-    .right-item span { font-size: 0.78rem; color: #718096; line-height: 1.5; }
-
-    /* ── Contact box ── */
-    .contact-box {
-      background: linear-gradient(135deg, #f0fff4, #e6fffa);
-      border: 1px solid #9ae6b4;
-      border-radius: 16px;
-      padding: 20px 24px;
-      margin-top: 10px;
-    }
-    .contact-box p { font-size: 0.88rem; color: #276749; line-height: 1.8; }
-    .contact-box a { color: #2c5282; font-weight: 700; text-decoration: none; }
-    .contact-box a:hover { text-decoration: underline; }
-
-    /* ── Footer ── */
-    .doc-footer {
-      text-align: center;
-      margin-top: 44px;
-      padding-top: 28px;
-      border-top: 2px solid #e2e8f0;
-    }
-    .doc-footer p { color: #a0aec0; font-size: 0.75rem; margin-bottom: 16px; }
-    .footer-links { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
-    .footer-btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: linear-gradient(135deg, #2c5282, #1e3a5f);
-      color: white;
-      padding: 12px 28px;
-      border-radius: 14px;
-      text-decoration: none;
-      font-size: 0.88rem; font-weight: 700;
-      transition: all 0.3s;
-    }
-    .footer-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(44,82,130,0.35);
-    }
-    .footer-btn-outline {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: transparent;
-      color: #2c5282;
-      padding: 12px 28px;
-      border-radius: 14px;
-      text-decoration: none;
-      font-size: 0.88rem; font-weight: 700;
-      transition: all 0.3s;
-      border: 2px solid #2c5282;
-    }
-    .footer-btn-outline:hover {
-      background: #ebf8ff;
-      transform: translateY(-2px);
-    }
-
-    @media (max-width: 640px) {
-      .doc-card { padding: 32px 24px; }
-      .doc-header h1 { font-size: 1.55rem; }
-    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;min-height:100vh;background:linear-gradient(135deg,#0c4a6e 0%,#1e3a5f 25%,#2d3748 50%,#1a3a4f 75%,#0f2c44 100%);color:#2d3748;}
+    .medical-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;overflow:hidden;pointer-events:none;}
+    .medical-bg::before{content:'🔒';position:absolute;font-size:280px;opacity:0.025;bottom:-60px;right:-60px;animation:float 20s infinite ease-in-out;}
+    .medical-bg::after{content:'🛡️';position:absolute;font-size:220px;opacity:0.025;top:-40px;left:-40px;animation:float 15s infinite ease-in-out reverse;}
+    @keyframes float{0%,100%{transform:translate(0,0) rotate(0deg);}50%{transform:translate(-20px,-20px) rotate(8deg);}}
+    .cross{position:absolute;font-size:36px;opacity:0.04;animation:crossRotate 30s linear infinite;color:white;}
+    @keyframes crossRotate{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+    .page-wrapper{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:40px 20px 60px;}
+    .back-btn{display:inline-flex;align-items:center;gap:8px;color:rgba(255,255,255,0.75);text-decoration:none;font-size:0.88rem;font-weight:600;margin-bottom:28px;background:rgba(255,255,255,0.1);padding:8px 16px;border-radius:30px;border:1px solid rgba(255,255,255,0.15);transition:all 0.2s;}
+    .back-btn:hover{color:white;background:rgba(255,255,255,0.18);}
+    .doc-card{background:rgba(255,255,255,0.98);border-radius:32px;padding:52px 60px;box-shadow:0 30px 60px rgba(0,0,0,0.3),0 0 0 1px rgba(255,255,255,0.2);position:relative;overflow:hidden;}
+    .doc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#2ecc71,#3498db,#e74c3c,#f39c12,#2ecc71);background-size:200% 100%;animation:gradientMove 3s linear infinite;}
+    @keyframes gradientMove{0%{background-position:0% 0%;}100%{background-position:200% 0%;}}
+    .doc-header{text-align:center;margin-bottom:40px;padding-bottom:32px;border-bottom:2px solid #e2e8f0;}
+    .doc-icon{font-size:60px;margin-bottom:14px;display:block;}
+    .doc-header h1{font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,#1e3a5f,#2c5282);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px;}
+    .doc-header .subtitle{color:#718096;font-size:0.9rem;line-height:1.65;}
+    .doc-header .meta{display:flex;justify-content:center;gap:12px;margin-top:16px;flex-wrap:wrap;}
+    .meta-pill{background:#ebf8ff;color:#2c5282;padding:6px 16px;border-radius:20px;font-size:0.76rem;font-weight:700;border:1px solid #bee3f8;}
+    .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:36px;}
+    .summary-item{background:#f7fafc;border:1px solid #e2e8f0;border-radius:14px;padding:18px 14px;text-align:center;}
+    .summary-item .s-icon{font-size:28px;margin-bottom:10px;display:block;}
+    .summary-item strong{font-size:0.84rem;color:#1e3a5f;display:block;margin-bottom:5px;}
+    .summary-item span{font-size:0.79rem;color:#718096;line-height:1.55;}
+    .toc{background:#f7fafc;border:1px solid #e2e8f0;border-left:4px solid #2c5282;border-radius:16px;padding:24px 28px;margin-bottom:44px;}
+    .toc-title{font-size:0.8rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#2c5282;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+    .toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;}
+    .toc-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed #e2e8f0;text-decoration:none;transition:all 0.2s;}
+    .toc-item:hover .toc-label{color:#2c5282;}
+    .toc-item:hover .toc-num{background:#2c5282;}
+    .toc-num{background:#cbd5e0;color:white;font-size:0.68rem;font-weight:800;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s;}
+    .toc-label{font-size:0.87rem;font-weight:600;color:#4a5568;transition:color 0.2s;}
+    .section{margin-bottom:42px;scroll-margin-top:20px;}
+    .section-header{display:flex;align-items:center;gap:13px;margin-bottom:16px;}
+    .section-num{background:linear-gradient(135deg,#2c5282,#1e3a5f);color:white;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:800;flex-shrink:0;box-shadow:0 4px 10px rgba(44,82,130,0.25);}
+    .section h2{font-size:1.16rem;font-weight:700;color:#1e3a5f;}
+    .section p{font-size:0.93rem;line-height:1.82;color:#4a5568;margin-bottom:12px;}
+    .section p:last-child{margin-bottom:0;}
+    .section ul,.section ol{padding-left:22px;margin-top:10px;display:grid;gap:9px;}
+    .section li{font-size:0.93rem;line-height:1.75;color:#4a5568;}
+    .section ul li{list-style:disc;}
+    .section ol li{list-style:decimal;}
+    .highlight-box{background:#fff5f5;border:1px solid #fed7d7;border-left:4px solid #e53e3e;border-radius:12px;padding:16px 20px;margin-top:14px;font-size:0.9rem;color:#742a2a;line-height:1.72;}
+    .highlight-box strong{color:#c53030;display:block;margin-bottom:5px;}
+    .info-box{background:linear-gradient(135deg,#ebf8ff,#e6f7ff);border:1px solid #bee3f8;border-left:4px solid #3498db;border-radius:12px;padding:16px 20px;margin-top:14px;font-size:0.9rem;color:#2c5282;line-height:1.72;}
+    .info-box strong{display:block;margin-bottom:5px;}
+    .green-box{background:linear-gradient(135deg,#f0fff4,#e6fffa);border:1px solid #9ae6b4;border-left:4px solid #38a169;border-radius:12px;padding:16px 20px;margin-top:14px;font-size:0.9rem;color:#276749;line-height:1.72;}
+    .green-box strong{display:block;margin-bottom:5px;}
+    .data-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:0.88rem;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;}
+    .data-table th{background:linear-gradient(135deg,#2c5282,#1e3a5f);color:white;padding:13px 16px;text-align:left;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;}
+    .data-table td{padding:12px 16px;border-bottom:1px solid #e2e8f0;color:#4a5568;vertical-align:top;line-height:1.65;font-size:0.9rem;}
+    .data-table tr:last-child td{border-bottom:none;}
+    .data-table tr:nth-child(even) td{background:#f7fafc;}
+    .rights-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+    .right-item{background:#f7fafc;border:1px solid #e2e8f0;border-radius:12px;padding:15px 16px;display:flex;align-items:flex-start;gap:10px;}
+    .right-item .r-icon{font-size:22px;flex-shrink:0;margin-top:1px;}
+    .right-item strong{font-size:0.84rem;color:#1e3a5f;display:block;margin-bottom:4px;}
+    .right-item span{font-size:0.79rem;color:#718096;line-height:1.55;}
+    .divider{height:1px;background:#e2e8f0;margin:10px 0 42px;}
+    .contact-box{background:linear-gradient(135deg,#f0fff4,#e6fffa);border:1px solid #9ae6b4;border-radius:16px;padding:22px 26px;margin-top:12px;}
+    .contact-box p{font-size:0.92rem;color:#276749;line-height:2.0;}
+    .contact-box a{color:#2c5282;font-weight:700;text-decoration:none;}
+    .contact-box a:hover{text-decoration:underline;}
+    .doc-footer{text-align:center;margin-top:48px;padding-top:30px;border-top:2px solid #e2e8f0;}
+    .doc-footer p{color:#a0aec0;font-size:0.76rem;margin-bottom:18px;line-height:1.7;}
+    .footer-links{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;}
+    .footer-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#2c5282,#1e3a5f);color:white;padding:13px 30px;border-radius:14px;text-decoration:none;font-size:0.88rem;font-weight:700;transition:all 0.3s;}
+    .footer-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(44,82,130,0.35);}
+    .footer-btn-outline{display:inline-flex;align-items:center;gap:8px;background:transparent;color:#2c5282;padding:13px 30px;border-radius:14px;text-decoration:none;font-size:0.88rem;font-weight:700;border:2px solid #2c5282;transition:all 0.3s;}
+    .footer-btn-outline:hover{background:#ebf8ff;transform:translateY(-2px);}
+    .back-to-top{display:inline-flex;align-items:center;gap:6px;color:#2c5282;font-size:0.8rem;font-weight:700;text-decoration:none;margin-top:14px;opacity:0.7;transition:opacity 0.2s;}
+    .back-to-top:hover{opacity:1;}
+    @media(max-width:640px){.doc-card{padding:34px 24px;}.doc-header h1{font-size:1.7rem;}.toc-grid,.summary-grid,.rights-grid{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
-
 <div class="medical-bg">
   <div class="cross" style="top:10%;left:5%;">✚</div>
   <div class="cross" style="bottom:15%;right:8%;">✚</div>
   <div class="cross" style="top:55%;left:88%;">✚</div>
 </div>
-
 <div class="page-wrapper">
-
-  <a href="easemed_login.html" class="back-btn">← Back to EaseMed</a>
-
-  <div class="doc-card">
+  <a href="easemed_login.html" class="back-btn">&#8592; Back to EaseMed</a>
+  <div class="doc-card" id="top">
 
     <div class="doc-header">
       <span class="doc-icon">🛡️</span>
       <h1>Privacy Policy</h1>
-      <p class="subtitle">EaseMed Clinical Clerk System · How we collect, use, and protect your data</p>
+      <p class="subtitle">EaseMed Clinical Clerk System &middot; How we collect, use, and protect your personal data<br>We are committed to your privacy. Please read this policy carefully.</p>
       <div class="meta">
-        <span class="meta-pill">📅 Effective: January 2025</span>
+        <span class="meta-pill">📅 Effective: July 2026</span>
         <span class="meta-pill">🌍 Uganda</span>
         <span class="meta-pill">🔒 Data Protected</span>
+        <span class="meta-pill">📄 12 Sections</span>
       </div>
     </div>
 
-    <!-- Quick summary cards -->
+    <!-- Quick summary -->
     <div class="summary-grid">
       <div class="summary-item">
         <span class="s-icon">📧</span>
-        <strong>What we collect</strong>
-        <span>Your name, email, role, and clinical records you create.</span>
+        <strong>What We Collect</strong>
+        <span>Your name, email, professional role, institution, and the clinical records you create on the platform.</span>
       </div>
       <div class="summary-item">
         <span class="s-icon">🎯</span>
-        <strong>Why we use it</strong>
-        <span>To run your account and power your clerking modules.</span>
+        <strong>Why We Use It</strong>
+        <span>To run your account, power your clerking modules, and allow authorised supervisors to review your work.</span>
       </div>
       <div class="summary-item">
         <span class="s-icon">🚫</span>
-        <strong>We don't sell it</strong>
-        <span>Your data is never sold or shared with advertisers.</span>
+        <strong>We Never Sell It</strong>
+        <span>Your personal data is never sold, rented, or shared with advertisers or any commercial third party.</span>
       </div>
     </div>
 
-    <!-- 1 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">1</div>
-        <h2>Who We Are</h2>
+    <!-- TABLE OF CONTENTS -->
+    <div class="toc">
+      <div class="toc-title">📑 Table of Contents</div>
+      <div class="toc-grid">
+        <a href="#p1" class="toc-item"><span class="toc-num">1</span><span class="toc-label">Who We Are</span></a>
+        <a href="#p2" class="toc-item"><span class="toc-num">2</span><span class="toc-label">Information We Collect</span></a>
+        <a href="#p3" class="toc-item"><span class="toc-num">3</span><span class="toc-label">How We Use Your Information</span></a>
+        <a href="#p4" class="toc-item"><span class="toc-num">4</span><span class="toc-label">Patient Data &amp; Your Responsibility</span></a>
+        <a href="#p5" class="toc-item"><span class="toc-num">5</span><span class="toc-label">Where Your Data Is Stored</span></a>
+        <a href="#p6" class="toc-item"><span class="toc-num">6</span><span class="toc-label">Sharing Your Information</span></a>
+        <a href="#p7" class="toc-item"><span class="toc-num">7</span><span class="toc-label">Google Sign-In &amp; OAuth</span></a>
+        <a href="#p8" class="toc-item"><span class="toc-num">8</span><span class="toc-label">Your Rights</span></a>
+        <a href="#p9" class="toc-item"><span class="toc-num">9</span><span class="toc-label">Data Retention</span></a>
+        <a href="#p10" class="toc-item"><span class="toc-num">10</span><span class="toc-label">Cookies &amp; Analytics</span></a>
+        <a href="#p11" class="toc-item"><span class="toc-num">11</span><span class="toc-label">Children's Privacy</span></a>
+        <a href="#p12" class="toc-item"><span class="toc-num">12</span><span class="toc-label">Contact Us</span></a>
       </div>
-      <p>EaseMed is a clinical clerking system built for medical students and healthcare learners, primarily in Uganda. It is structured around <em>Hutchison's Clinical Methods</em> and provides structured modules for history-taking and patient documentation during ward attachments.</p>
-      <p>This Privacy Policy explains how EaseMed collects, stores, and uses the personal information you provide when creating an account or using the platform.</p>
+    </div>
+
+    <!-- P1 -->
+    <div class="section" id="p1">
+      <div class="section-header"><div class="section-num">1</div><h2>Who We Are</h2></div>
+      <p>EaseMed is a clinical clerking and medical education platform built specifically for medical students, intern doctors, clinical officers, nurses, and other healthcare learners — primarily within Uganda and across East Africa. The platform is structured around <em>Hutchison's Clinical Methods (25th Edition)</em> and provides structured modules for history-taking, patient documentation, and ward round preparation during clinical attachments.</p>
+      <p>This Privacy Policy explains who we are, what personal data we collect when you use EaseMed, why we collect it, how we store and protect it, who we share it with, and what rights you have over your own data. It applies to all users of the EaseMed platform, including students, clinicians, educators, and administrators.</p>
+      <p>By registering for an EaseMed account or using any feature of the platform, you acknowledge that you have read and understood this Privacy Policy and consent to the collection and use of your data as described herein. If you do not agree, you must not use EaseMed.</p>
+      <div class="info-box">
+        <strong>📌 Who is the Data Controller?</strong>
+        EaseMed acts as the data controller for account and profile information you provide. For patient-related clinical data that you enter into the platform during clerking sessions, you — the user — act as the data controller, and EaseMed acts only as a data processor storing that data on your behalf.
+      </div>
     </div>
     <div class="divider"></div>
 
-    <!-- 2 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">2</div>
-        <h2>Information We Collect</h2>
-      </div>
-      <p>We collect two categories of information:</p>
-
+    <!-- P2 -->
+    <div class="section" id="p2">
+      <div class="section-header"><div class="section-num">2</div><h2>Information We Collect</h2></div>
+      <p>We collect different categories of information depending on how you interact with EaseMed. Below is a full breakdown of what we collect, what it includes, and why:</p>
       <table class="data-table">
         <thead>
-          <tr>
-            <th>Category</th>
-            <th>What It Includes</th>
-            <th>Why We Collect It</th>
-          </tr>
+          <tr><th>Category</th><th>What It Includes</th><th>Why We Collect It</th></tr>
         </thead>
         <tbody>
           <tr>
             <td><strong>Account Information</strong></td>
-            <td>Full name, email address, phone number (optional), role, institution, year of study, license number (optional), practice location</td>
-            <td>To create and manage your account</td>
+            <td>Full name, email address, phone number (optional), professional role, university or institution, year of study, license number (optional), practice location or hospital</td>
+            <td>To create, verify, and manage your EaseMed account and personalise your experience</td>
           </tr>
           <tr>
             <td><strong>Clinical Records</strong></td>
-            <td>Patient clerking data you enter into modules (history, symptoms, examination findings, management plans)</td>
-            <td>To power your clerking activity and allow supervisor review</td>
+            <td>Patient clerking data you enter into modules — including presenting complaints, history of presenting complaint, past medical history, examination findings, review of systems, and management plans</td>
+            <td>To power your clerking sessions, save your work, and allow authorised supervisors or administrators to review clerkship activity</td>
           </tr>
           <tr>
-            <td><strong>Session Data</strong></td>
-            <td>Login time, IP address, device/browser information</td>
-            <td>For security monitoring and active session tracking by administrators</td>
+            <td><strong>Session &amp; Security Data</strong></td>
+            <td>Login timestamp, IP address, browser type, device/operating system information, session duration</td>
+            <td>To monitor for unauthorised access, enable admin oversight of active users, and maintain platform security</td>
           </tr>
           <tr>
-            <td><strong>Usage Data</strong></td>
-            <td>Pages visited, module activity, Vercel Analytics (anonymous)</td>
-            <td>To improve the platform and fix issues</td>
+            <td><strong>Google OAuth Data</strong></td>
+            <td>Name, email address, and Google profile picture (if you choose to sign in with Google)</td>
+            <td>To authenticate your identity without requiring a separate EaseMed password</td>
+          </tr>
+          <tr>
+            <td><strong>Usage &amp; Analytics Data</strong></td>
+            <td>Pages visited, modules opened, time spent on platform, error events — collected anonymously via Vercel Analytics</td>
+            <td>To understand how the platform is being used, identify bugs, and improve the overall experience</td>
+          </tr>
+          <tr>
+            <td><strong>Communication Data</strong></td>
+            <td>Content of emails or messages you send to our support address</td>
+            <td>To respond to your queries, support requests, or data rights requests</td>
           </tr>
         </tbody>
       </table>
+      <p style="margin-top:14px;">We collect only the information that is necessary for the above purposes. We do not collect biometric data, financial information, or government-issued identification numbers. Optional fields (such as phone number and license number) are never required to access the platform.</p>
     </div>
     <div class="divider"></div>
 
-    <!-- 3 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">3</div>
-        <h2>How We Use Your Information</h2>
-      </div>
-      <p>We use the information collected to:</p>
+    <!-- P3 -->
+    <div class="section" id="p3">
+      <div class="section-header"><div class="section-num">3</div><h2>How We Use Your Information</h2></div>
+      <p>EaseMed uses the personal information we collect for clearly defined, legitimate purposes related to delivering, maintaining, and improving the platform. Specifically, we use your data to:</p>
       <ul>
-        <li>Create, maintain, and secure your EaseMed account</li>
-        <li>Allow you to save and retrieve clinical clerking records</li>
-        <li>Enable administrators and supervisors to review clerkship activity</li>
-        <li>Monitor for unauthorised or suspicious access via session logs</li>
-        <li>Send important account communications (e.g. email verification, password reset)</li>
-        <li>Improve platform stability and user experience over time</li>
+        <li>Create, authenticate, and maintain your EaseMed account securely</li>
+        <li>Allow you to access and use the clinical clerking modules appropriate to your role and year of study</li>
+        <li>Save, retrieve, and display the patient clerking records you create within the platform</li>
+        <li>Enable authorised EaseMed administrators and clinical supervisors to monitor clerkship activity, review student records, and track ward round readiness within their institution</li>
+        <li>Monitor login sessions and IP addresses for security purposes and to detect and respond to unauthorised access attempts</li>
+        <li>Send you important account-related communications — such as email verification links, password reset emails, and account activation or expiry notifications</li>
+        <li>Respond to support queries, data rights requests, or feedback you send us directly</li>
+        <li>Analyse anonymous, aggregated usage patterns to identify bugs, improve platform stability, and guide future development of EaseMed's features and modules</li>
+        <li>Comply with any applicable legal obligations, court orders, or regulatory requirements</li>
       </ul>
-      <div class="teal-box">
-        <strong>✅ We do not use your data for advertising.</strong>
-        EaseMed does not run ads, and your data is never used to build advertising profiles or sold to any third party.
+      <div class="green-box">
+        <strong>✅ We Do Not Use Your Data for Advertising</strong>
+        EaseMed does not run advertisements of any kind. Your personal data is never used to build advertising profiles, target you with commercial offers, or generate revenue through data monetisation. We have no advertising partners and no data broker relationships.
       </div>
+      <p style="margin-top:14px;">We process your data on the following legal bases: (a) <strong>contract</strong> — to deliver the service you signed up for; (b) <strong>legitimate interests</strong> — for security monitoring and platform improvement; and (c) <strong>legal obligation</strong> — where required by applicable law.</p>
     </div>
     <div class="divider"></div>
 
-    <!-- 4 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">4</div>
-        <h2>Patient Data — Your Responsibility</h2>
-      </div>
-      <p>When you clerk a patient using EaseMed, you may enter clinical information about that patient. As the person entering that data, <strong>you are responsible</strong> for ensuring it is handled appropriately.</p>
-      <div class="warn-box">
-        <strong>⚠️ Avoid entering full identifying patient information.</strong>
-        Use initials, patient codes, or anonymised identifiers wherever possible, in line with your hospital's data privacy policy and Uganda's applicable health data regulations.
-      </div>
-      <p style="margin-top:12px;">EaseMed stores patient clerking data on your behalf as a data processor. You, as the user, remain the data controller for any patient data you enter.</p>
-    </div>
-    <div class="divider"></div>
-
-    <!-- 5 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">5</div>
-        <h2>Where Your Data Is Stored</h2>
-      </div>
-      <p>EaseMed uses <strong>Supabase</strong> as its backend database and authentication provider. Your data is stored on Supabase's secure cloud infrastructure. Supabase uses industry-standard encryption (AES-256 at rest, TLS in transit) and is compliant with SOC 2 security standards.</p>
-      <p>By using EaseMed, you consent to your data being processed and stored on Supabase's infrastructure, which may be hosted outside Uganda.</p>
-    </div>
-    <div class="divider"></div>
-
-    <!-- 6 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">6</div>
-        <h2>Sharing Your Information</h2>
-      </div>
-      <p>We do <strong>not</strong> sell, rent, or share your personal data with third parties for commercial purposes. We may share limited data only in these circumstances:</p>
+    <!-- P4 -->
+    <div class="section" id="p4">
+      <div class="section-header"><div class="section-num">4</div><h2>Patient Data &amp; Your Responsibility</h2></div>
+      <p>When you use EaseMed to document a patient encounter during a clinical attachment, ward round, or clerking session, you may enter health-related information about that patient. This is the most sensitive category of data that flows through EaseMed, and it requires careful handling.</p>
+      <p>As the person entering patient data into EaseMed, <strong>you are the data controller</strong> for that information. EaseMed acts only as a data processor — storing and displaying that data at your direction. This means that the legal and professional responsibility for how patient data is handled rests primarily with you, not with EaseMed.</p>
+      <p>By entering any patient-related information into EaseMed, you confirm that:</p>
       <ul>
-        <li><strong>Administrators &amp; Supervisors:</strong> Authorised EaseMed administrators at your institution can view your clerking records and session activity for oversight purposes.</li>
-        <li><strong>Service Providers:</strong> Supabase (database), Vercel (hosting and analytics). These providers only process your data to deliver the service.</li>
-        <li><strong>Legal requirements:</strong> If required by Ugandan law or a valid legal authority, we may be required to disclose certain data.</li>
+        <li>You have the right under your institution's policies to document this patient encounter using a digital tool</li>
+        <li>You are complying with all applicable patient confidentiality obligations, including Uganda's National Health Policy and the ethical codes of your professional body</li>
+        <li>You understand that EaseMed is not a legally recognised medical records system and must not be used as such</li>
+        <li>You will not enter information in a way that would allow a third party to identify a specific patient without additional context</li>
       </ul>
+      <div class="highlight-box">
+        <strong>⚠️ Anonymise All Patient Records — This Is Critical</strong>
+        Do not enter full patient names, National ID numbers, hospital file numbers, addresses, phone numbers, or any other directly identifying information into EaseMed. Use initials, ward-assigned codes, or anonymised patient identifiers at all times, in full compliance with your hospital's data handling protocols. EaseMed does not require identifying patient details to function.
+      </div>
+      <p style="margin-top:14px;">EaseMed accepts no liability for confidentiality breaches, professional sanctions, or legal consequences that arise from a user entering identifiable patient data into the platform in violation of their institutional or professional duties. If you are ever unsure whether certain patient information is appropriate to enter into EaseMed, do not enter it — document it through your hospital's official channels instead.</p>
     </div>
     <div class="divider"></div>
 
-    <!-- 7 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">7</div>
-        <h2>Google Sign-In</h2>
-      </div>
-      <p>EaseMed offers sign-in via Google OAuth. If you choose to sign in with Google:</p>
+    <!-- P5 -->
+    <div class="section" id="p5">
+      <div class="section-header"><div class="section-num">5</div><h2>Where Your Data Is Stored</h2></div>
+      <p>EaseMed uses <strong>Supabase</strong> as its primary backend database, authentication, and storage provider. Supabase is a trusted, enterprise-grade cloud infrastructure provider built on top of PostgreSQL and hosted on Amazon Web Services (AWS). Your data is stored on Supabase's secure servers, which may be physically located outside of Uganda.</p>
+      <p>Supabase implements the following security measures to protect your data:</p>
       <ul>
-        <li>We receive your name, email address, and Google profile picture from Google.</li>
-        <li>We do not receive your Google password.</li>
-        <li>Your use of Google sign-in is also governed by <a href="https://policies.google.com/privacy" target="_blank" style="color:#2c5282; font-weight:700;">Google's Privacy Policy</a>.</li>
+        <li><strong>Encryption at rest:</strong> All stored data is encrypted using AES-256, one of the strongest encryption standards available.</li>
+        <li><strong>Encryption in transit:</strong> All data transmitted between your device and Supabase's servers is encrypted using TLS (Transport Layer Security), preventing interception.</li>
+        <li><strong>Access controls:</strong> Database access is governed by Row-Level Security (RLS) policies, ensuring that users can only access their own data unless explicitly granted broader permissions by an administrator.</li>
+        <li><strong>SOC 2 compliance:</strong> Supabase maintains SOC 2 Type II certification, demonstrating rigorous standards for security, availability, and confidentiality.</li>
+        <li><strong>Regular backups:</strong> Supabase performs automated database backups to protect against data loss.</li>
       </ul>
+      <p style="margin-top:12px;">EaseMed is also hosted on <strong>Vercel</strong>, a secure cloud hosting platform. Vercel handles the delivery of EaseMed's web application and collects anonymous analytics data. Vercel operates its own privacy and security standards, which you can review at vercel.com.</p>
+      <div class="info-box">
+        <strong>📌 Cross-Border Data Transfer</strong>
+        By using EaseMed and creating an account, you consent to your personal data being transferred to and stored on servers outside of Uganda, as part of the Supabase and Vercel infrastructure. We ensure that these providers maintain appropriate security and privacy standards.
+      </div>
     </div>
     <div class="divider"></div>
 
-    <!-- 8 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">8</div>
-        <h2>Your Rights</h2>
+    <!-- P6 -->
+    <div class="section" id="p6">
+      <div class="section-header"><div class="section-num">6</div><h2>Sharing Your Information</h2></div>
+      <p>EaseMed does <strong>not</strong> sell, rent, license, or share your personal data with any third party for commercial, marketing, or advertising purposes. We share your data only in the following limited, clearly defined circumstances:</p>
+      <ul>
+        <li><strong>Authorised Administrators &amp; Supervisors:</strong> EaseMed administrators at your institution — such as clinical supervisors, medical educators, or department coordinators — may have access to your account status, profile information, clerking records, and session activity for the purpose of academic oversight, clerkship review, and ward round preparation. This is a core part of how EaseMed functions as an institutional learning tool.</li>
+        <li><strong>Service Providers:</strong> We share necessary data with our infrastructure providers — Supabase (database and authentication) and Vercel (hosting and analytics) — solely to the extent required to deliver and operate EaseMed. These providers are bound by their own data processing agreements and do not use your data for any independent purpose.</li>
+        <li><strong>Google (OAuth):</strong> If you choose to sign in using your Google account, limited authentication data is exchanged with Google as part of the OAuth process. See Section 7 for full details.</li>
+        <li><strong>Legal Obligations:</strong> EaseMed may be required to disclose certain data if compelled to do so by a valid legal process, court order, regulatory authority, or applicable Ugandan law. We will only disclose the minimum information required to comply with such obligations, and will notify affected users where legally permitted to do so.</li>
+        <li><strong>Protection of Rights:</strong> In cases where we believe disclosure is necessary to protect the safety of EaseMed users, prevent fraud or misuse of the platform, or protect the legal rights of EaseMed and its developers, we may share relevant data with appropriate parties.</li>
+      </ul>
+      <div class="green-box">
+        <strong>✅ No Sale of Data — Ever</strong>
+        EaseMed has never sold user data and commits to never doing so in the future. This applies to all categories of data described in this policy, including account information, clinical records, and session data.
       </div>
-      <p>You have the following rights regarding your data on EaseMed:</p>
+    </div>
+    <div class="divider"></div>
+
+    <!-- P7 -->
+    <div class="section" id="p7">
+      <div class="section-header"><div class="section-num">7</div><h2>Google Sign-In &amp; OAuth</h2></div>
+      <p>EaseMed offers the option to sign in using your existing Google account through Google's OAuth 2.0 authentication system. This is provided as a convenience — you are never required to use Google sign-in and may always choose to register with an email address and password instead.</p>
+      <p>When you choose to sign in with Google, the following occurs:</p>
+      <ul>
+        <li>Google verifies your identity and shares your <strong>name</strong>, <strong>email address</strong>, and <strong>profile picture</strong> with EaseMed via a secure, encrypted token.</li>
+        <li>EaseMed uses this information to create or log in to your EaseMed account. Your Google profile picture may be used to personalise your account display.</li>
+        <li>EaseMed does <strong>not</strong> receive your Google password, payment information, contacts, calendar data, or any other Google account data beyond what is described above.</li>
+        <li>EaseMed does not post, modify, or delete anything in your Google account. We only read the basic profile information you authorise at sign-in.</li>
+      </ul>
+      <p style="margin-top:12px;">Your use of Google sign-in is also governed by <a href="https://policies.google.com/privacy" target="_blank" style="color:#2c5282;font-weight:700;">Google's Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" style="color:#2c5282;font-weight:700;">Terms of Service</a>. EaseMed is not responsible for Google's data practices. If you do not wish to share your Google account data with EaseMed, please use email and password sign-in instead.</p>
+      <p>You may revoke EaseMed's access to your Google account at any time through your Google Account settings under "Third-party apps with account access." Revoking access will prevent future Google sign-ins but will not delete your EaseMed account or the data already associated with it.</p>
+    </div>
+    <div class="divider"></div>
+
+    <!-- P8 -->
+    <div class="section" id="p8">
+      <div class="section-header"><div class="section-num">8</div><h2>Your Rights</h2></div>
+      <p>As a user of EaseMed, you have the following rights with respect to your personal data. These rights apply to the information EaseMed holds about you as a data controller — i.e., your account and profile data, session records, and any other personal information you have provided directly to EaseMed.</p>
       <div class="rights-grid">
-        <div class="right-item">
-          <span class="r-icon">👁️</span>
-          <div>
-            <strong>Right to Access</strong>
-            <span>Request a copy of the data we hold about you.</span>
-          </div>
-        </div>
-        <div class="right-item">
-          <span class="r-icon">✏️</span>
-          <div>
-            <strong>Right to Correct</strong>
-            <span>Ask us to correct inaccurate personal data.</span>
-          </div>
-        </div>
-        <div class="right-item">
-          <span class="r-icon">🗑️</span>
-          <div>
-            <strong>Right to Delete</strong>
-            <span>Request deletion of your account and associated data.</span>
-          </div>
-        </div>
-        <div class="right-item">
-          <span class="r-icon">📦</span>
-          <div>
-            <strong>Right to Portability</strong>
-            <span>Request your data in a portable format (CSV/JSON).</span>
-          </div>
-        </div>
-        <div class="right-item">
-          <span class="r-icon">🚫</span>
-          <div>
-            <strong>Right to Object</strong>
-            <span>Object to how your data is being used.</span>
-          </div>
-        </div>
-        <div class="right-item">
-          <span class="r-icon">📧</span>
-          <div>
-            <strong>How to Exercise</strong>
-            <span>Email us at support@easemed.app to make a request.</span>
-          </div>
-        </div>
+        <div class="right-item"><span class="r-icon">👁️</span><div><strong>Right to Access</strong><span>You may request a copy of the personal data that EaseMed holds about you. We will provide this in a readable format within 14 working days of a verified request.</span></div></div>
+        <div class="right-item"><span class="r-icon">✏️</span><div><strong>Right to Rectification</strong><span>If any personal data we hold about you is inaccurate or out of date, you have the right to ask us to correct it. You may update basic profile information directly within the platform.</span></div></div>
+        <div class="right-item"><span class="r-icon">🗑️</span><div><strong>Right to Erasure</strong><span>You may request the deletion of your EaseMed account and all personal data associated with it. We will action verified deletion requests within 30 days, subject to any legal retention obligations.</span></div></div>
+        <div class="right-item"><span class="r-icon">📦</span><div><strong>Right to Data Portability</strong><span>You may request a copy of your personal data and clinical records in a portable, machine-readable format (such as JSON or CSV), allowing you to transfer your data to another service.</span></div></div>
+        <div class="right-item"><span class="r-icon">🚫</span><div><strong>Right to Object</strong><span>You may object to how EaseMed is processing your personal data, particularly where processing is based on legitimate interests. We will review and respond to all valid objections.</span></div></div>
+        <div class="right-item"><span class="r-icon">⏸️</span><div><strong>Right to Restriction</strong><span>In certain circumstances, you may ask EaseMed to restrict the processing of your data — for example, while a dispute about its accuracy is being resolved.</span></div></div>
+        <div class="right-item"><span class="r-icon">↩️</span><div><strong>Right to Withdraw Consent</strong><span>Where EaseMed relies on your consent to process data, you may withdraw that consent at any time. Withdrawal does not affect the lawfulness of processing carried out before the withdrawal.</span></div></div>
+        <div class="right-item"><span class="r-icon">📧</span><div><strong>How to Exercise Your Rights</strong><span>Email <strong>support@easemedapp.site</strong> with the subject line "Data Rights Request" and describe what you are requesting. We will respond within 14 working days.</span></div></div>
+      </div>
+      <p style="margin-top:16px;">EaseMed will never penalise you for exercising your data rights. We may need to verify your identity before processing a request to protect against unauthorised access to another person's data.</p>
+    </div>
+    <div class="divider"></div>
+
+    <!-- P9 -->
+    <div class="section" id="p9">
+      <div class="section-header"><div class="section-num">9</div><h2>Data Retention</h2></div>
+      <p>EaseMed retains your personal data only for as long as it is necessary to fulfil the purposes described in this Privacy Policy, or as required by applicable law. The following retention periods apply:</p>
+      <ul>
+        <li><strong>Account and profile data:</strong> Retained for as long as your EaseMed account remains active. If your account is deactivated or expires, your profile data may be retained for up to 12 months in case of reactivation, after which it will be deleted unless a deletion request has been made earlier.</li>
+        <li><strong>Clinical clerking records:</strong> Retained for the duration of your active account and for up to 12 months following account deactivation. Your institution's administrator may request that records be retained for longer for academic audit or supervisory purposes, in line with their own data retention policy.</li>
+        <li><strong>Session and security logs:</strong> Login session records and IP address logs are retained for a maximum of 90 days, after which they are automatically purged from the system.</li>
+        <li><strong>Support correspondence:</strong> Emails and messages sent to EaseMed support are retained for up to 24 months for reference and quality assurance purposes.</li>
+        <li><strong>Anonymous analytics data:</strong> Vercel Analytics data is aggregated and anonymised. It does not identify individual users and is retained indefinitely for platform improvement purposes.</li>
+      </ul>
+      <p style="margin-top:12px;">If you request deletion of your account and associated data, EaseMed will action your request within 30 days. Some data may be retained beyond this period where required by Ugandan law, a legal obligation, or a legitimate dispute resolution process. We will inform you if this is the case.</p>
+      <div class="info-box">
+        <strong>📌 Requesting Early Deletion</strong>
+        You do not need to wait for the standard retention period to end. You may request deletion of your data at any time by emailing <strong>support@easemedapp.site</strong>. We will confirm receipt and action your request within 30 days.
       </div>
     </div>
     <div class="divider"></div>
 
-    <!-- 9 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">9</div>
-        <h2>Data Retention</h2>
+    <!-- P10 -->
+    <div class="section" id="p10">
+      <div class="section-header"><div class="section-num">10</div><h2>Cookies &amp; Analytics</h2></div>
+      <p>EaseMed uses a minimal approach to cookies and local storage, collecting only what is necessary to operate the platform securely and effectively.</p>
+      <ul>
+        <li><strong>Local Storage (Session Data):</strong> EaseMed uses your browser's localStorage to store your login session token and basic display preferences (such as your display name). This is essential for keeping you logged in between page loads. It is not a cookie and cannot be accessed by other websites.</li>
+        <li><strong>Supabase Auth Cookies:</strong> When you sign in, Supabase may set secure, HTTP-only authentication cookies to manage your session. These cookies are essential for authentication and cannot be disabled without preventing login.</li>
+        <li><strong>Vercel Analytics:</strong> EaseMed uses Vercel's built-in analytics tool to collect anonymous, aggregated usage data — such as which pages are visited most frequently and how long users spend on each module. Vercel Analytics does not use third-party tracking cookies, does not fingerprint individual users, and does not share data with advertisers.</li>
+      </ul>
+      <p style="margin-top:12px;">EaseMed does <strong>not</strong> use:</p>
+      <ul>
+        <li>Third-party advertising cookies or tracking pixels of any kind</li>
+        <li>Social media tracking scripts (Facebook Pixel, Twitter/X tracking, etc.)</li>
+        <li>Cross-site user profiling or behavioural targeting technologies</li>
+        <li>Google Analytics or any other full-featured analytics platform that identifies individual users</li>
+      </ul>
+      <div class="green-box">
+        <strong>✅ No Ad Tracking. No Profiling. No Surveillance.</strong>
+        Your usage of EaseMed is for learning — not for building a commercial profile about you. We keep our tracking minimal, transparent, and strictly in service of improving the platform.
       </div>
-      <p>We retain your account data for as long as your account is active. If you request deletion of your account, we will remove your personal data from our systems within 30 days, except where we are required by law to retain it longer.</p>
-      <p>Clinical records you have entered may be retained by your institution's administrator for audit or educational review purposes, in line with your institution's own data retention policy.</p>
     </div>
     <div class="divider"></div>
 
-    <!-- 10 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">10</div>
-        <h2>Cookies &amp; Analytics</h2>
-      </div>
-      <p>EaseMed uses minimal browser storage (localStorage) to remember your login session. We use <strong>Vercel Analytics</strong> to collect anonymous, aggregated usage statistics — this does not identify you personally and does not use advertising cookies.</p>
-      <p>We do not use third-party advertising cookies or tracking pixels of any kind.</p>
+    <!-- P11 -->
+    <div class="section" id="p11">
+      <div class="section-header"><div class="section-num">11</div><h2>Children's Privacy</h2></div>
+      <p>EaseMed is intended exclusively for adults aged 18 years and older. The platform is designed for university-level medical students, qualified health professionals, and clinical educators — none of whom should be under 18 years of age in the context of their professional training.</p>
+      <p>EaseMed does <strong>not</strong> knowingly collect personal data from individuals under the age of 18. If we become aware that a person under 18 has registered for an EaseMed account or provided us with personal data, we will take prompt steps to:</p>
+      <ul>
+        <li>Suspend the account pending verification of the user's age</li>
+        <li>Delete all personal data associated with that account from our systems</li>
+        <li>Notify the user (or their guardian, if appropriate) that the account has been closed</li>
+      </ul>
+      <p style="margin-top:12px;">If you believe that a person under 18 has created an EaseMed account or submitted personal data to EaseMed, please contact us immediately at <strong>support@easemedapp.site</strong> so that we can investigate and take appropriate action.</p>
+      <p>EaseMed notes that pediatric patient data may be entered by adult healthcare learners into the Pediatrics clerking module during ward attachments. This is clinical data about patients — not account data of minors — and is subject to the patient data handling obligations described in Section 4 of this policy.</p>
     </div>
     <div class="divider"></div>
 
-    <!-- 11 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">11</div>
-        <h2>Changes to This Policy</h2>
-      </div>
-      <p>We may update this Privacy Policy periodically. The effective date shown at the top of this page will reflect any changes. If changes are significant, we will notify you via your registered email address. Continued use of EaseMed after an update constitutes your acceptance of the revised policy.</p>
-    </div>
-    <div class="divider"></div>
-
-    <!-- 12 -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-num">12</div>
-        <h2>Contact Us</h2>
-      </div>
-      <p>For any privacy-related questions, data requests, or concerns, please contact us:</p>
+    <!-- P12 -->
+    <div class="section" id="p12">
+      <div class="section-header"><div class="section-num">12</div><h2>Contact Us</h2></div>
+      <p>If you have any questions about this Privacy Policy, wish to exercise any of your data rights, want to report a privacy concern or potential data breach, or simply need to understand more about how EaseMed handles your personal information — please do not hesitate to reach out.</p>
+      <p>We are committed to being transparent, responsive, and accountable in how we handle your data. All privacy-related queries are handled with confidentiality and professionalism. We aim to respond to all requests within <strong>14 working days</strong>, and to data rights requests within <strong>30 days</strong> at the latest.</p>
       <div class="contact-box">
         <p>
-          📧 Email: <a href="mailto:support@easemedapp.site">support@easemedapp.site</a><br>
-          🏥 EaseMed Clinical Clerk System<br>
-          🌍 Built for Ugandan Medical Students<br>
-          We aim to respond to all data requests within <strong>14 working days</strong>.
+          📧 <strong>Email:</strong> <a href="mailto:support@easemedapp.site">support@easemedapp.site</a><br>
+          🏥 <strong>Platform:</strong> EaseMed Clinical Clerk System<br>
+          🌍 <strong>Built for:</strong> Ugandan Medical Students &amp; Healthcare Learners<br>
+          📅 <strong>General queries:</strong> Response within 14 working days<br>
+          🗑️ <strong>Data deletion requests:</strong> Actioned within 30 days<br>
+          🔒 <strong>Data breach reports:</strong> Use subject line <em>"EaseMed — Privacy Breach"</em> for priority handling<br>
+          👤 <strong>Data rights requests:</strong> Use subject line <em>"Data Rights Request"</em>
         </p>
       </div>
+      <p style="margin-top:14px;">EaseMed is committed to protecting the privacy and dignity of every user of the platform. Your trust is essential to our mission of improving medical education in Uganda — and we do not take it lightly.</p>
+    </div>
+
+    <div style="text-align:right;margin-top:10px;">
+      <a href="#top" class="back-to-top">&#8593; Back to top</a>
     </div>
 
     <div class="doc-footer">
-      <p>© 2025 EaseMed · Clinical Clerk System · All Rights Reserved</p>
+      <p>© 2026 EaseMed &middot; Clinical Clerk System &middot; All Rights Reserved<br>
+      This Privacy Policy was last updated in <strong>July 2026</strong>. It applies to all registered users of the EaseMed platform.<br>
+      By using EaseMed you confirm that you have read and understood this Privacy Policy.</p>
       <div class="footer-links">
         <a href="terms.html" class="footer-btn-outline">📋 Terms &amp; Conditions</a>
-        <a href="easemed_login.html" class="footer-btn">← Return to Login</a>
+        <a href="easemed_login.html" class="footer-btn">&#8592; Return to Login</a>
       </div>
     </div>
 
   </div>
 </div>
-
 </body>
 </html>
