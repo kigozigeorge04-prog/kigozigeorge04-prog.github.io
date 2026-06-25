@@ -3,935 +3,723 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Primary SEO -->
     <title>EaseMed — Clinical Clerking System for Medical Students in Uganda</title>
-    <meta name="description" content="EaseMed is a free clinical clerking and medical education web app for Ugandan medical students, based on Hutchison's Clinical Methods. Practice structured history taking, pediatric clerking, review of systems, and generate clinical summaries.">
-    <meta name="keywords" content="medical student Uganda, clinical clerking Uganda, Hutchison clinical methods, EaseMed, pediatric clerking, Makerere medicine, Uganda medical education, history taking, clinical summary, ward round">
+    <meta name="description" content="EaseMed is a free clinical clerking and medical education web app for Ugandan medical students, based on Hutchison's Clinical Methods. Covers Pediatrics, Internal Medicine, Surgery and ObGyn.">
+    <meta name="keywords" content="medical student Uganda, clinical clerking Uganda, Hutchison clinical methods, EaseMed, pediatric clerking, internal medicine, surgery, ObGyn, Makerere medicine, Uganda medical education, history taking, clinical summary, ward round">
     <meta name="author" content="EaseMed">
     <link rel="canonical" href="https://easemedapp.site/">
-
-    <!-- Open Graph -->
     <meta property="og:title" content="EaseMed — Clinical Clerk System for Uganda">
-    <meta property="og:description" content="Structured clinical clerking for Ugandan medical students. Based on Hutchison's Clinical Methods. Free to use.">
+    <meta property="og:description" content="Structured clinical clerking for Ugandan medical students. Pediatrics, Internal Medicine, Surgery, ObGyn. Free to use.">
     <meta property="og:url" content="https://easemedapp.site">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://easemedapp.site/og-image.png">
     <meta property="og:locale" content="en_UG">
-
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="EaseMed — Clinical Clerk System">
     <meta name="twitter:description" content="Structured clinical clerking for Ugandan medical students. Based on Hutchison's Clinical Methods.">
-
-    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f3b3a">
-
-    <!-- Structured data for Google -->
+    <meta name="theme-color" content="#0a2e2d">
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "EaseMed",
-      "url": "https://easemedapp.site",
-      "description": "Clinical clerking and medical education web app for Ugandan medical students, based on Hutchison's Clinical Methods.",
-      "applicationCategory": "HealthApplication",
-      "operatingSystem": "All",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "UGX"
-      },
-      "audience": {
-        "@type": "Audience",
-        "audienceType": "Medical students, interns, clinical officers, nurses"
-      },
-      "provider": {
-        "@type": "Organization",
-        "name": "EaseMed",
-        "url": "https://easemedapp.site"
-      }
-    }
+    {"@context":"https://schema.org","@type":"WebApplication","name":"EaseMed","url":"https://easemedapp.site","description":"Clinical clerking and medical education web app for Ugandan medical students.","applicationCategory":"HealthApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"UGX"}}
     </script>
-
     <style>
-        /* ── DESIGN TOKENS ─────────────────────────────────────────── */
+        /* ── TOKENS ─────────────────────────────── */
         :root {
-            --teal-deep:   #0f3b3a;
-            --teal-mid:    #0f766e;
-            --teal-light:  #ccfbf1;
-            --teal-pale:   #f0fdfa;
-            --gold:        #d97706;
-            --gold-light:  #fef3c7;
-            --text:        #0f172a;
-            --text-mid:    #334155;
-            --text-soft:   #64748b;
-            --border:      #e2e8f0;
-            --white:       #ffffff;
-            --bg:          #f8fafc;
-
-            --font-display: 'Georgia', 'Times New Roman', serif;
-            --font-body:    'Segoe UI', system-ui, -apple-system, sans-serif;
-            --font-mono:    'Courier New', monospace;
-
-            --radius:  16px;
-            --shadow:  0 4px 24px rgba(15,59,58,0.08);
-            --shadow-lg: 0 16px 48px rgba(15,59,58,0.14);
+            --deep:       #0a2e2d;
+            --mid:        #0f766e;
+            --bright:     #14b8a6;
+            --pale:       #ccfbf1;
+            --bg-pale:    #f0fdfa;
+            --gold:       #f59e0b;
+            --gold-bg:    #fef3c7;
+            --text:       #0f172a;
+            --text-mid:   #334155;
+            --text-soft:  #64748b;
+            --border:     #e2e8f0;
+            --white:      #ffffff;
+            --bg:         #f8fafc;
+            --font-d: 'Georgia', 'Times New Roman', serif;
+            --font-b: 'Segoe UI', system-ui, sans-serif;
+            --font-m: 'Courier New', monospace;
+            --r: 16px;
+            --sh: 0 2px 16px rgba(10,46,45,0.07);
+            --sh-lg: 0 12px 40px rgba(10,46,45,0.13);
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
         html { scroll-behavior: smooth; }
+        body { font-family: var(--font-b); background: var(--white); color: var(--text); line-height:1.6; overflow-x:hidden; }
 
-        body {
-            font-family: var(--font-body);
-            background: var(--white);
-            color: var(--text);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* ── NAV ──────────────────────────────────────────────────── */
+        /* ── NAV ────────────────────────────────── */
         nav {
-            position: sticky; top: 0; z-index: 100;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(12px);
+            position: sticky; top:0; z-index:200;
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(14px);
             border-bottom: 1px solid var(--border);
-            padding: 0 32px;
-            display: flex; align-items: center; justify-content: space-between;
-            height: 64px;
+            padding: 0 40px;
+            height: 66px;
+            display: flex; align-items:center; justify-content:space-between;
         }
-
         .nav-brand {
-            display: flex; align-items: center; gap: 10px;
-            font-family: var(--font-display);
-            font-size: 1.4rem; font-weight: 700;
-            color: var(--teal-deep);
-            text-decoration: none;
+            display: flex; align-items:center; gap:10px;
+            font-family: var(--font-d);
+            font-size: 1.45rem; font-weight:700;
+            color: var(--deep); text-decoration:none;
         }
-
-        .nav-brand .pulse-dot {
-            width: 10px; height: 10px;
-            background: var(--teal-mid);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50%       { transform: scale(1.4); opacity: 0.6; }
-        }
-
-        .nav-links {
-            display: flex; align-items: center; gap: 24px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--text-mid); text-decoration: none;
-            font-size: 0.9rem; font-weight: 500;
-            transition: color 0.15s;
-        }
-
-        .nav-links a:hover { color: var(--teal-mid); }
-
-        .nav-cta {
-            background: var(--teal-mid);
-            color: var(--white) !important;
-            padding: 8px 20px;
+        .nav-cross {
+            width:34px; height:34px;
+            background: linear-gradient(135deg, var(--mid), var(--bright));
             border-radius: 8px;
-            font-weight: 600 !important;
+            display:grid; place-items:center;
+            color: white; font-size:1rem; font-weight:700;
+        }
+        .nav-links { display:flex; align-items:center; gap:28px; list-style:none; }
+        .nav-links a { color:var(--text-mid); text-decoration:none; font-size:0.88rem; font-weight:500; transition:color 0.15s; }
+        .nav-links a:hover { color:var(--mid); }
+        .nav-pill {
+            background: var(--mid); color: var(--white) !important;
+            padding: 9px 22px; border-radius:8px; font-weight:600 !important;
             transition: background 0.15s, transform 0.15s !important;
         }
+        .nav-pill:hover { background: var(--deep) !important; transform: translateY(-1px); }
+        @media(max-width:680px){ .nav-links{ display:none; } nav{ padding:0 20px; } }
 
-        .nav-cta:hover {
-            background: var(--teal-deep) !important;
-            color: var(--white) !important;
-            transform: translateY(-1px);
-        }
-
-        @media (max-width: 640px) {
-            .nav-links { display: none; }
-            nav { padding: 0 20px; }
-        }
-
-        /* ── HERO ─────────────────────────────────────────────────── */
+        /* ── HERO ───────────────────────────────── */
         .hero {
-            min-height: 92vh;
-            background: linear-gradient(160deg, var(--teal-deep) 0%, #0d5c56 40%, #1a6b63 100%);
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            text-align: center;
-            padding: 80px 24px 60px;
-            position: relative; overflow: hidden;
+            min-height: 100vh;
+            background: linear-gradient(150deg, var(--deep) 0%, #0d4a46 45%, #0f5c56 100%);
+            display: flex; flex-direction:column;
+            justify-content:center; align-items:center;
+            text-align:center;
+            padding: 100px 24px 80px;
+            position: relative; overflow:hidden;
         }
-
-        /* Signature element: ECG line running across the hero */
+        /* Grid overlay */
         .hero::before {
-            content: '';
-            position: absolute;
-            bottom: 60px; left: 0; right: 0;
-            height: 2px;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 60'%3E%3Cpolyline points='0,30 150,30 180,10 200,50 220,5 240,55 260,30 400,30 420,10 440,50 460,5 480,55 500,30 650,30 670,10 690,50 710,5 730,55 750,30 900,30 920,10 940,50 960,5 980,55 1000,30 1200,30' fill='none' stroke='rgba(204,251,241,0.25)' stroke-width='2'/%3E%3C/svg%3E") repeat-x center;
-            background-size: 1200px 60px;
-            animation: ecgScroll 8s linear infinite;
-            opacity: 0.6;
+            content:'';
+            position:absolute; inset:0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events:none;
         }
-
-        @keyframes ecgScroll {
-            from { background-position: 0 center; }
-            to   { background-position: -1200px center; }
+        /* ECG line */
+        .ecg-line {
+            position:absolute; bottom:80px; left:0; right:0;
+            height:60px; overflow:hidden; opacity:0.35;
         }
+        .ecg-line svg { width:200%; animation: ecgMove 6s linear infinite; }
+        @keyframes ecgMove { from{transform:translateX(0)} to{transform:translateX(-50%)} }
 
-        .hero-eyebrow {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: rgba(204,251,241,0.12);
-            border: 1px solid rgba(204,251,241,0.25);
-            color: var(--teal-light);
-            padding: 6px 16px; border-radius: 30px;
-            font-size: 0.8rem; font-weight: 600;
-            letter-spacing: 1px; text-transform: uppercase;
-            margin-bottom: 28px;
+        .hero-badge {
+            display:inline-flex; align-items:center; gap:8px;
+            background: rgba(20,184,166,0.15);
+            border: 1px solid rgba(20,184,166,0.3);
+            color: var(--pale);
+            padding: 7px 18px; border-radius:30px;
+            font-size:0.75rem; font-weight:700;
+            letter-spacing:1.2px; text-transform:uppercase;
+            margin-bottom:32px;
+            position:relative; z-index:1;
         }
-
         .hero h1 {
-            font-family: var(--font-display);
-            font-size: clamp(2.4rem, 6vw, 4.2rem);
+            font-family: var(--font-d);
+            font-size: clamp(2.6rem, 6.5vw, 4.8rem);
             color: var(--white);
-            line-height: 1.15;
-            max-width: 820px;
+            line-height: 1.1;
+            max-width: 860px;
             margin-bottom: 24px;
-            font-weight: 700;
+            font-weight:700;
+            position:relative; z-index:1;
         }
-
-        .hero h1 em {
-            font-style: normal;
-            color: var(--teal-light);
-        }
-
+        .hero h1 .accent { color: var(--bright); }
         .hero-sub {
-            color: rgba(255,255,255,0.75);
-            font-size: clamp(1rem, 2vw, 1.2rem);
-            max-width: 580px;
-            margin-bottom: 44px;
-            line-height: 1.7;
+            color: rgba(255,255,255,0.68);
+            font-size: clamp(1rem, 2vw, 1.18rem);
+            max-width: 560px;
+            margin-bottom: 48px;
+            line-height: 1.75;
+            position:relative; z-index:1;
         }
-
-        .hero-actions {
-            display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
-            margin-bottom: 64px;
+        .hero-btns {
+            display:flex; gap:14px; flex-wrap:wrap; justify-content:center;
+            margin-bottom: 72px;
+            position:relative; z-index:1;
         }
-
-        .btn-hero-primary {
+        .btn-main {
             background: var(--white);
-            color: var(--teal-deep);
-            padding: 14px 32px;
-            border-radius: 10px;
-            font-weight: 700; font-size: 1rem;
-            text-decoration: none;
+            color: var(--deep);
+            padding: 15px 36px; border-radius:10px;
+            font-weight:700; font-size:0.98rem;
+            text-decoration:none;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.22);
             transition: transform 0.15s, box-shadow 0.15s;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display:inline-flex; align-items:center; gap:8px;
         }
-
-        .btn-hero-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-        }
-
-        .btn-hero-secondary {
-            background: rgba(255,255,255,0.1);
+        .btn-main:hover { transform:translateY(-3px); box-shadow:0 10px 36px rgba(0,0,0,0.28); }
+        .btn-ghost {
+            background: rgba(255,255,255,0.08);
             color: var(--white);
-            padding: 14px 32px;
-            border-radius: 10px;
-            font-weight: 600; font-size: 1rem;
-            text-decoration: none;
-            border: 1px solid rgba(255,255,255,0.25);
+            padding: 15px 36px; border-radius:10px;
+            font-weight:600; font-size:0.98rem;
+            text-decoration:none;
+            border: 1px solid rgba(255,255,255,0.2);
             transition: background 0.15s;
         }
+        .btn-ghost:hover { background: rgba(255,255,255,0.15); }
 
-        .btn-hero-secondary:hover { background: rgba(255,255,255,0.18); }
-
+        /* Stats row */
         .hero-stats {
-            display: flex; gap: 40px; flex-wrap: wrap; justify-content: center;
+            display:flex; gap:48px; flex-wrap:wrap; justify-content:center;
+            position:relative; z-index:1;
         }
-
-        .hero-stat { text-align: center; }
-
-        .hero-stat .num {
-            display: block;
-            font-family: var(--font-display);
-            font-size: 2rem; font-weight: 700;
-            color: var(--white);
+        .stat { text-align:center; }
+        .stat-num {
+            font-family: var(--font-d);
+            font-size: 2.2rem; font-weight:700;
+            color: var(--white); display:block; line-height:1;
         }
-
-        .hero-stat .label {
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.55);
-            text-transform: uppercase; letter-spacing: 0.5px;
+        .stat-label {
+            font-size: 0.72rem; color: rgba(255,255,255,0.45);
+            text-transform:uppercase; letter-spacing:0.8px; margin-top:4px; display:block;
         }
+        .stat-divider {
+            width:1px; background: rgba(255,255,255,0.1);
+            align-self:stretch;
+        }
+        @media(max-width:500px){ .stat-divider{display:none;} .hero-stats{gap:28px;} }
 
-        /* ── SECTION SHARED ───────────────────────────────────────── */
+        /* ── SECTIONS SHARED ────────────────────── */
         section { padding: 96px 24px; }
-
-        .section-inner {
-            max-width: 1100px;
-            margin: 0 auto;
+        .inner { max-width:1100px; margin:0 auto; }
+        .tag {
+            font-size:0.72rem; font-weight:700; letter-spacing:1.5px;
+            text-transform:uppercase; color:var(--mid); margin-bottom:10px; display:block;
         }
-
-        .section-label {
-            font-size: 0.75rem; font-weight: 700;
-            letter-spacing: 1.5px; text-transform: uppercase;
-            color: var(--teal-mid);
-            margin-bottom: 12px;
+        .h2 {
+            font-family:var(--font-d);
+            font-size:clamp(1.8rem, 4vw, 2.7rem);
+            color:var(--deep); line-height:1.2; margin-bottom:14px;
         }
+        .sub { color:var(--text-soft); font-size:1rem; max-width:520px; line-height:1.75; }
 
-        .section-title {
-            font-family: var(--font-display);
-            font-size: clamp(1.8rem, 4vw, 2.8rem);
-            color: var(--teal-deep);
-            line-height: 1.2;
-            margin-bottom: 16px;
+        /* ── MODULES SECTION ────────────────────── */
+        .modules-sec { background: var(--bg); }
+        .modules-grid {
+            display:grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap:24px; margin-top:52px;
         }
-
-        .section-sub {
-            color: var(--text-soft);
-            font-size: 1.05rem;
-            max-width: 560px;
-            line-height: 1.7;
-        }
-
-        /* ── WHAT IS EASEMED ──────────────────────────────────────── */
-        .about { background: var(--bg); }
-
-        .about-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 64px;
-            align-items: center;
-            margin-top: 56px;
-        }
-
-        @media (max-width: 768px) {
-            .about-grid { grid-template-columns: 1fr; gap: 40px; }
-        }
-
-        .about-visual {
-            background: var(--teal-deep);
+        @media(max-width:640px){ .modules-grid{ grid-template-columns:1fr; } }
+        .mod-card {
+            background: var(--white);
+            border: 1px solid var(--border);
             border-radius: 20px;
             padding: 32px;
-            font-family: var(--font-mono);
-            font-size: 0.78rem;
-            color: var(--teal-light);
-            line-height: 2;
-            box-shadow: var(--shadow-lg);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .about-visual::before {
-            content: '● ● ●';
-            display: block;
-            color: rgba(255,255,255,0.3);
-            margin-bottom: 16px;
-            font-family: var(--font-body);
-            font-size: 0.7rem;
-            letter-spacing: 4px;
-        }
-
-        .about-visual .line-key   { color: #7dd3fc; }
-        .about-visual .line-val   { color: #bbf7d0; }
-        .about-visual .line-alert { color: #fca5a5; font-weight: 700; }
-        .about-visual .line-dim   { color: rgba(204,251,241,0.4); }
-
-        .about-points { display: flex; flex-direction: column; gap: 24px; }
-
-        .about-point {
-            display: flex; gap: 16px; align-items: flex-start;
-        }
-
-        .about-point-icon {
-            width: 44px; height: 44px; flex-shrink: 0;
-            background: var(--teal-pale);
-            border-radius: 12px;
-            display: grid; place-items: center;
-            font-size: 1.2rem;
-        }
-
-        .about-point h3 {
-            font-size: 0.95rem; font-weight: 700;
-            color: var(--teal-deep); margin-bottom: 4px;
-        }
-
-        .about-point p {
-            font-size: 0.88rem; color: var(--text-soft); line-height: 1.6;
-        }
-
-        /* ── FEATURES ─────────────────────────────────────────────── */
-        .features { background: var(--white); }
-
-        .features-header { margin-bottom: 56px; }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-        }
-
-        .feature-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 28px;
+            display:flex; flex-direction:column; gap:16px;
             transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+            position:relative; overflow:hidden;
         }
-
-        .feature-card:hover {
-            border-color: var(--teal-mid);
-            box-shadow: var(--shadow);
-            transform: translateY(-4px);
+        .mod-card::after {
+            content:'';
+            position:absolute; top:0; left:0; right:0; height:3px;
+            background: linear-gradient(90deg, var(--mid), var(--bright));
+            opacity:0; transition:opacity 0.2s;
         }
-
-        .feature-icon {
-            font-size: 1.8rem; margin-bottom: 16px;
-            display: block;
+        .mod-card:hover { border-color:var(--mid); box-shadow:var(--sh-lg); transform:translateY(-6px); }
+        .mod-card:hover::after { opacity:1; }
+        .mod-icon {
+            width:56px; height:56px;
+            border-radius:14px;
+            display:grid; place-items:center;
+            font-size:1.6rem;
         }
-
-        .feature-card h3 {
-            font-size: 1rem; font-weight: 700;
-            color: var(--teal-deep); margin-bottom: 8px;
+        .mod-icon.peds { background:#e0f2fe; }
+        .mod-icon.im   { background:#ede9fe; }
+        .mod-icon.surg { background:#fef3c7; }
+        .mod-icon.ob   { background:#fce7f3; }
+        .mod-card h3 {
+            font-family:var(--font-d);
+            font-size:1.2rem; font-weight:700; color:var(--deep);
         }
-
-        .feature-card p {
-            font-size: 0.88rem; color: var(--text-soft); line-height: 1.6;
+        .mod-card p { font-size:0.87rem; color:var(--text-soft); line-height:1.65; }
+        .mod-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+        .mod-tag {
+            background:var(--bg-pale); color:var(--mid);
+            font-size:0.7rem; font-weight:700;
+            padding:3px 10px; border-radius:20px;
+            border:1px solid rgba(15,118,110,0.15);
+            text-transform:uppercase; letter-spacing:0.4px;
         }
-
-        .feature-tag {
-            display: inline-block;
-            margin-top: 12px;
-            background: var(--teal-pale);
-            color: var(--teal-mid);
-            font-size: 0.72rem; font-weight: 700;
-            padding: 3px 10px; border-radius: 20px;
-            text-transform: uppercase; letter-spacing: 0.5px;
+        .mod-arrow {
+            margin-top:auto;
+            display:inline-flex; align-items:center; gap:6px;
+            color:var(--mid); font-size:0.85rem; font-weight:600;
+            text-decoration:none;
+            transition:gap 0.15s;
         }
+        .mod-card:hover .mod-arrow { gap:10px; }
 
-        /* ── WHO IS IT FOR ────────────────────────────────────────── */
-        .audience { background: var(--teal-pale); }
-
-        .audience-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-top: 48px;
+        /* ── FEATURES ───────────────────────────── */
+        .features-sec { background:var(--white); }
+        .feat-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap:20px; margin-top:52px;
         }
-
-        .audience-card {
-            background: var(--white);
-            border-radius: 14px;
-            padding: 24px 20px;
-            text-align: center;
-            border: 1px solid rgba(15,118,110,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+        .feat {
+            background:var(--bg);
+            border:1px solid var(--border);
+            border-radius:var(--r);
+            padding:26px;
+            transition:border-color 0.2s, transform 0.2s, box-shadow 0.2s;
         }
+        .feat:hover { border-color:var(--bright); transform:translateY(-3px); box-shadow:var(--sh); }
+        .feat-ico { font-size:1.6rem; margin-bottom:12px; display:block; }
+        .feat h3 { font-size:0.95rem; font-weight:700; color:var(--deep); margin-bottom:6px; }
+        .feat p  { font-size:0.84rem; color:var(--text-soft); line-height:1.6; }
 
-        .audience-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow);
+        /* ── FOR WHO ─────────────────────────────── */
+        .who-sec { background: var(--deep); }
+        .who-sec .tag { color: var(--bright); }
+        .who-sec .h2  { color: var(--white); }
+        .who-sec .sub { color: rgba(255,255,255,0.55); }
+        .who-grid {
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap:14px; margin-top:48px;
         }
-
-        .audience-card .icon { font-size: 2rem; margin-bottom: 10px; display: block; }
-
-        .audience-card h3 {
-            font-size: 0.9rem; font-weight: 700;
-            color: var(--teal-deep);
+        .who-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius:14px; padding:24px 18px;
+            text-align:center;
+            transition: background 0.2s, transform 0.2s;
         }
+        .who-card:hover { background:rgba(255,255,255,0.09); transform:translateY(-4px); }
+        .who-card .ico { font-size:1.8rem; display:block; margin-bottom:10px; }
+        .who-card h3 { font-size:0.88rem; font-weight:700; color:var(--white); }
+        .who-card p  { font-size:0.75rem; color:rgba(255,255,255,0.4); margin-top:3px; }
 
-        .audience-card p {
-            font-size: 0.78rem; color: var(--text-soft);
-            margin-top: 4px;
-        }
-
-        /* ── HOW IT WORKS ─────────────────────────────────────────── */
-        .how { background: var(--white); }
-
+        /* ── HOW IT WORKS ────────────────────────── */
+        .how-sec { background:var(--bg-pale); }
         .steps {
-            display: grid;
+            display:grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 32px;
-            margin-top: 56px;
-            position: relative;
+            gap:0; margin-top:56px;
+            position:relative;
         }
-
+        .steps::before {
+            content:'';
+            position:absolute; top:28px; left:0; right:0; height:1px;
+            background: linear-gradient(90deg, transparent, var(--mid), transparent);
+            opacity:0.25;
+        }
+        @media(max-width:640px){ .steps::before{display:none;} }
         .step {
-            position: relative;
-            padding: 28px;
-            background: var(--bg);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
+            padding:32px 28px;
+            position:relative;
         }
-
-        .step-number {
-            font-family: var(--font-display);
-            font-size: 3rem; font-weight: 700;
-            color: var(--teal-light);
-            line-height: 1;
-            margin-bottom: 12px;
-        }
-
-        .step h3 {
-            font-size: 0.95rem; font-weight: 700;
-            color: var(--teal-deep); margin-bottom: 8px;
-        }
-
-        .step p {
-            font-size: 0.85rem; color: var(--text-soft); line-height: 1.6;
-        }
-
-        /* ── MODULES PREVIEW ──────────────────────────────────────── */
-        .modules { background: var(--teal-deep); }
-
-        .modules .section-label { color: var(--teal-light); }
-        .modules .section-title { color: var(--white); }
-        .modules .section-sub   { color: rgba(255,255,255,0.6); }
-
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-top: 48px;
-        }
-
-        .module-pill {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(204,251,241,0.15);
-            border-radius: 12px;
-            padding: 16px 20px;
-            display: flex; align-items: center; gap: 12px;
-            color: var(--teal-light);
-            font-size: 0.88rem; font-weight: 500;
-            transition: background 0.15s;
-        }
-
-        .module-pill:hover { background: rgba(255,255,255,0.1); }
-
-        .module-pill .dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: var(--teal-mid); flex-shrink: 0;
-        }
-
-        /* ── CTA ──────────────────────────────────────────────────── */
-        .cta-section {
-            background: linear-gradient(135deg, #0d5c56, var(--teal-deep));
-            padding: 96px 24px;
-            text-align: center;
-        }
-
-        .cta-section h2 {
-            font-family: var(--font-display);
-            font-size: clamp(1.8rem, 4vw, 2.8rem);
+        .step-num {
+            width:52px; height:52px;
+            background: var(--mid);
             color: var(--white);
-            margin-bottom: 16px;
+            border-radius:50%;
+            display:grid; place-items:center;
+            font-family:var(--font-d);
+            font-size:1.1rem; font-weight:700;
+            margin-bottom:18px;
+            box-shadow: 0 4px 16px rgba(15,118,110,0.3);
+        }
+        .step h3 { font-size:0.95rem; font-weight:700; color:var(--deep); margin-bottom:8px; }
+        .step p  { font-size:0.84rem; color:var(--text-soft); line-height:1.65; }
+
+        /* ── TERMINAL BLOCK ──────────────────────── */
+        .terminal-sec { background:var(--bg); padding:80px 24px; }
+        .terminal-wrap { max-width:900px; margin:0 auto; }
+        .terminal {
+            background: #0d1117;
+            border-radius:16px;
+            overflow:hidden;
+            box-shadow: var(--sh-lg);
+        }
+        .term-bar {
+            background: #161b22;
+            padding:12px 20px;
+            display:flex; align-items:center; gap:8px;
+            border-bottom:1px solid rgba(255,255,255,0.06);
+        }
+        .term-dot { width:12px; height:12px; border-radius:50%; }
+        .td-red { background:#ff5f57; }
+        .td-yellow { background:#febc2e; }
+        .td-green { background:#28c840; }
+        .term-title { color:rgba(255,255,255,0.3); font-size:0.78rem; margin-left:8px; font-family:var(--font-m); }
+        .term-body {
+            padding:28px 32px;
+            font-family:var(--font-m);
+            font-size:0.82rem;
+            line-height:2.1;
+        }
+        .tc-dim    { color:rgba(255,255,255,0.2); }
+        .tc-key    { color:#79c0ff; }
+        .tc-val    { color:#56d364; }
+        .tc-str    { color:#a5d6ff; }
+        .tc-warn   { color:#f78166; font-weight:700; }
+        .tc-ok     { color:#56d364; font-weight:700; }
+        .tc-prompt { color:#bc8cff; }
+        .term-caption {
+            text-align:center; margin-top:20px;
+            font-size:0.8rem; color:var(--text-soft);
         }
 
-        .cta-section p {
-            color: rgba(255,255,255,0.7);
-            font-size: 1.05rem;
-            margin-bottom: 36px;
+        /* ── CTA ─────────────────────────────────── */
+        .cta-sec {
+            background: linear-gradient(135deg, var(--mid), var(--deep));
+            padding:100px 24px; text-align:center;
         }
-
+        .cta-sec h2 {
+            font-family:var(--font-d);
+            font-size:clamp(1.8rem, 4vw, 3rem);
+            color:var(--white); margin-bottom:14px;
+        }
+        .cta-sec p { color:rgba(255,255,255,0.65); font-size:1.05rem; margin-bottom:40px; }
         .btn-cta {
-            display: inline-block;
-            background: var(--white);
-            color: var(--teal-deep);
-            padding: 16px 40px;
-            border-radius: 10px;
-            font-weight: 700; font-size: 1.05rem;
-            text-decoration: none;
-            transition: transform 0.15s, box-shadow 0.15s;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display:inline-block;
+            background:var(--white); color:var(--deep);
+            padding:16px 44px; border-radius:10px;
+            font-weight:700; font-size:1.05rem;
+            text-decoration:none;
+            box-shadow:0 6px 28px rgba(0,0,0,0.22);
+            transition:transform 0.15s, box-shadow 0.15s;
         }
+        .btn-cta:hover { transform:translateY(-3px); box-shadow:0 12px 36px rgba(0,0,0,0.28); }
+        .cta-sub { margin-top:18px; font-size:0.78rem; color:rgba(255,255,255,0.35); }
+        .cta-sub a { color:rgba(255,255,255,0.45); }
 
-        .btn-cta:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 32px rgba(0,0,0,0.25);
-        }
-
-        .cta-note {
-            margin-top: 16px;
-            font-size: 0.78rem;
-            color: rgba(255,255,255,0.4);
-        }
-
-        /* ── FOOTER ───────────────────────────────────────────────── */
+        /* ── FOOTER ──────────────────────────────── */
         footer {
-            background: var(--teal-deep);
-            border-top: 1px solid rgba(255,255,255,0.06);
-            padding: 40px 24px;
+            background:var(--deep);
+            border-top:1px solid rgba(255,255,255,0.05);
+            padding:44px 24px;
         }
-
-        .footer-inner {
-            max-width: 1100px; margin: 0 auto;
-            display: flex; align-items: center; justify-content: space-between;
-            flex-wrap: wrap; gap: 16px;
+        .foot-inner {
+            max-width:1100px; margin:0 auto;
+            display:flex; align-items:center; justify-content:space-between;
+            flex-wrap:wrap; gap:20px;
         }
+        .foot-brand { font-family:var(--font-d); font-size:1.1rem; font-weight:700; color:var(--pale); }
+        .foot-links { display:flex; gap:24px; list-style:none; flex-wrap:wrap; }
+        .foot-links a { color:rgba(255,255,255,0.35); text-decoration:none; font-size:0.82rem; transition:color 0.15s; }
+        .foot-links a:hover { color:var(--pale); }
+        .foot-copy { color:rgba(255,255,255,0.2); font-size:0.74rem; }
 
-        .footer-brand {
-            font-family: var(--font-display);
-            font-size: 1.1rem; font-weight: 700;
-            color: var(--teal-light);
-        }
+        /* ── REVEAL ──────────────────────────────── */
+        .rv { opacity:0; transform:translateY(28px); transition:opacity 0.55s ease, transform 0.55s ease; }
+        .rv.in { opacity:1; transform:translateY(0); }
+        .rv-d1 { transition-delay:0.08s; }
+        .rv-d2 { transition-delay:0.16s; }
+        .rv-d3 { transition-delay:0.24s; }
+        .rv-d4 { transition-delay:0.32s; }
 
-        .footer-links {
-            display: flex; gap: 24px; list-style: none;
-        }
-
-        .footer-links a {
-            color: rgba(255,255,255,0.45);
-            text-decoration: none; font-size: 0.82rem;
-            transition: color 0.15s;
-        }
-
-        .footer-links a:hover { color: var(--teal-light); }
-
-        .footer-copy {
-            color: rgba(255,255,255,0.25);
-            font-size: 0.75rem;
-        }
-
-        /* ── SCROLL REVEAL ────────────────────────────────────────── */
-        .reveal {
-            opacity: 0;
-            transform: translateY(24px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
-
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .reveal { opacity: 1; transform: none; transition: none; }
-            .hero::before { animation: none; }
-            .nav-brand .pulse-dot { animation: none; }
+        @media(prefers-reduced-motion:reduce){
+            .rv{opacity:1;transform:none;transition:none;}
+            .ecg-line svg{animation:none;}
         }
     </style>
 </head>
 <body>
 
-    <!-- ── NAV ── -->
-    <nav>
-        <a href="/" class="nav-brand">
-            <div class="pulse-dot"></div>
-            EaseMed
-        </a>
-        <ul class="nav-links">
-            <li><a href="#features">Features</a></li>
-            <li><a href="#modules">Modules</a></li>
-            <li><a href="#how">How it works</a></li>
-            <li><a href="easemed_login.html" class="nav-cta">Get started →</a></li>
+<!-- NAV -->
+<nav>
+    <a href="/" class="nav-brand">
+        <div class="nav-cross">✚</div>
+        EaseMed
+    </a>
+    <ul class="nav-links">
+        <li><a href="#modules">Modules</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="easemed_login.html" class="nav-pill">Get started →</a></li>
+    </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-badge">🇺🇬 Built for Uganda &nbsp;·&nbsp; Hutchison's Clinical Methods</div>
+    <h1>The smarter way to<br><span class="accent">clerk your patients.</span></h1>
+    <p class="hero-sub">EaseMed guides you through structured history taking, systematic examination, and clinical documentation — across 4 speciality modules, even offline.</p>
+    <div class="hero-btns">
+        <a href="easemed_login.html" class="btn-main">🩺 Start clerking free</a>
+        <a href="#modules" class="btn-ghost">See the modules</a>
+    </div>
+    <div class="hero-stats">
+        <div class="stat">
+            <span class="stat-num">4</span>
+            <span class="stat-label">Clinical modules</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+            <span class="stat-num">26+</span>
+            <span class="stat-label">Symptom guides</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+            <span class="stat-num">11</span>
+            <span class="stat-label">Body systems</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+            <span class="stat-num">100%</span>
+            <span class="stat-label">Free</span>
+        </div>
+    </div>
+    <!-- ECG signature element -->
+    <div class="ecg-line" aria-hidden="true">
+        <svg viewBox="0 0 2400 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="0,30 200,30 230,12 250,48 270,6 290,54 310,30 500,30 530,12 550,48 570,6 590,54 610,30 800,30 830,12 850,48 870,6 890,54 910,30 1100,30 1130,12 1150,48 1170,6 1190,54 1210,30 1400,30 1430,12 1450,48 1470,6 1490,54 1510,30 1700,30 1730,12 1750,48 1770,6 1790,54 1810,30 2000,30 2030,12 2050,48 2070,6 2090,54 2110,30 2400,30"
+                stroke="rgba(20,184,166,0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </div>
+</section>
+
+<!-- MODULES -->
+<section class="modules-sec" id="modules">
+    <div class="inner">
+        <div class="rv">
+            <span class="tag">Clinical Modules</span>
+            <h2 class="h2">Four specialities, one platform</h2>
+            <p class="sub">Each module is built around Hutchison's framework — structured, systematic, and tailored to Uganda's clinical environment.</p>
+        </div>
+        <div class="modules-grid">
+            <div class="mod-card rv rv-d1">
+                <div class="mod-icon peds">👶</div>
+                <h3>Pediatrics</h3>
+                <p>Full pediatric clerking including birth history, developmental milestones, Uganda EPI immunization schedule, MUAC classification, WHO growth chart plotting, and age-adjusted vital sign alerts.</p>
+                <div class="mod-tags">
+                    <span class="mod-tag">Birth history</span>
+                    <span class="mod-tag">Milestones</span>
+                    <span class="mod-tag">EPI vaccines</span>
+                    <span class="mod-tag">MUAC</span>
+                    <span class="mod-tag">Growth chart</span>
+                </div>
+                <a href="easemed_login.html" class="mod-arrow">Open module →</a>
+            </div>
+            <div class="mod-card rv rv-d2">
+                <div class="mod-icon im">🫁</div>
+                <h3>Internal Medicine</h3>
+                <p>Comprehensive adult clerking across all body systems — cardiovascular, respiratory, GIT, neurology, renal, endocrine, and more — with Hutchinson review of systems and full examination builder.</p>
+                <div class="mod-tags">
+                    <span class="mod-tag">Adult history</span>
+                    <span class="mod-tag">9 systems</span>
+                    <span class="mod-tag">Exam builder</span>
+                    <span class="mod-tag">HIV history</span>
+                </div>
+                <a href="easemed_login.html" class="mod-arrow">Open module →</a>
+            </div>
+            <div class="mod-card rv rv-d3">
+                <div class="mod-icon surg">🔪</div>
+                <h3>Surgery</h3>
+                <p>Structured surgical history taking including SOCRATES pain assessment, surgical site examination, pre-operative documentation, and clinical photography for wound and lesion tracking.</p>
+                <div class="mod-tags">
+                    <span class="mod-tag">SOCRATES</span>
+                    <span class="mod-tag">Pre-op clerking</span>
+                    <span class="mod-tag">Photography</span>
+                    <span class="mod-tag">Examination</span>
+                </div>
+                <a href="easemed_login.html" class="mod-arrow">Open module →</a>
+            </div>
+            <div class="mod-card rv rv-d4">
+                <div class="mod-icon ob">🤱</div>
+                <h3>Obstetrics & Gynaecology</h3>
+                <p>Antenatal and gynaecological history taking, obstetric examination, menstrual history, LMP and EDD calculation, and structured documentation for maternal health encounters.</p>
+                <div class="mod-tags">
+                    <span class="mod-tag">Antenatal</span>
+                    <span class="mod-tag">Gynaecology</span>
+                    <span class="mod-tag">EDD calc</span>
+                    <span class="mod-tag">Maternal history</span>
+                </div>
+                <a href="easemed_login.html" class="mod-arrow">Open module →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TERMINAL / LIVE PREVIEW -->
+<section class="terminal-sec">
+    <div class="terminal-wrap rv">
+        <div style="text-align:center; margin-bottom:32px;">
+            <span class="tag">See it in action</span>
+            <h2 class="h2">What a clerking record looks like</h2>
+        </div>
+        <div class="terminal">
+            <div class="term-bar">
+                <div class="term-dot td-red"></div>
+                <div class="term-dot td-yellow"></div>
+                <div class="term-dot td-green"></div>
+                <span class="term-title">EaseMed — Pediatric Clerking · Amara K.</span>
+            </div>
+            <div class="term-body">
+                <div><span class="tc-dim">// ── Demographics ─────────────────────────</span></div>
+                <div><span class="tc-key">patient      </span><span class="tc-dim">:</span> <span class="tc-str">"Amara Nakazibwe, 3 years 6 months, Female"</span></div>
+                <div><span class="tc-key">guardian     </span><span class="tc-dim">:</span> <span class="tc-str">"Sarah Nakazibwe (Mother) · 0752-xxx-xxx"</span></div>
+                <div><span class="tc-key">district     </span><span class="tc-dim">:</span> <span class="tc-str">"Kampala · Referred from HC III Kireka"</span></div>
+                <br>
+                <div><span class="tc-dim">// ── Presenting Complaint ─────────────────</span></div>
+                <div><span class="tc-key">complaint    </span><span class="tc-dim">:</span> <span class="tc-str">"Fever × 4 days"</span></div>
+                <div><span class="tc-key">pattern      </span><span class="tc-dim">:</span> <span class="tc-val">Intermittent</span> <span class="tc-dim">// spikes then normal</span></div>
+                <div><span class="tc-key">rigors       </span><span class="tc-dim">:</span> <span class="tc-warn">true  ⚠ Malaria suspected</span></div>
+                <div><span class="tc-key">malaria_rdt  </span><span class="tc-dim">:</span> <span class="tc-warn">POSITIVE ⚠</span></div>
+                <br>
+                <div><span class="tc-dim">// ── Vitals ───────────────────────────────</span></div>
+                <div><span class="tc-key">HR           </span><span class="tc-dim">:</span> <span class="tc-warn">142 bpm  ⚠ High (normal 90–150)</span></div>
+                <div><span class="tc-key">RR           </span><span class="tc-dim">:</span> <span class="tc-val">28 /min  ✓ Normal</span></div>
+                <div><span class="tc-key">Temp         </span><span class="tc-dim">:</span> <span class="tc-warn">39.2°C   ⚠ High-grade fever</span></div>
+                <div><span class="tc-key">MUAC         </span><span class="tc-dim">:</span> <span class="tc-ok">13.2 cm  ✓ Normal nutrition</span></div>
+                <br>
+                <div><span class="tc-dim">// ── Plan ─────────────────────────────────</span></div>
+                <div><span class="tc-key">management   </span><span class="tc-dim">:</span> <span class="tc-str">"AL × 3 days · Paracetamol SOS · ORS"</span></div>
+                <div><span class="tc-prompt">▶ Summary generated  ·  Ward round ready  ✓</span></div>
+            </div>
+        </div>
+        <p class="term-caption">A real EaseMed pediatric record — generated in under 5 minutes at the bedside.</p>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-sec" id="features">
+    <div class="inner">
+        <div class="rv">
+            <span class="tag">Features</span>
+            <h2 class="h2">Everything you need at the bedside</h2>
+            <p class="sub">From the first complaint to the ward round summary — EaseMed covers the full clinical encounter.</p>
+        </div>
+        <div class="feat-grid">
+            <div class="feat rv rv-d1">
+                <span class="feat-ico">🩺</span>
+                <h3>Symptom-driven history guides</h3>
+                <p>Select the presenting complaint and get instant structured questions, clinical clues, and red flags specific to that symptom.</p>
+            </div>
+            <div class="feat rv rv-d2">
+                <span class="feat-ico">🔬</span>
+                <h3>Hutchinson Review of Systems</h3>
+                <p>Systematically screen all body systems with toggle pills. Mark symptoms present or absent and add narrative detail per system.</p>
+            </div>
+            <div class="feat rv rv-d3">
+                <span class="feat-ico">❤️</span>
+                <h3>Physical examination builder</h3>
+                <p>Inspection, palpation, percussion, auscultation — for every system. Abnormal findings auto-appear in the clinical summary.</p>
+            </div>
+            <div class="feat rv rv-d4">
+                <span class="feat-ico">📄</span>
+                <h3>Auto-generated clinical summary</h3>
+                <p>One click generates a full clerking summary and a 5-line ward round presentation. Export directly to Word.</p>
+            </div>
+            <div class="feat rv rv-d1">
+                <span class="feat-ico">⚡</span>
+                <h3>Age-adjusted vital sign alerts</h3>
+                <p>Enter HR and RR — get instant warnings when values fall outside normal ranges for that specific age group.</p>
+            </div>
+            <div class="feat rv rv-d2">
+                <span class="feat-ico">📷</span>
+                <h3>Clinical photography</h3>
+                <p>Capture clinical photos directly in the app and attach them to the patient record — rashes, wounds, clinical signs.</p>
+            </div>
+            <div class="feat rv rv-d3">
+                <span class="feat-ico">💾</span>
+                <h3>Cloud + offline saving</h3>
+                <p>Records save to the cloud and locally for offline access. Search, load, and manage past patient records from any device.</p>
+            </div>
+            <div class="feat rv rv-d4">
+                <span class="feat-ico">🩸</span>
+                <h3>HIV history & ART tracker</h3>
+                <p>Document HIV status, WHO staging, ART regimen, CD4, viral load, adherence, and opportunistic infections.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- WHO IS IT FOR -->
+<section class="who-sec" id="who">
+    <div class="inner">
+        <div class="rv">
+            <span class="tag">Who uses EaseMed</span>
+            <h2 class="h2">Built for the whole clinical team</h2>
+            <p class="sub">From Year 3 students clerking their first patient to consultants teaching on the ward round.</p>
+        </div>
+        <div class="who-grid">
+            <div class="who-card rv rv-d1"><span class="ico">🎓</span><h3>Medical Students</h3><p>Year 3–6 clerking</p></div>
+            <div class="who-card rv rv-d2"><span class="ico">🩺</span><h3>Intern Doctors</h3><p>Post-graduation year</p></div>
+            <div class="who-card rv rv-d3"><span class="ico">🏥</span><h3>Resident Doctors</h3><p>Speciality training</p></div>
+            <div class="who-card rv rv-d4"><span class="ico">💊</span><h3>Clinical Officers</h3><p>HC III &amp; IV</p></div>
+            <div class="who-card rv"><span class="ico">🤱</span><h3>Nurses &amp; Midwives</h3><p>Patient assessment</p></div>
+            <div class="who-card rv"><span class="ico">📚</span><h3>Medical Educators</h3><p>Teaching &amp; assessment</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-sec" id="how">
+    <div class="inner">
+        <div class="rv" style="text-align:center; margin-bottom:0;">
+            <span class="tag">How it works</span>
+            <h2 class="h2">From first complaint to ward round in minutes</h2>
+        </div>
+        <div class="steps">
+            <div class="step rv rv-d1">
+                <div class="step-num">1</div>
+                <h3>Create a free account</h3>
+                <p>Sign up with your email or Google account. No payment required — EaseMed is completely free for all medical learners.</p>
+            </div>
+            <div class="step rv rv-d2">
+                <div class="step-num">2</div>
+                <h3>Choose your module</h3>
+                <p>Select Pediatrics, Internal Medicine, Surgery, or ObGyn from the dashboard and open a new clerking form.</p>
+            </div>
+            <div class="step rv rv-d3">
+                <div class="step-num">3</div>
+                <h3>Clerk your patient</h3>
+                <p>Follow the structured form — demographics, complaint, history, examination. Guided questions appear as you go.</p>
+            </div>
+            <div class="step rv rv-d4">
+                <div class="step-num">4</div>
+                <h3>Generate your summary</h3>
+                <p>One click produces a complete clinical summary and a 5-line ward round presentation — ready to present or export.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-sec">
+    <h2>Start clerking your first patient today</h2>
+    <p>Free · No credit card · Works offline · Built for Uganda</p>
+    <a href="easemed_login.html" class="btn-cta">Create free account →</a>
+    <p class="cta-sub">Already have an account? <a href="easemed_login.html">Log in here</a></p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="foot-inner">
+        <div class="foot-brand">EaseMed</div>
+        <ul class="foot-links">
+            <li><a href="easemed_login.html">Login</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms</a></li>
+            <li><a href="mailto:support@easemedapp.site">Contact</a></li>
         </ul>
-    </nav>
+        <p class="foot-copy">© 2026 EaseMed · Clinical Clerk System · Uganda</p>
+    </div>
+</footer>
 
-    <!-- ── HERO ── -->
-    <section class="hero">
-        <div class="hero-eyebrow">
-            <span>🇺🇬</span> Built for Uganda · Based on Hutchison's Clinical Methods
-        </div>
-        <h1>
-            Clinical clerking,<br>
-            <em>the way it should be taught.</em>
-        </h1>
-        <p class="hero-sub">
-            EaseMed guides medical students through structured history taking, systematic examination, and clinical documentation — at the bedside, even offline.
-        </p>
-        <div class="hero-actions">
-            <a href="easemed_login.html" class="btn-hero-primary">Start clerking free →</a>
-            <a href="#features" class="btn-hero-secondary">See what's inside</a>
-        </div>
-        <div class="hero-stats">
-            <div class="hero-stat">
-                <span class="num">13+</span>
-                <span class="label">Clinical modules</span>
-            </div>
-            <div class="hero-stat">
-                <span class="num">11</span>
-                <span class="label">Body systems covered</span>
-            </div>
-            <div class="hero-stat">
-                <span class="num">26+</span>
-                <span class="label">Symptom guides</span>
-            </div>
-            <div class="hero-stat">
-                <span class="num">100%</span>
-                <span class="label">Free to use</span>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── ABOUT ── -->
-    <section class="about" id="about">
-        <div class="section-inner">
-            <div class="about-grid reveal">
-                <div class="about-visual" aria-hidden="true">
-<span class="line-dim">// EaseMed — Pediatric Clerking</span>
-<br>
-<span class="line-key">patient</span>: <span class="line-val">"Amara K., 3y 6m, Female"</span>
-<br>
-<span class="line-key">complaint</span>: <span class="line-val">"Fever × 4 days"</span>
-<br>
-<span class="line-key">duration</span>: <span class="line-val">"Acute (&lt;7 days)"</span>
-<br>
-<span class="line-key">pattern</span>: <span class="line-val">"Intermittent"</span>
-<br>
-<span class="line-key">rigors</span>: <span class="line-val">true</span>
-<br>
-<span class="line-key">malaria_rdt</span>: <span class="line-alert">⚠ POSITIVE</span>
-<br>
-<span class="line-key">muac</span>: <span class="line-val">"13.2 cm — Normal"</span>
-<br>
-<span class="line-key">vitals.HR</span>: <span class="line-alert">142 bpm ⚠ High</span>
-<br>
-<span class="line-key">plan</span>: <span class="line-val">"AL × 3 days, paracetamol"</span>
-<br>
-<span class="line-dim">// Summary generated ✓</span>
-                </div>
-                <div class="about-points">
-                    <div>
-                        <div class="section-label">What is EaseMed?</div>
-                        <h2 class="section-title">Your clinical method guide, in your pocket</h2>
-                        <p class="section-sub">EaseMed is a web app built specifically for Ugandan medical students and healthcare learners. It structures the clinical encounter from presenting complaint to management plan — the way Hutchison taught it.</p>
-                    </div>
-                    <div class="about-point reveal">
-                        <div class="about-point-icon">📖</div>
-                        <div>
-                            <h3>Based on Hutchison's Clinical Methods</h3>
-                            <p>Every section follows the Hutchison framework — the same textbook used in Ugandan medical schools.</p>
-                        </div>
-                    </div>
-                    <div class="about-point reveal">
-                        <div class="about-point-icon">🇺🇬</div>
-                        <div>
-                            <h3>Uganda-specific clinical context</h3>
-                            <p>Red flags, treatment protocols, and EPI vaccine schedules are all tailored to Uganda Clinical Guidelines.</p>
-                        </div>
-                    </div>
-                    <div class="about-point reveal">
-                        <div class="about-point-icon">📶</div>
-                        <div>
-                            <h3>Works offline — even in the ward</h3>
-                            <p>Built as a Progressive Web App. Save records locally when there's no internet. Sync when you're back online.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── FEATURES ── -->
-    <section class="features" id="features">
-        <div class="section-inner">
-            <div class="features-header reveal">
-                <div class="section-label">Features</div>
-                <h2 class="section-title">Everything you need at the bedside</h2>
-                <p class="section-sub">From the first complaint to the ward round summary — EaseMed covers the full clinical encounter.</p>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card reveal">
-                    <span class="feature-icon">🩺</span>
-                    <h3>Symptom-driven history guides</h3>
-                    <p>Select the presenting complaint and get instant structured questions, clinical clues, and red flags — specific to that symptom.</p>
-                    <span class="feature-tag">26+ symptoms</span>
-                </div>
-                <div class="feature-card reveal">
-                    <span class="feature-icon">🔬</span>
-                    <h3>Hutchinson Review of Systems</h3>
-                    <p>Systematically screen all 9 body systems with toggle pills. Mark symptoms present or absent and add narrative detail.</p>
-                    <span class="feature-tag">9 systems</span>
-                </div>
-                <div class="feature-card reveal">
-                    <span class="feature-icon">❤️</span>
-                    <h3>Physical examination builder</h3>
-                    <p>Inspection, palpation, percussion, auscultation — for every system. Abnormal findings auto-appear in the summary.</p>
-                    <span class="feature-tag">7 exam systems</span>
-                </div>
-                <div class="feature-card reveal">
-                    <span class="feature-icon">👶</span>
-                    <h3>Pediatric clerking module</h3>
-                    <p>Birth history, developmental milestones, Uganda EPI immunizations, MUAC classification, and WHO growth chart plotting.</p>
-                    <span class="feature-tag">Pediatrics</span>
-                </div>
-                <div class="feature-card reveal">
-                    <span class="feature-icon">📄</span>
-                    <h3>Auto-generated clinical summary</h3>
-                    <p>One click generates a full clerking summary and a 5-line ward round presentation — ready to copy or export as Word.</p>
-                    <span class="feature-tag">Export to Word</span>
-                </div>
-                <div class="feature-card reveal">
-                    <span class="feature-icon">📷</span>
-                    <h3>Clinical photography</h3>
-                    <p>Capture clinical photos directly in the app and attach them to the patient record — rashes, wounds, clinical signs.</p>
-                    <span class="feature-tag">Camera</span>
-                </div>
-                <div class="feature-card reveal">
-                    <span class="feature-icon">🩸</span>
-                    <h3>HIV history & ART tracker</h3>
-                    <p>Document HIV status, WHO staging, ART regimen, CD4 count, viral load, adherence barriers, and opportunistic infections.</p>
-                    <span class="feature-tag">HIV</span>
-                </div>
-                <div class="feature-card reveal">
-                    <span class="feature-icon">⚡</span>
-                    <h3>Age-adjusted vital sign alerts</h3>
-                    <p>Enter HR and RR and get instant warnings when values fall outside normal ranges for that specific age group.</p>
-                    <span class="feature-tag">Vitals</span>
-                </div>
-                <div class="feature-card reveal">
-                    <span class="feature-icon">💾</span>
-                    <h3>Cloud + offline record saving</h3>
-                    <p>Records save to the cloud via Supabase and locally for offline access. Search, load, and manage past patient records.</p>
-                    <span class="feature-tag">Offline-first</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── AUDIENCE ── -->
-    <section class="audience" id="audience">
-        <div class="section-inner">
-            <div class="reveal">
-                <div class="section-label">Who uses EaseMed</div>
-                <h2 class="section-title">Built for everyone in the clinical team</h2>
-                <p class="section-sub">From Year 3 students clerking their first patient to consultants teaching on the ward.</p>
-            </div>
-            <div class="audience-grid">
-                <div class="audience-card reveal">
-                    <span class="icon">🎓</span>
-                    <h3>Medical Students</h3>
-                    <p>Year 3–6, learning to clerk</p>
-                </div>
-                <div class="audience-card reveal">
-                    <span class="icon">🩺</span>
-                    <h3>Intern Doctors</h3>
-                    <p>First-year post-graduation</p>
-                </div>
-                <div class="audience-card reveal">
-                    <span class="icon">🏥</span>
-                    <h3>Resident Doctors</h3>
-                    <p>Speciality training</p>
-                </div>
-                <div class="audience-card reveal">
-                    <span class="icon">💊</span>
-                    <h3>Clinical Officers</h3>
-                    <p>Health centre III & IV</p>
-                </div>
-                <div class="audience-card reveal">
-                    <span class="icon">🤱</span>
-                    <h3>Nurses & Midwives</h3>
-                    <p>Patient assessment</p>
-                </div>
-                <div class="audience-card reveal">
-                    <span class="icon">📚</span>
-                    <h3>Medical Educators</h3>
-                    <p>Teaching & assessment</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── MODULES ── -->
-    <section class="modules" id="modules">
-        <div class="section-inner">
-            <div class="reveal">
-                <div class="section-label">Clinical Modules</div>
-                <h2 class="section-title">What's inside the app</h2>
-                <p class="section-sub">Each module walks you through a complete structured assessment — from history to examination to plan.</p>
-            </div>
-            <div class="modules-grid reveal">
-                <div class="module-pill"><span class="dot"></span>Pediatric Clerking</div>
-                <div class="module-pill"><span class="dot"></span>Adult Clerking</div>
-                <div class="module-pill"><span class="dot"></span>Cardiovascular System</div>
-                <div class="module-pill"><span class="dot"></span>Respiratory System</div>
-                <div class="module-pill"><span class="dot"></span>Gastrointestinal System</div>
-                <div class="module-pill"><span class="dot"></span>Neurological System</div>
-                <div class="module-pill"><span class="dot"></span>Musculoskeletal System</div>
-                <div class="module-pill"><span class="dot"></span>Genitourinary System</div>
-                <div class="module-pill"><span class="dot"></span>Endocrine System</div>
-                <div class="module-pill"><span class="dot"></span>Dermatology</div>
-                <div class="module-pill"><span class="dot"></span>ENT & Ophthalmology</div>
-                <div class="module-pill"><span class="dot"></span>Obstetrics & Gynaecology</div>
-                <div class="module-pill"><span class="dot"></span>Psychiatry</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── HOW IT WORKS ── -->
-    <section class="how" id="how">
-        <div class="section-inner">
-            <div class="reveal">
-                <div class="section-label">How it works</div>
-                <h2 class="section-title">From first complaint to ward round in minutes</h2>
-            </div>
-            <div class="steps">
-                <div class="step reveal">
-                    <div class="step-number">01</div>
-                    <h3>Create a free account</h3>
-                    <p>Sign up with your email or Google account. No payment required — EaseMed is free for all medical learners.</p>
-                </div>
-                <div class="step reveal">
-                    <div class="step-number">02</div>
-                    <h3>Select your module</h3>
-                    <p>Choose pediatric clerking, adult clerking, or a system-specific module from the dashboard.</p>
-                </div>
-                <div class="step reveal">
-                    <div class="step-number">03</div>
-                    <h3>Clerk your patient</h3>
-                    <p>Follow the structured form — demographics, complaint, history, examination. Guided questions appear as you go.</p>
-                </div>
-                <div class="step reveal">
-                    <div class="step-number">04</div>
-                    <h3>Generate your summary</h3>
-                    <p>One click produces a complete clinical summary and a 5-line ward round presentation ready to present or export.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── CTA ── -->
-    <section class="cta-section">
-        <h2>Start clerking your first patient today</h2>
-        <p>Free. No credit card. Works offline. Built for Uganda.</p>
-        <a href="easemed_login.html" class="btn-cta">Create free account →</a>
-        <p class="cta-note">Already have an account? <a href="easemed_login.html" style="color:rgba(255,255,255,0.5);">Log in here</a></p>
-    </section>
-
-    <!-- ── FOOTER ── -->
-    <footer>
-        <div class="footer-inner">
-            <div class="footer-brand">EaseMed</div>
-            <ul class="footer-links">
-                <li><a href="easemed_login.html">Login</a></li>
-                <li><a href="privacy.html">Privacy Policy</a></li>
-                <li><a href="terms.html">Terms</a></li>
-                <li><a href="mailto:support@easemedapp.site">Contact</a></li>
-            </ul>
-            <p class="footer-copy">© 2026 EaseMed · Clinical Clerk System · Uganda</p>
-        </div>
-    </footer>
-
-    <script>
-        // Scroll reveal
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(e => {
-                if (e.isIntersecting) {
-                    e.target.classList.add('visible');
-                    observer.unobserve(e.target);
-                }
-            });
-        }, { threshold: 0.12 });
-
-        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-    </script>
+<script>
+    // Scroll reveal
+    const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+</script>
 
 </body>
 </html>
