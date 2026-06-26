@@ -3030,6 +3030,13 @@
     // Render image gallery
     renderGallery();
     updateImageCount();
+
+    // ============================================================
+    // 🔧 FIX: Modal click listener moved inside DOMContentLoaded
+    // ============================================================
+    document.getElementById('summaryModal').addEventListener('click', function(e) {
+      if (e.target === this) closeSummaryModal();
+    });
   });
 
   // ============================================================
@@ -3753,11 +3760,6 @@ function generateSummary() {
 function closeSummaryModal() {
   document.getElementById('summaryModal').classList.remove('open');
 }
-
-// Close modal on overlay click
-document.getElementById('summaryModal').addEventListener('click', function(e) {
-  if (e.target === this) closeSummaryModal();
-});
 
 // ============================================================
 // DOWNLOAD SUMMARY AS PDF
