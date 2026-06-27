@@ -1,0 +1,547 @@
+
+        // ============================================================
+        // PEDI DETECTIVE MODULE
+        // ============================================================
+        const COMPLAINTS = {
+            fever: {
+                label: 'Fever',
+                diagnoses: ['Viral URTI', 'Bacterial Pneumonia', 'Kawasaki Disease', 'Urinary Tract Infection'],
+                questions: [
+                    { q: 'How long has the fever lasted and how high is it?', hint: '🔬 *Nelson’s*: fever >5 days with conjunctivitis and mucosal changes suggests Kawasaki. High fever >39°C for >3 days raises concern for bacterial pneumonia.', options: [{ text: 'Less than 3 days, mild (<38.5°C)', scores: [3, 0, 0, 0] }, { text: '3–5 days, high (>39°C) with chills', scores: [0, 3, 0, 1] }, { text: 'More than 5 days, persistent high fever', scores: [0, 0, 3, 0] }, { text: 'High fever with dysuria and frequency', scores: [0, 0, 0, 3] }] },
+                    { q: 'What associated symptoms are present?', hint: '🔬 *Hutchison’s*: runny nose + cough is classic viral. Red eyes + strawberry tongue points to Kawasaki. Dysuria points to UTI.', options: [{ text: 'Runny nose, sneezing, mild cough', scores: [3, 0, 0, 0] }, { text: 'Productive cough, fast breathing, grunting', scores: [0, 3, 0, 0] }, { text: 'Bilateral red eyes, cracked lips, rash', scores: [0, 0, 3, 0] }, { text: 'Burning on urination, foul-smelling urine', scores: [0, 0, 0, 3] }] },
+                    { q: 'What is the child’s age and vaccination status?', hint: '🔬 Unvaccinated infants <3 months are at highest risk for invasive bacterial infection (pneumonia, UTI). Kawasaki typically affects children <5 years.', options: [{ text: 'School-aged child, fully vaccinated', scores: [2, 0, 1, 0] }, { text: 'Infant <3 months, unvaccinated', scores: [0, 2, 0, 2] }, { text: 'Child 6 months – 5 years, delayed vaccines', scores: [0, 2, 1, 1] }] },
+                    { q: 'Are there any sick contacts or recent travel?', hint: '🔬 Sick contacts suggest viral spread. Travel to endemic areas may indicate malaria, dengue, or typhoid.', options: [{ text: 'Multiple sick contacts at school, no travel', scores: [3, 0, 0, 0] }, { text: 'No sick contacts, recent travel to tropics', scores: [0, 1, 0, 0] }, { text: 'Family member with pneumonia', scores: [0, 2, 0, 0] }] },
+                    { q: 'Is there neck stiffness, altered consciousness, or seizures?', hint: '🔬 Fever + nuchal rigidity = meningitis until proven otherwise.', options: [{ text: 'No neck stiffness, child is alert and playful', scores: [2, 1, 1, 1] }, { text: 'Neck stiffness with headache and photophobia', scores: [0, 0, 0, 0] }, { text: 'Fever with seizure (febrile seizure)', scores: [1, 0, 0, 0] }] },
+                    { q: 'How is the child’s overall appearance and hydration?', hint: '🔬 Toxic appearance + poor feeding suggests sepsis / serious infection. Kawasaki children may be very irritable.', options: [{ text: 'Well-appearing, playing, drinking well', scores: [2, 0, 0, 0] }, { text: 'Irritable, red eyes, refusing to drink', scores: [0, 0, 2, 0] }, { text: 'Lethargic, dry mouth, sunken eyes', scores: [0, 2, 0, 2] }] },
+                    { q: 'Have there been any changes in urine output or stool?', hint: '🔬 Reduced urine output + fever = consider UTI, dehydration, or sepsis.', options: [{ text: 'Normal urine output, soft stools', scores: [2, 0, 0, 0] }, { text: 'Frequent small amounts of urine, strong smell', scores: [0, 0, 0, 3] }, { text: 'Constipation and mild abdominal distension', scores: [1, 1, 0, 1] }] }
+                ]
+            },
+            cough: {
+                label: 'Cough',
+                diagnoses: ['Viral URTI', 'Bacterial Pneumonia', 'Pertussis', 'Asthma'],
+                questions: [
+                    { q: 'How long has the cough been present?', hint: '🔬 *Nelson’s*: acute (<2 weeks) = viral; subacute (2–4 weeks) = pertussis or mycoplasma; chronic (>4 weeks) = asthma or foreign body.', options: [{ text: 'Less than 1 week', scores: [3, 0, 0, 0] }, { text: '2–3 weeks, worsening', scores: [0, 1, 2, 0] }, { text: 'More than 4 weeks, nocturnal', scores: [0, 0, 0, 3] }] },
+                    { q: 'Describe the character of the cough.', hint: '🔬 Dry hacking → viral / asthma. Productive → pneumonia. Paroxysmal with whoop → pertussis. Barking → croup.', options: [{ text: 'Dry, hacking, worse at night', scores: [2, 0, 0, 2] }, { text: 'Moist / productive, with fever', scores: [0, 3, 0, 0] }, { text: 'Paroxysmal, followed by a whooping sound', scores: [0, 0, 3, 0] }] },
+                    { q: 'Is the cough associated with fever, fast breathing, or retractions?', hint: '🔬 Fever + tachypnoea + crackles → pneumonia. Wheezing + prolonged expiration → asthma or bronchiolitis.', options: [{ text: 'Fever, tachypnoea, and subcostal retractions', scores: [0, 3, 0, 1] }, { text: 'No fever, but audible wheeze on expiration', scores: [0, 0, 0, 3] }, { text: 'Mild fever, runny nose, no respiratory distress', scores: [3, 0, 0, 0] }] },
+                    { q: 'Any history of choking episode or foreign body aspiration?', hint: '🔬 *Hutchison’s*: sudden onset of cough in a toddler with no fever is a red flag for foreign body.', options: [{ text: 'No choking or foreign body history', scores: [2, 1, 1, 1] }, { text: 'Yes, child choked on a peanut 2 days ago', scores: [0, 1, 0, 0] }] },
+                    { q: 'Is there a personal or family history of atopy (eczema, hay fever, asthma)?', hint: '🔬 Atopic background significantly increases the likelihood of asthma / allergic airway disease.', options: [{ text: 'No personal or family history', scores: [3, 0, 0, 0] }, { text: 'Child has eczema, mother has asthma', scores: [0, 0, 0, 3] }] },
+                    { q: 'What is the child’s vaccination status (DTaP)?', hint: '🔬 Unvaccinated children are at risk for pertussis. Pertussis vaccination wanes after 5 years.', options: [{ text: 'Fully vaccinated, including booster', scores: [2, 0, 0, 0] }, { text: 'Unvaccinated or delayed DTaP', scores: [0, 0, 3, 0] }] },
+                    { q: 'Does the cough occur after feeding or exercise?', hint: '🔬 Post-feeding cough suggests GERD or aspiration. Exercise-induced cough points to asthma.', options: [{ text: 'Cough worse with exercise and at night', scores: [0, 0, 0, 3] }, { text: 'Cough immediately after feeding', scores: [1, 0, 0, 0] }, { text: 'No specific triggers, persistent all day', scores: [2, 1, 1, 0] }] }
+                ]
+            },
+            abdominal_pain: {
+                label: 'Abdominal Pain',
+                diagnoses: ['Gastroenteritis', 'Appendicitis', 'Constipation', 'Mesenteric Adenitis'],
+                questions: [
+                    { q: 'Where is the pain located and has it migrated?', hint: '🔬 *Nelson’s*: migration from umbilicus to RLQ is classic for appendicitis. Diffuse crampy pain suggests gastroenteritis.', options: [{ text: 'Diffuse, crampy, around the umbilicus', scores: [3, 0, 0, 1] }, { text: 'Started at umbilicus, now in right lower quadrant', scores: [0, 3, 0, 0] }, { text: 'Left lower quadrant, relieved after bowel movement', scores: [0, 0, 3, 0] }] },
+                    { q: 'Is there vomiting and what is the character?', hint: '🔬 Bilious (green) vomiting indicates obstruction (malrotation, volvulus). Projectile vomiting suggests pyloric stenosis.', options: [{ text: 'Vomiting 2-3 times, non-bilious, with diarrhoea', scores: [3, 0, 0, 1] }, { text: 'Bilious vomiting, child looks unwell', scores: [0, 2, 0, 0] }, { text: 'No vomiting, but nausea and anorexia', scores: [0, 2, 0, 0] }] },
+                    { q: 'Describe the stool pattern and any fever.', hint: '🔬 Diarrhoea + fever = gastroenteritis. Constipation can mimic acute abdomen. Bloody currant-jelly stools suggest intussusception.', options: [{ text: 'Watery diarrhoea, low-grade fever', scores: [3, 0, 0, 0] }, { text: 'No diarrhoea, last bowel movement 3 days ago', scores: [0, 0, 3, 0] }, { text: 'Pain, fever, and no diarrhoea', scores: [0, 2, 0, 1] }] },
+                    { q: 'Is there guarding or rigidity on palpation?', hint: '🔬 Peritoneal signs (guarding, rebound) strongly suggest appendicitis or perforation.', options: [{ text: 'Soft abdomen, no guarding', scores: [3, 0, 1, 1] }, { text: 'Guarding and rebound tenderness in RLQ', scores: [0, 3, 0, 0] }] },
+                    { q: 'Are there associated upper respiratory symptoms (cough, sore throat)?', hint: '🔬 Mesenteric adenitis often follows a viral URI and presents with right lower quadrant pain mimicking appendicitis.', options: [{ text: 'Yes, cough and runny nose for a week', scores: [0, 0, 0, 3] }, { text: 'No respiratory symptoms', scores: [1, 2, 1, 0] }] },
+                    { q: 'Is the child able to eat and drink?', hint: '🔬 Anorexia is a key feature of appendicitis. Children with constipation may still have a good appetite.', options: [{ text: 'Refusing to eat, drinking little', scores: [0, 3, 0, 0] }, { text: 'Eating and drinking normally', scores: [1, 0, 2, 0] }] },
+                    { q: 'Any recent travel or sick contacts?', hint: '🔬 Travel history may indicate typhoid or amoebiasis. Sick contacts suggest viral gastroenteritis.', options: [{ text: 'Sick family members with diarrhoea', scores: [3, 0, 0, 0] }, { text: 'No sick contacts, no travel', scores: [0, 2, 2, 1] }] }
+                ]
+            },
+            sore_throat: {
+                label: 'Sore Throat',
+                diagnoses: ['Viral Pharyngitis', 'Strep Pharyngitis', 'Infectious Mononucleosis'],
+                questions: [
+                    { q: 'How quickly did symptoms develop and is there high fever?', hint: '🔬 Acute onset + fever >38.3°C + absence of cough is highly suggestive of Strep (Centor criteria).', options: [{ text: 'Gradual onset, low-grade fever, runny nose', scores: [3, 0, 0] }, { text: 'Sudden onset, high fever >39°C, no cough', scores: [0, 3, 0] }, { text: 'Gradual, severe fatigue, and sweating', scores: [0, 0, 3] }] },
+                    { q: 'What do the tonsils look like?', hint: '🔬 Exudative tonsillitis is classic for Strep and EBV. Viral pharyngitis shows erythema without exudate.', options: [{ text: 'Redness only, no exudate', scores: [3, 0, 0] }, { text: 'White/grey exudates on swollen tonsils', scores: [0, 2, 2] }] },
+                    { q: 'Are there swollen lymph nodes? Where?', hint: '🔬 Anterior cervical nodes → Strep. Posterior cervical nodes + fatigue → EBV (mono).', options: [{ text: 'Tender, enlarged anterior cervical nodes', scores: [0, 3, 0] }, { text: 'Posterior cervical and axillary nodes', scores: [0, 0, 3] }, { text: 'No significant lymphadenopathy', scores: [3, 0, 0] }] },
+                    { q: 'Does the child have a fine sandpaper-like rash?', hint: '🔬 A scarlatiniform rash indicates scarlet fever (toxin-mediated GABHS).', options: [{ text: 'Yes, fine red rash on chest and abdomen', scores: [0, 3, 0] }, { text: 'No rash', scores: [2, 1, 2] }] },
+                    { q: 'Is there severe fatigue, headache, or abdominal pain?', hint: '🔬 Headache and abdominal pain are common in Strep. Severe fatigue out of proportion to exam suggests EBV.', options: [{ text: 'Mild fatigue, moderate headache', scores: [1, 2, 0] }, { text: 'Profound fatigue, muscle aches, and sweats', scores: [0, 0, 3] }] },
+                    { q: 'Any history of exposure to someone with strep throat?', hint: '🔬 GABHS is highly contagious; close contacts should be tested if symptomatic.', options: [{ text: 'Yes, sibling was treated for strep last week', scores: [0, 3, 0] }, { text: 'No known exposure', scores: [2, 0, 2] }] },
+                    { q: 'Is there a cough or hoarseness?', hint: '🔬 Cough, rhinorrhea, and hoarseness are typical of viral URI – these are usually ABSENT in GABHS.', options: [{ text: 'Yes, cough and hoarse voice', scores: [3, 0, 0] }, { text: 'No cough or hoarseness', scores: [0, 3, 1] }] }
+                ]
+            },
+            rash: {
+                label: 'Skin Rash',
+                diagnoses: ['Viral Exanthem', 'Allergic Urticaria', 'Varicella', 'Measles'],
+                questions: [
+                    { q: 'Where did the rash first appear and how did it spread?', hint: '🔬 *Nelson’s*: central-to-peripheral (trunk → extremities) is typical for varicella and measles. Urticaria often starts on exposed areas.', options: [{ text: 'Trunk first, then spread to face and limbs', scores: [1, 0, 2, 2] }, { text: 'Localised to areas of contact (e.g., wrists, neck)', scores: [0, 3, 0, 0] }, { text: 'Started on face and scalp, then trunk', scores: [0, 0, 3, 1] }] },
+                    { q: 'Describe the morphology of the rash.', hint: '🔬 Vesicles on an erythematous base (“dew drops on a rose petal”) = chickenpox. Hives = allergic reaction. Maculopapular = measles / viral exanthem.', options: [{ text: 'Maculopapular, non-itchy, blanchable', scores: [3, 0, 0, 1] }, { text: 'Urticarial (hives), intensely itchy, migrating', scores: [0, 3, 0, 0] }, { text: 'Vesicles (fluid-filled blisters) in different stages', scores: [0, 0, 3, 0] }, { text: 'Confluent maculopapular, with Koplik spots in mouth', scores: [0, 0, 0, 3] }] },
+                    { q: 'Is there associated fever, cough, or coryza?', hint: '🔬 Fever + cough + coryza + conjunctivitis → measles. Fever after rash onset is more consistent with roseola or chickenpox.', options: [{ text: 'Fever, cough, and runny nose started before rash', scores: [0, 0, 0, 3] }, { text: 'Fever started with the rash, no cough', scores: [1, 0, 2, 0] }, { text: 'No fever, only itching', scores: [0, 3, 0, 0] }] },
+                    { q: 'Is the child itching? Any known allergens (food, drugs, pets)?', hint: '🔬 Pruritus is common in urticaria, varicella, and atopic dermatitis. Drug history (especially antibiotics) may indicate a fixed drug eruption.', options: [{ text: 'Severe itching, exposed to new cat recently', scores: [0, 3, 0, 0] }, { text: 'Mild itching, no new exposures', scores: [2, 0, 2, 0] }, { text: 'No itching, but child seems unwell', scores: [0, 0, 0, 3] }] },
+                    { q: 'Does the rash blanch under pressure (glass test)?', hint: '🔬 Non-blanching petechial rash is a red flag for meningitis, HSP, or ITP.', options: [{ text: 'Rash blanches with pressure', scores: [3, 3, 3, 3] }, { text: 'Non-blanching petechiae', scores: [0, 0, 0, 0] }] },
+                    { q: 'Are there mucosal lesions (mouth, eyes, genitals)?', hint: '🔬 Koplik spots (oral) are pathognomonic for measles. Conjunctivitis + rash → measles or Kawasaki.', options: [{ text: 'White spots on the inner cheeks (Koplik spots)', scores: [0, 0, 0, 3] }, { text: 'Mouth ulcers and red eyes', scores: [0, 0, 0, 1] }, { text: 'No mucosal involvement', scores: [2, 2, 2, 0] }] },
+                    { q: 'Recent immunisations or infections in the family?', hint: '🔬 Post-vaccinal rashes (MMR, varicella) occur 7-14 days after immunisation.', options: [{ text: 'Received MMR vaccine 10 days ago', scores: [1, 0, 1, 1] }, { text: 'Sibling has chickenpox at school', scores: [0, 0, 3, 0] }, { text: 'No recent vaccines or known exposures', scores: [2, 2, 0, 2] }] }
+                ]
+            },
+            vomiting: {
+                label: 'Vomiting',
+                diagnoses: ['Gastroenteritis', 'Pyloric Stenosis', 'Intussusception', 'Raised ICP'],
+                questions: [
+                    { q: 'How would you describe the vomiting? (projectile, bilious, or non-bilious)', hint: '🔬 *Nelson’s*: projectile non-bilious vomiting in 2-6 week old → pyloric stenosis. Bilious vomiting always suggests obstruction (volvulus, intussusception).', options: [{ text: 'Non-bilious, non-projectile, with diarrhoea', scores: [3, 0, 0, 0] }, { text: 'Projectile, non-bilious, after feeds', scores: [0, 3, 0, 0] }, { text: 'Bilious (green) vomiting, sudden onset', scores: [0, 0, 3, 0] }, { text: 'Projectile vomiting with headache and photophobia', scores: [0, 0, 0, 3] }] },
+                    { q: 'What is the age of the child?', hint: '🔬 Pyloric stenosis: 2-6 weeks. Intussusception: 6 months – 2 years. Raised ICP: any age with space-occupying lesion.', options: [{ text: 'Infant 2-6 weeks old', scores: [0, 3, 0, 0] }, { text: 'Toddler 6 months – 2 years', scores: [0, 0, 3, 0] }, { text: 'School-aged child', scores: [2, 0, 0, 1] }, { text: 'Adolescent', scores: [1, 0, 0, 2] }] },
+                    { q: 'Are there associated symptoms like abdominal pain, fever, or rash?', hint: '🔬 Fever + diarrhoea → gastroenteritis. Currant jelly stool + colicky pain → intussusception. Headache + vomiting → raised ICP.', options: [{ text: 'Fever, watery diarrhoea, crampy pain', scores: [3, 0, 0, 0] }, { text: 'Colicky pain, currant jelly stool, lethargy', scores: [0, 0, 3, 0] }, { text: 'Severe headache, stiff neck, photophobia', scores: [0, 0, 0, 3] }] },
+                    { q: 'Is the child able to keep down fluids? Any signs of dehydration?', hint: '🔬 In pyloric stenosis, the infant is hungry and dehydrated. In gastroenteritis, hydration status varies. In raised ICP, vomiting is often unrelated to feeds.', options: [{ text: 'Hungry but vomits immediately after feeds, losing weight', scores: [0, 3, 0, 0] }, { text: 'Cannot keep anything down, lethargic, sunken eyes', scores: [2, 0, 1, 1] }, { text: 'Drinks well, only vomits with headache', scores: [0, 0, 0, 2] }] },
+                    { q: 'Is there a history of head trauma or recent infection?', hint: '🔬 Post-traumatic vomiting suggests raised ICP. Recent URTI followed by vomiting may be mesenteric adenitis or viral gastritis.', options: [{ text: 'No trauma, but had a cold 3 days ago', scores: [2, 0, 1, 0] }, { text: 'Yes, fell off a bike 2 days ago', scores: [0, 0, 0, 3] }, { text: 'No trauma or recent illness', scores: [1, 2, 1, 0] }] },
+                    { q: 'What is the stool pattern?', hint: '🔬 Constipation suggests obstruction. Currant jelly stool is classic for intussusception. Normal stool with vomiting suggests pyloric stenosis or raised ICP.', options: [{ text: 'Normal stool passed yesterday', scores: [0, 2, 0, 1] }, { text: 'Currant jelly (bloody mucus) stool', scores: [0, 0, 3, 0] }, { text: 'Watery diarrhoea, frequent', scores: [3, 0, 0, 0] }] },
+                    { q: 'Is there any abdominal distension or palpable mass?', hint: '🔬 Sausage-shaped mass in the right upper quadrant → intussusception. Olive-shaped epigastric mass → pyloric stenosis. Distension with obstruction.', options: [{ text: 'No mass, soft abdomen', scores: [3, 0, 0, 0] }, { text: 'Olive-shaped mass in epigastrium', scores: [0, 3, 0, 0] }, { text: 'Sausage-shaped mass in RUQ', scores: [0, 0, 3, 0] }, { text: 'Distended abdomen with diffuse tenderness', scores: [0, 0, 1, 1] }] }
+                ]
+            },
+            diarrhoea: {
+                label: 'Diarrhoea',
+                diagnoses: ['Viral Gastroenteritis', 'Bacterial Enteritis', 'Giardiasis', 'Coeliac Disease'],
+                questions: [
+                    { q: 'How long has diarrhoea been present?', hint: '🔬 *Nelson’s*: acute (<14 days) → infectious. Chronic (>2 weeks) → malabsorption (coeliac, giardia) or post-infectious.', options: [{ text: 'Less than 3 days', scores: [3, 2, 0, 0] }, { text: '1–2 weeks, persistent', scores: [0, 1, 2, 0] }, { text: 'More than 4 weeks, with weight loss', scores: [0, 0, 0, 3] }] },
+                    { q: 'Describe the stool character.', hint: '🔬 Watery → viral. Bloody/mucoid → bacterial (Shigella, Salmonella). Fatty/greasy → coeliac disease or giardia. Mucoid → Giardia.', options: [{ text: 'Watery, no blood, foul smell', scores: [3, 0, 0, 0] }, { text: 'Blood-streaked, mucoid, small volume', scores: [0, 3, 0, 0] }, { text: 'Bulky, greasy, floats in toilet', scores: [0, 0, 0, 3] }, { text: 'Mucoid, pale, with abdominal bloating', scores: [0, 0, 3, 1] }] },
+                    { q: 'Is there fever, vomiting, or abdominal pain?', hint: '🔬 High fever + blood in stool → bacterial. Low fever + vomiting → viral. Painless chronic diarrhoea → coeliac.', options: [{ text: 'Fever, vomiting, and crampy pain', scores: [2, 2, 0, 0] }, { text: 'High fever, severe abdominal pain, tenesmus', scores: [0, 3, 0, 0] }, { text: 'No fever, mild discomfort, bloating', scores: [0, 0, 2, 2] }] },
+                    { q: 'Any recent travel, antibiotic use, or sick contacts?', hint: '🔬 Travel → bacterial or parasitic. Antibiotics → C. difficile (bacterial). Sick contacts → viral or bacterial.', options: [{ text: 'Sick contacts at school, no travel', scores: [3, 1, 0, 0] }, { text: 'Recent travel to a developing country', scores: [0, 2, 2, 0] }, { text: 'Finished antibiotics for ear infection last week', scores: [0, 2, 0, 0] }] },
+                    { q: 'Is the child failing to thrive or losing weight?', hint: '🔬 Weight loss + chronic diarrhoea → coeliac disease, cystic fibrosis, or chronic giardiasis.', options: [{ text: 'Weight loss, poor appetite, bloating', scores: [0, 0, 1, 3] }, { text: 'Normal weight, good appetite', scores: [3, 2, 1, 0] }] },
+                    { q: 'Does the child have a rash or joint pain?', hint: '🔬 Reactive arthritis + diarrhoea → bacterial (Shigella, Campylobacter). Dermatitis herpetiformis → coeliac disease.', options: [{ text: 'No rash or joint pain', scores: [3, 2, 2, 0] }, { text: 'Joint swelling and redness, no rash', scores: [0, 2, 0, 0] }, { text: 'Itchy vesicular rash on elbows and knees', scores: [0, 0, 0, 3] }] },
+                    { q: 'What is the child’s dietary history? (breast/formula/solids)', hint: '🔬 Coeliac disease is triggered by gluten in wheat, barley, rye. Viral gastroenteritis can occur after any diet.', options: [{ text: 'Recently started eating wheat cereals', scores: [0, 0, 0, 3] }, { text: 'Breastfed infant, no solids yet', scores: [3, 0, 1, 0] }, { text: 'Normal diet, no recent changes', scores: [2, 2, 0, 0] }] }
+                ]
+            },
+            limp: {
+                label: 'Limp',
+                diagnoses: ['Transient Synovitis', 'Septic Arthritis', 'Perthes Disease', 'SCFE'],
+                questions: [
+                    { q: 'What is the child’s age?', hint: '🔬 Transient synovitis: 2–6 years. Perthes: 4–8 years. SCFE: 8–15 years (obese adolescents). Septic arthritis: any age.', options: [{ text: 'Toddler, 2–4 years old', scores: [3, 0, 1, 0] }, { text: 'Child, 5–7 years old', scores: [0, 0, 3, 0] }, { text: 'Adolescent, 10–14 years old', scores: [0, 0, 0, 3] }, { text: 'Infant, less than 1 year', scores: [0, 3, 0, 0] }] },
+                    { q: 'Is the limp painful? Does the child refuse to bear weight?', hint: '🔬 Refusal to bear weight (pseudoparalysis) is a red flag for septic arthritis. Painful limping with mild discomfort suggests transient synovitis or Perthes.', options: [{ text: 'Mild limp, willing to walk, no fever', scores: [3, 0, 1, 0] }, { text: 'Refuses to bear weight, high fever', scores: [0, 3, 0, 0] }, { text: 'Limp with morning stiffness, improves with activity', scores: [0, 0, 2, 0] }, { text: 'Pain in knee, obese adolescent, worsening', scores: [0, 0, 0, 3] }] },
+                    { q: 'Is there fever, and is the joint warm, red, or swollen?', hint: '🔬 Fever + hot, swollen joint = septic arthritis (emergency). Transient synovitis has no erythema and mild or no fever.', options: [{ text: 'No fever, joint normal appearance', scores: [3, 0, 2, 1] }, { text: 'High fever, joint warm, red, and swollen', scores: [0, 3, 0, 0] }, { text: 'Low-grade fever, no joint redness', scores: [1, 0, 2, 0] }] },
+                    { q: 'Had the child a recent viral infection (URTI, gastroenteritis)?', hint: '🔬 Transient synovitis is commonly preceded by a viral illness. This history strongly supports the diagnosis.', options: [{ text: 'Yes, had a cold 2 weeks ago', scores: [3, 0, 0, 0] }, { text: 'No recent viral illness', scores: [0, 2, 2, 2] }] },
+                    { q: 'Where is the pain located? (hip, knee, or thigh?)', hint: '🔬 Hip pathology often presents as knee pain in children (referred pain). Always examine the hip when knee pain is reported without local findings.', options: [{ text: 'Groin and knee pain, no local knee swelling', scores: [2, 2, 2, 2] }, { text: 'Localised knee swelling and redness', scores: [0, 2, 0, 0] }, { text: 'Diffuse thigh pain, no joint swelling', scores: [1, 0, 2, 1] }] },
+                    { q: 'Any history of trauma or excessive physical activity?', hint: '🔬 Trauma → fracture, contusion, or muscle strain. Overuse → stress fracture or SCFE in obese adolescents.', options: [{ text: 'No trauma, normal activity', scores: [3, 1, 2, 0] }, { text: 'Fell off a swing 2 days ago', scores: [0, 0, 0, 0] }, { text: 'Obese child, sudden onset of limp after basketball', scores: [0, 0, 0, 3] }] },
+                    { q: 'Does the child have morning stiffness or improvement with activity?', hint: '🔬 Morning stiffness improving with activity suggests juvenile idiopathic arthritis (JIA) or Perthes. Pain worsening with activity suggests mechanical cause.', options: [{ text: 'Stiffness in the morning, improves with walking', scores: [0, 0, 3, 0] }, { text: 'Pain worsens with activity, no morning stiffness', scores: [1, 0, 0, 3] }, { text: 'No stiffness, intermittent pain', scores: [3, 0, 0, 0] }] }
+                ]
+            },
+            headache: {
+                label: 'Headache',
+                diagnoses: ['Migraine', 'Meningitis', 'Sinusitis', 'Tension Headache'],
+                questions: [
+                    { q: 'How severe is the headache (1-10) and how did it start?', hint: '🔬 *Nelson’s*: sudden “thunderclap” headache is a red flag for subarachnoid haemorrhage or venous sinus thrombosis. Migraine often builds gradually.', options: [{ text: 'Moderate (5/10), gradual onset', scores: [2, 0, 0, 2] }, { text: 'Severe (9/10), sudden “worst of my life”', scores: [0, 2, 0, 0] }, { text: 'Pressure-like, bilateral, gradual', scores: [0, 0, 2, 2] }] },
+                    { q: 'Is there fever, neck stiffness, or photophobia?', hint: '🔬 Fever + nuchal rigidity + photophobia = meningitis until proven otherwise (LP). Kernig’s and Brudzinski’s signs should be tested.', options: [{ text: 'Fever, stiff neck, and light hurts eyes', scores: [0, 3, 0, 0] }, { text: 'No fever, no neck stiffness', scores: [3, 0, 2, 2] }, { text: 'Low-grade fever, no neck stiffness', scores: [0, 0, 2, 0] }] },
+                    { q: 'Is the headache throbbing, pressure-like, or stabbing? Unilateral or bilateral?', hint: '🔬 Throbbing, unilateral, with nausea → migraine. Pressure-like, bilateral, worse in the morning → raised ICP or sinusitis.', options: [{ text: 'Throbbing, one-sided, with nausea', scores: [3, 0, 0, 0] }, { text: 'Pressure-like, bilateral, worse in the morning', scores: [0, 1, 2, 0] }, { text: 'Dull, bilateral, constant', scores: [0, 0, 0, 3] }] },
+                    { q: 'Does the headache worsen with coughing, sneezing, or straining?', hint: '🔬 Exertional headache that worsens with Valsalva suggests raised intracranial pressure (space-occupying lesion, hydrocephalus).', options: [{ text: 'Yes, worsens with coughing and bending', scores: [0, 2, 0, 0] }, { text: 'No, not worsened by exertion', scores: [3, 0, 2, 3] }] },
+                    { q: 'Any visual disturbances, vomiting, or focal neurological deficits?', hint: '🔬 Blurred vision, diplopia, or vomiting without nausea are signs of raised ICP. Focal deficits point to a structural lesion.', options: [{ text: 'Aura (flashing lights), vomiting, no weakness', scores: [3, 0, 0, 0] }, { text: 'Vomiting without nausea, double vision', scores: [0, 2, 0, 0] }, { text: 'No visual changes or vomiting', scores: [1, 0, 2, 3] }] },
+                    { q: 'Is there a history of head trauma or recent illness?', hint: '🔬 Post-traumatic headache is common; consider subdural haematoma. Sinusitis often follows an upper respiratory infection.', options: [{ text: 'Recent URTI with nasal congestion', scores: [0, 0, 3, 0] }, { text: 'No trauma or recent illness', scores: [3, 0, 0, 2] }, { text: 'Trauma 1 week ago, headache since then', scores: [0, 1, 0, 0] }] },
+                    { q: 'Is there a family history of migraine or similar headaches?', hint: '🔬 Migraine has a strong genetic component. A positive family history supports the diagnosis of migraine.', options: [{ text: 'Yes, mother and grandmother have migraines', scores: [3, 0, 0, 0] }, { text: 'No family history of headaches', scores: [0, 1, 2, 2] }] }
+                ]
+            },
+            seizure: {
+                label: 'Seizure',
+                diagnoses: ['Febrile Seizure', 'Epilepsy', 'Meningitis/Encephalitis', 'Metabolic Disorder'],
+                questions: [
+                    { q: 'Did the seizure occur with fever?', hint: '🔬 Febrile seizures occur between 6 months and 5 years with fever >38°C. Afebrile seizures suggest epilepsy or other causes.', options: [{ text: 'Yes, high fever >39°C', scores: [3, 0, 1, 0] }, { text: 'No fever, afebrile seizure', scores: [0, 2, 0, 1] }] },
+                    { q: 'How long did the seizure last?', hint: '🔬 Generalised tonic-clonic >5 minutes is status epilepticus – an emergency. Most febrile seizures last <5 minutes.', options: [{ text: 'Less than 5 minutes, self-resolved', scores: [3, 0, 0, 0] }, { text: 'More than 10 minutes, needed medication', scores: [0, 1, 2, 0] }] },
+                    { q: 'Was the seizure focal or generalised?', hint: '🔬 Focal seizures may indicate a structural lesion or focal epilepsy. Generalised tonic-clonic is typical of febrile seizures and primary generalised epilepsy.', options: [{ text: 'Generalised tonic-clonic, shaking all limbs', scores: [3, 1, 1, 0] }, { text: 'Focal, jerking of one arm or leg', scores: [0, 2, 0, 1] }] },
+                    { q: 'What is the child’s age?', hint: '🔬 Febrile seizures: 6 months – 5 years. Epilepsy: any age, often >5 years. Metabolic disorders often present in infancy.', options: [{ text: 'Infant 6–18 months', scores: [3, 0, 0, 1] }, { text: 'Child 6–10 years', scores: [0, 3, 0, 0] }, { text: 'Adolescent', scores: [0, 2, 0, 0] }] },
+                    { q: 'Was there any post-ictal confusion, weakness, or drowsiness? How long did it last?', hint: '🔬 Post-ictal state is typical after a generalised seizure. Prolonged confusion or focal deficit may indicate a post-ictal (Todd’s) paresis or underlying stroke.', options: [{ text: 'Drowsy for 10 minutes, then fully alert', scores: [3, 1, 0, 0] }, { text: 'Prolonged confusion >2 hours, weakness in arm', scores: [0, 1, 2, 0] }] },
+                    { q: 'Any known history of epilepsy, head trauma, or recent infections?', hint: '🔬 Previous seizures suggest an epilepsy syndrome. Recent CNS infection (meningitis) can cause new-onset seizures.', options: [{ text: 'No previous seizures, no trauma', scores: [2, 0, 1, 0] }, { text: 'Previous febrile seizures only', scores: [2, 1, 0, 0] }, { text: 'Had meningitis 3 months ago', scores: [0, 0, 3, 0] }] },
+                    { q: 'Is there a family history of epilepsy or febrile seizures?', hint: '🔬 Genetic predisposition is common in certain epilepsy syndromes (e.g., Dravet, childhood absence epilepsy).', options: [{ text: 'Yes, family history of epilepsy', scores: [0, 3, 0, 1] }, { text: 'No family history', scores: [2, 0, 1, 0] }] }
+                ]
+            },
+            jaundice: {
+                label: 'Jaundice',
+                diagnoses: ['Physiological Jaundice', 'Biliary Atresia', 'Haemolytic Disease', 'Breast Milk Jaundice'],
+                questions: [
+                    { q: 'When did jaundice first appear?', hint: '🔬 *Nelson’s*: jaundice in the first 24 hours is always pathological (haemolysis, infection). Physiological jaundice peaks at 2-3 days. Biliary atresia presents after 2 weeks.', options: [{ text: 'First 24 hours of life', scores: [0, 0, 3, 0] }, { text: 'Day 2–3, mild, term infant', scores: [3, 0, 0, 1] }, { text: 'After 2 weeks, persistent, worsening', scores: [0, 3, 0, 0] }] },
+                    { q: 'What is the colour of the stool and urine?', hint: '🔬 Dark urine and pale / acholic stools suggest obstructive jaundice (biliary atresia) – a surgical emergency.', options: [{ text: 'Dark urine, pale white / clay-coloured stools', scores: [0, 3, 0, 0] }, { text: 'Dark urine, normal yellow stools', scores: [0, 0, 3, 0] }, { text: 'Normal urine, yellow stools', scores: [3, 0, 0, 1] }] },
+                    { q: 'Is the baby feeding well? Any vomiting, lethargy, or poor weight gain?', hint: '🔬 Poor feeding and lethargy suggest sepsis, metabolic disease, or severe hyperbilirubinaemia (kernicterus).', options: [{ text: 'Feeding well, gaining weight, alert', scores: [3, 0, 0, 3] }, { text: 'Poor feeding, lethargic, vomiting', scores: [0, 1, 1, 0] }] },
+                    { q: 'Is the baby preterm or term?', hint: '🔬 Preterm infants have immature hepatic conjugation and are more prone to physiological jaundice and kernicterus.', options: [{ text: 'Term infant, >37 weeks', scores: [3, 0, 0, 2] }, { text: 'Preterm, <35 weeks', scores: [2, 0, 0, 0] }] },
+                    { q: 'Any history of maternal infection (TORCH) or Rh/ABO incompatibility?', hint: '🔬 Congenital infections (CMV, toxo) and haemolytic disease (Rh, ABO) are common causes of early jaundice.', options: [{ text: 'Mother is Rh-negative, baby is Rh-positive', scores: [0, 0, 3, 0] }, { text: 'Mother had CMV infection in pregnancy', scores: [0, 1, 1, 0] }, { text: 'No risk factors', scores: [3, 0, 0, 2] }] },
+                    { q: 'Is there hepatosplenomegaly or a palpable gall bladder?', hint: '🔬 Hepatosplenomegaly suggests congenital infection or metabolic storage disease. A palpable gall bladder is a sign of biliary obstruction (rare).', options: [{ text: 'No organomegaly, no mass', scores: [3, 0, 0, 3] }, { text: 'Palpable gall bladder, hepatomegaly', scores: [0, 3, 0, 0] }, { text: 'Splenomegaly only', scores: [0, 0, 2, 0] }] },
+                    { q: 'Is the baby breastfed or formula-fed?', hint: '🔬 Breastfeeding jaundice (dehydration / caloric deprivation) peaks at 2-3 days; breastmilk jaundice (inhibitor) peaks at 4-7 days and can last weeks.', options: [{ text: 'Exclusively breastfed, poor latch, weight loss', scores: [2, 0, 0, 2] }, { text: 'Exclusively breastfed, well-hydrated, gaining weight', scores: [1, 0, 0, 3] }, { text: 'Formula-fed', scores: [3, 0, 0, 0] }] }
+                ]
+            },
+            poor_feeding: {
+                label: 'Poor Feeding',
+                diagnoses: ['Sepsis', 'Congenital Heart Disease', 'GERD', 'Metabolic Disorder'],
+                questions: [
+                    { q: 'How long has poor feeding been present? Acute or gradual?', hint: '🔬 *Hutchison’s*: acute refusal suggests infection, sepsis, or pain (e.g., otitis media). Gradual failure to thrive indicates chronic organic or psychosocial issue.', options: [{ text: 'Acute, started yesterday', scores: [3, 0, 1, 0] }, { text: 'Gradual over weeks, poor weight gain', scores: [0, 2, 0, 2] }] },
+                    { q: 'Is there cyanosis, tachypnoea, or sweating during feeds?', hint: '🔬 Cyanosis, tachypnoea, and diaphoresis with feeding are classic signs of congenital heart disease (e.g., VSD, TOF).', options: [{ text: 'Sweating, fast breathing, turning blue during feeds', scores: [0, 3, 0, 0] }, { text: 'No cyanosis or respiratory distress', scores: [2, 0, 2, 1] }] },
+                    { q: 'Is there vomiting, regurgitation, or excessive burping?', hint: '🔬 Frequent regurgitation, arching back, and irritability after feeds suggests GERD. Bilious vomiting suggests obstruction.', options: [{ text: 'Regurgitation after every feed, arching back', scores: [0, 0, 3, 0] }, { text: 'No vomiting or regurgitation', scores: [2, 1, 0, 2] }, { text: 'Bilious vomiting, abdominal distension', scores: [0, 0, 0, 1] }] },
+                    { q: 'Is the child lethargic, irritable, or having abnormal movements?', hint: '🔬 Lethargy + poor feeding = sepsis, metabolic disorder. Irritability may indicate pain or CNS irritation.', options: [{ text: 'Lethargic, floppy, not responding well', scores: [2, 0, 0, 2] }, { text: 'Irritable, high-pitched cry', scores: [1, 0, 0, 1] }, { text: 'Alert, interactive, but feeds poorly', scores: [0, 1, 2, 0] }] },
+                    { q: 'What is the child’s weight and growth trajectory?', hint: '🔬 Failure to thrive (weight crossing two centiles) suggests chronic organic disease (CHD, metabolic, coeliac) or psychosocial.', options: [{ text: 'Weight crossing percentiles downward, poor weight gain', scores: [0, 2, 0, 2] }, { text: 'Stable weight, appropriate for age', scores: [2, 0, 2, 0] }] },
+                    { q: 'Is there a family history of metabolic disorders or sudden infant death?', hint: '🔬 Family history of metabolic disorders (e.g., MCAD deficiency) or SIDS raises suspicion for inborn errors of metabolism.', options: [{ text: 'Yes, sibling died unexpectedly in infancy', scores: [0, 0, 0, 3] }, { text: 'No significant family history', scores: [2, 1, 2, 0] }] },
+                    { q: 'Does the child have a fever, rash, or other signs of infection?', hint: '🔬 Fever + poor feeding + lethargy = sepsis until proven otherwise. Rash may indicate viral infection or meningococcaemia.', options: [{ text: 'Fever, irritability, and a rash', scores: [3, 0, 0, 0] }, { text: 'No fever, no rash', scores: [0, 2, 2, 2] }] }
+                ]
+            },
+            // ----- NEW 17 (abridged for space – full data in final code) -----
+            difficulty_breathing: {
+                label: 'Difficulty Breathing',
+                diagnoses: ['Pneumonia', 'Asthma / Wheeze', 'Foreign Body', 'Bronchiolitis', 'Epiglottitis'],
+                questions: [
+                    { q: 'How sudden was the onset of breathing difficulty?', hint: '🔬 *Nelson’s*: sudden onset suggests foreign body aspiration or anaphylaxis. Gradual onset over days suggests pneumonia, asthma, or bronchiolitis.', options: [{ text: 'Sudden onset, within minutes to hours', scores: [0, 0, 5, 0, 2] }, { text: 'Gradual onset over 1-3 days', scores: [3, 2, 0, 3, 0] }, { text: 'Progressive over weeks, chronic', scores: [1, 3, 0, 0, 0] }] },
+                    { q: 'What sounds are associated with the breathing?', hint: '🔬 Stridor (inspiratory) → upper airway obstruction (croup, epiglottitis, foreign body). Wheeze (expiratory) → lower airway (asthma, bronchiolitis). Grunting → severe pneumonia.', options: [{ text: 'Wheeze, worse at night and with exercise', scores: [0, 4, 0, 1, 0] }, { text: 'Stridor, worse when lying down, with drooling', scores: [0, 0, 1, 0, 5] }, { text: 'Grunting and fast breathing with fever', scores: [4, 0, 0, 0, 0] }, { text: 'Wheeze in an infant with coryza', scores: [0, 0, 0, 5, 0] }] },
+                    { q: 'Is there fever, cough, or chest indrawing?', hint: '🔬 Fever + cough + chest indrawing = pneumonia. Fever + wheeze + no indrawing = asthma/bronchiolitis. Fever + drooling + stridor = epiglottitis.', options: [{ text: 'Fever, cough, and subcostal indrawing', scores: [4, 0, 0, 0, 0] }, { text: 'No fever, wheeze, and hyperinflation', scores: [0, 4, 0, 0, 0] }, { text: 'High fever, stridor, and drooling', scores: [0, 0, 0, 0, 5] }, { text: 'Infant with coryza, wheeze, and tachypnoea', scores: [0, 0, 0, 4, 0] }] },
+                    { q: 'Is there a history of choking or foreign body ingestion?', hint: '🔬 *Hutchison’s*: sudden onset of cough and difficulty breathing in a toddler with no fever is a red flag for foreign body aspiration.', options: [{ text: 'Yes, child choked on a small object', scores: [0, 0, 5, 0, 0] }, { text: 'No choking history', scores: [3, 3, 0, 3, 3] }] },
+                    { q: 'What is the child’s age and vaccination status?', hint: '🔬 Bronchiolitis is common in infants <12 months. Pertussis vaccination status is important for cough. PCV and Hib vaccines protect against pneumonia.', options: [{ text: 'Infant <12 months, fully immunised', scores: [1, 0, 0, 4, 0] }, { text: 'Child >12 months, fully vaccinated', scores: [3, 3, 0, 0, 1] }, { text: 'Unvaccinated or delayed vaccines', scores: [4, 0, 0, 0, 2] }] },
+                    { q: 'Does the child have a history of atopy (asthma, eczema, hay fever) or family history of asthma?', hint: '🔬 Atopic background significantly increases the likelihood of asthma and wheeze-associated illnesses.', options: [{ text: 'Yes, child has eczema and family history of asthma', scores: [0, 5, 0, 0, 0] }, { text: 'No atopic history', scores: [3, 0, 2, 2, 2] }] },
+                    { q: 'What is the respiratory rate and oxygen saturation (if known)?', hint: '🔬 RR >60/min in <2 months, >50/min in 2-12 months, >40/min in 1-5 years is tachypnoea. SpO2 <90% is severe hypoxemia.', options: [{ text: 'Normal RR for age, SpO2 >95%', scores: [0, 3, 0, 0, 0] }, { text: 'Tachypnoea with SpO2 90-94%', scores: [3, 2, 2, 2, 0] }, { text: 'Tachypnoea with SpO2 <90% and distress', scores: [5, 3, 3, 4, 4] }] }
+                ]
+            },
+            lethargy: {
+                label: 'Lethargy / Altered Consciousness',
+                diagnoses: ['Cerebral Malaria', 'Meningitis', 'Neonatal Sepsis', 'Hypoglycaemia', 'Raised ICP'],
+                questions: [
+                    { q: 'How severe is the lethargy? Is the child arousable?', hint: '🔬 GCS is the gold standard. Lethargy (drowsy but arousable) → moderate. Coma (unrousable) → severe. Rapid deterioration is a red flag.', options: [{ text: 'Drowsy but wakes to voice, then goes back to sleep', scores: [2, 1, 1, 2, 0] }, { text: 'Wakes only to pain, not fully alert', scores: [3, 3, 2, 1, 2] }, { text: 'Unresponsive, does not wake to any stimulus', scores: [5, 5, 4, 3, 5] }] },
+                    { q: 'Is there fever present?', hint: '🔬 Fever + lethargy + altered consciousness = CNS infection (cerebral malaria, meningitis) until proven otherwise.', options: [{ text: 'High fever >39°C', scores: [4, 3, 2, 0, 0] }, { text: 'Low-grade fever or hypothermia', scores: [1, 1, 4, 1, 0] }, { text: 'No fever', scores: [0, 0, 0, 3, 2] }] },
+                    { q: 'Are there convulsions or abnormal movements?', hint: '🔬 Seizures + lethargy + fever = cerebral malaria or meningitis. Afebrile seizures with lethargy may indicate metabolic or structural causes.', options: [{ text: 'Generalised convulsions, with fever', scores: [4, 2, 0, 0, 0] }, { text: 'Focal seizures, no fever', scores: [0, 1, 0, 0, 3] }, { text: 'No convulsions, only lethargy', scores: [1, 2, 3, 2, 1] }] },
+                    { q: 'Is there neck stiffness or bulging fontanelle?', hint: '🔬 Neck stiffness + fever + lethargy = meningitis. Bulging fontanelle in infants is a sign of raised ICP.', options: [{ text: 'Neck stiffness, child resists neck flexion', scores: [1, 5, 0, 0, 2] }, { text: 'Bulging fontanelle in an infant', scores: [0, 3, 1, 0, 4] }, { text: 'No neck stiffness or bulging fontanelle', scores: [3, 0, 3, 3, 0] }] },
+                    { q: 'What is the child’s age and blood glucose status?', hint: '🔬 Neonates (<28 days) with lethargy = sepsis until proven. Hypoglycaemia (glucose <2.5 mmol/L) is a common cause of lethargy and seizures.', options: [{ text: 'Neonate <28 days, poor feeding, floppy', scores: [0, 0, 5, 0, 0] }, { text: 'Child >1 month, known hypoglycaemia', scores: [0, 0, 0, 4, 0] }, { text: 'Normal glucose, no neonatal history', scores: [3, 3, 0, 0, 3] }] },
+                    { q: 'Does the child have any rash (especially non-blanching)?', hint: '🔬 Non-blanching petechial/purpuric rash + fever + lethargy = meningococcaemia (emergency).', options: [{ text: 'Non-blanching rash, petechiae', scores: [0, 5, 0, 0, 0] }, { text: 'Blanching rash, no fever', scores: [0, 0, 0, 0, 0] }, { text: 'No rash', scores: [3, 0, 3, 3, 3] }] },
+                    { q: 'Is there vomiting (especially projectile) or headache?', hint: '🔬 Projectile vomiting + lethargy + headache = raised ICP (space-occupying lesion, hydrocephalus).', options: [{ text: 'Projectile vomiting, severe headache', scores: [0, 0, 0, 0, 5] }, { text: 'Vomiting with diarrhoea, no headache', scores: [1, 0, 2, 0, 0] }, { text: 'No vomiting or headache', scores: [3, 3, 3, 3, 0] }] }
+                ]
+            },
+            pallor: {
+                label: 'Pallor / Anaemia',
+                diagnoses: ['Severe Anaemia (Malaria)', 'G6PD Deficiency', 'Sickle Cell Crisis', 'Iron Deficiency Anaemia'],
+                questions: [
+                    { q: 'How sudden was the onset of pallor?', hint: '🔬 Sudden pallor with dark urine suggests haemolysis (G6PD, blackwater fever). Gradual pallor suggests iron deficiency or chronic disease.', options: [{ text: 'Sudden onset, child looked pale yesterday', scores: [2, 4, 3, 0] }, { text: 'Gradual onset over weeks to months', scores: [1, 0, 0, 4] }, { text: 'Progressive pallor with jaundice', scores: [3, 3, 2, 0] }] },
+                    { q: 'Is there fever, jaundice, or dark urine?', hint: '🔬 Fever + pallor + dark urine = haemolytic crisis (malaria, G6PD). Pallor + jaundice = haemolysis. Pallor + no jaundice = iron deficiency or chronic disease.', options: [{ text: 'Fever, jaundice, and dark/cola-coloured urine', scores: [3, 4, 2, 0] }, { text: 'Pallor with jaundice, no fever', scores: [1, 3, 3, 0] }, { text: 'Pallor only, no fever or jaundice', scores: [0, 0, 0, 4] }] },
+                    { q: 'Is the child lethargic or short of breath?', hint: '🔬 Severe anaemia (Hb <4 g/dL) presents with lethargy, difficulty breathing, and tachycardia.', options: [{ text: 'Lethargic, fast breathing, unable to play', scores: [4, 3, 3, 0] }, { text: 'Mild tiredness, able to play but gets tired', scores: [1, 0, 0, 3] }, { text: 'No lethargy or breathing difficulty', scores: [0, 0, 0, 1] }] },
+                    { q: 'What is the child’s age and dietary history?', hint: '🔬 Iron deficiency is common in toddlers with poor diet. G6PD deficiency is X-linked and often presents after exposure to triggers (fava beans, certain drugs).', options: [{ text: 'Toddler, poor diet, picky eater', scores: [0, 0, 0, 4] }, { text: 'Child with known G6PD, recent fava beans', scores: [0, 4, 0, 0] }, { text: 'Child with known sickle cell disease', scores: [0, 0, 4, 0] }, { text: 'Breastfed infant, no solids yet', scores: [1, 0, 0, 2] }] },
+                    { q: 'Is there a family history of anaemia, G6PD, or sickle cell disease?', hint: '🔬 G6PD and sickle cell are hereditary. A positive family history strongly supports these diagnoses.', options: [{ text: 'Yes, family history of G6PD deficiency', scores: [0, 4, 0, 0] }, { text: 'Yes, family history of sickle cell disease', scores: [0, 0, 4, 0] }, { text: 'No family history of anaemia', scores: [2, 0, 0, 3] }] },
+                    { q: 'Are there any signs of bleeding or bruising?', hint: '🔬 Pallor + petechiae/bruising = bone marrow failure (leukaemia, aplastic anaemia) or platelet dysfunction.', options: [{ text: 'Petechiae, bruising, and gum bleeding', scores: [0, 0, 0, 0] }, { text: 'No bleeding or bruising', scores: [3, 3, 3, 3] }] },
+                    { q: 'Has the child had recent infections, particularly malaria?', hint: '🔬 Malaria is the leading cause of severe anaemia in Ugandan children. Repeated infections cause chronic anaemia.', options: [{ text: 'Yes, recent malaria infection treated', scores: [4, 2, 1, 0] }, { text: 'No recent infections', scores: [0, 0, 0, 3] }] }
+                ]
+            },
+            neck_stiffness: {
+                label: 'Neck Stiffness',
+                diagnoses: ['Meningitis', 'Cerebral Malaria', 'TB Meningitis', 'Brain Abscess'],
+                questions: [
+                    { q: 'Is there fever present?', hint: '🔬 Fever + neck stiffness = meningitis until proven otherwise.', options: [{ text: 'High fever >39°C with chills', scores: [4, 3, 1, 0] }, { text: 'Low-grade fever, persistent', scores: [1, 0, 3, 1] }, { text: 'No fever', scores: [0, 0, 0, 2] }] },
+                    { q: 'Is the child able to touch chin to chest?', hint: '🔬 Nuchal rigidity is a classic sign of meningeal irritation.', options: [{ text: 'Cannot touch chin to chest, child cries when neck flexed', scores: [5, 1, 3, 2] }, { text: 'Able to touch chin to chest, but complains of pain', scores: [2, 0, 1, 0] }, { text: 'Full range of movement, no pain', scores: [0, 0, 0, 0] }] },
+                    { q: 'Is there altered consciousness, headache, or vomiting?', hint: '🔬 Altered consciousness + neck stiffness + fever = severe CNS infection.', options: [{ text: 'Altered consciousness, severe headache, projectile vomiting', scores: [4, 2, 3, 4] }, { text: 'Mild headache, no vomiting, alert', scores: [1, 0, 1, 0] }, { text: 'No headache or vomiting', scores: [0, 0, 0, 0] }] },
+                    { q: 'Is there a non-blanching rash?', hint: '🔬 Non-blanching rash + fever + neck stiffness = meningococcaemia.', options: [{ text: 'Yes, non-blanching petechial rash', scores: [5, 0, 0, 0] }, { text: 'Blanching rash or no rash', scores: [0, 3, 2, 2] }] },
+                    { q: 'What is the child’s age and HIV status?', hint: '🔬 TB meningitis is more common in HIV-positive children.', options: [{ text: 'HIV-positive child, gradual onset', scores: [1, 0, 5, 0] }, { text: 'HIV-negative child, acute onset', scores: [4, 4, 0, 1] }, { text: 'Infant <12 months, bulging fontanelle', scores: [3, 0, 1, 2] }] },
+                    { q: 'Is there a history of head trauma or recent ear infection?', hint: '🔬 Brain abscess can complicate mastoiditis or sinusitis.', options: [{ text: 'Recent ear discharge and mastoid tenderness', scores: [0, 0, 0, 4] }, { text: 'Head trauma 1-2 weeks ago', scores: [0, 0, 0, 3] }, { text: 'No trauma or ear infection', scores: [4, 3, 3, 0] }] },
+                    { q: 'Has the child had a seizure?', hint: '🔬 Seizures + neck stiffness + fever = severe CNS infection.', options: [{ text: 'Generalised seizure with fever', scores: [3, 3, 0, 0] }, { text: 'Focal seizure, no fever', scores: [0, 0, 0, 4] }, { text: 'No seizures', scores: [2, 1, 3, 0] }] }
+                ]
+            },
+            ear_discharge: {
+                label: 'Ear Discharge',
+                diagnoses: ['Acute Otitis Media with Perforation', 'Chronic Suppurative Otitis Media', 'Mastoiditis',
+                    'CSF Leak (Trauma)'
+                ],
+                questions: [
+                    { q: 'How long has the ear discharge been present?', hint: '🔬 Acute (<2 weeks) suggests AOM with perforation. Chronic (>6 weeks) suggests CSOM.', options: [{ text: 'Less than 2 weeks, with ear pain before discharge', scores: [4, 0, 0, 0] }, { text: 'More than 6 weeks, intermittent, foul-smelling', scores: [0, 4, 0, 0] }, { text: 'Sudden onset after head trauma', scores: [0, 0, 0, 4] }] },
+                    { q: 'Is there fever and ear pain?', hint: '🔬 Fever + ear pain + discharge = AOM with perforation.', options: [{ text: 'Fever, ear pain, discharge following pain', scores: [4, 1, 2, 0] }, { text: 'No fever, chronic painless discharge', scores: [0, 4, 0, 0] }, { text: 'High fever, mastoid tenderness, ear swelling', scores: [0, 0, 4, 0] }] },
+                    { q: 'What is the colour and smell of the discharge?', hint: '🔬 Purulent (yellow/green) → bacterial infection. Foul-smelling → Pseudomonas (CSOM).', options: [{ text: 'Yellow/green purulent discharge', scores: [3, 2, 1, 0] }, { text: 'Foul-smelling, thick discharge', scores: [0, 4, 2, 0] }, { text: 'Clear, watery discharge after head injury', scores: [0, 0, 0, 4] }] },
+                    { q: 'Is there hearing loss or vertigo?', hint: '🔬 Conductive hearing loss is common in CSOM.', options: [{ text: 'Hearing loss, no vertigo', scores: [1, 4, 0, 0] }, { text: 'Vertigo and hearing loss', scores: [0, 2, 1, 0] }, { text: 'No hearing loss or vertigo', scores: [3, 0, 2, 2] }] },
+                    { q: 'Is there mastoid tenderness or swelling?', hint: '🔬 Mastoiditis presents with pain, tenderness, and swelling over the mastoid process.', options: [{ text: 'Yes, mastoid tenderness and swelling', scores: [0, 0, 5, 0] }, { text: 'No mastoid tenderness', scores: [3, 3, 0, 2] }] },
+                    { q: 'What is the child’s age and history of recurrent ear infections?', hint: '🔬 Recurrent AOM is common in children with Eustachian tube dysfunction.', options: [{ text: 'Child with recurrent ear infections, >3 episodes/year', scores: [3, 2, 0, 0] }, { text: 'Child with HIV or malnutrition, chronic discharge', scores: [0, 4, 0, 0] }, { text: 'No prior ear infections', scores: [2, 0, 1, 2] }] },
+                    { q: 'Is there any associated cough, fever, or meningeal signs?', hint: '🔬 Ear infection can spread to cause meningitis.', options: [{ text: 'Fever, neck stiffness, and ear discharge', scores: [0, 0, 0, 0] }, { text: 'No meningeal signs', scores: [3, 3, 2, 2] }] }
+                ]
+            },
+            oedema: {
+                label: 'Oedema (Swelling)',
+                diagnoses: ['Kwashiorkor (SAM)', 'Nephrotic Syndrome', 'Cardiac Failure', 'Acute Glomerulonephritis'],
+                questions: [
+                    { q: 'Where is the oedema located?', hint: '🔬 Periorbital + lower limbs + ascites → nephrotic syndrome. Bilateral pitting oedema + muscle wasting → kwashiorkor.', options: [{ text: 'Periorbital oedema, ascites, and lower limb oedema', scores: [0, 5, 1, 2] }, { text: 'Bilateral pitting oedema, flaky paint skin, hair changes', scores: [5, 0, 0, 0] }, { text: 'Dependent oedema, hepatomegaly, tachypnoea', scores: [0, 0, 5, 0] }, { text: 'Facial oedema, hypertension, haematuria', scores: [0, 0, 0, 5] }] },
+                    { q: 'Is there frothy urine or haematuria?', hint: '🔬 Frothy urine → proteinuria → nephrotic syndrome. Haematuria + oedema + hypertension → acute glomerulonephritis.', options: [{ text: 'Frothy urine, no blood', scores: [0, 5, 0, 0] }, { text: 'Haematuria (blood in urine)', scores: [0, 0, 0, 5] }, { text: 'Normal urine', scores: [3, 0, 3, 0] }] },
+                    { q: 'Is the child malnourished or has weight loss?', hint: '🔬 Kwashiorkor presents with oedema, muscle wasting, flaky paint dermatosis, and hair changes.', options: [{ text: 'Severe wasting, loose skin, hair changes, flaky paint', scores: [5, 0, 0, 0] }, { text: 'Normal weight, well-nourished', scores: [0, 3, 3, 3] }] },
+                    { q: 'Is there difficulty breathing or tachypnoea?', hint: '🔬 Cardiac failure presents with difficulty breathing, tachypnoea, hepatomegaly, and peripheral oedema.', options: [{ text: 'Difficulty breathing, tachypnoea, and hepatomegaly', scores: [0, 0, 5, 0] }, { text: 'No breathing difficulty', scores: [3, 3, 0, 3] }] },
+                    { q: 'What is the child’s blood pressure?', hint: '🔬 Hypertension + oedema + haematuria = acute glomerulonephritis.', options: [{ text: 'High blood pressure (hypertension)', scores: [0, 0, 0, 5] }, { text: 'Normal blood pressure', scores: [3, 4, 3, 0] }, { text: 'Low blood pressure', scores: [2, 0, 2, 0] }] },
+                    { q: 'Is there a history of recent infection (especially throat or skin)?', hint: '🔬 Acute glomerulonephritis often follows a streptococcal infection.', options: [{ text: 'Yes, had a sore throat or skin infection 1-2 weeks ago', scores: [0, 0, 0, 5] }, { text: 'No recent infection', scores: [3, 4, 3, 0] }] },
+                    { q: 'What is the child’s urine output?', hint: '🔬 Oliguria (reduced urine output) is a sign of acute kidney injury.', options: [{ text: 'Reduced urine output (oliguria)', scores: [0, 2, 0, 4] }, { text: 'Normal urine output', scores: [3, 4, 3, 0] }] }
+                ]
+            },
+            failure_to_thrive: {
+                label: 'Failure to Thrive',
+                diagnoses: ['Severe Acute Malnutrition', 'Coeliac Disease', 'HIV Infection', 'Congenital Heart Disease'],
+                questions: [
+                    { q: 'What is the child’s weight and growth trajectory?', hint: '🔬 Weight crossing two centiles downward is significant.', options: [{ text: 'Weight <2nd centile, crossing downward', scores: [4, 2, 2, 2] }, { text: 'Weight stable but below expected for age', scores: [2, 3, 2, 2] }, { text: 'Weight appropriate for age', scores: [0, 0, 0, 0] }] },
+                    { q: 'Is there chronic diarrhoea or steatorrhoea (fatty stools)?', hint: '🔬 Chronic diarrhoea + failure to thrive = malabsorption (coeliac disease, giardiasis, cystic fibrosis).', options: [{ text: 'Chronic diarrhoea, bulky/fatty stools', scores: [0, 5, 0, 0] }, { text: 'Normal stools', scores: [3, 0, 2, 3] }] },
+                    { q: 'Is there recurrent infections or HIV risk?', hint: '🔬 HIV infection is a common cause of failure to thrive in Uganda.', options: [{ text: 'HIV-positive, recurrent infections, oral thrush', scores: [0, 0, 5, 0] }, { text: 'HIV-negative, no recurrent infections', scores: [3, 3, 0, 2] }] },
+                    { q: 'Is there cyanosis, tachypnoea, or sweating during feeds?', hint: '🔬 Congenital heart disease presents with poor feeding, tachypnoea, sweating, and cyanosis.', options: [{ text: 'Cyanosis, tachypnoea, and sweating during feeds', scores: [0, 0, 0, 5] }, { text: 'No cyanosis or respiratory symptoms', scores: [3, 3, 3, 0] }] },
+                    { q: 'What is the child’s diet and appetite?', hint: '🔬 Poor appetite with weight loss → malnutrition or chronic disease.', options: [{ text: 'Poor appetite, eats very little', scores: [4, 0, 2, 2] }, { text: 'Good appetite but not gaining weight', scores: [0, 4, 2, 2] }] },
+                    { q: 'Is there vomiting, regurgitation, or abdominal distension?', hint: '🔬 Projectile vomiting → pyloric stenosis. Regurgitation → GERD. Abdominal distension → malabsorption.', options: [{ text: 'Projectile vomiting after feeds', scores: [0, 0, 0, 0] }, { text: 'Regurgitation, arching back', scores: [0, 0, 0, 0] }, { text: 'Abdominal distension, bloating', scores: [0, 4, 0, 0] }, { text: 'No vomiting or distension', scores: [3, 0, 3, 3] }] },
+                    { q: 'Is there a family history of coeliac disease, HIV, or congenital heart disease?', hint: '🔬 Family history is important for genetic and infectious causes.', options: [{ text: 'Family history of coeliac disease', scores: [0, 4, 0, 0] }, { text: 'Family history of HIV', scores: [0, 0, 4, 0] }, { text: 'Family history of congenital heart disease', scores: [0, 0, 0, 4] }, { text: 'No significant family history', scores: [3, 0, 0, 0] }] }
+                ]
+            },
+            developmental_delay: {
+                label: 'Developmental Delay',
+                diagnoses: ['Global Developmental Delay', 'Cerebral Palsy', 'Genetic Syndrome', 'Hearing Impairment'],
+                questions: [
+                    { q: 'Which milestones are delayed?', hint: '🔬 Gross motor (sitting, walking), fine motor, language, and social skills. Regression of skills is a red flag.', options: [{ text: 'All domains (gross motor, fine motor, language, social)', scores: [4, 0, 2, 0] }, { text: 'Motor delay only (sits, walks late)', scores: [0, 4, 0, 0] }, { text: 'Language delay only', scores: [0, 0, 0, 4] }, { text: 'Regression (loss of previously acquired skills)', scores: [0, 0, 4, 0] }] },
+                    { q: 'Was there a history of perinatal complications (prematurity, hypoxia, neonatal jaundice)?', hint: '🔬 Perinatal hypoxia is a major cause of cerebral palsy.', options: [{ text: 'Prematurity, hypoxia, or severe jaundice', scores: [0, 5, 0, 1] }, { text: 'No perinatal complications', scores: [3, 0, 2, 0] }] },
+                    { q: 'Is there abnormal muscle tone or posture?', hint: '🔬 Hypertonia (spasticity), hypotonia (floppy), or abnormal posturing suggest cerebral palsy.', options: [{ text: 'Spasticity (hypertonia), stiff limbs', scores: [0, 5, 0, 0] }, { text: 'Hypotonia (floppy), poor head control', scores: [0, 3, 2, 0] }, { text: 'Normal tone', scores: [3, 0, 1, 3] }] },
+                    { q: 'Has the child had hearing or vision screening?', hint: '🔬 Hearing impairment is a common cause of language delay.', options: [{ text: 'Failed hearing screen, no vision problems', scores: [0, 0, 0, 5] }, { text: 'Failed vision screen, no hearing problems', scores: [2, 0, 0, 0] }, { text: 'No hearing or vision problems', scores: [3, 2, 2, 0] }] },
+                    { q: 'Is there dysmorphic features or multiple congenital anomalies?', hint: '🔬 Dysmorphic features suggest a genetic syndrome.', options: [{ text: 'Yes, dysmorphic features and anomalies', scores: [0, 0, 5, 0] }, { text: 'No dysmorphic features', scores: [3, 3, 0, 3] }] },
+                    { q: 'What is the family history of developmental delay or genetic conditions?', hint: '🔬 Family history is important.', options: [{ text: 'Positive family history of developmental delay', scores: [0, 0, 4, 0] }, { text: 'No family history', scores: [3, 3, 0, 3] }] },
+                    { q: 'Is there a history of seizures or regression?', hint: '🔬 Seizures + regression suggest a neurodegenerative or metabolic disorder.', options: [{ text: 'Seizures and regression of skills', scores: [0, 0, 4, 0] }, { text: 'No seizures, no regression', scores: [3, 3, 0, 3] }] }
+                ]
+            },
+            neonatal_problems: {
+                label: 'Neonatal Problems',
+                diagnoses: ['Neonatal Sepsis', 'Neonatal Jaundice', 'Pyloric Stenosis', 'Congenital Heart Disease'],
+                questions: [
+                    { q: 'How old is the neonate (in days)?', hint: '🔬 Early-onset sepsis (<72 hours) vs late-onset sepsis (>72 hours).', options: [{ text: '<24 hours old, poor feeding, lethargic', scores: [4, 2, 0, 0] }, { text: '3-5 days old, jaundice, feeding well', scores: [0, 4, 0, 0] }, { text: '2-4 weeks old, projectile vomiting', scores: [0, 0, 4, 0] }, { text: '1-7 days old, cyanosis, tachypnoea', scores: [0, 0, 0, 4] }] },
+                    { q: 'Is the baby feeding poorly?', hint: '🔬 Poor feeding + lethargy + hypothermia = neonatal sepsis.', options: [{ text: 'Poor feeding, lethargic, floppy', scores: [5, 0, 0, 0] }, { text: 'Hungry but vomits immediately after feeds', scores: [0, 0, 5, 0] }, { text: 'Feeds well, no vomiting', scores: [0, 3, 0, 2] }] },
+                    { q: 'Is there jaundice? When did it start and what colour are the stools?', hint: '🔬 Jaundice <24 hours → haemolytic. Jaundice >14 days with pale stools → biliary atresia.', options: [{ text: 'Jaundice <24 hours, dark urine, pale stools', scores: [0, 2, 0, 0] }, { text: 'Jaundice 3-5 days, normal stools, well baby', scores: [0, 4, 0, 0] }, { text: 'No jaundice', scores: [3, 0, 3, 3] }] },
+                    { q: 'Is there cyanosis, tachypnoea, or grunting?', hint: '🔬 Cyanosis + tachypnoea + poor feeding = congenital heart disease.', options: [{ text: 'Cyanosis, tachypnoea, and grunting', scores: [1, 0, 0, 5] }, { text: 'Tachypnoea only, no cyanosis', scores: [2, 0, 0, 2] }, { text: 'No respiratory distress', scores: [3, 3, 3, 0] }] },
+                    { q: 'What is the baby’s temperature and heart rate?', hint: '🔬 Hypothermia or fever + tachycardia = sepsis.', options: [{ text: 'Fever >38°C, tachycardia >160 bpm', scores: [5, 0, 0, 0] }, { text: 'Hypothermia <36°C, normal HR', scores: [4, 0, 0, 0] }, { text: 'Normal temperature and HR', scores: [0, 3, 3, 2] }] },
+                    { q: 'Is there a bulging or sunken fontanelle?', hint: '🔬 Bulging fontanelle + fever + poor feeding = meningitis.', options: [{ text: 'Bulging fontanelle, irritable, high-pitched cry', scores: [2, 0, 0, 0] }, { text: 'Sunken fontanelle, dry mouth, reduced urine', scores: [3, 0, 0, 0] }, { text: 'Normal fontanelle', scores: [0, 3, 3, 3] }] },
+                    { q: 'Is there a history of maternal infection or prolonged rupture of membranes?', hint: '🔬 Maternal GBS, UTI, or prolonged ROM (>18 hours) increases the risk of neonatal sepsis.', options: [{ text: 'Yes, maternal infection or prolonged ROM', scores: [5, 0, 0, 0] }, { text: 'No maternal risk factors', scores: [0, 3, 3, 3] }] }
+                ]
+            },
+            malnutrition: {
+                label: 'Malnutrition (Wasting)',
+                diagnoses: ['Severe Acute Malnutrition (SAM)', 'Marasmus', 'Kwashiorkor', 'Chronic Malnutrition (Stunting)'],
+                questions: [
+                    { q: 'What is the child’s MUAC (mid-upper arm circumference)?', hint: '🔬 MUAC <11.5 cm = severe acute malnutrition (SAM).', options: [{ text: 'MUAC <11.5 cm', scores: [5, 4, 2, 0] }, { text: 'MUAC 11.5-12.4 cm', scores: [2, 1, 1, 3] }, { text: 'MUAC ≥12.5 cm', scores: [0, 0, 0, 0] }] },
+                    { q: 'Is there bilateral pitting oedema?', hint: '🔬 Oedema + wasting = kwashiorkor. No oedema + severe wasting = marasmus.', options: [{ text: 'Yes, bilateral pitting oedema', scores: [0, 0, 5, 0] }, { text: 'No oedema, severe wasting', scores: [0, 5, 0, 0] }, { text: 'No oedema, moderate wasting', scores: [0, 0, 0, 4] }] },
+                    { q: 'Is there flaky paint dermatosis or hair changes?', hint: '🔬 Flaky paint skin, sparse/light-coloured hair = kwashiorkor.', options: [{ text: 'Flaky paint dermatosis and hair changes', scores: [0, 0, 5, 0] }, { text: 'Normal skin and hair', scores: [3, 3, 0, 3] }] },
+                    { q: 'What is the child’s weight-for-age Z-score or weight-for-height?', hint: '🔬 Weight-for-height < -3 SD = SAM.', options: [{ text: 'Weight-for-height < -3 SD (severe wasting)', scores: [4, 5, 0, 0] }, { text: 'Weight-for-height -3 to -2 SD (moderate)', scores: [0, 0, 0, 4] }, { text: 'Weight-for-height > -2 SD (normal)', scores: [0, 0, 0, 0] }] },
+                    { q: 'Is the child lethargic, irritable, or has poor appetite?', hint: '🔬 Lethargy + poor appetite = complicated SAM (needs inpatient care).', options: [{ text: 'Lethargic, poor appetite, unable to feed', scores: [5, 4, 3, 0] }, { text: 'Alert, good appetite', scores: [0, 0, 0, 2] }] },
+                    { q: 'Is there hypoglycaemia or hypothermia?', hint: '🔬 Hypoglycaemia (glucose <2.5 mmol/L) and hypothermia are red flags in SAM.', options: [{ text: 'Hypoglycaemia or hypothermia', scores: [5, 4, 3, 0] }, { text: 'Normal glucose and temperature', scores: [0, 0, 0, 3] }] },
+                    { q: 'Does the child have diarrhoea or vomiting?', hint: '🔬 Diarrhoea and vomiting in malnutrition worsen dehydration.', options: [{ text: 'Chronic diarrhoea or vomiting', scores: [3, 2, 3, 2] }, { text: 'No diarrhoea or vomiting', scores: [1, 2, 0, 2] }] }
+                ]
+            },
+            bleeding_bruising: {
+                label: 'Bleeding / Bruising',
+                diagnoses: ['ITP', 'Haemophilia', 'Meningococcaemia', 'Leukaemia'],
+                questions: [
+                    { q: 'What type of bleeding is present?', hint: '🔬 Petechiae/purpura → platelet disorder. Haemarthrosis/deep muscle bleeding → coagulation disorder (haemophilia).', options: [{ text: 'Petechiae, bruising, and gum bleeding', scores: [4, 0, 2, 3] }, { text: 'Haemarthrosis (joint bleeding), deep muscle haematomas', scores: [0, 5, 0, 0] }, { text: 'Non-blanching purpuric rash with fever', scores: [0, 0, 5, 0] }, { text: 'Pallor, bruising, and fever', scores: [0, 0, 0, 4] }] },
+                    { q: 'Is there fever or signs of infection?', hint: '🔬 Fever + non-blanching rash = meningococcaemia.', options: [{ text: 'High fever, non-blanching rash', scores: [0, 0, 5, 0] }, { text: 'Fever, pallor, and fatigue', scores: [0, 0, 0, 4] }, { text: 'No fever', scores: [4, 4, 0, 0] }] },
+                    { q: 'What is the child’s age and sex?', hint: '🔬 Haemophilia is X-linked (affects males). ITP is more common in children 2-6 years.', options: [{ text: 'Male infant with bleeding after circumcision', scores: [0, 5, 0, 0] }, { text: 'Child 2-6 years with petechiae and bruising', scores: [4, 0, 0, 1] }, { text: 'Child with pallor, fever, and bone pain', scores: [0, 0, 0, 4] }] },
+                    { q: 'Is there a family history of bleeding disorders?', hint: '🔬 Haemophilia and von Willebrand disease have a strong family history.', options: [{ text: 'Yes, family history of haemophilia or bleeding', scores: [0, 5, 0, 0] }, { text: 'No family history of bleeding', scores: [4, 0, 3, 3] }] },
+                    { q: 'Is there hepatosplenomegaly or lymphadenopathy?', hint: '🔬 Hepatosplenomegaly + bruising + pallor = leukaemia.', options: [{ text: 'Hepatosplenomegaly and lymphadenopathy', scores: [0, 0, 0, 5] }, { text: 'Splenomegaly only', scores: [3, 0, 0, 0] }, { text: 'No organomegaly', scores: [2, 3, 3, 0] }] },
+                    { q: 'Is there a history of recent drug use (e.g., aspirin, antibiotics)?', hint: '🔬 Drug-induced thrombocytopenia can cause bleeding.', options: [{ text: 'Yes, recent antibiotic use', scores: [2, 0, 0, 0] }, { text: 'No recent drug use', scores: [3, 4, 3, 3] }] },
+                    { q: 'Is there haematuria or gastrointestinal bleeding?', hint: '🔬 Haematuria + bleeding = haemophilia or severe thrombocytopenia.', options: [{ text: 'Haematuria or blood in stool', scores: [0, 4, 0, 0] }, { text: 'No haematuria or GI bleeding', scores: [4, 0, 4, 4] }] }
+                ]
+            },
+            unconsciousness: {
+                label: 'Unconsciousness / Coma',
+                diagnoses: ['Cerebral Malaria', 'Meningitis', 'Hypoglycaemia', 'Traumatic Brain Injury'],
+                questions: [
+                    { q: 'What is the GCS (Glasgow Coma Scale) score?', hint: '🔬 GCS <8 = coma, needs airway protection.', options: [{ text: 'GCS <8, unrousable', scores: [4, 4, 2, 4] }, { text: 'GCS 9-12, responds to pain', scores: [3, 3, 2, 2] }, { text: 'GCS 13-15, drowsy but arousable', scores: [1, 1, 1, 0] }] },
+                    { q: 'Is there fever and neck stiffness?', hint: '🔬 Fever + neck stiffness + coma = meningitis or cerebral malaria.', options: [{ text: 'High fever, neck stiffness, photophobia', scores: [2, 5, 0, 0] }, { text: 'Fever, no neck stiffness', scores: [4, 0, 0, 0] }, { text: 'No fever, no neck stiffness', scores: [0, 0, 3, 3] }] },
+                    { q: 'Is there a history of head trauma or seizures?', hint: '🔬 Trauma → intracranial bleed. Seizures + coma → post-ictal state.', options: [{ text: 'Head trauma in the last 24 hours', scores: [0, 0, 0, 5] }, { text: 'Seizures followed by coma', scores: [3, 2, 2, 0] }, { text: 'No trauma or seizures', scores: [3, 3, 3, 0] }] },
+                    { q: 'What is the blood glucose level (if known)?', hint: '🔬 Hypoglycaemia (glucose <2.5 mmol/L) is a common cause of coma.', options: [{ text: 'Hypoglycaemia (<2.5 mmol/L)', scores: [2, 0, 5, 0] }, { text: 'Normal glucose', scores: [3, 3, 0, 2] }] },
+                    { q: 'Is there a non-blanching rash?', hint: '🔬 Non-blanching rash + fever + coma = meningococcaemia.', options: [{ text: 'Non-blanching petechial/purpuric rash', scores: [0, 5, 0, 0] }, { text: 'No rash', scores: [4, 0, 3, 3] }] },
+                    { q: 'Is there a history of malaria or HIV?', hint: '🔬 Cerebral malaria is a leading cause of coma in Ugandan children.', options: [{ text: 'Known malaria or HIV positive', scores: [5, 2, 1, 0] }, { text: 'No known malaria or HIV', scores: [0, 2, 2, 2] }] },
+                    { q: 'Is there vomiting or abnormal posture?', hint: '🔬 Projectile vomiting + coma = raised ICP. Decerebrate posturing suggests severe brain injury.', options: [{ text: 'Projectile vomiting, decerebrate posturing', scores: [0, 2, 0, 4] }, { text: 'No vomiting, normal posture', scores: [3, 2, 3, 0] }] }
+                ]
+            },
+            haematuria: {
+                label: 'Haematuria',
+                diagnoses: ['Urinary Tract Infection', 'Nephrotic Syndrome', 'Schistosomiasis', 'Sickle Cell Trait/Disease'],
+                questions: [
+                    { q: 'Is the haematuria visible (macroscopic) or microscopic?', hint: '🔬 Macroscopic haematuria (visible blood) is more concerning.', options: [{ text: 'Macroscopic (visible) haematuria', scores: [2, 2, 3, 2] }, { text: 'Microscopic haematuria only', scores: [3, 3, 0, 1] }] },
+                    { q: 'Is there fever, dysuria, or frequency?', hint: '🔬 Fever + dysuria + haematuria = UTI (especially pyelonephritis).', options: [{ text: 'Fever, dysuria, and frequency', scores: [5, 0, 0, 0] }, { text: 'No fever or dysuria', scores: [0, 3, 3, 2] }] },
+                    { q: 'Is there oedema or frothy urine?', hint: '🔬 Oedema + frothy urine + haematuria = acute glomerulonephritis.', options: [{ text: 'Oedema, frothy urine, and hypertension', scores: [0, 4, 0, 0] }, { text: 'No oedema or frothy urine', scores: [3, 0, 3, 3] }] },
+                    { q: 'Does the child live in or travel to a schistosomiasis-endemic area?', hint: '🔬 Schistosoma haematobium causes terminal haematuria.', options: [{ text: 'Yes, lives in an endemic area, terminal haematuria', scores: [0, 0, 5, 0] }, { text: 'No, not from an endemic area', scores: [3, 3, 0, 2] }] },
+                    { q: 'Is there a history of sickle cell disease or trait?', hint: '🔬 Sickle cell disease can cause haematuria due to papillary necrosis.', options: [{ text: 'Known sickle cell disease or trait', scores: [0, 0, 0, 5] }, { text: 'No known sickle cell', scores: [3, 3, 3, 0] }] },
+                    { q: 'Is there hypertension or oliguria?', hint: '🔬 Hypertension + haematuria + oliguria = acute glomerulonephritis.', options: [{ text: 'Hypertension and oliguria', scores: [0, 5, 0, 0] }, { text: 'Normal blood pressure and urine output', scores: [3, 0, 3, 3] }] },
+                    { q: 'Has the child had any recent trauma or catheterisation?', hint: '🔬 Trauma to the urinary tract can cause haematuria.', options: [{ text: 'Recent trauma to the abdomen or back', scores: [0, 0, 0, 0] }, { text: 'No trauma', scores: [3, 3, 3, 3] }] }
+                ]
+            },
+            dysuria: {
+                label: 'Dysuria / Frequency',
+                diagnoses: ['Urinary Tract Infection', 'Pyelonephritis', 'Bladder Dysfunction', 'Vaginal irritation (girls)'],
+                questions: [
+                    { q: 'Is there fever or vomiting?', hint: '🔬 Fever + dysuria + vomiting = pyelonephritis.', options: [{ text: 'Fever, vomiting, and loin pain', scores: [2, 5, 0, 0] }, { text: 'No fever or vomiting', scores: [4, 0, 2, 2] }] },
+                    { q: 'Is there frequency, urgency, or poor stream?', hint: '🔬 Frequency + urgency = cystitis. Poor stream = obstruction.', options: [{ text: 'Frequency and urgency, no fever', scores: [4, 0, 0, 1] }, { text: 'Poor stream, hesitancy, dribbling', scores: [0, 0, 4, 0] }, { text: 'Dysuria only, no other symptoms', scores: [2, 0, 0, 2] }] },
+                    { q: 'Is there any vaginal discharge or vulval erythema (in girls)?', hint: '🔬 Vulvovaginitis can cause dysuria and frequency in girls.', options: [{ text: 'Vaginal discharge, vulval redness, and itching', scores: [0, 0, 0, 5] }, { text: 'No vaginal symptoms', scores: [4, 3, 3, 0] }] },
+                    { q: 'What is the colour and odour of the urine?', hint: '🔬 Cloudy, foul-smelling urine → UTI. Blood-stained urine → haematuria.', options: [{ text: 'Cloudy, foul-smelling urine', scores: [5, 2, 0, 0] }, { text: 'Blood-stained urine', scores: [2, 3, 2, 0] }, { text: 'Normal colour and odour', scores: [0, 0, 2, 2] }] },
+                    { q: 'Is there a history of recurrent UTIs or anatomical abnormalities?', hint: '🔬 Recurrent UTIs suggest vesicoureteric reflux (VUR) or anatomical obstruction.', options: [{ text: 'Recurrent UTIs, known VUR', scores: [3, 3, 4, 0] }, { text: 'No recurrent UTIs', scores: [3, 0, 0, 3] }] },
+                    { q: 'Has the child had recent perineal irritation (soap, bubble bath, tight clothing)?', hint: '🔬 Irritants can cause non-infectious dysuria.', options: [{ text: 'Yes, recent bubble bath or soap', scores: [0, 0, 0, 4] }, { text: 'No irritant exposure', scores: [4, 3, 3, 0] }] },
+                    { q: 'Is the child toilet-trained or in nappies?', hint: '🔬 Children in nappies may have UTI presenting as fever without localising signs.', options: [{ text: 'Toilet-trained, able to describe symptoms', scores: [3, 2, 2, 3] }, { text: 'In nappies, fever only', scores: [4, 4, 0, 0] }] }
+                ]
+            },
+            eye_problems: {
+                label: 'Eye Problems',
+                diagnoses: ['Conjunctivitis', 'Corneal Ulcer', 'Measles (Koplik spots)', 'Glaucoma'],
+                questions: [
+                    { q: 'What type of discharge is present?', hint: '🔬 Purulent (yellow/green) discharge → bacterial conjunctivitis.', options: [{ text: 'Purulent, sticky discharge', scores: [4, 0, 0, 0] }, { text: 'Watery, non-sticky discharge', scores: [2, 0, 2, 0] }, { text: 'No discharge', scores: [0, 2, 2, 4] }] },
+                    { q: 'Is there photophobia or eye pain?', hint: '🔬 Photophobia + pain + red eye = corneal ulcer or iritis.', options: [{ text: 'Photophobia, severe pain, and redness', scores: [0, 5, 0, 2] }, { text: 'No photophobia, mild pain', scores: [3, 0, 1, 0] }] },
+                    { q: 'Is there a rash or fever?', hint: '🔬 Fever + rash + conjunctivitis = measles (Koplik spots).', options: [{ text: 'Fever, rash, and Koplik spots in mouth', scores: [0, 0, 5, 0] }, { text: 'Fever only, no rash', scores: [3, 0, 0, 0] }, { text: 'No fever or rash', scores: [2, 2, 0, 3] }] },
+                    { q: 'Is there corneal clouding or enlarged eye (buphthalmos)?', hint: '🔬 Corneal clouding + enlarged eye + tearing = congenital glaucoma (emergency).', options: [{ text: 'Corneal clouding, enlarged eye, tearing', scores: [0, 0, 0, 5] }, { text: 'Normal cornea and eye size', scores: [3, 3, 3, 0] }] },
+                    { q: 'Has the child been exposed to someone with red eye?', hint: '🔬 Conjunctivitis is highly contagious.', options: [{ text: 'Yes, contact with someone with red eye', scores: [4, 0, 0, 0] }, { text: 'No known contact', scores: [0, 3, 3, 3] }] },
+                    { q: 'Is there reduced vision or inability to follow light?', hint: '🔬 Reduced vision is a red flag.', options: [{ text: 'Reduced vision, unable to follow light', scores: [0, 3, 0, 4] }, { text: 'Normal vision, tracks light/objects', scores: [3, 0, 3, 0] }] },
+                    { q: 'Are there any systemic symptoms (joint pain, oral ulcers)?', hint: '🔬 Conjunctivitis + oral ulcers + genital lesions = Behçet\'s or Stevens-Johnson syndrome.', options: [{ text: 'Oral ulcers and joint pain', scores: [0, 0, 0, 0] }, { text: 'No systemic symptoms', scores: [3, 3, 3, 3] }] }
+                ]
+            }
+        }
+
+        let det_activeComplaintId = null;
+        let det_scores = [];
+        let det_selectedDiagnoses = [];
+        let det_selectedOptions = [];
+        let det_isFinished = false;
+        let det_isOpen = false;
+        let det_lastDiagnosis = '';
+        let det_lastSummary = '';
+
+        const DET_TAG_MAP = {
+            'fever':'fever','cough':'cough','diarrhea':'diarrhoea','poor feeding':'poor_feeding',
+            'convulsions':'seizure','rash':'rash','jaundice':'jaundice','pain':'abdominal_pain',
+            'difficulty breathing':'difficulty_breathing','swelling':'oedema','lethargy':'lethargy',
+            'pallor':'pallor','neck stiffness':'neck_stiffness','ear discharge':'ear_discharge',
+            'oedema':'oedema','abdominal distension':'abdominal_pain','failure to thrive':'failure_to_thrive',
+            'limping / bone pain':'limp','haematuria':'haematuria','dysuria / frequency':'dysuria',
+            'delayed speech':'developmental_delay','eye problems':'eye_problems',
+            'bleeding / bruising':'bleeding_bruising','unconsciousness':'unconsciousness',
+            'malnutrition':'malnutrition','neonatal problems':'neonatal_problems'
+        };
+
+        function toggleDetectiveMode() {
+            const panel = document.getElementById('detectivePanel');
+            const btn = document.getElementById('detectiveModeBtn');
+            det_isOpen = !det_isOpen;
+            panel.classList.toggle('visible', det_isOpen);
+            btn.classList.toggle('active', det_isOpen);
+            btn.textContent = det_isOpen ? '✕ Close Detective' : '🕵️ Detective Mode';
+            if (det_isOpen) {
+                const selTag = document.querySelector('.tag-btn.selected');
+                if (selTag) {
+                    const key = DET_TAG_MAP[selTag.dataset.cat];
+                    if (key && COMPLAINTS[key] && det_activeComplaintId !== key) detStartComplaint(key);
+                }
+                setTimeout(() => document.getElementById('detectivePanel').scrollIntoView({behavior:'smooth',block:'nearest'}), 150);
+            }
+        }
+
+        // Wrap selectTag to trigger detective auto-start
+        const _origSelectTag = window.selectTag;
+        window.selectTag = function(btn) {
+            _origSelectTag(btn);
+            if (det_isOpen) {
+                const key = DET_TAG_MAP[btn.dataset.cat];
+                if (key && COMPLAINTS[key]) {
+                    detStartComplaint(key);
+                } else {
+                    document.getElementById('detChatBox').innerHTML = '<div class="det-empty"><div class="det-big-icon">🤷</div><p>No detective case for this complaint yet.</p></div>';
+                    document.getElementById('detOptionsContainer').innerHTML = '';
+                    document.getElementById('detSummarySection').classList.remove('visible');
+                }
+            }
+        };
+
+        function detStartComplaint(id) {
+            det_activeComplaintId = id;
+            det_isFinished = false;
+            const complaint = COMPLAINTS[id];
+            det_selectedDiagnoses = complaint.diagnoses;
+            det_scores = new Array(det_selectedDiagnoses.length).fill(0);
+            det_selectedOptions = [];
+            det_lastDiagnosis = ''; det_lastSummary = '';
+            const chatBox = document.getElementById('detChatBox');
+            chatBox.innerHTML = '';
+            document.getElementById('detSummarySection').classList.remove('visible');
+            document.getElementById('detOptionsContainer').innerHTML = '';
+            detAddMessage('doctor', `🔍 Case: <strong>${complaint.label}</strong> — answer each question based on your patient.`);
+            detShowQuestion(complaint, 0);
+        }
+
+        function detShowQuestion(complaint, index) {
+            if (index >= complaint.questions.length) { detFinishDiagnosis(complaint); return; }
+            const qData = complaint.questions[index];
+            detAddMessage('doctor', qData.q, qData.hint);
+            const optCon = document.getElementById('detOptionsContainer');
+            optCon.innerHTML = '';
+            qData.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'det-opt-btn';
+                btn.textContent = opt.text;
+                btn.addEventListener('click', () => detHandleOption(complaint, index, i));
+                optCon.appendChild(btn);
+            });
+        }
+
+        function detHandleOption(complaint, qIndex, optIndex) {
+            const btns = document.querySelectorAll('.det-opt-btn');
+            btns.forEach(b => b.disabled = true);
+            btns[optIndex].classList.add('selected');
+            const chosen = complaint.questions[qIndex].options[optIndex];
+            det_selectedOptions.push({ text: chosen.text, scores: chosen.scores });
+            detAddMessage('patient', chosen.text);
+            chosen.scores.forEach((s, i) => { det_scores[i] = (det_scores[i] || 0) + (s || 0); });
+            setTimeout(() => {
+                if (qIndex + 1 < complaint.questions.length) detShowQuestion(complaint, qIndex + 1);
+                else detFinishDiagnosis(complaint);
+            }, 500);
+        }
+
+        function detFinishDiagnosis(complaint) {
+            det_isFinished = true;
+            document.getElementById('detOptionsContainer').innerHTML = '';
+            let maxScore = -1, topIndex = 0;
+            det_scores.forEach((s, i) => { if (s > maxScore) { maxScore = s; topIndex = i; } });
+            const leadingDx = complaint.diagnoses[topIndex];
+            det_lastDiagnosis = leadingDx;
+            const positives = det_selectedOptions.filter(o => (o.scores[topIndex] || 0) > 0).map(o => o.text);
+            const negatives = det_selectedOptions.filter(o => (o.scores[topIndex] || 0) === 0).map(o => o.text);
+            const diffList = complaint.diagnoses.map((d, i) => {
+                if (i === topIndex) return d + ' ✓ (leading)';
+                return d + (det_scores[i] > 0 ? ` (${det_scores[i]} pts)` : ' (0 pts)');
+            });
+            const dxMsg = `**Potential Diagnosis: ${leadingDx}**\n\n**Positives:**\n${positives.length ? positives.map(p=>'- '+p).join('\n') : '- None'}\n\n**Negatives:**\n${negatives.length ? negatives.map(n=>'- '+n).join('\n') : '- None'}\n\n**Differentials:**\n${diffList.map(d=>'- '+d).join('\n')}`;
+            detAddMessage('doctor', dxMsg, null, true);
+            const childName = document.getElementById('childName')?.value?.trim() || 'child';
+            const childAge = document.getElementById('childAge')?.value?.trim() || 'unknown age';
+            const childSex = document.getElementById('childSex')?.value || '';
+            let summary = `This is a ${childAge} ${childSex.toLowerCase()} (${childName}) presenting with ${complaint.label.toLowerCase()}.\n\nOn further questioning:\n`;
+            summary += det_selectedOptions.map(o => '• ' + o.text).join('\n');
+            summary += `\n\nPositive findings:\n${positives.map(p=>'• '+p).join('\n') || '• None'}`;
+            summary += `\n\nNegative findings:\n${negatives.map(n=>'• '+n).join('\n') || '• None'}`;
+            summary += `\n\nLeading diagnosis: ${leadingDx}\nDifferentials: ${diffList.join(' | ')}`;
+            det_lastSummary = summary;
+            document.getElementById('detSummaryBody').textContent = summary;
+            document.getElementById('detSummarySection').classList.add('visible');
+        }
+
+        function detAddMessage(role, text, hint=null, isDiagnosis=false) {
+            const chatBox = document.getElementById('detChatBox');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'det-message ' + role;
+            const bubble = document.createElement('div');
+            bubble.className = 'det-bubble';
+            const textSpan = document.createElement('span');
+            textSpan.innerHTML = text.replace(/\n/g,'<br>');
+            bubble.appendChild(textSpan);
+            if (hint && role==='doctor' && !isDiagnosis) {
+                const h = document.createElement('div');
+                h.className = 'det-hint';
+                h.textContent = hint;
+                bubble.appendChild(h);
+            }
+            if (isDiagnosis) {
+                const badge = document.createElement('div');
+                badge.className = 'det-dx-badge';
+                badge.innerHTML = '🧾 Diagnostic Impression';
+                bubble.appendChild(badge);
+                const sdx = document.createElement('div');
+                sdx.className = 'det-structured-dx';
+                sdx.innerHTML = text.replace(/\n/g,'<br>');
+                bubble.appendChild(sdx);
+            }
+            wrapper.appendChild(bubble);
+            const meta = document.createElement('div');
+            meta.className = 'det-meta';
+            meta.textContent = role==='doctor' ? '🩺 Dr.' : '🧑 You';
+            wrapper.appendChild(meta);
+            chatBox.appendChild(wrapper);
+            setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 50);
+        }
+
+        function detCopySummary() {
+            navigator.clipboard.writeText(det_lastSummary || '').then(() => showToast('📋 Summary copied!','#0a2942'));
+        }
+
+        function applyDetectiveDiagnosis() {
+            if (!det_lastDiagnosis) { showToast('Complete the detective session first.','#e67e22'); return; }
+            const hpc = document.getElementById('hpcNarrative');
+            if (hpc) hpc.value = (hpc.value ? det_lastSummary + '\n\n---\n\n' + hpc.value : det_lastSummary);
+            const assoc = document.getElementById('associatedComplaints');
+            if (assoc) assoc.value = (assoc.value ? assoc.value + '\n' : '') + '[Detective] Leading Dx: ' + det_lastDiagnosis;
+            showToast('✅ Applied to HPC narrative!','#1a7a4a');
+            updateProgress();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const detReset = document.getElementById('detResetBtn');
+            if (detReset) detReset.addEventListener('click', () => {
+                det_activeComplaintId = null; det_scores = []; det_selectedDiagnoses = [];
+                det_selectedOptions = []; det_isFinished = false;
+                det_lastDiagnosis = ''; det_lastSummary = '';
+                document.getElementById('detChatBox').innerHTML = '<div class="det-empty" id="detEmptyState"><div class="det-big-icon">🔍</div><p>Select a <strong>complaint category</strong> above to begin.</p></div>';
+                document.getElementById('detOptionsContainer').innerHTML = '<p style="color:#7b95ae;font-size:12px;text-align:center;width:100%;">Select a complaint above to begin.</p>';
+                document.getElementById('detSummarySection').classList.remove('visible');
+            });
+        });
