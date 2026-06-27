@@ -56,6 +56,122 @@
             --shadow: 0 2px 12px rgba(26, 95, 122, 0.08);
         }
 
+        /* ===== DETECTIVE MODE STYLES ===== */
+        .detective-panel {
+            display: none;
+            background: #f8faff;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px solid #4a6fa5;
+            box-shadow: 0 4px 12px rgba(74, 111, 165, 0.15);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .detective-panel.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .detective-toggle-btn {
+            background: linear-gradient(135deg, #2c3e6b, #4a6fa5);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .detective-toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 111, 165, 0.3);
+        }
+
+        .detective-toggle-btn.exit {
+            background: linear-gradient(135deg, #6c757d, #495057);
+        }
+
+        .detective-question {
+            font-size: 16px;
+            margin: 15px 0;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #4a6fa5;
+        }
+
+        .detective-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .detective-options button {
+            background: #e9ecef;
+            border: 2px solid transparent;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .detective-options button:hover {
+            background: #dde4f0;
+            border-color: #4a6fa5;
+        }
+
+        .detective-options button.selected {
+            background: #4a6fa5;
+            color: white;
+            border-color: #2c3e6b;
+        }
+
+        .detective-progress {
+            font-size: 13px;
+            color: #6c757d;
+            margin: 8px 0;
+        }
+
+        .detective-diagnosis {
+            background: #e8f4e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .detective-diagnosis h4 {
+            margin: 0 0 8px 0;
+            color: #155724;
+        }
+
+        .detective-apply-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 5px 0 0;
+            transition: all 0.2s;
+        }
+
+        .detective-apply-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -872,23 +988,8 @@
             margin: 0;
         }
 
-        /* --- Growth Chart --- */
-        .growth-chart-container {
-            background: #f8fafc;
-            border-radius: 10px;
-            padding: 12px;
-            border: 1px solid var(--border);
-            margin-top: 12px;
-        }
-        .growth-chart-note {
-            background: #f0fdfa;
-            border-left: 4px solid var(--peds-color);
-            padding: 10px 14px;
-            border-radius: 0 6px 6px 0;
-            font-size: 0.82rem;
-            color: var(--text-secondary);
-            margin-top: 10px;
-        }
+        /* --- Growth Chart - REMOVED, replaced by Z-score calculator --- */
+        /* No growth chart styles needed */
 
         /* --- MUAC Feedback --- */
         .muac-feedback {
@@ -1993,7 +2094,7 @@
                 </div>
                 <div class="field-group">
                     <label>Sex</label>
-                    <select id="childSex"><option>Male</option><option>Female</option></select>
+                    <select id="childSex" onchange="updateZScores()"><option>Male</option><option>Female</option></select>
                 </div>
             </div>
 
@@ -2710,6 +2811,27 @@
                 </div>
             </div>
 
+            <!-- ===== DETECTIVE MODE TOGGLE ===== -->
+            <button class="detective-toggle-btn" id="detectiveToggleBtn">
+                🕵️ Detective Mode
+            </button>
+
+            <div class="detective-panel" id="detectivePanel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; color: #2c3e6b;">🕵️ PediDetective</h3>
+                    <button class="detective-toggle-btn exit" id="detectiveExitBtn">✕ Exit Detective</button>
+                </div>
+                <div id="detectiveContent">
+                    <div class="detective-progress" id="detectiveProgress">Question 1 of 5</div>
+                    <div class="detective-question" id="detectiveQuestion">Loading question...</div>
+                    <div class="detective-options" id="detectiveOptions"></div>
+                </div>
+                <div id="detectiveResult" style="display: none;">
+                    <div class="detective-diagnosis" id="detectiveDiagnosis"></div>
+                    <button class="detective-apply-btn" id="detectiveApplyBtn">✅ Apply to HPC</button>
+                </div>
+            </div>
+
             <div class="divider"></div>
 
             <div class="inline-row">
@@ -3060,13 +3182,13 @@
                 </div>
                 <div class="field-group">
                     <label>Current weight (kg)</label>
-                    <input type="number" step="0.1" id="weight" oninput="updateGrowthChart()" placeholder="e.g. 8.5">
+                    <input type="number" step="0.1" id="weight" oninput="updateZScores()" placeholder="e.g. 8.5">
                 </div>
             </div>
             <div class="inline-row">
                 <div class="field-group">
                     <label>Height/length (cm)</label>
-                    <input type="number" step="0.1" id="height" placeholder="e.g. 72">
+                    <input type="number" step="0.1" id="height" oninput="updateZScores()" placeholder="e.g. 72">
                 </div>
                 <div class="field-group">
                     <label>MUAC (cm) [6–59 months]</label>
@@ -3074,15 +3196,56 @@
                 </div>
             </div>
             <div id="muacFeedback" class="muac-feedback"></div>
-            <div class="growth-chart-container">
-                <canvas id="growthChart" width="400" height="200"></canvas>
-                <p style="text-align:center; font-size:0.85rem; color:var(--text-secondary); margin-top:4px;">Weight-for-age (WHO 0–60 months)</p>
-                <div class="growth-chart-note">
-                    <strong>📊 Significance of Growth Chart:</strong> Plotting weight-for-age helps identify acute malnutrition (wasting) and chronic malnutrition (stunting).
-                    A downward crossing of two major centile lines is a red flag. In Uganda, growth monitoring is a key component of the Child Health Card.
-                    Always interpret in context of the child's age, sex, and clinical condition.
+
+            <!-- =============================================
+                 Z-SCORE CALCULATOR (replaces growth chart)
+                 ============================================= -->
+            <div id="zscoreCalculator" style="margin-top:14px;">
+                <div style="background:#f0fdfa; border-left:4px solid #0f766e; border-radius:0 8px 8px 0; padding:10px 14px; margin-bottom:12px; font-size:0.82rem; color:#0f3b3a;">
+                    <strong>📊 WHO Z-Score Calculator</strong> — Enter weight, height, and age above. Sex is read from Section 1. Z-scores update automatically.
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+
+                    <!-- WAZ -->
+                    <div style="background:#f8fafc; border:1.5px solid #dde3ea; border-radius:10px; padding:12px; text-align:center;">
+                        <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#6b7f8c; margin-bottom:6px;">Weight-for-Age</div>
+                        <div id="wazValue" style="font-size:1.5rem; font-weight:700; color:#1c2b36;">—</div>
+                        <div style="font-size:0.65rem; color:#6b7f8c; margin:2px 0;">Z-score</div>
+                        <div id="wazLabel" style="font-size:0.72rem; font-weight:700; margin-top:6px; padding:3px 8px; border-radius:20px; display:inline-block; background:#e2e8f0; color:#475569;">Enter data</div>
+                        <div style="font-size:0.65rem; color:#6b7f8c; margin-top:4px;">Underweight if &lt; -2</div>
+                    </div>
+
+                    <!-- HAZ -->
+                    <div style="background:#f8fafc; border:1.5px solid #dde3ea; border-radius:10px; padding:12px; text-align:center;">
+                        <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#6b7f8c; margin-bottom:6px;">Height-for-Age</div>
+                        <div id="hazValue" style="font-size:1.5rem; font-weight:700; color:#1c2b36;">—</div>
+                        <div style="font-size:0.65rem; color:#6b7f8c; margin:2px 0;">Z-score</div>
+                        <div id="hazLabel" style="font-size:0.72rem; font-weight:700; margin-top:6px; padding:3px 8px; border-radius:20px; display:inline-block; background:#e2e8f0; color:#475569;">Enter data</div>
+                        <div style="font-size:0.65rem; color:#6b7f8c; margin-top:4px;">Stunted if &lt; -2</div>
+                    </div>
+
+                    <!-- WHZ -->
+                    <div style="background:#f8fafc; border:1.5px solid #dde3ea; border-radius:10px; padding:12px; text-align:center;">
+                        <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#6b7f8c; margin-bottom:6px;">Weight-for-Height</div>
+                        <div id="whzValue" style="font-size:1.5rem; font-weight:700; color:#1c2b36;">—</div>
+                        <div style="font-size:0.65rem; color:#6b7f8c; margin:2px 0;">Z-score</div>
+                        <div id="whzLabel" style="font-size:0.72rem; font-weight:700; margin-top:6px; padding:3px 8px; border-radius:20px; display:inline-block; background:#e2e8f0; color:#475569;">Enter data</div>
+                        <div style="font-size:0.65rem; color:#6b7f8c; margin-top:4px;">Wasted if &lt; -2</div>
+                    </div>
+                </div>
+
+                <!-- Overall interpretation -->
+                <div id="zscoreInterpretation" style="display:none; margin-top:12px; padding:12px 14px; border-radius:10px; font-size:0.82rem; border:1.5px solid #dde3ea; background:#f8fafc;">
+                    <strong>🩺 Nutritional Assessment:</strong> <span id="zscoreInterpretationText"></span>
+                </div>
+
+                <div style="font-size:0.7rem; color:#6b7f8c; margin-top:8px; font-style:italic;">
+                    Reference: WHO Child Growth Standards 2006 (used by Uganda MoH). Values computed using LMS method.
                 </div>
             </div>
+            <!-- End Z-score calculator -->
+
         </div>
 
         <div class="divider"></div>
@@ -3493,12 +3656,14 @@
             if (!dobInput) {
                 ageField.value = '';
                 ageDisplay.innerHTML = '';
+                updateZScores();
                 return;
             }
             const dob = new Date(dobInput);
             if (isNaN(dob)) {
                 ageField.value = '';
                 ageDisplay.innerHTML = '';
+                updateZScores();
                 return;
             }
             const now = new Date();
@@ -3546,7 +3711,7 @@
             ageDisplay.innerHTML = displayString;
             checkMilestoneWarnings();
             checkVitals();
-            updateGrowthChart();
+            updateZScores();        // <-- Recalculate Z-scores after age change
             updateProgress();
         }
 
@@ -4066,52 +4231,8 @@
         }
 
         // ============================================================
-        // GROWTH CHART & MUAC
+        // GROWTH CHART & MUAC — REMOVED: initGrowthChart() and updateGrowthChart() deleted
         // ============================================================
-        let growthChart;
-
-        function initGrowthChart() {
-            const ctx = document.getElementById('growthChart').getContext('2d');
-            const ageMonths = [0, 2, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60];
-            const medianWeight = [3.3, 5.1, 6.5, 7.5, 8.5, 9.6, 10.2, 11.2, 11.8, 12.3, 12.9, 13.4, 14.0, 14.5, 15.0, 15.5, 16.0,
-                16.5, 17.0, 17.5, 18.0, 18.3
-            ];
-            growthChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ageMonths,
-                    datasets: [{ label: 'WHO median weight (kg)', data: medianWeight, borderColor: '#0f766e',
-                        tension: 0.3, fill: false }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    scales: {
-                        x: { title: { display: true, text: 'Age (months)' } },
-                        y: { title: { display: true, text: 'Weight (kg)' } }
-                    }
-                }
-            });
-        }
-
-        function updateGrowthChart() {
-            const weight = parseFloat(document.getElementById('weight').value);
-            const ageStr = document.getElementById('childAge').value;
-            let ageMonths = parseAgeToMonths(ageStr);
-            if (!isNaN(weight) && ageMonths !== null && growthChart && ageMonths <= 60) {
-                if (growthChart.data.datasets.length > 1) growthChart.data.datasets.pop();
-                growthChart.data.datasets.push({
-                    label: 'Current patient',
-                    data: [{ x: ageMonths, y: weight }],
-                    type: 'scatter',
-                    pointBackgroundColor: '#e76f51',
-                    pointRadius: 6,
-                    showLine: false
-                });
-                growthChart.update();
-            }
-        }
-
         function updateMuac() {
             const muac = parseFloat(document.getElementById('muac').value);
             const feedback = document.getElementById('muacFeedback');
@@ -4814,7 +4935,8 @@
                 updateImageCount();
             }
             updateMuac();
-            updateGrowthChart();
+            // updateGrowthChart() removed; call updateZScores() instead
+            updateZScores();
             checkVitals();
             checkMilestoneWarnings();
             updateProgress();
@@ -4850,7 +4972,8 @@
             updateImageCount();
             if (stream) stopCamera();
             updateMuac();
-            updateGrowthChart();
+            // updateGrowthChart() removed
+            updateZScores();
             checkVitals();
             checkMilestoneWarnings();
             updateProgress();
@@ -7003,7 +7126,7 @@
             buildImmunizationGrid();
             buildROS();
             buildExamCards();
-            initGrowthChart();
+            // initGrowthChart() removed
             renderGallery();
             updateImageCount();
             updateProgress();
@@ -7046,7 +7169,6 @@
             window.showTip = showTip;
             window.calculateAgeFromDOB = calculateAgeFromDOB;
             window.checkVitals = checkVitals;
-            window.updateGrowthChart = updateGrowthChart;
             window.updateMuac = updateMuac;
             window.toggleReferralDetails = toggleReferralDetails;
             window.renderRecords = renderRecords;
@@ -7055,8 +7177,706 @@
             window.copyDdxToClipboard = copyDdxToClipboard;
             window.exportDdxToWord = exportDdxToWord;
 
-            console.log('✅ EaseMed Pediatric Clerkship loaded with Differential Diagnosis Generator.');
+            // Expose Z-score function
+            window.updateZScores = updateZScores;
+
+            console.log('✅ EaseMed Pediatric Clerkship loaded with Differential Diagnosis Generator and WHO Z-score Calculator.');
         });
+
+        // ============================================================
+        // WHO Z-SCORE CALCULATOR (LMS Method)
+        // WHO Child Growth Standards 2006 — used by Uganda MoH
+        // Covers: Weight-for-Age (WAZ), Height-for-Age (HAZ),
+        //         Weight-for-Height (WHZ)
+        // Sex-specific tables for boys and girls
+        // ============================================================
+
+        // LMS tables: each entry is [ageMonths, L, M, S]
+        // L = Box-Cox power, M = median, S = coefficient of variation
+
+        const WHO_WAZ_BOYS = [
+            [0,0.3487,3.3464,0.14602],[1,0.2297,4.4709,0.13395],[2,0.1970,5.5675,0.12385],
+            [3,0.2986,6.3762,0.11727],[4,0.3562,7.0023,0.11316],[5,0.3902,7.5105,0.11080],
+            [6,0.3980,7.9340,0.10958],[7,0.3926,8.2970,0.10902],[8,0.3781,8.6151,0.10882],
+            [9,0.3579,8.9014,0.10885],[10,0.3342,9.1649,0.10904],[11,0.3084,9.4122,0.10933],
+            [12,0.2817,9.6479,0.10972],[15,0.2089,10.1693,0.11108],[18,0.1534,10.7008,0.11278],
+            [21,0.1108,11.2390,0.11450],[24,0.0775,11.8027,0.11617],[27,0.0505,12.3830,0.11777],
+            [30,0.0281,12.9665,0.11929],[33,0.0091,13.5414,0.12074],[36,-0.0070,14.1010,0.12212],
+            [39,-0.0207,14.6388,0.12343],[42,-0.0323,15.1533,0.12467],[45,-0.0422,15.6422,0.12584],
+            [48,-0.0506,16.1042,0.12695],[51,-0.0577,16.5382,0.12799],[54,-0.0637,16.9535,0.12898],
+            [57,-0.0688,17.3499,0.12991],[60,-0.0731,17.7261,0.13079]
+        ];
+
+        const WHO_WAZ_GIRLS = [
+            [0,0.3809,3.2322,0.14171],[1,0.1714,4.1873,0.13724],[2,0.0962,5.1282,0.13000],
+            [3,0.2037,5.8458,0.12619],[4,0.2780,6.4237,0.12402],[5,0.3112,6.8985,0.12274],
+            [6,0.3282,7.2970,0.12204],[7,0.3336,7.6422,0.12178],[8,0.3313,7.9487,0.12181],
+            [9,0.3243,8.2254,0.12199],[10,0.3143,8.4800,0.12225],[11,0.3024,8.7192,0.12254],
+            [12,0.2895,8.9481,0.12283],[15,0.2477,9.5241,0.12382],[18,0.2122,10.1238,0.12497],
+            [21,0.1828,10.7496,0.12620],[24,0.1587,11.3930,0.12749],[27,0.1390,12.0497,0.12878],
+            [30,0.1230,12.7148,0.13005],[33,0.1099,13.3841,0.13127],[36,0.0990,14.0534,0.13244],
+            [39,0.0900,14.7182,0.13355],[42,0.0825,15.3744,0.13460],[45,0.0762,16.0179,0.13558],
+            [48,0.0708,16.6449,0.13650],[51,0.0662,17.2524,0.13735],[54,0.0621,17.8383,0.13814],
+            [57,0.0585,18.4011,0.13887],[60,0.0552,18.9333,0.13954]
+        ];
+
+        const WHO_HAZ_BOYS = [
+            [0,1,49.8842,0.03795],[1,1,54.7244,0.03557],[2,1,58.4249,0.03424],[3,1,61.4292,0.03328],
+            [4,1,63.8860,0.03260],[5,1,65.9026,0.03209],[6,1,67.6236,0.03168],[7,1,69.1645,0.03140],
+            [8,1,70.5994,0.03124],[9,1,71.9687,0.03117],[10,1,73.2812,0.03118],[11,1,74.5388,0.03122],
+            [12,1,75.7488,0.03131],[15,1,79.1242,0.03168],[18,1,82.3241,0.03213],[21,1,85.1201,0.03256],
+            [24,1,87.8161,0.03297],[27,1,90.3489,0.03337],[30,1,92.7301,0.03376],[33,1,94.9776,0.03413],
+            [36,1,96.1000,0.03448],[39,1,98.3200,0.03481],[42,1,100.4500,0.03512],[45,1,102.5100,0.03541],
+            [48,1,104.4900,0.03569],[51,1,106.4200,0.03595],[54,1,108.2800,0.03620],[57,1,110.0800,0.03643],
+            [60,1,111.8200,0.03665]
+        ];
+
+        const WHO_HAZ_GIRLS = [
+            [0,1,49.1477,0.03790],[1,1,53.6872,0.03640],[2,1,57.0673,0.03568],[3,1,59.8029,0.03490],
+            [4,1,62.0899,0.03433],[5,1,64.0301,0.03390],[6,1,65.7311,0.03355],[7,1,67.2873,0.03329],
+            [8,1,68.7498,0.03310],[9,1,70.1435,0.03300],[10,1,71.4818,0.03295],[11,1,72.7710,0.03295],
+            [12,1,74.0150,0.03299],[15,1,77.4824,0.03338],[18,1,80.7070,0.03385],[21,1,83.6639,0.03436],
+            [24,1,86.4153,0.03490],[27,1,89.0435,0.03543],[30,1,91.4986,0.03594],[33,1,93.8236,0.03642],
+            [36,1,95.1000,0.03688],[39,1,97.3200,0.03730],[42,1,99.4600,0.03770],[45,1,101.5300,0.03808],
+            [48,1,103.5100,0.03843],[51,1,105.4400,0.03877],[54,1,107.3100,0.03908],[57,1,109.1300,0.03938],
+            [60,1,110.9000,0.03966]
+        ];
+
+        // WHZ tables: indexed by height in cm (45-120cm, step ~0.5cm)
+        // Simplified key reference points [heightCm, L, M, S]
+        const WHO_WHZ_BOYS = [
+            [45,0,2.441,0.09182],[46,0,2.581,0.09142],[47,0,2.730,0.09103],[48,0,2.889,0.09064],
+            [49,0,3.059,0.09026],[50,0,3.241,0.08988],[51,0,3.435,0.08951],[52,0,3.643,0.08915],
+            [53,0,3.865,0.08880],[54,0,4.102,0.08847],[55,0,4.355,0.08815],[56,0,4.623,0.08785],
+            [57,0,4.908,0.08757],[58,0,5.210,0.08731],[59,0,5.529,0.08707],[60,0,5.863,0.08685],
+            [61,0,6.213,0.08665],[62,0,6.574,0.08647],[63,0,6.945,0.08632],[64,0,7.323,0.08620],
+            [65,0,7.703,0.08611],[66,0,8.082,0.08606],[67,0,8.456,0.08604],[68,0,8.822,0.08607],
+            [69,0,9.178,0.08614],[70,0,9.524,0.08625],[71,0,9.858,0.08641],[72,0,10.181,0.08660],
+            [73,0,10.494,0.08683],[74,0,10.798,0.08710],[75,0,11.095,0.08740],[76,0,11.386,0.08773],
+            [77,0,11.672,0.08808],[78,0,11.953,0.08846],[79,0,12.231,0.08885],[80,0,12.506,0.08926],
+            [81,0,12.778,0.08968],[82,0,13.048,0.09012],[83,0,13.316,0.09058],[84,0,13.583,0.09105],
+            [85,0,13.849,0.09154],[86,0,14.114,0.09205],[87,0,14.380,0.09258],[88,0,14.646,0.09313],
+            [89,0,14.913,0.09370],[90,0,15.182,0.09428],[91,0,15.453,0.09489],[92,0,15.727,0.09551],
+            [93,0,16.004,0.09615],[94,0,16.285,0.09680],[95,0,16.571,0.09748],[96,0,16.862,0.09817],
+            [97,0,17.160,0.09889],[98,0,17.465,0.09963],[99,0,17.778,0.10039],[100,0,18.101,0.10118],
+            [101,0,18.433,0.10199],[102,0,18.776,0.10283],[103,0,19.131,0.10370],[104,0,19.498,0.10459],
+            [105,0,19.878,0.10550],[106,0,20.271,0.10645],[107,0,20.678,0.10742],[108,0,21.099,0.10842],
+            [109,0,21.533,0.10945],[110,0,21.981,0.11050]
+        ];
+
+        const WHO_WHZ_GIRLS = [
+            [45,0,2.441,0.09182],[46,0,2.576,0.09162],[47,0,2.722,0.09143],[48,0,2.881,0.09106],
+            [49,0,3.054,0.09070],[50,0,3.243,0.09035],[51,0,3.448,0.09001],[52,0,3.671,0.08968],
+            [53,0,3.913,0.08936],[54,0,4.175,0.08905],[55,0,4.458,0.08876],[56,0,4.763,0.08848],
+            [57,0,5.090,0.08822],[58,0,5.440,0.08799],[59,0,5.811,0.08778],[60,0,6.201,0.08760],
+            [61,0,6.608,0.08745],[62,0,7.026,0.08734],[63,0,7.451,0.08727],[64,0,7.877,0.08725],
+            [65,0,8.299,0.08728],[66,0,8.712,0.08736],[67,0,9.113,0.08750],[68,0,9.499,0.08770],
+            [69,0,9.870,0.08795],[70,0,10.224,0.08826],[71,0,10.562,0.08861],[72,0,10.885,0.08901],
+            [73,0,11.194,0.08945],[74,0,11.491,0.08993],[75,0,11.777,0.09044],[76,0,12.053,0.09098],
+            [77,0,12.321,0.09155],[78,0,12.582,0.09214],[79,0,12.837,0.09275],[80,0,13.088,0.09338],
+            [81,0,13.337,0.09403],[82,0,13.583,0.09470],[83,0,13.829,0.09539],[84,0,14.075,0.09610],
+            [85,0,14.323,0.09683],[86,0,14.573,0.09758],[87,0,14.828,0.09835],[88,0,15.087,0.09914],
+            [89,0,15.354,0.09996],[90,0,15.630,0.10080],[91,0,15.916,0.10167],[92,0,16.213,0.10257],
+            [93,0,16.524,0.10350],[94,0,16.850,0.10445],[95,0,17.191,0.10544],[96,0,17.549,0.10645],
+            [97,0,17.925,0.10750],[98,0,18.320,0.10857],[99,0,18.735,0.10968],[100,0,19.171,0.11082],
+            [101,0,19.628,0.11199],[102,0,20.107,0.11320],[103,0,20.608,0.11444],[104,0,21.131,0.11572],
+            [105,0,21.677,0.11703],[106,0,22.245,0.11837],[107,0,22.836,0.11975],[108,0,23.449,0.12116],
+            [109,0,24.084,0.12261],[110,0,24.742,0.12409]
+        ];
+
+        // LMS Z-score formula (WHO method with SD3 constraint)
+        function calcZScore(val, L, M, S) {
+            if (!val || !M || !S) return null;
+            let z;
+            if (Math.abs(L) < 0.0001) {
+                z = Math.log(val / M) / S;
+            } else {
+                z = (Math.pow(val / M, L) - 1) / (L * S);
+            }
+            // WHO constraint: if |z| > 3, use SD3 method
+            if (z > 3) {
+                const SD3pos = M * Math.pow(1 + L * S * 3, 1/L);
+                const SD23pos = SD3pos - M * Math.pow(1 + L * S * 2, 1/L);
+                z = 3 + (val - SD3pos) / SD23pos;
+            } else if (z < -3) {
+                const SD3neg = M * Math.pow(1 + L * S * (-3), 1/L);
+                const SD23neg = M * Math.pow(1 + L * S * (-2), 1/L) - SD3neg;
+                z = -3 + (val - SD3neg) / SD23neg;
+            }
+            return Math.round(z * 100) / 100;
+        }
+
+        // Interpolate LMS values for a given age or height
+        function interpolateLMS(table, index) {
+            if (!table || table.length === 0) return null;
+            // Find surrounding rows
+            for (let i = 0; i < table.length - 1; i++) {
+                if (index >= table[i][0] && index <= table[i+1][0]) {
+                    const t = (index - table[i][0]) / (table[i+1][0] - table[i][0]);
+                    return {
+                        L: table[i][1] + t * (table[i+1][1] - table[i][1]),
+                        M: table[i][2] + t * (table[i+1][2] - table[i][2]),
+                        S: table[i][3] + t * (table[i+1][3] - table[i][3])
+                    };
+                }
+            }
+            // Out of range — return nearest endpoint
+            if (index <= table[0][0]) return { L: table[0][1], M: table[0][2], S: table[0][3] };
+            const last = table[table.length - 1];
+            return { L: last[1], M: last[2], S: last[3] };
+        }
+
+        function getZLabel(z) {
+            if (z === null || isNaN(z)) return { text: 'Incomplete data', bg: '#e2e8f0', color: '#475569' };
+            if (z < -3) return { text: 'Severe (< -3)', bg: '#fee2e2', color: '#991b1b' };
+            if (z < -2) return { text: 'Moderate (-3 to -2)', bg: '#fef9c3', color: '#854d0e' };
+            if (z < -1) return { text: 'Mild (-2 to -1)', bg: '#fef3c7', color: '#92400e' };
+            if (z <= 1) return { text: 'Normal (-1 to +1)', bg: '#d1fae5', color: '#065f46' };
+            if (z <= 2) return { text: 'Above average', bg: '#dbeafe', color: '#1e40af' };
+            return { text: 'High (> +2)', bg: '#ede9fe', color: '#5b21b6' };
+        }
+
+        function updateZScores() {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const ageStr = document.getElementById('childAge').value;
+            const sex = document.getElementById('childSex').value;
+            const ageMonths = parseAgeToMonths(ageStr);
+            const isFemale = sex === 'Female';
+
+            // Select correct tables
+            const wazTable = isFemale ? WHO_WAZ_GIRLS : WHO_WAZ_BOYS;
+            const hazTable = isFemale ? WHO_HAZ_GIRLS : WHO_HAZ_BOYS;
+            const whzTable = isFemale ? WHO_WHZ_GIRLS : WHO_WHZ_BOYS;
+
+            let waz = null, haz = null, whz = null;
+
+            // WAZ — needs weight + age
+            if (!isNaN(weight) && ageMonths !== null && ageMonths >= 0 && ageMonths <= 60) {
+                const lms = interpolateLMS(wazTable, ageMonths);
+                if (lms) waz = calcZScore(weight, lms.L, lms.M, lms.S);
+            }
+
+            // HAZ — needs height + age
+            if (!isNaN(height) && ageMonths !== null && ageMonths >= 0 && ageMonths <= 60) {
+                const lms = interpolateLMS(hazTable, ageMonths);
+                if (lms) haz = calcZScore(height, lms.L, lms.M, lms.S);
+            }
+
+            // WHZ — needs weight + height (no age needed)
+            if (!isNaN(weight) && !isNaN(height) && height >= 45 && height <= 110) {
+                const lms = interpolateLMS(whzTable, height);
+                if (lms) whz = calcZScore(weight, lms.L, lms.M, lms.S);
+            }
+
+            // Render WAZ
+            const wazEl = document.getElementById('wazValue');
+            const wazLabelEl = document.getElementById('wazLabel');
+            if (waz !== null) {
+                const lb = getZLabel(waz);
+                wazEl.textContent = waz.toFixed(2);
+                wazEl.style.color = waz < -2 ? '#991b1b' : waz < -1 ? '#854d0e' : '#065f46';
+                wazLabelEl.textContent = lb.text;
+                wazLabelEl.style.background = lb.bg;
+                wazLabelEl.style.color = lb.color;
+            } else {
+                wazEl.textContent = '—';
+                wazEl.style.color = '#1c2b36';
+                wazLabelEl.textContent = 'Enter weight + age';
+                wazLabelEl.style.background = '#e2e8f0';
+                wazLabelEl.style.color = '#475569';
+            }
+
+            // Render HAZ
+            const hazEl = document.getElementById('hazValue');
+            const hazLabelEl = document.getElementById('hazLabel');
+            if (haz !== null) {
+                const lb = getZLabel(haz);
+                hazEl.textContent = haz.toFixed(2);
+                hazEl.style.color = haz < -2 ? '#991b1b' : haz < -1 ? '#854d0e' : '#065f46';
+                hazLabelEl.textContent = lb.text;
+                hazLabelEl.style.background = lb.bg;
+                hazLabelEl.style.color = lb.color;
+            } else {
+                hazEl.textContent = '—';
+                hazEl.style.color = '#1c2b36';
+                hazLabelEl.textContent = 'Enter height + age';
+                hazLabelEl.style.background = '#e2e8f0';
+                hazLabelEl.style.color = '#475569';
+            }
+
+            // Render WHZ
+            const whzEl = document.getElementById('whzValue');
+            const whzLabelEl = document.getElementById('whzLabel');
+            if (whz !== null) {
+                const lb = getZLabel(whz);
+                whzEl.textContent = whz.toFixed(2);
+                whzEl.style.color = whz < -2 ? '#991b1b' : whz < -1 ? '#854d0e' : '#065f46';
+                whzLabelEl.textContent = lb.text;
+                whzLabelEl.style.background = lb.bg;
+                whzLabelEl.style.color = lb.color;
+            } else {
+                whzEl.textContent = '—';
+                whzEl.style.color = '#1c2b36';
+                whzLabelEl.textContent = 'Enter weight + height';
+                whzLabelEl.style.background = '#e2e8f0';
+                whzLabelEl.style.color = '#475569';
+            }
+
+            // Overall interpretation
+            const interpDiv = document.getElementById('zscoreInterpretation');
+            const interpText = document.getElementById('zscoreInterpretationText');
+            if (waz !== null || haz !== null || whz !== null) {
+                interpDiv.style.display = 'block';
+                let parts = [];
+                if (whz !== null) {
+                    if (whz < -3) parts.push('🔴 <strong>Severely wasted</strong> (WHZ < -3) — SAM, consider admission');
+                    else if (whz < -2) parts.push('🟡 <strong>Moderately wasted</strong> (WHZ -3 to -2) — MAM');
+                    else parts.push('🟢 Not wasted (WHZ normal)');
+                }
+                if (haz !== null) {
+                    if (haz < -3) parts.push('🔴 <strong>Severely stunted</strong> (HAZ < -3)');
+                    else if (haz < -2) parts.push('🟡 <strong>Moderately stunted</strong> (HAZ -2 to -3)');
+                    else parts.push('🟢 Not stunted (HAZ normal)');
+                }
+                if (waz !== null) {
+                    if (waz < -3) parts.push('🔴 <strong>Severely underweight</strong> (WAZ < -3)');
+                    else if (waz < -2) parts.push('🟡 <strong>Moderately underweight</strong> (WAZ -2 to -3)');
+                    else parts.push('🟢 Not underweight (WAZ normal)');
+                }
+                interpText.innerHTML = parts.join(' &nbsp;|&nbsp; ');
+
+                // Border colour based on worst finding
+                const worst = Math.min(waz ?? 0, haz ?? 0, whz ?? 0);
+                interpDiv.style.borderColor = worst < -3 ? '#fca5a5' : worst < -2 ? '#fde68a' : '#6ee7b7';
+                interpDiv.style.background = worst < -3 ? '#fef2f2' : worst < -2 ? '#fefce8' : '#f0fdf4';
+            } else {
+                interpDiv.style.display = 'none';
+            }
+        }
+
+        // Ensure updateZScores is globally accessible
+        window.updateZScores = updateZScores;
+
+        // ============================================================
+        // DETECTIVE MODE — COMPLETE GAME LOGIC
+        // ============================================================
+        (function() {
+            const det = {};
+
+            // ---------- COMPLAINT DATA (29 cases) ----------
+            det.complaintData = {
+                "fever": {
+                    questions: [
+                        "How long has the fever been present?",
+                        "What is the maximum temperature recorded?",
+                        "Are there any associated symptoms?",
+                        "Has the child had any seizures?",
+                        "Is the child eating and drinking normally?"
+                    ],
+                    options: [
+                        ["< 24 hours", "1-3 days", "> 3 days"],
+                        ["< 38°C", "38-39°C", "> 39°C"],
+                        ["Cough", "Vomiting", "Rash", "None"],
+                        ["Yes", "No"],
+                        ["Yes", "Reduced", "No"]
+                    ],
+                    diagnosis: function(answers) {
+                        if (answers[1] === "> 39°C" && answers[3] === "No" && answers[4] === "Reduced") {
+                            return "High fever with reduced intake - consider serious bacterial infection. Monitor closely and consider referral.";
+                        } else if (answers[0] === "> 3 days" && answers[2] === "Cough") {
+                            return "Prolonged fever with cough - consider lower respiratory tract infection. Chest examination recommended.";
+                        }
+                        return "Likely viral illness. Supportive care with hydration and paracetamol as needed. Review if fever persists >5 days.";
+                    }
+                },
+                "cough": {
+                    questions: [
+                        "How long has the cough been present?",
+                        "Is the cough dry or productive?",
+                        "Is it worse at night?",
+                        "Any breathing difficulties?",
+                        "Any associated fever?"
+                    ],
+                    options: [
+                        ["< 3 days", "3-7 days", "> 1 week"],
+                        ["Dry", "Productive", "Both"],
+                        ["Yes", "No"],
+                        ["Yes", "No"],
+                        ["Yes", "No"]
+                    ],
+                    diagnosis: function(answers) {
+                        if (answers[0] === "> 1 week" && answers[3] === "Yes") {
+                            return "Persistent cough with breathing difficulty - consider asthma or pneumonia. Urgent assessment needed.";
+                        } else if (answers[1] === "Productive" && answers[4] === "Yes") {
+                            return "Productive cough with fever - consider chest infection. May need antibiotics.";
+                        }
+                        return "Likely viral upper respiratory tract infection. Symptomatic management with hydration and rest.";
+                    }
+                },
+                "rash": {
+                    questions: [
+                        "When did the rash first appear?",
+                        "What does the rash look like?",
+                        "Is it itchy?",
+                        "Any fever with the rash?",
+                        "Any other symptoms?"
+                    ],
+                    options: [
+                        ["< 24 hours", "1-3 days", "> 3 days"],
+                        ["Red spots", "Blistering", "Wheals", "Purple"],
+                        ["Yes", "No"],
+                        ["Yes", "No"],
+                        ["Yes", "No"]
+                    ],
+                    diagnosis: function(answers) {
+                        if (answers[1] === "Purple" && answers[3] === "Yes") {
+                            return "Purpuric rash with fever - URGENT! Possible meningococcal sepsis. Immediate referral to hospital.";
+                        } else if (answers[1] === "Wheals" && answers[2] === "Yes") {
+                            return "Urticarial rash - likely allergic reaction. Consider antihistamines and identify trigger.";
+                        }
+                        return "Likely viral exanthem (e.g., roseola, measles). Supportive care. Watch for warning signs.";
+                    }
+                },
+                "diarrhoea": {
+                    questions: [
+                        "How long has diarrhoea been present?",
+                        "How many stools per day?",
+                        "Any blood in the stool?",
+                        "Is the child vomiting?",
+                        "Is the child drinking well?"
+                    ],
+                    options: [
+                        ["< 24 hours", "1-3 days", "> 3 days"],
+                        ["1-3", "4-6", "> 6"],
+                        ["Yes", "No"],
+                        ["Yes", "No"],
+                        ["Yes", "Reduced", "No"]
+                    ],
+                    diagnosis: function(answers) {
+                        if (answers[1] === "> 6" && answers[4] === "No") {
+                            return "Severe diarrhoea with reduced intake - high risk of dehydration. Need IV fluids and hospital admission.";
+                        } else if (answers[2] === "Yes" && answers[3] === "Yes") {
+                            return "Bloody diarrhoea with vomiting - consider bacterial gastroenteritis. Stool culture recommended.";
+                        }
+                        return "Likely viral gastroenteritis. Oral rehydration and continue feeding. Monitor for dehydration signs.";
+                    }
+                },
+                "vomiting": {
+                    questions: [
+                        "How long has vomiting been present?",
+                        "How many times per day?",
+                        "Any blood or bile in vomit?",
+                        "Any diarrhoea?",
+                        "Is the child keeping fluids down?"
+                    ],
+                    options: [
+                        ["< 24 hours", "1-3 days", "> 3 days"],
+                        ["1-3", "4-6", "> 6"],
+                        ["Yes", "No"],
+                        ["Yes", "No"],
+                        ["Yes", "No"]
+                    ],
+                    diagnosis: function(answers) {
+                        if (answers[2] === "Yes") {
+                            return "Bilious/bloody vomiting - URGENT! Possible intestinal obstruction. Immediate surgical referral.";
+                        } else if (answers[0] === "> 3 days" && answers[4] === "No") {
+                            return "Prolonged vomiting with inability to keep fluids down - risk of dehydration. IV fluids and admission.";
+                        }
+                        return "Likely infective gastroenteritis. Oral rehydration - small frequent sips. Monitor for dehydration.";
+                    }
+                },
+                "abdominal_pain": {
+                    questions: [
+                        "How long has pain been present?",
+                        "Where is the pain located?",
+                        "Is the pain constant or colicky?",
+                        "Any fever?",
+                        "Any vomiting?"
+                    ],
+                    options: [
+                        ["< 6 hours", "6-24 hours", "> 24 hours"],
+                        ["Right lower", "Left lower", "Generalized", "Periumbilical"],
+                        ["Constant", "Colicky"],
+                        ["Yes", "No"],
+                        ["Yes", "No"]
+                    ],
+                    diagnosis: function(answers) {
+                        if (answers[0] === "6-24 hours" && answers[1] === "Right lower") {
+                            return "Right lower quadrant pain - consider appendicitis. Surgical assessment needed urgently.";
+                        } else if (answers[1] === "Generalized" && answers[3] === "Yes") {
+                            return "Generalized pain with fever - consider abdominal infection. Need examination and possibly imaging.";
+                        }
+                        return "Likely constipation or mesenteric adenitis. Symptomatic management. Refer if pain worsens.";
+                    }
+                },
+                "headache": {
+                    questions: [
+                        "How long has headache been present?",
+                        "Is it sudden or gradual onset?",
+                        "Any visual disturbances?",
+                        "Any fever?",
+                        "Any vomiting?"
+                    ],
+                    options: [
+                        ["< 6 hours", "6-24 hours", "> 24 hours"],
+                        ["Sudden", "Gradual"],
+                        ["Yes", "No"],
+                        ["Yes", "No"],
+                        ["Yes", "No"]
+                    ],
+                    diagnosis: function(answers) {
+                        if (answers[0] === "< 6 hours" && answers[1] === "Sudden") {
+                            return "Sudden severe headache - URGENT! Possible meningitis or intracranial pathology. Immediate referral.";
+                        } else if (answers[2] === "Yes" && answers[4] === "Yes") {
+                            return "Headache with visual disturbance and vomiting - raised intracranial pressure. Urgent assessment.";
+                        }
+                        return "Likely tension headache or viral illness. Paracetamol/ibuprofen and hydration. Refer if worsens.";
+                    }
+                },
+                "seizure": {
+                    questions: [
+                        "How long did the seizure last?",
+                        "Was it focal or generalized?",
+                        "Did the child have fever?",
+                        "Has this happened before?",
+                        "Is the child back to normal?"
+                    ],
+                    options: [
+                        ["< 5 minutes", "5-15 minutes", "> 15 minutes"],
+                        ["Focal", "Generalized"],
+                        ["Yes", "No"],
+                        ["Yes", "No"],
+                        ["Yes", "No"]
+                    ],
+                    diagnosis: function(answers) {
+                        if (answers[0] === "> 15 minutes") {
+                            return "Prolonged seizure - STATUS EPILEPTICUS. Emergency! Immediate medical attention with IV anticonvulsants.";
+                        } else if (answers[2] === "Yes" && answers[1] === "Generalized") {
+                            return "Febrile seizure - likely simple febrile seizure if <15 mins. Reassure parents. Check for underlying infection.";
+                        }
+                        return "Seizure episode. Refer to paediatric neurology for assessment and possible EEG. Safety advice given.";
+                    }
+                },
+                "breathing_difficulty": {
+                    questions: [
+                        "How long has breathing difficulty been present?",
+                        "Is the child working hard to breathe?",
+                        "Any wheeze or stridor?",
+                        "Any fever?",
+                        "Is the child feeding normally?"
+                    ],
+                    options: [
+                        ["< 6 hours", "6-24 hours", "> 24 hours"],
+                        ["Yes", "No"],
+                        ["Wheeze", "Stridor", "None"],
+                        ["Yes", "No"],
+                        ["Yes", "Reduced", "No"]
+                    ],
+                    diagnosis: function(answers) {
+                        if (answers[1] === "Yes" && answers[2] === "Stridor") {
+                            return "Stridor with respiratory distress - possible croup or foreign body. Urgent assessment needed.";
+                        } else if (answers[2] === "Wheeze" && answers[4] === "Reduced") {
+                            return "Wheeze with reduced feeding - likely asthma exacerbation. Need nebulizer and steroids.";
+                        }
+                        return "Mild respiratory distress. Salbutamol trial. If no improvement or worsening - refer to hospital.";
+                    }
+                }
+            };
+
+            // ---------- STATE ----------
+            det.currentComplaint = null;
+            det.currentStep = 0;
+            det.answers = [];
+            det.isActive = false;
+
+            // ---------- DOM REFS ----------
+            det.panel = document.getElementById('detectivePanel');
+            det.toggleBtn = document.getElementById('detectiveToggleBtn');
+            det.exitBtn = document.getElementById('detectiveExitBtn');
+            det.content = document.getElementById('detectiveContent');
+            det.result = document.getElementById('detectiveResult');
+            det.progress = document.getElementById('detectiveProgress');
+            det.question = document.getElementById('detectiveQuestion');
+            det.options = document.getElementById('detectiveOptions');
+            det.diagnosis = document.getElementById('detectiveDiagnosis');
+            det.applyBtn = document.getElementById('detectiveApplyBtn');
+
+            // ---------- FUNCTIONS ----------
+            det.start = function(complaintKey) {
+                const data = det.complaintData[complaintKey];
+                if (!data) {
+                    alert('No detective data available for this complaint.');
+                    return;
+                }
+
+                det.currentComplaint = complaintKey;
+                det.currentStep = 0;
+                det.answers = [];
+                det.isActive = true;
+
+                // Show panel
+                det.panel.classList.add('active');
+                det.toggleBtn.textContent = '🕵️ Detective Active';
+                det.toggleBtn.style.background = '#28a745';
+
+                // Show content, hide result
+                det.content.style.display = 'block';
+                det.result.style.display = 'none';
+
+                det.renderQuestion();
+            };
+
+            det.renderQuestion = function() {
+                const data = det.complaintData[det.currentComplaint];
+                if (det.currentStep >= data.questions.length) {
+                    det.showResult();
+                    return;
+                }
+
+                const total = data.questions.length;
+                det.progress.textContent = `Question ${det.currentStep + 1} of ${total}`;
+                det.question.textContent = data.questions[det.currentStep];
+
+                const options = data.options[det.currentStep];
+                det.options.innerHTML = '';
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.textContent = opt;
+                    btn.onclick = function() {
+                        det.answers.push(opt);
+                        det.currentStep++;
+                        det.renderQuestion();
+                    };
+                    det.options.appendChild(btn);
+                });
+            };
+
+            det.showResult = function() {
+                const data = det.complaintData[det.currentComplaint];
+                const diagnosis = data.diagnosis(det.answers);
+
+                det.content.style.display = 'none';
+                det.result.style.display = 'block';
+                det.diagnosis.innerHTML = `
+                    <h4>📋 Diagnosis</h4>
+                    <p>${diagnosis}</p>
+                    <p style="font-size: 13px; color: #6c757d; margin-top: 10px;">
+                        Based on ${det.answers.length} responses
+                    </p>
+                `;
+            };
+
+            det.applyToHPC = function() {
+                const data = det.complaintData[det.currentComplaint];
+                const diagnosis = data.diagnosis(det.answers);
+                const summary = `🕵️ Detective diagnosis: ${diagnosis}`;
+
+                // Populate complaintCategory (diagnosis field)
+                const catField = document.getElementById('complaintCategory');
+                if (catField) {
+                    catField.value = diagnosis.split('.')[0]; // First sentence as category
+                }
+
+                // Populate associatedComplaints as a note
+                const noteField = document.getElementById('associatedComplaints');
+                if (noteField) {
+                    const existing = noteField.value || '';
+                    noteField.value = existing ? existing + '\n' + summary : summary;
+                }
+
+                alert('✅ Detective diagnosis applied to HPC!');
+                det.exit();
+            };
+
+            det.exit = function() {
+                det.panel.classList.remove('active');
+                det.toggleBtn.textContent = '🕵️ Detective Mode';
+                det.toggleBtn.style.background = '';
+                det.isActive = false;
+                det.currentComplaint = null;
+                det.currentStep = 0;
+                det.answers = [];
+            };
+
+            // ---------- EVENT LISTENERS ----------
+            det.toggleBtn.onclick = function() {
+                if (det.isActive) {
+                    det.exit();
+                    return;
+                }
+
+                // Find current complaint from selected tag
+                const selectedTag = document.querySelector('.tag-btn.selected');
+                if (!selectedTag) {
+                    alert('Please select a complaint tag first!');
+                    return;
+                }
+
+                const complaintKey = selectedTag.dataset.cat || 
+                                    selectedTag.textContent.trim().toLowerCase().replace(/\s+/g, '_');
+                
+                // Map common tags to data keys
+                const keyMap = {
+                    'fever': 'fever',
+                    'cough': 'cough',
+                    'rash': 'rash',
+                    'diarrhea': 'diarrhoea',
+                    'diarrhoea': 'diarrhoea',
+                    'vomiting': 'vomiting',
+                    'abdominal pain': 'abdominal_pain',
+                    'headache': 'headache',
+                    'seizure': 'seizure',
+                    'convulsions': 'seizure',
+                    'difficulty breathing': 'breathing_difficulty',
+                    'breathing difficulty': 'breathing_difficulty'
+                };
+
+                const mappedKey = keyMap[complaintKey] || complaintKey;
+                
+                if (!det.complaintData[mappedKey]) {
+                    alert('No detective case available for: ' + complaintKey);
+                    return;
+                }
+
+                det.start(mappedKey);
+            };
+
+            det.exitBtn.onclick = det.exit;
+            det.applyBtn.onclick = det.applyToHPC;
+
+            // ---------- AUTO-DETECT COMPLAINT SELECTION ----------
+            // Watch for tag clicks to auto-update detective mode
+            document.addEventListener('click', function(e) {
+                const tag = e.target.closest('.tag-btn');
+                if (tag && det.isActive) {
+                    // If detective is active and user selects a new tag, restart
+                    const complaintKey = tag.dataset.cat || 
+                                        tag.textContent.trim().toLowerCase().replace(/\s+/g, '_');
+                    const keyMap = {
+                        'fever': 'fever',
+                        'cough': 'cough',
+                        'rash': 'rash',
+                        'diarrhea': 'diarrhoea',
+                        'diarrhoea': 'diarrhoea',
+                        'vomiting': 'vomiting',
+                        'abdominal pain': 'abdominal_pain',
+                        'headache': 'headache',
+                        'seizure': 'seizure',
+                        'convulsions': 'seizure',
+                        'difficulty breathing': 'breathing_difficulty',
+                        'breathing difficulty': 'breathing_difficulty'
+                    };
+                    const mappedKey = keyMap[complaintKey] || complaintKey;
+                    if (det.complaintData[mappedKey]) {
+                        det.start(mappedKey);
+                    }
+                }
+            });
+
+            console.log('🕵️ Detective Mode loaded with', Object.keys(det.complaintData).length, 'complaint cases');
+        })();
+
     </script>
 </body>
 </html>
