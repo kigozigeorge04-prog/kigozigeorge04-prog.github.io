@@ -860,62 +860,73 @@ if (tokenType === 'recovery') {
         return;
     }
 
-    // ── Auth state listener ──────────────────────────────────
+// ── Auth state listener (single, clean) ──────────────────
+    let redirecting = false; // prevents double-redirects from multiple events firing close together
 
-       sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'PASSWORD_RECOVERY') {
-        inPasswordRecovery = true;
-        hideOverlay();
-        showResetForm();
-        return;
-    }
-    if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
-        // In the auth state listener, update this:
-sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
-        const user = session.user;
-        const email = user.email || user.user_metadata?.email;
-        
-        // Pass email explicitly
-        await upsertProfile(user, {
-            name: user.user_metadata?.full_name || 
-                  user.user_metadata?.name || 
-                  email || 
-                  'Unknown',
-            email: email  // ← Pass email explicitly
-        });
-        
-        localStorage.setItem('easemed_user', email);
-        window.location.href = DASHBOARD_URL;
-    }
-});
-        
-        // normal login flow
-        localStorage.setItem('easemed_user', session.user.email);
-        localStorage.setItem('easemed_user_name',
-            session.user.user_metadata?.full_name ||
-            session.user.user_metadata?.name ||
-            session.user.email);
-         await upsertProfile(session.user, {
-            name: session.user.user_metadata?.full_name ||
-                  session.user.user_metadata?.name ||
-                  session.user.email
-        });
-        window.location.href = DASHBOARD_URL;
-    }
-});
+    sb.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+            inPasswordRecovery = true;
+            hideOverlay();
+            showResetForm();
+            return;
+        }
+
+        if (event === 'SIGNED_IN' && session && !inPasswordRecovery && !redirecting) {
+            redirecting = true;
+            const user = session.user;
+            const email = user.email || user.user_metadata?.email;
+            const name = user.user_metadata?.full_name ||
+                         user.user_metadata?.name ||
+                         email || 'Unknown';
+
+            localStorage.setItem('easemed_user', email);
+            localStorage.setItem('easemed_user_name', name);
+
+            await upsertProfile(user, { name, email });
+
+            window.location.href = DASHBOARD_URL;
+            return;
+        }
+
+        if (event === 'SIGNED_OUT') {
+            localStorage.removeItem('easemed_user');
+            localStorage.removeItem('easemed_user_name');
+        }
+
+        if (event === 'TOKEN_REFRESH_FAILED') {
+            // Refresh token is dead — force a clean sign-out so the user
+            // gets a real login screen instead of a stuck "connection error"
+            console.warn('[EaseMed] Token refresh failed, clearing session.');
+            localStorage.removeItem('easemed_user');
+            localStorage.removeItem('easemed_user_name');
+            await sb.auth.signOut();
+        }
+    });
+
     // ── Check existing session ──────────────────────────────
     setOverlayStatus('Checking session...');
     try {
-       const { data: { session } } = await withTimeout(
-    sb.auth.getSession(), 8000, 'Session check'
-);
-if (session && !inPasswordRecovery) {  // ← already there, just make sure it's checking the flag set above
-    window.location.href = DASHBOARD_URL;
-    return;
+        const { data: { session }, error: sessionError } = await withTimeout(
+            sb.auth.getSession(), 8000, 'Session check'
+        );
+
+        if (sessionError) {
+            // Stale/corrupted session — clear it instead of showing a raw error
+            console.warn('[EaseMed] Session check returned error, clearing:', sessionError.message);
+            localStorage.removeItem('easemed_user');
+            localStorage.removeItem('easemed_user_name');
+            await sb.auth.signOut();
+        } else if (session && !inPasswordRecovery && !redirecting) {
+            redirecting = true;
+            window.location.href = DASHBOARD_URL;
+            return;
         }
     } catch (e) {
-        console.warn('[EaseMed] Session check failed:', e.message);
+        // Timed out or threw — same treatment: clear the bad local state
+        console.warn('[EaseMed] Session check failed, clearing local session:', e.message);
+        localStorage.removeItem('easemed_user');
+        localStorage.removeItem('easemed_user_name');
+        try { await sb.auth.signOut(); } catch (_) {}
     }
 
     if (!inPasswordRecovery) {
