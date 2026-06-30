@@ -1151,10 +1151,18 @@ async function handleSignup() {
             sb.auth.signUp({
                 email,
                 password,
-                options: {
-                    data: { full_name: name, role, university, year_of_study: yearOfStudy },
-                    emailRedirectTo: window.location.origin + '/' + DASHBOARD_URL,
-                }
+               options: {
+    data: {
+        full_name: name,
+        role,
+        university,
+        year_of_study: yearOfStudy.match(/\d+/) ? yearOfStudy.match(/\d+/)[0] : null,
+        phone,
+        license_number: license,
+        hospital: location
+    },
+    emailRedirectTo: window.location.origin + '/' + DASHBOARD_URL,
+}
             }),
             10000, 'Signup'
         ));
