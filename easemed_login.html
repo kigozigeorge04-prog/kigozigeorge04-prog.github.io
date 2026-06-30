@@ -962,49 +962,72 @@ async function upsertProfile(user, extra) {
         console.warn('[EaseMed] Supabase client not initialized');
         return;
     }
-    
+
     if (!user || !user.id) {
         console.warn('[EaseMed] Invalid user object provided');
         return;
     }
-    
-    // Try multiple sources for email
-    const email = user.email || 
-                  extra?.email || 
-                  user.user_metadata?.email || 
-                  user.user_metadata?.email_address || 
+
+    const email = user.email ||
+                  extra?.email ||
+                  user.user_metadata?.email ||
+                  user.user_metadata?.email_address ||
                   null;
-    
+
     if (!email) {
         console.warn('[EaseMed] No email available for profile upsert');
         return;
     }
-    
-    const fullName = extra?.name || 
-                     user.user_metadata?.full_name || 
-                     user.user_metadata?.name || 
-                     email.split('@')[0] || 
+
+    const fullName = extra?.name ||
+                     user.user_metadata?.full_name ||
+                     user.user_metadata?.name ||
+                     email.split('@')[0] ||
                      'Unknown';
-    
+
+    // Extract just the number from "Year 3" / "Postgraduate Year 1" etc.
+    // Falls back to null if no digit found (e.g. "Graduated / Professional")
+    let yearOfStudyInt = null;
+    if (extra?.yearOfStudy) {
+        const match = extra.yearOfStudy.match(/\d+/);
+        if (match) yearOfStudyInt = parseInt(match[0], 10);
+    }
+
     try {
+        // Build base payload with fields that always exist
         const profileData = {
             id: user.id,
             email: email,
             full_name: fullName,
             role: extra?.role || user.user_metadata?.role || 'Medical Student',
             university: extra?.university || '',
-            year_of_study: extra?.yearOfStudy || '',
+            year_of_study: yearOfStudyInt,
             phone: extra?.phone || '',
-            license_no: extra?.license || '',
-            location: extra?.location || '',
-            provider: user.app_metadata?.provider || 'email',
+            license_number: extra?.license || '',
+            hospital: extra?.location || '',
             updated_at: new Date().toISOString(),
         };
-        
-        const { error } = await sb.from('profiles').upsert(profileData, { 
-            onConflict: 'id' 
+
+        // Check if a row already exists — only set these defaults on INSERT,
+        // never overwrite them on an existing user (e.g. don't reset their
+        // subscription_status back to 'inactive' every time they log in)
+        const { data: existing } = await sb
+            .from('profiles')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (!existing) {
+            profileData.status = 'active';
+            profileData.plan = 'free';
+            profileData.subscription_status = 'inactive';
+            profileData.created_at = new Date().toISOString();
+        }
+
+        const { error } = await sb.from('profiles').upsert(profileData, {
+            onConflict: 'id'
         });
-        
+
         if (error) {
             console.warn('[EaseMed] Profile upsert failed:', error.message);
         } else {
@@ -1013,8 +1036,7 @@ async function upsertProfile(user, extra) {
     } catch (e) {
         console.warn('[EaseMed] Profile upsert exception:', e.message);
     }
-}
-    // ── EMAIL / PASSWORD LOGIN (unchanged) ─────────────────────
+}    // ── EMAIL / PASSWORD LOGIN (unchanged) ─────────────────────
 async function handleLogin() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
