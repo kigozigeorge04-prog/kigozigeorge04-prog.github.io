@@ -780,25 +780,206 @@
         }
 
         /* ============================================================
-           XP — PHYSICAL EXAMINATION (Hutchison's steps)
+           COMPLAINT SLOTS — with collapsible slots 2 & 3
+           ============================================================ */
+        .complaint-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 6px;
+        }
+        .complaint-slot {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            overflow: hidden;
+        }
+        .complaint-slot:focus-within {
+            border-color: #94a3b8;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+        }
+        .complaint-slot.has-symptom {
+            border-color: #b9d0f0;
+        }
+        .slot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            user-select: none;
+            background: #f1f5f9;
+            border-bottom: 1px solid transparent;
+            transition: background 0.15s;
+        }
+        .slot-header:hover {
+            background: #e9edf2;
+        }
+        .slot-header .slot-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .slot-header .slot-label .required-star {
+            color: #dc2626;
+            font-weight: 700;
+        }
+        .slot-header .slot-label .optional-tag {
+            font-weight: 400;
+            font-size: 0.7rem;
+            color: #64748b;
+            background: #e9edf2;
+            padding: 0 8px;
+            border-radius: 12px;
+            margin-left: 4px;
+        }
+        .slot-header .status-badge {
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #e9edf2;
+            color: #475569;
+            transition: all 0.2s;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+        .slot-header .status-badge.has-symptom {
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+        .slot-header .status-badge.red-flag {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+        .slot-toggle-icon {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-left: 8px;
+            transition: transform 0.2s;
+        }
+        .slot-body {
+            padding: 0 16px 16px 16px;
+            display: block;
+        }
+        .slot-body.collapsed {
+            display: none;
+        }
+        .slot-symptom-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-height: 160px;
+            overflow-y: auto;
+            padding: 2px 0 6px;
+        }
+        .slot-symptom-btn {
+            background: #f1f4f9;
+            border: 1px solid #e2e8f0;
+            padding: 5px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #2d3748;
+            white-space: nowrap;
+        }
+        .slot-symptom-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 60, 114, 0.12);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-color: #1e3c72;
+        }
+        .slot-symptom-btn.active {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(30, 60, 114, 0.2);
+            border-color: #1e3c72;
+            transform: scale(1.03);
+        }
+        .slot-custom-input {
+            margin-top: 8px;
+            width: 100%;
+            padding: 6px 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        .slot-custom-input:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.06);
+        }
+        .slot-questions {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #e2e8f0;
+        }
+        .slot-questions .alert.warning {
+            font-size: 0.78rem;
+            padding: 8px 12px;
+        }
+
+        /* Hutchison banner */
+        .hutchison-banner {
+            background: #f0f7ff;
+            border-left: 5px solid #2563eb;
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.88rem;
+            color: #1e293b;
+        }
+        .hutchison-banner .icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .hutchison-banner strong {
+            color: #1e40af;
+        }
+        .hutchison-banner .rule-highlight {
+            background: #dbeafe;
+            padding: 0 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* ============================================================
+           NEW PHYSICAL EXAMINATION (XP) — HUTCHISON'S 4‑STEP
            ============================================================ */
         .xp-shell {
             max-width: 1600px;
             margin: 20px auto;
-            padding: 0 20px
+            padding: 0 20px;
         }
         .xp-panel {
             background: rgba(255, 255, 255, 0.97);
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 20px 45px rgba(15, 32, 39, 0.2);
-            overflow: hidden
+            overflow: hidden;
         }
         .xp-topbar {
             background: linear-gradient(135deg, #0f2027 0%, #1e3c72 55%, #2a9d8f 100%);
             cursor: pointer;
             user-select: none;
-            position: relative
+            position: relative;
         }
         .xp-topbar::after {
             content: '';
@@ -809,14 +990,14 @@
             height: 3px;
             background: linear-gradient(90deg, #2a9d8f, #f4d35e, #e74c3c, #2a9d8f);
             background-size: 200% 100%;
-            animation: shimmer 4s linear infinite
+            animation: shimmer 4s linear infinite;
         }
         @keyframes shimmer {
             0% {
-                background-position: 0% 0%
+                background-position: 0% 0%;
             }
             100% {
-                background-position: 200% 0%
+                background-position: 200% 0%;
             }
         }
         .xp-topbar-inner {
@@ -825,12 +1006,12 @@
             justify-content: space-between;
             padding: 14px 24px;
             gap: 12px;
-            flex-wrap: wrap
+            flex-wrap: wrap;
         }
         .xp-topbar-left {
             display: flex;
             align-items: center;
-            gap: 12px
+            gap: 12px;
         }
         .xp-topbar-icon {
             width: 40px;
@@ -841,24 +1022,24 @@
             display: grid;
             place-items: center;
             font-size: 18px;
-            flex-shrink: 0
+            flex-shrink: 0;
         }
         .xp-topbar-text h2 {
             color: #fff;
             font-size: 1rem;
             font-weight: 700;
-            margin: 0
+            margin: 0;
         }
         .xp-topbar-text p {
             color: rgba(255, 255, 255, 0.65);
             font-size: 0.7rem;
-            margin: 0
+            margin: 0;
         }
         .xp-topbar-right {
             display: flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap
+            flex-wrap: wrap;
         }
         .xp-progress-pill {
             background: rgba(255, 255, 255, 0.1);
@@ -867,10 +1048,10 @@
             font-size: 0.7rem;
             font-weight: 700;
             padding: 4px 12px;
-            border-radius: 20px
+            border-radius: 20px;
         }
         .xp-progress-pill span {
-            color: #2a9d8f
+            color: #2a9d8f;
         }
         .xp-toggle-btn {
             background: rgba(255, 255, 255, 0.12);
@@ -885,50 +1066,51 @@
             align-items: center;
             gap: 6px;
             transition: background 0.2s;
-            white-space: nowrap
+            white-space: nowrap;
         }
         .xp-toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.2)
+            background: rgba(255, 255, 255, 0.2);
         }
         .xp-toggle-arrow {
             display: inline-block;
             transition: transform 0.3s ease;
-            font-size: 0.65rem
+            font-size: 0.65rem;
         }
         .xp-toggle-btn.open .xp-toggle-arrow {
-            transform: rotate(180deg)
+            transform: rotate(180deg);
         }
         .xp-body {
-            display: none
+            display: none;
         }
         .xp-body.open {
             display: block;
-            animation: xpSlideDown 0.25s ease
+            animation: xpSlideDown 0.25s ease;
         }
         @keyframes xpSlideDown {
             from {
                 opacity: 0;
-                transform: translateY(-8px)
+                transform: translateY(-8px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0)
+                transform: translateY(0);
             }
         }
+
         .xp-tabs-wrap {
             border-bottom: 1px solid #e8f0f5;
             background: #f8fafc;
             padding: 0 16px;
             overflow-x: auto;
-            scrollbar-width: none
+            scrollbar-width: none;
         }
         .xp-tabs-wrap::-webkit-scrollbar {
-            display: none
+            display: none;
         }
         .xp-tabs {
             display: flex;
             gap: 2px;
-            min-width: max-content
+            min-width: max-content;
         }
         .xp-tab {
             display: flex;
@@ -945,48 +1127,50 @@
             border-bottom: 3px solid transparent;
             margin-bottom: -1px;
             transition: all 0.15s;
-            white-space: nowrap
+            white-space: nowrap;
         }
         .xp-tab:hover {
             color: #1e3c72;
-            background: rgba(30, 60, 114, 0.04)
+            background: rgba(30, 60, 114, 0.04);
         }
         .xp-tab.active {
             color: #1e3c72;
             border-bottom-color: #1e3c72;
-            background: white
+            background: white;
         }
         .xp-tab-dot {
             width: 6px;
             height: 6px;
             border-radius: 50%;
             background: #e2e8f0;
-            transition: background 0.2s
+            transition: background 0.2s;
         }
         .xp-tab.done .xp-tab-dot {
-            background: #2a9d8f
+            background: #2a9d8f;
         }
         .xp-tab.active .xp-tab-dot {
-            background: #1e3c72
+            background: #1e3c72;
         }
+
         .xp-content {
-            padding: 18px 20px
+            padding: 18px 20px;
         }
         .xp-pane {
-            display: none
+            display: none;
         }
         .xp-pane.active {
             display: block;
-            animation: xpFadeIn 0.2s ease
+            animation: xpFadeIn 0.2s ease;
         }
         @keyframes xpFadeIn {
             from {
-                opacity: 0
+                opacity: 0;
             }
             to {
-                opacity: 1
+                opacity: 1;
             }
         }
+
         .xp-guide {
             display: flex;
             align-items: flex-start;
@@ -998,24 +1182,25 @@
             margin-bottom: 14px;
             font-size: 0.8rem;
             color: #2c3e50;
-            line-height: 1.5
+            line-height: 1.5;
         }
         .xp-guide-icon {
             font-size: 18px;
-            flex-shrink: 0
+            flex-shrink: 0;
         }
+
         .xp-vitals-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 8px;
-            margin-bottom: 14px
+            margin-bottom: 14px;
         }
         .xp-vital {
             background: white;
             border: 1.5px solid #e2e8f0;
             border-radius: 10px;
             padding: 8px 12px;
-            position: relative
+            position: relative;
         }
         .xp-vital label {
             font-size: 0.55rem;
@@ -1023,7 +1208,7 @@
             color: #718096;
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            margin-bottom: 2px
+            margin-bottom: 2px;
         }
         .xp-vital input {
             width: 100%;
@@ -1033,7 +1218,7 @@
             font-weight: 700;
             color: #1e3c72;
             padding: 0;
-            outline: none
+            outline: none;
         }
         .xp-vital-unit {
             position: absolute;
@@ -1041,55 +1226,56 @@
             right: 10px;
             font-size: 0.55rem;
             color: #a0aec0;
-            font-weight: 600
+            font-weight: 600;
         }
         .xp-vital.bmi-card {
-            border-color: #2a9d8f
+            border-color: #2a9d8f;
         }
         .xp-vital.bmi-card input {
-            color: #2a9d8f
+            color: #2a9d8f;
         }
-        .xp-two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px
+
+        .xp-step-accordion {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            background: white;
         }
-        @media (max-width: 768px) {
-            .xp-two-col {
-                grid-template-columns: 1fr
-            }
-        }
-        .xp-col-label {
-            font-size: 0.65rem;
-            font-weight: 800;
-            color: #1e3c72;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 6px;
+        .xp-step-header {
+            background: #f8fafc;
+            padding: 8px 14px;
+            cursor: pointer;
             display: flex;
-            justify-content: space-between
-        }
-        .xp-col-count {
-            background: #e8f4f8;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.8rem;
             color: #1e3c72;
-            font-size: 0.6rem;
-            padding: 1px 8px;
-            border-radius: 12px
+            border-bottom: 1px solid transparent;
+            transition: background 0.15s;
         }
-        .xp-step-label {
-            font-weight: 700;
-            color: #1e3c72;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            margin: 8px 0 4px;
-            padding-top: 6px;
-            border-top: 1px dashed #dbe7ef
+        .xp-step-header:hover {
+            background: #edf2f7;
+        }
+        .xp-step-header .step-arrow {
+            transition: transform 0.2s;
+        }
+        .xp-step-header.open .step-arrow {
+            transform: rotate(180deg);
+        }
+        .xp-step-body {
+            padding: 10px 14px;
+            display: none;
+        }
+        .xp-step-body.open {
+            display: block;
         }
         .xp-findings-wrap {
             display: flex;
             flex-wrap: wrap;
-            gap: 4px
+            gap: 4px;
+            margin-bottom: 6px;
         }
         .xp-finding-tag {
             display: inline-flex;
@@ -1105,35 +1291,26 @@
             cursor: pointer;
             transition: all 0.15s;
             user-select: none;
-            position: relative
+            position: relative;
         }
         .xp-finding-tag:hover {
             border-color: #1e3c72;
-            background: #f0f7ff
+            background: #f0f7ff;
         }
         .xp-finding-tag input[type="checkbox"] {
-            display: none
+            display: none;
         }
         .xp-finding-tag.selected {
             background: #1e3c72;
             border-color: #1e3c72;
-            color: white
+            color: white;
         }
         .xp-finding-tag.selected .xp-tag-check {
-            opacity: 1
+            opacity: 1;
         }
         .xp-tag-check {
             opacity: 0;
-            font-size: 0.6rem
-        }
-        .xp-finding-tag.sub {
-            background: #f8fafc;
-            border-color: #e2e8f0
-        }
-        .xp-finding-tag.sub.selected {
-            background: #2a9d8f;
-            border-color: #2a9d8f;
-            color: white
+            font-size: 0.6rem;
         }
         .xp-diff-tooltip {
             position: absolute;
@@ -1154,7 +1331,7 @@
             pointer-events: none;
             z-index: 30;
             transition: opacity 0.15s ease, transform 0.15s ease;
-            white-space: normal
+            white-space: normal;
         }
         .xp-diff-tooltip::after {
             content: '';
@@ -1164,17 +1341,13 @@
             transform: translateX(-50%);
             border-width: 5px 5px 0 5px;
             border-style: solid;
-            border-color: #102a43 transparent transparent transparent
+            border-color: #102a43 transparent transparent transparent;
         }
         .xp-finding-tag.show-clue .xp-diff-tooltip {
             opacity: 1;
-            transform: translateX(-50%) translateY(0)
+            transform: translateX(-50%) translateY(0);
         }
-        .xp-narrative-wrap {
-            display: flex;
-            flex-direction: column;
-            gap: 6px
-        }
+
         .xp-normal-btn {
             display: flex;
             align-items: center;
@@ -1189,14 +1362,15 @@
             color: #0f7b56;
             cursor: pointer;
             transition: all 0.15s;
-            text-align: left
+            text-align: left;
+            margin-top: 6px;
         }
         .xp-normal-btn:hover {
             background: #dcfcee;
-            border-color: #2a9d8f
+            border-color: #2a9d8f;
         }
         .xp-narrative {
-            flex: 1;
+            width: 100%;
             border: 1.5px solid #e2e8f0;
             border-radius: 8px;
             padding: 8px 12px;
@@ -1206,22 +1380,13 @@
             min-height: 80px;
             line-height: 1.5;
             color: #2d3748;
-            transition: border-color 0.2s
+            transition: border-color 0.2s;
+            margin-top: 8px;
         }
         .xp-narrative:focus {
             outline: none;
             border-color: #1e3c72;
-            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.06)
-        }
-        .xp-hint {
-            background: #fffbf0;
-            border: 1px solid #f6e199;
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 0.7rem;
-            color: #7a5f00;
-            line-height: 1.4;
-            margin-top: 4px
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.06);
         }
         .xp-abnormal {
             display: none;
@@ -1233,10 +1398,10 @@
             padding: 6px 12px;
             font-size: 0.7rem;
             color: #c53030;
-            margin-top: 4px
+            margin-top: 6px;
         }
         .xp-abnormal.show {
-            display: flex
+            display: flex;
         }
         .xp-status-bar {
             display: flex;
@@ -1247,7 +1412,7 @@
             font-size: 0.7rem;
             color: #a0aec0;
             flex-wrap: wrap;
-            gap: 4px
+            gap: 4px;
         }
         .xp-status-pill {
             display: inline-flex;
@@ -1259,20 +1424,123 @@
             font-weight: 700;
             background: #f0f4f8;
             color: #718096;
-            border: 1px solid #e2e8f0
+            border: 1px solid #e2e8f0;
         }
         .xp-status-pill.done {
             background: #e8f7ef;
             color: #1e7d5a;
-            border-color: #bde7cf
+            border-color: #bde7cf;
         }
         .xp-status-dot {
             width: 6px;
             height: 6px;
             border-radius: 50%;
             background: currentColor;
-            opacity: 0.5
+            opacity: 0.5;
         }
+
+        /* GCS container inside XP */
+        .gcs-container {
+            background: #f0f7ff;
+            border: 1.5px solid #1e3c72;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin: 8px 0 12px 0;
+        }
+        .gcs-container h5 {
+            color: #1e3c72;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .gcs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .gcs-item {
+            background: white;
+            border-radius: 8px;
+            padding: 6px 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .gcs-item label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .gcs-item select {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            background: white;
+            margin-top: 2px;
+        }
+        .gcs-total {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .gcs-total label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #1e3c72;
+        }
+        .gcs-total input {
+            width: 60px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            border: 2px solid #1e3c72;
+            border-radius: 8px;
+            padding: 4px 8px;
+            color: #1e3c72;
+            background: white;
+        }
+        .gcs-total input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.15);
+        }
+        .gcs-text {
+            margin-top: 8px;
+        }
+        .gcs-text textarea {
+            font-size: 0.8rem;
+            min-height: 50px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 100%;
+            resize: vertical;
+        }
+        .gcs-text textarea:focus {
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.06);
+            outline: none;
+        }
+        .gcs-guide {
+            font-size: 0.7rem;
+            color: #4a5568;
+            background: #f8fafc;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-top: 6px;
+            border-left: 3px solid #2a9d8f;
+        }
+        .gcs-guide strong {
+            color: #1e3c72;
+        }
+
+        /* Responsive */
         @media (max-width: 1024px) {
             .container {
                 grid-template-columns: 1fr;
@@ -1306,7 +1574,15 @@
                 max-height: none;
                 overflow-y: visible;
             }
+            .gcs-grid {
+                grid-template-columns: 1fr;
+            }
+            .xp-vitals-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
+
+        /* Auth bar */
         #authBar {
             position: fixed;
             top: 0;
@@ -1399,107 +1675,7 @@
             height: 14px;
         }
 
-        /* GCS specific styles */
-        .gcs-container {
-            background: #f0f7ff;
-            border: 1.5px solid #1e3c72;
-            border-radius: 10px;
-            padding: 14px 16px;
-            margin: 8px 0 12px 0;
-        }
-        .gcs-container h5 {
-            color: #1e3c72;
-            font-size: 0.85rem;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .gcs-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-        }
-        .gcs-item {
-            background: white;
-            border-radius: 8px;
-            padding: 6px 10px;
-            border: 1px solid #e2e8f0;
-        }
-        .gcs-item label {
-            font-size: 0.6rem;
-            font-weight: 700;
-            color: #718096;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .gcs-item select {
-            width: 100%;
-            padding: 4px 6px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            background: white;
-            margin-top: 2px;
-        }
-        .gcs-total {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid #e2e8f0;
-        }
-        .gcs-total label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #1e3c72;
-        }
-        .gcs-total input {
-            width: 60px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            text-align: center;
-            border: 2px solid #1e3c72;
-            border-radius: 8px;
-            padding: 4px 8px;
-            color: #1e3c72;
-        }
-        .gcs-total input:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.15);
-        }
-        .gcs-text {
-            margin-top: 8px;
-        }
-        .gcs-text textarea {
-            font-size: 0.8rem;
-            min-height: 50px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 8px 12px;
-            width: 100%;
-            resize: vertical;
-        }
-        .gcs-text textarea:focus {
-            border-color: #1e3c72;
-            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.06);
-            outline: none;
-        }
-        .gcs-guide {
-            font-size: 0.7rem;
-            color: #4a5568;
-            background: #f8fafc;
-            padding: 6px 10px;
-            border-radius: 6px;
-            margin-top: 6px;
-            border-left: 3px solid #2a9d8f;
-        }
-        .gcs-guide strong {
-            color: #1e3c72;
-        }
-
-        /* Social history enhanced - ObGyn style radio buttons */
+        /* Social history radio groups */
         .social-sub-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1545,19 +1721,8 @@
             margin-top: 0.2rem;
             font-style: italic;
         }
-        @media (max-width: 640px) {
-            .social-sub-grid {
-                grid-template-columns: 1fr;
-            }
-            .social-sub-grid .full-width {
-                grid-column: 1;
-            }
-            .gcs-grid {
-                grid-template-columns: 1fr;
-            }
-        }
 
-        /* Differential Diagnosis styles */
+        /* Differential Diagnosis */
         .ddx-container {
             background: #f0f7ff;
             border: 2px solid #1e3c72;
@@ -1646,172 +1811,6 @@
                 margin-left: 0;
             }
         }
-
-        /* ============================================================
-           COMPLAINT SLOT STYLES
-           ============================================================ */
-        .complaint-slots {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-top: 6px;
-        }
-        .complaint-slot {
-            background: #f8fafc;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 16px 18px 18px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .complaint-slot:focus-within {
-            border-color: #94a3b8;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
-        }
-        .complaint-slot.has-symptom {
-            border-color: #b9d0f0;
-        }
-        .slot-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .slot-label {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .slot-label .required-star {
-            color: #dc2626;
-            font-weight: 700;
-        }
-        .slot-label .optional-tag {
-            font-weight: 400;
-            font-size: 0.7rem;
-            color: #64748b;
-            background: #e9edf2;
-            padding: 0 8px;
-            border-radius: 12px;
-            margin-left: 4px;
-        }
-        .status-badge {
-            font-size: 0.68rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            padding: 4px 12px;
-            border-radius: 20px;
-            background: #e9edf2;
-            color: #475569;
-            transition: all 0.2s;
-            white-space: nowrap;
-            border: 1px solid transparent;
-        }
-        .status-badge.has-symptom {
-            background: #dbeafe;
-            color: #1e40af;
-            border-color: #bfdbfe;
-        }
-        .status-badge.red-flag {
-            background: #fee2e2;
-            color: #991b1b;
-            border-color: #fecaca;
-        }
-        .slot-symptom-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            max-height: 160px;
-            overflow-y: auto;
-            padding: 2px 0 6px;
-        }
-        .slot-symptom-btn {
-            background: #f1f4f9;
-            border: 1px solid #e2e8f0;
-            padding: 5px 12px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: #2d3748;
-            white-space: nowrap;
-        }
-        .slot-symptom-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(30, 60, 114, 0.12);
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            border-color: #1e3c72;
-        }
-        .slot-symptom-btn.active {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(30, 60, 114, 0.2);
-            border-color: #1e3c72;
-            transform: scale(1.03);
-        }
-        .slot-custom-input {
-            margin-top: 8px;
-            width: 100%;
-            padding: 6px 12px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 0.82rem;
-            transition: border-color 0.2s;
-            background: white;
-        }
-        .slot-custom-input:focus {
-            outline: none;
-            border-color: #1e3c72;
-            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.06);
-        }
-        .slot-questions {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed #e2e8f0;
-        }
-        .slot-questions .alert.warning {
-            font-size: 0.78rem;
-            padding: 8px 12px;
-        }
-        .slot-questions .alert.warning br {
-            display: block;
-            margin: 2px 0;
-        }
-
-        /* Hutchison banner */
-        .hutchison-banner {
-            background: #f0f7ff;
-            border-left: 5px solid #2563eb;
-            padding: 14px 18px;
-            border-radius: 10px;
-            margin-bottom: 18px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            font-size: 0.88rem;
-            color: #1e293b;
-        }
-        .hutchison-banner .icon {
-            font-size: 1.4rem;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-        .hutchison-banner strong {
-            color: #1e40af;
-        }
-        .hutchison-banner .rule-highlight {
-            background: #dbeafe;
-            padding: 0 6px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
     </style>
 </head>
 <body>
@@ -1822,7 +1821,7 @@
     <div class="progress-bar" id="progressBar"></div>
 
     <!-- ============================================================
-    TOP BAR (AUTH) — Now showing "Internal Medicine Clerkship"
+    TOP BAR (AUTH)
     ============================================================ -->
     <div id="authBar">
         <div class="brand">
@@ -1856,7 +1855,7 @@
                 <p>Comprehensive history taking &amp; physical examination guide</p>
             </div>
 
-            <!-- 1. DEMOGRAPHICS — Restored to original format -->
+            <!-- 1. DEMOGRAPHICS -->
             <div class="form-section">
                 <h3>📋 Patient Demographics</h3>
                 <div class="demographics-grid">
@@ -1880,7 +1879,7 @@
                 <div style="margin-top:8px;"><label>Nearest Health Centre</label><input type="text" id="nearestHealthCentre" placeholder="Clinic/health centre name"></div>
             </div>
 
-            <!-- 2. PRESENTING COMPLAINT — THREE SLOTS -->
+            <!-- 2. PRESENTING COMPLAINT — THREE SLOTS with collapsible 2 & 3 -->
             <div class="form-section">
                 <h3>🩺 Presenting Complaint <span class="stat-card">SOCRATES for pain only</span></h3>
 
@@ -1904,7 +1903,7 @@
                 <textarea id="hpc" rows="3" placeholder="Chronological narrative: onset, progression, associated symptoms, treatments tried, impact on daily activities..."></textarea>
             </div>
 
-            <!-- 4. PAST MEDICAL HISTORY (with HIV) -->
+            <!-- 4. PAST MEDICAL HISTORY (with HIV) — now includes Past Surgical History -->
             <div class="form-section">
                 <h3>📜 Past Medical History</h3>
                 <textarea id="pmh" placeholder="Previous illnesses: Hypertension, Diabetes, Asthma, TB, Malaria, Hepatitis, Heart disease, Stroke, Cancer, Surgeries, Hospitalisations..."></textarea>
@@ -1912,6 +1911,9 @@
                 <textarea id="medications" placeholder="All current medications with doses and frequency..."></textarea>
                 <label style="margin-top:8px;">Allergies:</label>
                 <textarea id="allergies" placeholder="Drug allergies, food allergies, reactions..."></textarea>
+                <!-- New Past Surgical History field -->
+                <label style="margin-top:8px;">Past Surgical History:</label>
+                <textarea id="surgicalHistory" placeholder="List all previous operations, dates, indications, and any complications..."></textarea>
                 <div class="expand-hiv" onclick="toggleHIVDetails()">
                     <span>🩸 HIV History <span style="color:#e74c3c;font-weight:400;">(Click to expand)</span></span>
                     <span style="float:right;">▼</span>
@@ -2090,7 +2092,7 @@
     </div>
 
     <!-- ============================================================
-    PHYSICAL EXAMINATION (XP)
+    PHYSICAL EXAMINATION (XP) — NEW HUTCHISON'S 4‑STEP with split Neuro
     ============================================================ -->
     <div class="xp-shell">
         <div class="xp-panel">
@@ -2100,11 +2102,11 @@
                         <div class="xp-topbar-icon">🩺</div>
                         <div class="xp-topbar-text">
                             <h2>Physical Examination</h2>
-                            <p>Hutchison's Clinical Methods · Step‑by‑step guide</p>
+                            <p>Hutchison's 4‑Step Framework · Inspection → Palpation → Percussion → Auscultation</p>
                         </div>
                     </div>
                     <div class="xp-topbar-right">
-                        <div class="xp-progress-pill"><span id="xpDoneCount">0</span> / <span id="xpTotalCount">0</span> systems</div>
+                        <div class="xp-progress-pill"><span id="xpDoneCount">0</span> / <span id="xpTotalCount">6</span> systems</div>
                         <button class="xp-toggle-btn" id="xpToggleBtn" onclick="event.stopPropagation(); xpTogglePanel()">Expand <span class="xp-toggle-arrow">▼</span></button>
                     </div>
                 </div>
@@ -2123,7 +2125,7 @@
     <div class="floating-tip" onclick="showTip()">💡 Tip: SOCRATES only for pain!</div>
 
     <!-- ============================================================
-    JAVASCRIPT — FULL WITH ALL SYMPTOM GUIDES
+    JAVASCRIPT — FULL WITH UPDATED XP AND COLLAPSIBLE SLOTS
     ============================================================ -->
     <script>
         // ============================================================
@@ -2267,7 +2269,7 @@
         }
 
         // ============================================================
-        // SMOKING TOGGLE
+        // SMOKING / ALCOHOL TOGGLES
         // ============================================================
         function toggleSmokingDetails() {
             const selected = document.querySelector('input[name="smoking"]:checked');
@@ -2282,9 +2284,6 @@
             }
         }
 
-        // ============================================================
-        // ALCOHOL TOGGLE
-        // ============================================================
         function toggleAlcoholDetails() {
             const selected = document.querySelector('input[name="alcohol"]:checked');
             const wrap = document.getElementById('alcoholDetailsWrap');
@@ -2299,7 +2298,7 @@
         }
 
         // ============================================================
-        // REVIEW OF SYSTEMS
+        // REVIEW OF SYSTEMS (unchanged)
         // ============================================================
         const reviewOfSystems = {
             cardiovascular: {
@@ -2625,7 +2624,7 @@
         }
 
         // ============================================================
-        // FULL SYMPTOM GUIDES
+        // FULL SYMPTOM GUIDES (unchanged)
         // ============================================================
         const symptomGuides = {
             pain: {
@@ -2855,14 +2854,14 @@
         };
 
         // ============================================================
-        // THREE-SLOT PRESENTING COMPLAINT SYSTEM
+        // THREE-SLOT PRESENTING COMPLAINT SYSTEM — with collapsible slots 2 & 3
         // ============================================================
 
-        // Core data: array of 3 symptoms, array of 3 detail objects
         let currentSymptoms = ['', '', ''];
         let symptomDetails = [{}, {}, {}];
+        // Collapse state: true = collapsed, false = expanded (slot 0 always expanded)
+        let slotCollapsed = [false, true, true]; // slots 2 & 3 collapsed by default
 
-        // Backward compatibility: currentSymptom is an alias for currentSymptoms[0]
         Object.defineProperty(window, 'currentSymptom', {
             get: function() { return currentSymptoms[0]; },
             set: function(val) { currentSymptoms[0] = val; },
@@ -2870,14 +2869,12 @@
             enumerable: true
         });
 
-        // List of all symptom names for buttons
         const SYMPTOM_LIST = [
             'fever', 'pain', 'chest pain', 'shortness of breath', 'cough', 'headache',
             'dizziness', 'nausea', 'diarrhea', 'constipation', 'swelling',
             'palpitations', 'fatigue', 'weight loss', 'joint pain', 'rash'
         ];
 
-        // Display labels for symptoms
         const SYMPTOM_LABELS = {
             'fever': '🌡️ Fever',
             'pain': '🩺 Pain (SOCRATES)',
@@ -2914,41 +2911,57 @@
                 const hasSymptom = currentSym !== '';
                 const badgeText = hasSymptom ? (SYMPTOM_LABELS[currentSym] || currentSym) : 'None selected';
                 const badgeClass = hasSymptom ? 'has-symptom' : '';
+                const isCollapsed = slotCollapsed[slotIdx] && slotIdx > 0; // slot 0 always open
+                const toggleIcon = isCollapsed ? '▶' : '▼';
 
                 html += `
                     <div class="complaint-slot ${hasSymptom ? 'has-symptom' : ''}" data-slot="${slotIdx}" id="slot-${slotIdx}">
-                        <div class="slot-header">
+                        <div class="slot-header" onclick="toggleSlotCollapse(${slotIdx})">
                             <div class="slot-label">
                                 ${info.label} ${requiredMark} ${optionalTag}
+                                <span class="slot-toggle-icon">${toggleIcon}</span>
                             </div>
                             <span class="status-badge ${badgeClass}" id="slot-badge-${slotIdx}">${badgeText}</span>
                         </div>
-                        <div class="slot-symptom-grid" id="slot-grid-${slotIdx}">
-                            ${SYMPTOM_LIST.map(sym => `
-                                <button class="slot-symptom-btn ${currentSym === sym ? 'active' : ''}"
-                                        data-slot="${slotIdx}"
-                                        data-symptom="${sym}"
-                                        onclick="selectSlotSymptom(${slotIdx}, '${sym}')">
-                                    ${SYMPTOM_LABELS[sym] || sym}
-                                </button>
-                            `).join('')}
-                        </div>
-                        <input type="text" class="slot-custom-input" id="slot-custom-${slotIdx}"
-                               placeholder="Or type a custom symptom..."
-                               value="${currentSym && !SYMPTOM_LABELS[currentSym] ? currentSym : ''}"
-                               onchange="selectSlotCustom(${slotIdx}, this.value)"
-                               onfocus="this.select()">
-                        <div class="slot-questions" id="slot-questions-${slotIdx}">
-                            ${currentSym ? renderSlotQuestions(slotIdx, currentSym) : ''}
+                        <div class="slot-body ${isCollapsed ? 'collapsed' : ''}" id="slot-body-${slotIdx}">
+                            <div class="slot-symptom-grid" id="slot-grid-${slotIdx}">
+                                ${SYMPTOM_LIST.map(sym => `
+                                    <button class="slot-symptom-btn ${currentSym === sym ? 'active' : ''}"
+                                            data-slot="${slotIdx}"
+                                            data-symptom="${sym}"
+                                            onclick="selectSlotSymptom(${slotIdx}, '${sym}')">
+                                        ${SYMPTOM_LABELS[sym] || sym}
+                                    </button>
+                                `).join('')}
+                            </div>
+                            <input type="text" class="slot-custom-input" id="slot-custom-${slotIdx}"
+                                   placeholder="Or type a custom symptom..."
+                                   value="${currentSym && !SYMPTOM_LABELS[currentSym] ? currentSym : ''}"
+                                   onchange="selectSlotCustom(${slotIdx}, this.value)"
+                                   onfocus="this.select()">
+                            <div class="slot-questions" id="slot-questions-${slotIdx}">
+                                ${currentSym ? renderSlotQuestions(slotIdx, currentSym) : ''}
+                            </div>
                         </div>
                     </div>
                 `;
             }
             container.innerHTML = html;
-
-            // If slot 0 has a symptom, update guidance
             if (currentSymptoms[0]) {
                 updateGuidancePanel(currentSymptoms[0]);
+            }
+        }
+
+        function toggleSlotCollapse(slotIdx) {
+            if (slotIdx === 0) return; // slot 0 always open
+            slotCollapsed[slotIdx] = !slotCollapsed[slotIdx];
+            const body = document.getElementById(`slot-body-${slotIdx}`);
+            if (body) body.classList.toggle('collapsed', slotCollapsed[slotIdx]);
+            // Update toggle icon
+            const header = document.querySelector(`#slot-${slotIdx} .slot-header`);
+            if (header) {
+                const icon = header.querySelector('.slot-toggle-icon');
+                if (icon) icon.textContent = slotCollapsed[slotIdx] ? '▶' : '▼';
             }
         }
 
@@ -2983,50 +2996,35 @@
         }
 
         function selectSlotSymptom(slotIdx, symptom) {
-            // Update array
             currentSymptoms[slotIdx] = symptom;
-
-            // Update button states in this slot
             const grid = document.getElementById(`slot-grid-${slotIdx}`);
             if (grid) {
                 grid.querySelectorAll('.slot-symptom-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.symptom === symptom);
                 });
             }
-
-            // Clear custom input
             const customInput = document.getElementById(`slot-custom-${slotIdx}`);
             if (customInput) customInput.value = '';
-
-            // Update badge
             const badge = document.getElementById(`slot-badge-${slotIdx}`);
             if (badge) {
                 badge.textContent = SYMPTOM_LABELS[symptom] || symptom;
                 badge.className = 'status-badge has-symptom';
             }
-
-            // Update card highlight
             const card = document.getElementById(`slot-${slotIdx}`);
             if (card) card.classList.add('has-symptom');
-
-            // Render questions for this slot
             const qContainer = document.getElementById(`slot-questions-${slotIdx}`);
             if (qContainer) {
                 qContainer.innerHTML = renderSlotQuestions(slotIdx, symptom);
             }
-
-            // If slot 0, update guidance panel
             if (slotIdx === 0) {
                 updateGuidancePanel(symptom);
             }
-
             updateProgress();
         }
 
         function selectSlotCustom(slotIdx, value) {
             const trimmed = value.trim();
             if (!trimmed) {
-                // If empty, clear the slot
                 currentSymptoms[slotIdx] = '';
                 const badge = document.getElementById(`slot-badge-${slotIdx}`);
                 if (badge) {
@@ -3048,37 +3046,26 @@
                 updateProgress();
                 return;
             }
-
-            // Custom symptom
             currentSymptoms[slotIdx] = trimmed;
-
-            // Clear button selection
             const grid = document.getElementById(`slot-grid-${slotIdx}`);
             if (grid) {
                 grid.querySelectorAll('.slot-symptom-btn').forEach(btn => btn.classList.remove('active'));
             }
-
-            // Update badge
             const badge = document.getElementById(`slot-badge-${slotIdx}`);
             if (badge) {
                 badge.textContent = trimmed;
                 badge.className = 'status-badge has-symptom';
             }
-
             const card = document.getElementById(`slot-${slotIdx}`);
             if (card) card.classList.add('has-symptom');
-
-            // Render generic questions
             const qContainer = document.getElementById(`slot-questions-${slotIdx}`);
             if (qContainer) {
                 qContainer.innerHTML =
                     `<div class="alert" style="margin-top:6px;"><strong>Systematic approach for "${escapeHTML(trimmed)}"</strong><br>Use: Site, Onset, Character, Radiation, Associations, Timing, Exacerbating/Relieving, Severity.</div>`;
             }
-
             if (slotIdx === 0) {
                 updateGenericGuidance(trimmed);
             }
-
             updateProgress();
         }
 
@@ -3113,33 +3100,15 @@
             return allResponses;
         }
 
-        // Backward compatibility: override the old displayQuestions function
-        const originalDisplayQuestions = window.displayQuestions;
-        window.displayQuestions = function(symptom) {
-            // This is now handled per-slot; but we keep this for compatibility
-            // If called, it updates slot 0
-            if (symptom) {
-                selectSlotSymptom(0, symptom);
-            }
-        };
-
-        // Backward compatibility: override old setSymptom
-        const originalSetSymptom = window.setSymptom;
-        window.setSymptom = function(symptom, event) {
-            selectSlotSymptom(0, symptom);
-        };
-
-        // Backward compatibility: override old setCustomSymptom
-        const originalSetCustomSymptom = window.setCustomSymptom;
+        // Backward compatibility for old functions
+        window.setSymptom = function(symptom, event) { selectSlotSymptom(0, symptom); };
         window.setCustomSymptom = function() {
             const custom = document.getElementById('customSymptom')?.value?.trim() || '';
-            if (custom) {
-                selectSlotCustom(0, custom);
-            }
+            if (custom) selectSlotCustom(0, custom);
         };
 
         // ============================================================
-        // GUIDANCE PANEL (updated for slot 0)
+        // GUIDANCE PANEL
         // ============================================================
         function updateGuidancePanel(symptom) {
             const guide = symptomGuides[symptom];
@@ -3160,12 +3129,11 @@
         }
 
         // ============================================================
-        // DIFFERENTIAL DIAGNOSIS GENERATOR (uses currentSymptoms[0])
+        // DIFFERENTIAL DIAGNOSIS (uses currentSymptoms[0])
         // ============================================================
         function generateDifferentials() {
             const container = document.getElementById('ddxList');
             const data = collectPatientSummaryData();
-            // Use primary symptom (slot 0)
             const symptom = (currentSymptoms[0] || data.mainSymptom || '').toLowerCase();
             const age = parseInt(data.age) || 0;
             const gender = data.gender || '';
@@ -3469,7 +3437,7 @@
         }
 
         // ============================================================
-        // SUMMARY GENERATION (updated to use 3 slots)
+        // SUMMARY GENERATION (updated for 3 slots and surgical history)
         // ============================================================
         function getHIVSummaryItems() {
             const status = fieldValue('hivStatus', '');
@@ -3499,7 +3467,6 @@
                 `${referralStatus}; from ${refFrom}; reason: ${refReason}` :
                 referralStatus;
 
-            // Build complaint summaries from all 3 slots
             const complaintSummaries = [];
             for (let i = 0; i < 3; i++) {
                 const sym = currentSymptoms[i] || '';
@@ -3541,6 +3508,7 @@
                 pmh: fieldValue('pmh', 'None reported'),
                 medications: fieldValue('medications', 'None documented'),
                 allergies: fieldValue('allergies', 'None documented'),
+                surgicalHistory: fieldValue('surgicalHistory', 'None documented'),
                 hivItems: getHIVSummaryItems(),
                 ros: getROSFindings(),
                 smokingStatus: document.querySelector('input[name="smoking"]:checked')?.value || '',
@@ -3598,6 +3566,7 @@
                         ${summaryBlock('Presenting Complaints (Hutchison\'s 3-Complaint Rule)', complaintDetails)}
                         ${summaryBlock('HPC', formatParagraph(data.hpc))}
                         ${summaryBlock('Past Medical History', formatParagraph(data.pmh))}
+                        ${summaryBlock('Past Surgical History', formatParagraph(data.surgicalHistory))}
                         ${summaryBlock('Medications & Allergies', `<strong>Medications:</strong><br>${formatParagraph(data.medications)}<br><br><strong>Allergies:</strong><br>${formatParagraph(data.allergies)}`)}
                         ${summaryBlock('HIV History', hivList)}
                         ${summaryBlock('Review of Systems', rosList)}
@@ -3624,7 +3593,7 @@
             const items = [
                 `<strong>Patient:</strong> ${escapeHTML(data.fullName)}, ${escapeHTML(data.age)}-year-old ${escapeHTML(data.gender)}, ${escapeHTML(data.occupation)}, ${escapeHTML(data.maritalStatus)}. ${escapeHTML(data.referralText)}`,
                 `<strong>Presenting complaints:</strong> ${complaintList}`,
-                `<strong>Major positives:</strong> ${keyRos.length ? escapeHTML(keyRos.join('; ')) : 'No positive ROS findings documented'}; PMH: ${escapeHTML(data.pmh)}; HIV: ${hivHighlights}; ${gcsBrief}`,
+                `<strong>Major positives:</strong> ${keyRos.length ? escapeHTML(keyRos.join('; ')) : 'No positive ROS findings documented'}; PMH: ${escapeHTML(data.pmh)}; Surgical: ${escapeHTML(data.surgicalHistory)}; HIV: ${hivHighlights}; ${gcsBrief}`,
                 `<strong>Important negatives:</strong> ${negRos.length ? escapeHTML(negRos.join(', ')) + ' — no symptoms' : 'No key negatives documented'}; allergies: ${escapeHTML(data.allergies)}; ${socialBrief}`,
                 `<strong>Working impression:</strong> Overall pattern points toward the clinician's working diagnosis based on the presenting complaints, major positives, important negatives, PMH, medications (${escapeHTML(data.medications)}), and bedside assessment.`
             ];
@@ -3667,7 +3636,7 @@
         }
 
         // ============================================================
-        // RECORD MANAGEMENT (updated for 3 slots)
+        // RECORD MANAGEMENT (updated for 3 slots, surgical history, and XP)
         // ============================================================
         function captureFormData() {
             const data = {};
@@ -3685,6 +3654,7 @@
             data._symptomDetails = symptomDetails || [{}, {}, {}];
             data._rosData = rosData || {};
             data._xpData = xpData || {};
+            data._slotCollapsed = slotCollapsed || [false, true, true];
             return data;
         }
 
@@ -3705,15 +3675,11 @@
             document.getElementById('alcoholType').value = data.alcoholType || '';
             document.getElementById('alcoholDetails').value = data.alcoholDetails || '';
 
-            // Restore 3-slot data
-            if (data._currentSymptoms) {
-                currentSymptoms = data._currentSymptoms;
-            }
-            if (data._symptomDetails) {
-                symptomDetails = data._symptomDetails;
-            }
+            if (data._currentSymptoms) currentSymptoms = data._currentSymptoms;
+            if (data._symptomDetails) symptomDetails = data._symptomDetails;
             if (data._rosData) rosData = data._rosData;
             if (data._xpData) xpData = data._xpData;
+            if (data._slotCollapsed) slotCollapsed = data._slotCollapsed;
 
             toggleReferralDetails();
             if (typeof toggleARTDetails === 'function') toggleARTDetails();
@@ -3722,10 +3688,8 @@
                 document.getElementById('referralDetails').style.display = 'block';
             }
 
-            // Rebuild slots
             buildComplaintSlots();
 
-            // Restore XP
             if (data._xpData) {
                 Object.keys(data._xpData).forEach(key => {
                     xpData[key] = data._xpData[key];
@@ -3738,7 +3702,6 @@
             if (data.gcsDetails) {
                 document.getElementById('gcsDetails').value = data.gcsDetails;
             }
-            // Restore smoking and alcohol radio buttons
             if (data.smokingStatus) {
                 const radio = document.querySelector(`input[name="smoking"][value="${data.smokingStatus}"]`);
                 if (radio) radio.checked = true;
@@ -3758,18 +3721,17 @@
                 if (el.type === 'checkbox') el.checked = false;
                 else el.value = '';
             });
-            document.querySelectorAll('.symptom-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('clinicalSummary').innerHTML = '';
             document.getElementById('wardRoundSummary').innerHTML = '';
             document.getElementById('summarySection').style.display = 'none';
             document.getElementById('ddxList').innerHTML =
                 `<div class="ddx-empty">Click "Generate Differentials" to see suggestions based on the clinical data entered.</div>`;
 
-            // Clear 3-slot data
             currentSymptoms = ['', '', ''];
             symptomDetails = [{}, {}, {}];
             rosData = {};
             xpData = {};
+            slotCollapsed = [false, true, true];
             xpRefreshAll();
             toggleReferralDetails();
             document.getElementById('gcsTotal').value = '';
@@ -3780,10 +3742,8 @@
             document.getElementById('smokingDetailsWrap').style.display = 'none';
             document.getElementById('alcoholDetailsWrap').style.display = 'none';
 
-            // Rebuild slots
             buildComplaintSlots();
 
-            // Reset guidance
             document.getElementById('guidanceContent').innerHTML =
                 `<div class="guidance-card"><h4>📚 Welcome</h4><p>Systematic history taking guide. Select a symptom for structured questions.</p></div><div class="guidance-card"><h4>💡 Key Principle</h4><p>SOCRATES is reserved for PAIN complaints. Other symptoms have specific guides.</p></div>`;
 
@@ -3879,6 +3839,7 @@
                             pmh: formData.pmh || '',
                             medications: formData.medications || '',
                             allergies: formData.allergies || '',
+                            surgical_history: formData.surgicalHistory || '',
                             hiv_status: formData.hivStatus || '',
                             hiv_diagnosis_date: formData.hivDiagnosisDate || '',
                             hiv_diagnosis_method: formData.hivDiagnosisMethod || '',
@@ -3950,211 +3911,258 @@
         }
 
         // ============================================================
-        // PHYSICAL EXAMINATION (XP) — WITH GCS (unchanged)
+        // PHYSICAL EXAMINATION (XP) — NEW HUTCHISON'S 4-STEP (6 systems)
+        // with Neuro split into Motor, Sensory, Coordination, Cranial Nerves
         // ============================================================
+
         const XP = {
             general: {
                 label: "General",
                 icon: "🌡️",
                 chapter: "Ch. 3 & 10",
-                guide: "Inspect from the end of the bed: general appearance, nutrition, hydration, pallor, jaundice, cyanosis, clubbing, lymphadenopathy, oedema.",
                 hasVitals: true,
-                normal: "Patient appears well, alert and orientated. No pallor, jaundice, cyanosis or clubbing. Hydration adequate. No oedema.",
-                steps: [
-                    { label: "Inspection", items: ["Pallor", "Jaundice", "Central cyanosis", "Peripheral cyanosis",
-                            "Clubbing", "Koilonychia", "Lymphadenopathy", "Pedal oedema", "Wasting / cachexia",
-                            "Dehydration", "Pyrexia"
-                        ] },
-                    { label: "Nutrition", items: ["Well-nourished", "Malnourished (mild)", "Malnourished (severe)",
-                            "Obese"
-                        ] },
-                    { label: "Conscious level (AVPU)", items: ["Alert", "Responds to voice", "Responds to pain",
-                            "Unresponsive"
-                        ] }
-                ]
+                normal: "Patient appears well, alert and orientated. No pallor, jaundice, cyanosis or clubbing. Hydration adequate. No oedema. Cervical, axillary and inguinal lymph nodes not palpable. Skin turgor normal. Capillary refill <2s.",
+                steps: [{
+                    name: "🔍 Inspection",
+                    items: [
+                        "Pallor", "Jaundice", "Central cyanosis", "Peripheral cyanosis",
+                        "Clubbing", "Koilonychia", "Leukonychia", "Pedal oedema",
+                        "Lymphadenopathy visible", "Dehydration", "Cachexia", "Pyrexia", "Respiratory distress"
+                    ]
+                }, {
+                    name: "🖐 Palpation",
+                    items: [
+                        "Cervical lymphadenopathy", "Axillary lymphadenopathy", "Inguinal lymphadenopathy",
+                        "Skin turgor reduced", "Capillary refill >2s", "Pitting oedema",
+                        "Non-pitting oedema", "Tender lymph node", "Firm lymph node", "Matted lymph node"
+                    ]
+                }, {
+                    name: "🥗 Nutrition & AVPU",
+                    items: [
+                        "Well-nourished", "Malnourished (mild)", "Malnourished (severe)", "Obese",
+                        "Alert", "Responds to voice", "Responds to pain", "Unresponsive"
+                    ]
+                }]
             },
             cvs: {
                 label: "CVS",
                 icon: "❤️",
                 chapter: "Ch. 13",
-                guide: "Position at 45°. Inspect JVP. Palpate apex beat (5th ICS MCL). Auscultate S1/S2, added sounds and murmurs.",
-                normal: "JVP not elevated. Apex beat at 5th ICS MCL. No heaves or thrills. S1 + S2 heard. No murmurs.",
-                steps: [
-                    { label: "Inspection", items: ["Elevated JVP", "Scars", "Visible pulsations", "Peripheral oedema",
-                            "Cyanosis"
-                        ] },
-                    { label: "Palpation", items: ["Displaced apex beat", "LV heave", "RV heave", "Thrill",
-                            "Apex beat normal", "Pulses (radial, femoral, dorsalis pedis)"
-                        ] },
-                    { label: "Auscultation", items: ["S3 gallop", "S4", "Systolic murmur", "Diastolic murmur",
-                            "Pericardial rub", "Irregular rhythm", "Muffled heart sounds"
-                        ] },
-                    { label: "Blood pressure", items: ["Normal", "Hypertension", "Hypotension",
-                            "BP differential >20 mmHg"
-                        ] }
-                ]
+                normal: "JVP not elevated. Apex beat at 5th ICS MCL. No heaves or thrills. S1 + S2 heard. No murmurs. All peripheral pulses present. Capillary refill <2s. No radio-radial or radio-femoral delay.",
+                steps: [{
+                    name: "🔍 Inspection",
+                    items: [
+                        "Elevated JVP", "Praecordium scars", "Visible pulsations", "Pacemaker bulge",
+                        "Cyanosis", "Oedema", "Clubbing"
+                    ]
+                }, {
+                    name: "🖐 Palpation",
+                    items: [
+                        "Displaced apex beat", "LV heave", "RV heath", "Thrill",
+                        "Apex beat tapping", "Apex beat diffuse", "Radial pulse present",
+                        "Femoral pulse present", "Dorsalis pedis present", "Posterior tibial present",
+                        "Capillary refill >2s", "Radio-radial delay", "Radio-femoral delay"
+                    ]
+                }, {
+                    name: "👊 Percussion",
+                    items: [
+                        "Cardiac borders normal", "Cardiac dullness increased (effusion)",
+                        "Cardiac dullness increased (cardiomegaly)"
+                    ]
+                }, {
+                    name: "🔊 Auscultation",
+                    items: [
+                        "S1 normal", "S2 normal", "S3 gallop", "S4",
+                        "Ejection systolic murmur", "Pansystolic murmur", "Late systolic murmur",
+                        "Early diastolic murmur", "Mid-diastolic murmur", "Continuous murmur",
+                        "Pericardial rub", "Murmur radiation to axilla",
+                        "Murmur radiation to carotid", "Irregular rhythm", "Muffled heart sounds"
+                    ]
+                }]
             },
             resp: {
                 label: "Respiratory",
                 icon: "💨",
                 chapter: "Ch. 12",
-                guide: "Inspect: chest shape, accessory muscles, RR. Palpate: trachea, expansion, tactile fremitus. Percuss. Auscultate breath sounds and added sounds.",
                 normal: "Chest symmetrical. Trachea central. Equal expansion. Resonant. Vesicular breath sounds. No added sounds.",
-                steps: [
-                    { label: "Inspection", items: ["Tracheal deviation", "Barrel chest", "Chest asymmetry",
-                            "Accessory muscle use", "Subcostal recession", "Nasal flaring", "Cyanosis"
-                        ] },
-                    { label: "Palpation", items: ["Reduced expansion (R)", "Reduced expansion (L)",
-                            "Tactile fremitus increased", "Tactile fremitus reduced", "Trachea central"
-                        ] },
-                    { label: "Percussion", items: ["Dull to percussion", "Stony dull", "Hyperresonant",
-                            "Resonant normal"
-                        ] },
-                    { label: "Auscultation", items: ["Coarse crackles", "Fine crackles", "Expiratory wheeze",
-                            "Inspiratory wheeze", "Pleural rub", "Bronchial breathing", "Reduced breath sounds",
-                            "Vesicular breath sounds"
-                        ] },
-                    { label: "Vocal resonance", items: ["Normal", "Reduced", "Increased (consolidation)",
-                            "Aegophony"
-                        ] }
-                ]
+                steps: [{
+                    name: "🔍 Inspection",
+                    items: [
+                        "RR >20/min", "Accessory muscle use", "Intercostal recession", "Nasal flaring",
+                        "Pursed-lip breathing", "Tracheal deviation visible", "Barrel chest",
+                        "Pectus excavatum", "Pectus carinatum", "Kyphosis", "Scoliosis",
+                        "Chest asymmetry", "Cyanosis"
+                    ]
+                }, {
+                    name: "🖐 Palpation",
+                    items: [
+                        "Tracheal deviated", "Reduced expansion (R)", "Reduced expansion (L)",
+                        "Tactile fremitus increased", "Tactile fremitus reduced",
+                        "Subcutaneous emphysema", "Chest wall tenderness"
+                    ]
+                }, {
+                    name: "👊 Percussion",
+                    items: [
+                        "Resonant (upper R)", "Resonant (upper L)", "Resonant (mid R)",
+                        "Resonant (mid L)", "Resonant (lower R)", "Resonant (lower L)",
+                        "Dull (upper R)", "Dull (upper L)", "Dull (mid R)", "Dull (mid L)",
+                        "Dull (lower R)", "Dull (lower L)", "Stony dull", "Hyperresonant"
+                    ]
+                }, {
+                    name: "🔊 Auscultation",
+                    items: [
+                        "Vesicular normal", "Reduced vesicular", "Absent vesicular",
+                        "Bronchial breathing", "Coarse crackles", "Fine crackles",
+                        "Bilateral basal crackles", "Expiratory wheeze", "Pleural rub",
+                        "Vocal resonance normal", "Vocal resonance increased",
+                        "Vocal resonance reduced", "Whispering pectoriloquy"
+                    ]
+                }]
             },
             abdo: {
                 label: "Abdominal",
                 icon: "🍽️",
                 chapter: "Ch. 15",
-                guide: "Inspect: shape, scars, veins. Auscultate before palpation. Palpate lightly then deeply — start AWAY from pain. Percuss for liver/spleen and shifting dullness.",
-                normal: "Abdomen soft, non-tender, not distended. No masses. Bowel sounds present. Liver/spleen not palpable.",
-                steps: [
-                    { label: "Inspection", items: ["Distension", "Scaphoid", "Visible peristalsis",
-                            "Caput medusae", "Surgical scars", "Striae"
-                        ] },
-                    { label: "Auscultation (first)", items: ["Absent bowel sounds", "Hyperactive bowel sounds",
-                            "Bruits (renal, aortic, iliac)"
-                        ] },
-                    { label: "Palpation", items: ["Guarding", "Rigidity", "Rebound tenderness", "Hepatomegaly",
-                            "Splenomegaly", "Palpable kidney", "Palpable mass", "Murphy's sign",
-                            "McBurney's tenderness"
-                        ] },
-                    { label: "Percussion", items: ["Liver dullness normal", "Spleen dullness",
-                            "Shifting dullness (ascites)", "Tympanic"
-                        ] },
-                    { label: "Hernia/groin", items: ["No hernia", "Inguinal (R)", "Inguinal (L)", "Umbilical"] }
-                ]
+                normal: "Abdomen soft, non-tender, not distended. No masses. Bowel sounds present. Liver/spleen not palpable. No shifting dullness.",
+                steps: [{
+                    name: "🔍 Inspection",
+                    items: [
+                        "Flat", "Distended", "Scaphoid", "Visible peristalsis",
+                        "Caput medusae", "Striae", "Cullen's sign", "Grey-Turner's sign",
+                        "Surgical scar (R upper)", "Surgical scar (L upper)",
+                        "Surgical scar (midline)", "Surgical scar (lower)", "Hernias visible",
+                        "Respiratory movement absent"
+                    ]
+                }, {
+                    name: "🔊 Auscultation (2nd)",
+                    items: [
+                        "Normal bowel sounds", "Hyperactive bowel sounds", "Absent bowel sounds",
+                        "Tinkling bowel sounds", "Aortic bruit", "Renal bruit",
+                        "Iliac bruit", "Hepatic rub", "Splenic rub"
+                    ]
+                }, {
+                    name: "🖐 Palpation (3rd)",
+                    items: [
+                        "Soft", "Non-tender", "Voluntary guarding", "Involuntary guarding",
+                        "Rigidity", "Rebound tenderness", "Tenderness (RUQ)",
+                        "Tenderness (LUQ)", "Tenderness (RLQ)", "Tenderness (LLQ)",
+                        "Murphy's sign", "McBurney's point", "Rovsing's sign", "Psoas sign",
+                        "Obturator sign", "Hepatomegaly (smooth)", "Hepatomegaly (nodular)",
+                        "Hepatomegaly (tender)", "Splenomegaly", "Kidneys palpable",
+                        "Palpable mass", "Hernial orifice (inguinal)", "Hernial orifice (femoral)",
+                        "Bladder palpable"
+                    ]
+                }, {
+                    name: "👊 Percussion (4th)",
+                    items: [
+                        "Liver span normal", "Liver span increased", "Traube's space normal",
+                        "Traube's space dull", "Shifting dullness", "Fluid thrill",
+                        "Suprapubic dullness", "Tympany"
+                    ]
+                }]
             },
             neuro: {
                 label: "Neurological",
                 icon: "🧠",
                 chapter: "Ch. 19",
-                guide: "Assess mental status, cranial nerves, motor, sensory, reflexes, coordination, gait.",
-                normal: "GCS 15/15. Oriented. Cranial nerves intact. Power 5/5. Tone normal. Coordination intact. DTRs present. Plantars downgoing. Sensation intact. Gait normal.",
                 hasGCS: true,
-                steps: [
-                    { label: "Higher functions / Mental status",
-                        items: ["GCS 15/15", "Oriented (time, place, person)", "Memory intact",
-                            "Speech normal (fluent, coherent)"
-                        ] },
-                    { label: "Cranial nerves", items: ["CN I — smell", "CN II — vision, fields, fundi",
-                            "CN III/IV/VI — EOMs, pupils", "CN V — sensation, muscles", "CN VII — facial",
-                            "CN VIII — hearing", "CN IX/X — gag, swallow", "CN XI — shoulder shrug",
-                            "CN XII — tongue"
-                        ] },
-                    { label: "Motor", items: ["Tone normal", "Power 5/5 all limbs", "Muscle bulk normal",
-                            "No involuntary movements"
-                        ] },
-                    { label: "Sensory", items: ["Light touch normal", "Pain normal", "Temperature normal",
-                            "Vibration normal", "Proprioception normal"
-                        ] },
-                    { label: "Reflexes", items: ["Biceps normal", "Triceps normal", "Knee normal", "Ankle normal",
-                            "Plantars downgoing", "Abdominal reflexes present"
-                        ] },
-                    { label: "Coordination", items: ["Finger-nose normal", "Heel-shin normal",
-                            "Rapid alternating movements normal"
-                        ] },
-                    { label: "Gait", items: ["Normal gait", "Ataxic", "Hemiplegic", "Parkinsonian",
-                            "High-stepping"
-                        ] }
-                ]
+                normal: "GCS 15/15. Oriented. Cranial nerves intact. Power 5/5. Tone normal. Coordination intact. DTRs present. Plantars downgoing. Sensation intact. Gait normal.",
+                steps: [{
+                    name: "🔍 Inspection (General & Motor)",
+                    items: [
+                        "Conscious level reduced", "Orientation impaired", "Facial asymmetry",
+                        "Ptosis", "Resting tremor", "Intention tremor", "Chorea",
+                        "Dystonia", "Muscle wasting (upper)", "Muscle wasting (lower)",
+                        "Fasciculations", "Abnormal posture", "Meningism"
+                    ]
+                }, {
+                    name: "💪 Motor & Reflexes",
+                    items: [
+                        "Tone: spastic", "Tone: rigid", "Tone: flaccid",
+                        "Power (proximal) reduced", "Power (distal) reduced",
+                        "Biceps (C5/6) normal", "Biceps (C5/6) reduced", "Biceps (C5/6) brisk",
+                        "Triceps (C7) normal", "Triceps (C7) reduced", "Triceps (C7) brisk",
+                        "Supinator (C6) normal", "Supinator (C6) reduced", "Supinator (C6) brisk",
+                        "Knee (L3/4) normal", "Knee (L3/4) reduced", "Knee (L3/4) brisk",
+                        "Ankle (S1/2) normal", "Ankle (S1/2) reduced", "Ankle (S1/2) brisk",
+                        "Plantar downgoing", "Plantar upgoing (Babinski)", "Clonus",
+                        "Abdominal reflexes present", "Abdominal reflexes absent"
+                    ]
+                }, {
+                    name: "🖐 Sensory & Coordination",
+                    items: [
+                        "Light touch reduced", "Pin-prick reduced",
+                        "Vibration reduced", "Proprioception reduced",
+                        "Romberg's test positive", "Finger-nose dysmetria",
+                        "Heel-shin dysmetria", "Dysdiadochokinesia"
+                    ]
+                }, {
+                    name: "🧠 Cranial Nerves & Gait",
+                    items: [
+                        "CN I (smell) intact", "CN II (vision) intact", "CN III/IV/VI (EOM) intact",
+                        "CN V (sensation) intact", "CN VII (facial) intact", "CN VIII (hearing) intact",
+                        "CN IX/X (gag) intact", "CN XI (trapezius) intact", "CN XII (tongue) intact",
+                        "Carotid bruit", "Orbital bruit",
+                        "Neck stiffness", "Kernig's sign", "Brudzinski's sign",
+                        "Gait: normal", "Gait: hemiplegic", "Gait: ataxic",
+                        "Gait: Parkinsonian", "Gait: high-stepping", "Gait: antalgic"
+                    ]
+                }]
             },
             msk: {
                 label: "MSK",
                 icon: "🦴",
                 chapter: "Ch. 20",
-                guide: "Look → Feel → Move for joints. Inspect: deformity, swelling, erythema, wasting. Palpate: warmth, tenderness, effusion. Move: active then passive ROM.",
-                normal: "No joint deformity, swelling or erythema. Full active and passive ROM. No crepitus.",
-                steps: [
-                    { label: "Inspection", items: ["Joint swelling", "Joint erythema", "Deformity",
-                            "Muscle wasting", "Limb asymmetry"
-                        ] },
-                    { label: "Palpation", items: ["Joint warmth", "Joint tenderness", "Synovial thickening",
-                            "Effusion", "Bony enlargement"
-                        ] },
-                    { label: "Range of Motion", items: ["Restricted ROM", "Crepitus", "Full ROM",
-                            "Heberden's nodes", "Bouchard's nodes"
-                        ] },
-                    { label: "Joints affected",
-                        items: ["Hands", "Elbows", "Shoulders", "Hips", "Knees", "Ankles", "Cervical spine",
-                            "Lumbar spine"
-                        ] }
-                ]
-            },
-            eyes: {
-                label: "Eyes",
-                icon: "👁️",
-                chapter: "Ch. 22",
-                guide: "Visual acuity, visual fields, pupils (PERLA), extra‑ocular movements, external exam, fundoscopy.",
-                normal: "VA normal. Visual fields full. PERLA. EOMs intact. Sclerae white. Fundoscopy: discs sharp, no haemorrhages.",
-                steps: [
-                    { label: "Visual acuity / fields", items: ["Reduced VA", "Visual field defect"] },
-                    { label: "Pupils & EOMs", items: ["Anisocoria", "Sluggish pupils", "Nystagmus", "Ptosis",
-                            "Proptosis"
-                        ] },
-                    { label: "External inspection", items: ["Conjunctival pallor", "Conjunctival injection",
-                            "Scleral jaundice", "Corneal opacity"
-                        ] },
-                    { label: "Fundoscopy", items: ["Papilloedema", "Diabetic retinopathy",
-                            "Hypertensive retinopathy", "Normal discs"
-                        ] }
-                ]
-            },
-            ent: {
-                label: "ENT",
-                icon: "👂",
-                chapter: "Ch. 22",
-                guide: "Ears: otoscope (TM), Rinne & Weber. Nose: mucosa, septum, turbinates. Throat: tonsils, pharynx, uvula. Neck: lymph nodes, thyroid.",
-                normal: "TMs intact. Hearing normal. Nasal mucosa pink. Septum central. Throat clear. No lymphadenopathy. Thyroid not palpable.",
-                steps: [
-                    { label: "Ears", items: ["TM perforation", "Otitis media", "Hearing loss"] },
-                    { label: "Nose", items: ["Nasal polyps", "Deviated septum", "Turbinate hypertrophy"] },
-                    { label: "Throat", items: ["Tonsillar enlargement", "Tonsillar exudate", "Pharyngeal erythema",
-                            "Uvular deviation"
-                        ] },
-                    { label: "Neck", items: ["Cervical lymphadenopathy", "Thyromegaly", "Thyroid nodule",
-                            "Thyroid bruit"
-                        ] }
-                ]
-            },
-            pr: {
-                label: "PR / Rectal",
-                icon: "🔍",
-                chapter: "Ch. 15",
-                guide: "Left lateral. Inspect perianal region. Assess sphincter tone, rectal mucosa, masses, prostate (males). Note stool on glove.",
-                normal: "Perianal normal. Sphincter tone normal. Rectum empty. Mucosa smooth. No masses. Prostate normal. No blood.",
-                steps: [
-                    { label: "Inspection", items: ["External haemorrhoids", "Anal fissure", "Fistula"] },
-                    { label: "Palpation", items: ["Reduced sphincter tone", "Rectal mass", "Blood on glove",
-                            "Mucus on glove", "Enlarged prostate", "Tender prostate", "Hard/irregular prostate",
-                            "Loss of central sulcus"
-                        ] }
-                ]
+                normal: "No joint deformity, swelling or erythema. Full active and passive ROM. No crepitus. No tenderness.",
+                steps: [{
+                    name: "🔍 Look (Inspection)",
+                    items: [
+                        "Valgus deformity", "Varus deformity", "Joint swelling (soft tissue)",
+                        "Joint swelling (bony)", "Erythema", "Muscle wasting (proximal)",
+                        "Muscle wasting (distal)", "Limb shortening", "Scars",
+                        "Rheumatoid nodules", "Tophi", "Heberden's nodes",
+                        "Bouchard's nodes", "Ulnar deviation", "Swan-neck deformity",
+                        "Boutonnière deformity", "Z-thumb", "Spinal curvature (kyphosis)",
+                        "Spinal curvature (scoliosis)"
+                    ]
+                }, {
+                    name: "🖐 Feel (Palpation)",
+                    items: [
+                        "Joint warmth", "Joint tenderness", "Synovial thickening",
+                        "Effusion", "Patellar tap", "Bulge sign", "Bony enlargement",
+                        "Muscle tenderness", "Ligament tenderness",
+                        "Lachman test (positive)", "McMurray test (positive)",
+                        "Anterior drawer positive", "Posterior drawer positive",
+                        "Collateral stress (medial)", "Collateral stress (lateral)"
+                    ]
+                }, {
+                    name: "👊 Percussion (Spinal / Bone)",
+                    items: [
+                        "Cervical spine percussion tenderness",
+                        "Thoracic spine percussion tenderness",
+                        "Lumbar spine percussion tenderness",
+                        "Sacroiliac tenderness", "Calcaneal tenderness"
+                    ]
+                }, {
+                    name: "🏃 Move (ROM & Crepitus)",
+                    items: [
+                        "Flexion reduced", "Extension reduced", "Abduction reduced",
+                        "Rotation reduced", "Restricted ROM", "Full ROM",
+                        "Crepitus (joint noise)", "Painful arc (60-120°)", "Joint instability",
+                        "FABER test positive", "FADIR test positive",
+                        "Schober's test positive"
+                    ]
+                }]
             }
         };
 
+        // Extended XP_DIFF with hints for all tags
         const XP_DIFF = {
+            // General
             "Pallor": "Think anaemia, chronic disease, or blood loss.",
             "Jaundice": "Consider hepatitis, obstruction, or haemolysis.",
             "Clubbing": "Think lung disease, cyanotic heart disease, IBD.",
-            "Lymphadenopathy": "Infection, TB, HIV, lymphoma, malignancy.",
+            "Lymphadenopathy visible": "Infection, TB, HIV, lymphoma, malignancy.",
             "Pedal oedema": "Heart failure, renal disease, liver disease, venous disease.",
             "Elevated JVP": "Right heart failure, fluid overload, tamponade.",
             "Displaced apex beat": "Cardiomegaly or LV enlargement.",
@@ -4162,33 +4170,273 @@
             "Systolic murmur": "Valve stenosis/regurgitation or flow murmur.",
             "Diastolic murmur": "Pathological — AR or MS.",
             "Irregular rhythm": "Atrial fibrillation or ectopic rhythm.",
-            "Tracheal deviation": "Tension pneumothorax, collapse, effusion.",
-            "Dull to percussion": "Consolidation, pleural effusion, collapse.",
+            "Tracheal deviation visible": "Tension pneumothorax, collapse, effusion.",
+            "Dull (lower R)": "Consolidation or effusion — correlate with history.",
             "Stony dull": "Pleural effusion.",
             "Coarse crackles": "Secretions, bronchiectasis, pulmonary oedema.",
             "Fine crackles": "Fibrosis, early oedema, interstitial disease.",
             "Expiratory wheeze": "Asthma, COPD, lower airway narrowing.",
             "Pleural rub": "Pleurisy, pulmonary infarction.",
             "Bronchial breathing": "Consolidation above a patent airway.",
-            "Guarding": "Peritoneal irritation or localised inflammation.",
+            "Voluntary guarding": "May indicate peritoneal irritation.",
             "Rigidity": "Surgical abdomen.",
             "Rebound tenderness": "Peritonitis.",
-            "Hepatomegaly": "Hepatitis, congestion, malignancy, fatty liver.",
+            "Hepatomegaly (smooth)": "Hepatitis, congestion, fatty liver.",
             "Splenomegaly": "Portal hypertension, malaria, haematologic disease.",
             "Shifting dullness": "Ascites — liver, cardiac, malignant causes.",
             "Absent bowel sounds": "Ileus or peritonitis.",
             "Reduced GCS": "Metabolic, neurological, toxic, or septic causes.",
-            "Cranial nerve palsy": "Localize lesion.",
-            "UMN pattern": "Stroke, cord lesion, MS.",
-            "LMN pattern": "Peripheral nerve, root, plexus, or anterior horn lesion.",
-            "Upgoing plantars": "Corticospinal tract lesion.",
-            "Papilloedema": "Raised intracranial pressure.",
-            "Meningism": "Meningitis or SAH.",
-            "Joint swelling": "Inflammatory arthritis, infection, trauma, crystal disease.",
+            "Plantar upgoing (Babinski)": "Corticospinal tract lesion.",
+            "Neck stiffness": "Meningitis or SAH.",
+            "Kernig's sign": "Meningeal irritation.",
+            "Brudzinski's sign": "Meningeal irritation.",
+            "Joint swelling (soft tissue)": "Synovitis, inflammatory arthritis.",
+            "Joint tenderness": "Arthritis, infection, trauma.",
             "Restricted ROM": "Arthritis, effusion, pain, contracture.",
             "Heberden's nodes": "Osteoarthritis (DIP).",
-            "Bouchard's nodes": "Osteoarthritis (PIP)."
+            "Bouchard's nodes": "Osteoarthritis (PIP).",
+            "Crepitus (joint noise)": "Osteoarthritis, loose bodies.",
+            "Patellar tap": "Knee effusion.",
+            "Lachman test (positive)": "ACL injury.",
+            "McMurray test (positive)": "Meniscal tear.",
+            "Anterior drawer positive": "ACL injury.",
+            "Posterior drawer positive": "PCL injury.",
+            "Collateral stress (medial)": "MCL injury.",
+            "Collateral stress (lateral)": "LCL injury.",
+            "FABER test positive": "Sacroiliac joint pathology.",
+            "Schober's test positive": "Ankylosing spondylitis.",
+            "Gait: hemiplegic": "Stroke or UMN lesion.",
+            "Gait: ataxic": "Cerebellar disease, sensory ataxia.",
+            "Gait: Parkinsonian": "Parkinson's disease.",
+            "Gait: high-stepping": "Foot drop (peripheral nerve).",
+            "Gait: antalgic": "Painful joint or musculoskeletal cause.",
+            "Carotid bruit": "Carotid stenosis.",
+            "Orbital bruit": "Carotid-cavernous fistula or vascular malformation.",
+            "Resting tremor": "Parkinson's disease.",
+            "Intention tremor": "Cerebellar lesion.",
+            "Dysdiadochokinesia": "Cerebellar dysfunction.",
+            "Romberg's test positive": "Proprioceptive or vestibular loss.",
+            "Tone: spastic": "UMN lesion.",
+            "Tone: rigid": "Extrapyramidal (Parkinson's).",
+            "Tone: flaccid": "LMN lesion or acute spinal shock.",
+            "Power (proximal) reduced": "Myopathy, radiculopathy.",
+            "Power (distal) reduced": "Peripheral neuropathy, radiculopathy.",
+            "Light touch reduced": "Peripheral neuropathy, spinal cord lesion.",
+            "Pin-prick reduced": "Peripheral neuropathy, spinal cord lesion.",
+            "Vibration reduced": "Peripheral neuropathy, posterior column lesion.",
+            "Proprioception reduced": "Posterior column lesion.",
+            "Finger-nose dysmetria": "Cerebellar lesion.",
+            "Heel-shin dysmetria": "Cerebellar lesion.",
+            "Ulnar deviation": "Rheumatoid arthritis.",
+            "Swan-neck deformity": "Rheumatoid arthritis.",
+            "Boutonnière deformity": "Rheumatoid arthritis.",
+            "Z-thumb": "Rheumatoid arthritis.",
+            "Tophi": "Gout.",
+            "Rheumatoid nodules": "Rheumatoid arthritis.",
+            "Valgus deformity": "OA or previous injury.",
+            "Varus deformity": "OA or previous injury.",
+            "Joint warmth": "Inflammatory arthritis, infection.",
+            "Synovial thickening": "Inflammatory arthritis.",
+            "Effusion": "Inflammatory or traumatic joint effusion.",
+            "Bulge sign": "Knee effusion.",
+            "Bony enlargement": "Osteoarthritis.",
+            "Muscle wasting (proximal)": "Myopathy, systemic disease.",
+            "Muscle wasting (distal)": "Neuropathy, radiculopathy.",
+            "Fasciculations": "LMN disease (ALS, radiculopathy).",
+            "Cervical spine percussion tenderness": "Cervical fracture, discitis.",
+            "Thoracic spine percussion tenderness": "Thoracic fracture, discitis.",
+            "Lumbar spine percussion tenderness": "Lumbar fracture, discitis.",
+            "Sacroiliac tenderness": "Sacroiliitis.",
+            "Calcaneal tenderness": "Plantar fasciitis, Achilles tendinopathy.",
+            "Painful arc (60-120°)": "Rotator cuff tendinopathy / impingement.",
+            "Joint instability": "Ligamentous injury.",
+            "Abnormal posture": "Dystonia, spasticity, parkinsonism.",
+            "Meningism": "Meningitis or SAH.",
+            "Cullen's sign": "Acute pancreatitis, ruptured ectopic.",
+            "Grey-Turner's sign": "Acute pancreatitis, retroperitoneal bleed.",
+            "Caput medusae": "Portal hypertension.",
+            "Tinkling bowel sounds": "Early obstruction.",
+            "Aortic bruit": "Aortic stenosis or aneurysm.",
+            "Renal bruit": "Renal artery stenosis.",
+            "Iliac bruit": "Iliac artery stenosis.",
+            "Hepatic rub": "Inflammatory liver disease (perihepatitis).",
+            "Splenic rub": "Splenic infarct or perisplenitis.",
+            "Murphy's sign": "Cholecystitis.",
+            "McBurney's point": "Appendicitis.",
+            "Rovsing's sign": "Appendicitis.",
+            "Psoas sign": "Retrocaecal appendicitis, psoas abscess.",
+            "Obturator sign": "Pelvic appendicitis.",
+            "Liver span increased": "Hepatomegaly.",
+            "Traube's space dull": "Splenomegaly or fluid.",
+            "Fluid thrill": "Ascites.",
+            "Suprapubic dullness": "Full bladder, pelvic mass.",
+            "Tympany": "Bowel obstruction or ileus.",
+            "Respiratory movement absent": "Peritonitis, guarding.",
+            "Hernias visible": "Inguinal, femoral, umbilical hernia.",
+            "Hernial orifice (inguinal)": "Inguinal hernia.",
+            "Hernial orifice (femoral)": "Femoral hernia.",
+            "Bladder palpable": "Urinary retention.",
+            "Koilonychia": "Iron deficiency anaemia.",
+            "Leukonychia": "Hypoalbuminaemia, liver disease.",
+            "Cachexia": "Malignancy, chronic infection, malnutrition.",
+            "Pyrexia": "Infection, inflammation, malignancy.",
+            "Respiratory distress": "Cardiac, pulmonary, or metabolic cause.",
+            "Cervical lymphadenopathy": "Infection, lymphoma, metastases.",
+            "Axillary lymphadenopathy": "Infection, lymphoma, breast cancer.",
+            "Inguinal lymphadenopathy": "Infection, lymphoma, lower limb malignancy.",
+            "Skin turgor reduced": "Dehydration.",
+            "Capillary refill >2s": "Shock, hypovolaemia, peripheral vasoconstriction.",
+            "Pitting oedema": "Heart failure, nephrotic syndrome, venous insufficiency.",
+            "Non-pitting oedema": "Lymphoedema, myxoedema.",
+            "Tender lymph node": "Infection.",
+            "Firm lymph node": "Lymphoma, malignancy.",
+            "Matted lymph node": "TB, lymphoma.",
+            "Well-nourished": "Normal nutritional status.",
+            "Malnourished (mild)": "Weight loss, inadequate intake.",
+            "Malnourished (severe)": "Significant malnutrition, cachexia.",
+            "Obese": "BMI >30 — metabolic syndrome risk.",
+            "Alert": "Normal consciousness.",
+            "Responds to voice": "Reduced consciousness.",
+            "Responds to pain": "Significant reduced consciousness.",
+            "Unresponsive": "Coma — urgent ABCs.",
+            // Additional cardiovascular
+            "Praecordium scars": "Previous cardiac surgery or trauma.",
+            "Pacemaker bulge": "Pacemaker implantation.",
+            "Visible pulsations": "Aneurysm, high-output state.",
+            "LV heave": "Left ventricular hypertrophy.",
+            "RV heath": "Right ventricular hypertrophy.",
+            "Thrill": "Palpable murmur — stenosis/regurgitation.",
+            "Apex beat tapping": "Mitral stenosis.",
+            "Apex beat diffuse": "Dilated cardiomyopathy.",
+            "Radial pulse present": "Normal peripheral perfusion.",
+            "Femoral pulse present": "Normal lower limb perfusion.",
+            "Dorsalis pedis present": "Normal foot perfusion.",
+            "Posterior tibial present": "Normal foot perfusion.",
+            "Radio-radial delay": "Subclavian or aortic coarctation.",
+            "Radio-femoral delay": "Aortic coarctation.",
+            "Cardiac dullness increased (effusion)": "Pericardial effusion.",
+            "Cardiac dullness increased (cardiomegaly)": "Dilated cardiomyopathy, valve disease.",
+            "S1 normal": "Normal mitral/tricuspid closure.",
+            "S2 normal": "Normal aortic/pulmonary closure.",
+            "S4": "Stiff ventricle — hypertension, aortic stenosis.",
+            "Ejection systolic murmur": "Aortic stenosis, pulmonary stenosis.",
+            "Pansystolic murmur": "Mitral regurgitation, VSD.",
+            "Late systolic murmur": "Mitral valve prolapse.",
+            "Early diastolic murmur": "Aortic regurgitation.",
+            "Mid-diastolic murmur": "Mitral stenosis.",
+            "Continuous murmur": "Patent ductus arteriosus, AV fistula.",
+            "Pericardial rub": "Pericarditis.",
+            "Murmur radiation to axilla": "Mitral regurgitation.",
+            "Murmur radiation to carotid": "Aortic stenosis.",
+            "Muffled heart sounds": "Pericardial effusion, obesity.",
+            // Respiratory
+            "RR >20/min": "Tachypnoea — respiratory distress, acidosis.",
+            "Accessory muscle use": "Respiratory distress — COPD, asthma, pneumonia.",
+            "Intercostal recession": "Lower airway obstruction.",
+            "Nasal flaring": "Respiratory distress in children and adults.",
+            "Pursed-lip breathing": "COPD, asthma — to maintain airway pressure.",
+            "Tracheal deviated": "Pneumothorax, effusion, mass.",
+            "Barrel chest": "COPD, hyperinflation.",
+            "Pectus excavatum": "Congenital deformity.",
+            "Pectus carinatum": "Congenital deformity.",
+            "Kyphosis": "Spinal curvature — restrictive lung disease.",
+            "Scoliosis": "Spinal curvature — restrictive lung disease.",
+            "Chest asymmetry": "Pneumothorax, effusion, collapse.",
+            "Cyanosis": "Hypoxaemia, peripheral shunting.",
+            "Reduced expansion (R)": "Right lung collapse, effusion.",
+            "Reduced expansion (L)": "Left lung collapse, effusion.",
+            "Tactile fremitus increased": "Consolidation.",
+            "Tactile fremitus reduced": "Effusion, pneumothorax, fibrosis.",
+            "Subcutaneous emphysema": "Pneumothorax, tracheal injury.",
+            "Chest wall tenderness": "Musculoskeletal, rib fracture.",
+            "Resonant (upper R)": "Normal lung.",
+            "Resonant (upper L)": "Normal lung.",
+            "Resonant (mid R)": "Normal lung.",
+            "Resonant (mid L)": "Normal lung.",
+            "Resonant (lower R)": "Normal lung.",
+            "Resonant (lower L)": "Normal lung.",
+            "Dull (upper R)": "Consolidation or effusion.",
+            "Dull (upper L)": "Consolidation or effusion.",
+            "Dull (mid R)": "Consolidation or effusion.",
+            "Dull (mid L)": "Consolidation or effusion.",
+            "Dull (lower R)": "Consolidation or effusion.",
+            "Dull (lower L)": "Consolidation or effusion.",
+            "Hyperresonant": "Pneumothorax, emphysema.",
+            "Vesicular normal": "Normal breath sounds.",
+            "Reduced vesicular": "Effusion, pneumothorax, consolidation.",
+            "Absent vesicular": "Massive effusion, pneumothorax.",
+            "Bilateral basal crackles": "Pulmonary oedema, fibrosis.",
+            "Vocal resonance normal": "Normal transmission.",
+            "Vocal resonance increased": "Consolidation.",
+            "Vocal resonance reduced": "Effusion, pneumothorax.",
+            "Whispering pectoriloquy": "Consolidation.",
+            // Abdominal
+            "Flat": "Normal abdomen.",
+            "Distended": "Ascites, obstruction, gas.",
+            "Scaphoid": "Malnutrition, wasting.",
+            "Visible peristalsis": "Obstruction.",
+            "Striae": "Recent weight gain, Cushing's.",
+            "Surgical scar (R upper)": "Cholecystectomy, hepatobiliary surgery.",
+            "Surgical scar (L upper)": "Splenectomy, gastric surgery.",
+            "Surgical scar (midline)": "Laparotomy.",
+            "Surgical scar (lower)": "Appendicectomy, pelvic surgery.",
+            "Normal bowel sounds": "Normal peristalsis.",
+            "Hyperactive bowel sounds": "Diarrhoea, early obstruction.",
+            "Tinkling bowel sounds": "Early obstruction.",
+            "Soft": "Normal abdominal wall.",
+            "Non-tender": "No peritoneal irritation.",
+            "Involuntary guarding": "Peritonitis.",
+            "Tenderness (RUQ)": "Gallbladder, liver, duodenum.",
+            "Tenderness (LUQ)": "Spleen, stomach, colon.",
+            "Tenderness (RLQ)": "Appendix, caecum, ovary.",
+            "Tenderness (LLQ)": "Sigmoid colon, ovary.",
+            "Kidneys palpable": "Enlarged kidney — polycystic, hydronephrosis.",
+            "Palpable mass": "Tumour, cyst, inflammatory mass.",
+            "Liver span increased": "Hepatomegaly.",
+            // Neurological specific
+            "Conscious level reduced": "Metabolic, structural, toxic cause.",
+            "Orientation impaired": "Delirium, dementia, metabolic.",
+            "Facial asymmetry": "Facial nerve palsy, stroke.",
+            "Ptosis": "CN III palsy, Horner's, myasthenia.",
+            "Chorea": "Huntington's, Sydenham's.",
+            "Dystonia": "Basal ganglia disorder.",
+            "Power (proximal) reduced": "Myopathy, radiculopathy.",
+            "Power (distal) reduced": "Neuropathy, radiculopathy.",
+            "Biceps (C5/6) brisk": "UMN lesion above C5/6.",
+            "Triceps (C7) brisk": "UMN lesion above C7.",
+            "Supinator (C6) brisk": "UMN lesion above C6.",
+            "Knee (L3/4) brisk": "UMN lesion above L3/4.",
+            "Ankle (S1/2) brisk": "UMN lesion above S1/2.",
+            "Clonus": "UMN lesion — hyperreflexia.",
+            "Abdominal reflexes absent": "UMN lesion, spinal cord lesion.",
+            "CN I intact": "Olfactory nerve normal.",
+            "CN II intact": "Optic nerve normal.",
+            "CN III/IV/VI intact": "Extraocular muscles normal.",
+            "CN V intact": "Trigeminal normal.",
+            "CN VII intact": "Facial nerve normal.",
+            "CN VIII intact": "Acoustic nerve normal.",
+            "CN IX/X intact": "Glossopharyngeal/vagus normal.",
+            "CN XI intact": "Accessory nerve normal.",
+            "CN XII intact": "Hypoglossal nerve normal.",
+            // MSK
+            "Ligament tenderness": "Sprain, ligament injury.",
+            "Flexion reduced": "Joint stiffness, contracture.",
+            "Extension reduced": "Joint stiffness, contracture.",
+            "Abduction reduced": "Rotator cuff, adhesive capsulitis.",
+            "Rotation reduced": "Rotator cuff, adhesive capsulitis.",
+            "Full ROM": "Normal joint mobility.",
+            "Limb shortening": "Fracture, congenital, hip pathology.",
+            "Scars": "Previous surgery or trauma.",
+            "Spinal curvature (kyphosis)": "Osteoporosis, Scheuermann's.",
+            "Spinal curvature (scoliosis)": "Idiopathic, neuromuscular."
         };
+
+        // Add generic clue for any tag not explicitly defined
+        function xpDifferentialClue(finding, key) {
+            const custom = XP_DIFF[finding];
+            const sys = XP[key]?.label || 'system';
+            return custom || `Correlate this ${sys} finding with history and further examination.`;
+        }
 
         let xpData = {};
         let xpOpen = false;
@@ -4275,46 +4523,62 @@
                         </div>
                     `;
                 }
-                let findingsHtml = '';
+                // Build accordion steps
+                let stepsHtml = '';
                 if (sys.steps) {
-                    sys.steps.forEach((step, stepIdx) => {
-                        findingsHtml += `<div class="xp-step-label">${step.label}</div>`;
-                        findingsHtml += `<div class="xp-findings-wrap">`;
-                        step.items.forEach(item => {
-                            findingsHtml +=
-                                `<label class="xp-finding-tag" onclick="xpToggleTag(this, '${key}')"><input type="checkbox" value="${item}"><span class="xp-tag-check">✓</span>${item}<span class="xp-diff-tooltip">${xpDifferentialClue(item, key)}</span></label>`;
-                        });
-                        findingsHtml += `</div>`;
+                    sys.steps.forEach((step, idx) => {
+                        const stepId = `${key}-step-${idx}`;
+                        const isOpen = idx === 0 ? 'open' : '';
+                        const arrowClass = idx === 0 ? 'open' : '';
+                        stepsHtml += `
+                            <div class="xp-step-accordion">
+                                <div class="xp-step-header ${arrowClass}" onclick="toggleStep('${stepId}')">
+                                    <span>${step.name}</span>
+                                    <span class="step-arrow ${arrowClass}">▼</span>
+                                </div>
+                                <div class="xp-step-body ${isOpen}" id="step-${stepId}">
+                                    <div class="xp-findings-wrap">
+                                        ${step.items.map(item => `
+                                            <label class="xp-finding-tag" onclick="xpToggleTag(this, '${key}')">
+                                                <input type="checkbox" value="${item}">
+                                                <span class="xp-tag-check">✓</span>${item}
+                                                <span class="xp-diff-tooltip">${xpDifferentialClue(item, key)}</span>
+                                            </label>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     });
                 }
-                panesHtml +=
-                    `<div class="xp-pane ${i === 0 ? 'active' : ''}" id="xp-pane-${key}">
-                                <div class="xp-guide"><span class="xp-guide-icon">${sys.icon}</span><div><strong>${sys.label} — ${sys.chapter}</strong><br>${sys.guide}</div></div>
-                                ${vitalsHtml}
-                                ${gcsHtml}
-                                ${sys.steps ? `<div class="xp-two-col">
-                                    <div>
-                                        <div class="xp-col-label">Findings <span class="xp-col-count" id="xp-count-${key}">0</span></div>
-                                        ${findingsHtml}
-                                    </div>
-                                    <div>
-                                        <div class="xp-col-label">Narrative</div>
-                                        <div class="xp-narrative-wrap">
-                                            <button class="xp-normal-btn" onclick="xpMarkNormal('${key}')">✅ Normal findings</button>
-                                            <textarea id="xp-narr-${key}" class="xp-narrative" placeholder="Describe findings…" oninput="xpSave('${key}')"></textarea>
-                                            <div class="xp-hint">💡 ${sys.guide.replace(/<[^>]+>/g, '')}</div>
-                                            <div class="xp-abnormal" id="xp-alert-${key}">⚠️ Abnormal findings noted. Document in assessment.</div>
-                                        </div>
-                                    </div>
-                                </div>` : ''}
-                                <div class="xp-status-bar">
-                                    <span class="xp-status-pill" id="xp-status-${key}"><span class="xp-status-dot"></span> Not examined</span>
-                                </div>
-                            </div>`;
+                panesHtml += `
+                    <div class="xp-pane ${i === 0 ? 'active' : ''}" id="xp-pane-${key}">
+                        <div class="xp-guide"><span class="xp-guide-icon">${sys.icon}</span><div><strong>${sys.label} — ${sys.chapter}</strong><br>Hutchison's 4‑Step Framework: Inspection → Palpation → Percussion → Auscultation</div></div>
+                        ${vitalsHtml}
+                        ${gcsHtml}
+                        ${stepsHtml}
+                        <button class="xp-normal-btn" onclick="xpMarkNormal('${key}')">✅ Normal findings</button>
+                        <textarea id="xp-narr-${key}" class="xp-narrative" placeholder="Describe any abnormal findings, relevant negatives, and overall impression…" oninput="xpSave('${key}')"></textarea>
+                        <div class="xp-abnormal" id="xp-alert-${key}">⚠️ Abnormal findings noted. Document in assessment.</div>
+                        <div class="xp-status-bar">
+                            <span class="xp-status-pill" id="xp-status-${key}"><span class="xp-status-dot"></span> Not examined</span>
+                        </div>
+                    </div>
+                `;
             });
             tabsEl.innerHTML = tabsHtml;
             panesEl.innerHTML = panesHtml;
             xpRefreshAll();
+        }
+
+        function toggleStep(stepId) {
+            const body = document.getElementById(`step-${stepId}`);
+            if (!body) return;
+            const header = body.closest('.xp-step-accordion').querySelector('.xp-step-header');
+            body.classList.toggle('open');
+            header.classList.toggle('open');
+            const arrow = header.querySelector('.step-arrow');
+            if (arrow) arrow.classList.toggle('open');
         }
 
         function updateGCSTotal() {
@@ -4333,9 +4597,7 @@
                 xpData['neuro'].gcsDetails = gcsDetails;
                 xpSave('neuro');
             }
-            if (total > 0) {
-                generateDifferentials();
-            }
+            if (total > 0) generateDifferentials();
         }
 
         function xpTogglePanel() {
@@ -4430,9 +4692,6 @@
             const dot = document.getElementById(`xp-dot-${key}`);
             if (dot) dot.parentElement.classList.toggle('done', documented);
 
-            const cnt = document.getElementById(`xp-count-${key}`);
-            if (cnt) cnt.textContent = checked.length;
-
             const status = document.getElementById(`xp-status-${key}`);
             if (status) {
                 status.classList.toggle('done', documented);
@@ -4440,7 +4699,6 @@
                     `<span class="xp-status-dot"></span> ✅ Examined` :
                     `<span class="xp-status-dot"></span> Not examined`;
             }
-
             const alert = document.getElementById(`xp-alert-${key}`);
             if (alert) alert.classList.toggle('show', hasAbnormal);
         }
@@ -4465,12 +4723,6 @@
             if (el) el.textContent = done;
         }
 
-        function xpDifferentialClue(finding, key) {
-            const custom = XP_DIFF[finding];
-            const sys = XP[key]?.label || 'system';
-            return custom || `Correlate this ${sys} finding with history, vitals, examination pattern, and investigations.`;
-        }
-
         // ============================================================
         // SERVICE WORKER
         // ============================================================
@@ -4486,22 +4738,12 @@
         // INITIALISATION
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
-            // Build the 3 complaint slots
             buildComplaintSlots();
-
-            // Build ROS
             buildROS();
-
-            // Init XP
             xpInit();
-
-            // Update progress
             updateProgress();
-
-            // Toggle referral details
             toggleReferralDetails();
-
-            console.log('✅ EaseMed Clinical Clerk System loaded with 3-complaint slots (Hutchison\'s rule).');
+            console.log('✅ EaseMed loaded with Past Surgical History, split Neuro exam, and hints for all findings.');
         });
     </script>
 </body>
