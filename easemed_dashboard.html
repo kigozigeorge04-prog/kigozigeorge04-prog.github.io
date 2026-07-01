@@ -2,10 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script
-  src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js"
-  crossorigin="anonymous"
-></script>
+    <script src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js" crossorigin="anonymous"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="EaseMed Clinical Clerk System — comprehensive history taking & physical examination guide">
     <title>EaseMed - Clinical Clerk System</title>
@@ -15,7 +12,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     <meta name="mobile-web-app-capable" content="yes">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
     <style>
         /* ============================================================
            COMPLETE STYLES — Full version
@@ -1275,41 +1273,41 @@
             background: currentColor;
             opacity: 0.5
         }
-       @media (max-width: 1024px) {
-    .container {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-    .guidance-panel {
-        position: static;
-        max-height: none;
-        overflow-y: visible;
-    }
-}
-
-@media (max-width: 640px) {
-    .container {
-        padding: 0 10px;
-        grid-template-columns: 1fr;
-    }
-    .demographics-grid {
-        grid-template-columns: 1fr;
-    }
-    .summary-actions {
-        grid-template-columns: 1fr;
-    }
-    .summary-tabs {
-        grid-template-columns: 1fr;
-    }
-    .ros-grid {
-        grid-template-columns: 1fr;
-    }
-    .guidance-panel {
-        position: static;
-        max-height: none;
-        overflow-y: visible;
-    }
-}        #authBar {
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .guidance-panel {
+                position: static;
+                max-height: none;
+                overflow-y: visible;
+            }
+        }
+        @media (max-width: 640px) {
+            .container {
+                padding: 0 10px;
+                grid-template-columns: 1fr;
+            }
+            .demographics-grid {
+                grid-template-columns: 1fr;
+            }
+            .summary-actions {
+                grid-template-columns: 1fr;
+            }
+            .summary-tabs {
+                grid-template-columns: 1fr;
+            }
+            .ros-grid {
+                grid-template-columns: 1fr;
+            }
+            .guidance-panel {
+                position: static;
+                max-height: none;
+                overflow-y: visible;
+            }
+        }
+        #authBar {
             position: fixed;
             top: 0;
             left: 0;
@@ -1547,7 +1545,6 @@
             margin-top: 0.2rem;
             font-style: italic;
         }
-
         @media (max-width: 640px) {
             .social-sub-grid {
                 grid-template-columns: 1fr;
@@ -1649,6 +1646,172 @@
                 margin-left: 0;
             }
         }
+
+        /* ============================================================
+           COMPLAINT SLOT STYLES
+           ============================================================ */
+        .complaint-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 6px;
+        }
+        .complaint-slot {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 16px 18px 18px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .complaint-slot:focus-within {
+            border-color: #94a3b8;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+        }
+        .complaint-slot.has-symptom {
+            border-color: #b9d0f0;
+        }
+        .slot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .slot-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .slot-label .required-star {
+            color: #dc2626;
+            font-weight: 700;
+        }
+        .slot-label .optional-tag {
+            font-weight: 400;
+            font-size: 0.7rem;
+            color: #64748b;
+            background: #e9edf2;
+            padding: 0 8px;
+            border-radius: 12px;
+            margin-left: 4px;
+        }
+        .status-badge {
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #e9edf2;
+            color: #475569;
+            transition: all 0.2s;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+        .status-badge.has-symptom {
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+        .status-badge.red-flag {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+        .slot-symptom-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-height: 160px;
+            overflow-y: auto;
+            padding: 2px 0 6px;
+        }
+        .slot-symptom-btn {
+            background: #f1f4f9;
+            border: 1px solid #e2e8f0;
+            padding: 5px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #2d3748;
+            white-space: nowrap;
+        }
+        .slot-symptom-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 60, 114, 0.12);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-color: #1e3c72;
+        }
+        .slot-symptom-btn.active {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(30, 60, 114, 0.2);
+            border-color: #1e3c72;
+            transform: scale(1.03);
+        }
+        .slot-custom-input {
+            margin-top: 8px;
+            width: 100%;
+            padding: 6px 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        .slot-custom-input:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.06);
+        }
+        .slot-questions {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #e2e8f0;
+        }
+        .slot-questions .alert.warning {
+            font-size: 0.78rem;
+            padding: 8px 12px;
+        }
+        .slot-questions .alert.warning br {
+            display: block;
+            margin: 2px 0;
+        }
+
+        /* Hutchison banner */
+        .hutchison-banner {
+            background: #f0f7ff;
+            border-left: 5px solid #2563eb;
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.88rem;
+            color: #1e293b;
+        }
+        .hutchison-banner .icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .hutchison-banner strong {
+            color: #1e40af;
+        }
+        .hutchison-banner .rule-highlight {
+            background: #dbeafe;
+            padding: 0 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -1717,31 +1880,22 @@
                 <div style="margin-top:8px;"><label>Nearest Health Centre</label><input type="text" id="nearestHealthCentre" placeholder="Clinic/health centre name"></div>
             </div>
 
-            <!-- 2. PRESENTING COMPLAINT -->
+            <!-- 2. PRESENTING COMPLAINT — THREE SLOTS -->
             <div class="form-section">
                 <h3>🩺 Presenting Complaint <span class="stat-card">SOCRATES for pain only</span></h3>
-                <label>Select or type the main symptom:</label>
-                <div class="symptom-buttons" id="symptomButtons">
-                    <button class="symptom-btn" data-symptom="fever">🌡️ Fever</button>
-                    <button class="symptom-btn" data-symptom="pain">🩺 Pain (SOCRATES)</button>
-                    <button class="symptom-btn" data-symptom="chest pain">💔 Chest Pain</button>
-                    <button class="symptom-btn" data-symptom="shortness of breath">💨 SOB</button>
-                    <button class="symptom-btn" data-symptom="cough">🤧 Cough</button>
-                    <button class="symptom-btn" data-symptom="headache">🤕 Headache</button>
-                    <button class="symptom-btn" data-symptom="dizziness">🌀 Dizziness</button>
-                    <button class="symptom-btn" data-symptom="nausea">🤢 Nausea/Vomiting</button>
-                    <button class="symptom-btn" data-symptom="diarrhea">💩 Diarrhoea</button>
-                    <button class="symptom-btn" data-symptom="constipation">🚫 Constipation</button>
-                    <button class="symptom-btn" data-symptom="swelling">💧 Oedema</button>
-                    <button class="symptom-btn" data-symptom="palpitations">💓 Palpitations</button>
-                    <button class="symptom-btn" data-symptom="fatigue">😴 Fatigue</button>
-                    <button class="symptom-btn" data-symptom="weight loss">⚖️ Weight Loss</button>
-                    <button class="symptom-btn" data-symptom="joint pain">🦴 Joint Pain</button>
-                    <button class="symptom-btn" data-symptom="rash">🔴 Skin Rash</button>
+
+                <!-- Hutchison's Callout Banner -->
+                <div class="hutchison-banner">
+                    <span class="icon">📖</span>
+                    <div>
+                        <strong>Hutchison's Clinical Methods — 3-Complaint Rule</strong><br>
+                        A patient may present with a maximum of <span class="rule-highlight">3 presenting complaints</span>.
+                        Each complaint must be documented separately in <span class="rule-highlight">order of clinical importance</span>.
+                        Complaint 1 is required; Complaints 2 and 3 are optional.
+                    </div>
                 </div>
-                <label style="margin-top:10px;">Or type your own symptom:</label>
-                <input type="text" id="customSymptom" placeholder="Type symptom here..." onchange="setCustomSymptom()">
-                <div id="dynamicQuestions" style="margin-top:10px;"></div>
+
+                <div class="complaint-slots" id="complaintSlots"></div>
             </div>
 
             <!-- 3. HPC -->
@@ -1810,7 +1964,7 @@
                 <div id="rosContainer"></div>
             </div>
 
-            <!-- 6. SOCIAL & FAMILY HISTORY (Updated with ObGyn-style smoking and alcohol) -->
+            <!-- 6. SOCIAL & FAMILY HISTORY -->
             <div class="form-section">
                 <h3>🏠 Social & Family History</h3>
                 <div class="social-sub-grid">
@@ -1818,8 +1972,6 @@
                         <label>Social Circumstances</label>
                         <textarea id="social" placeholder="Living conditions, occupation, diet, travel, support network, education..."></textarea>
                     </div>
-
-                    <!-- SMOKING HISTORY - Radio buttons with conditional fields -->
                     <div class="full-width">
                         <label>Smoking History <span style="font-weight:400;text-transform:none;color:#718096;font-size:0.8rem;">(Hutchison's)</span></label>
                         <div class="radio-group">
@@ -1828,25 +1980,13 @@
                             <label><input type="radio" name="smoking" value="current" onchange="toggleSmokingDetails()" /> Current smoker</label>
                         </div>
                         <div id="smokingDetailsWrap" style="display:none; margin-top:0.5rem;">
-                            <div class="inline-row">
-                                <div class="field-group">
-                                    <label>Pack Years</label>
-                                    <div class="hint-sm">(Packs per day) × (Years smoked)</div>
-                                    <input type="text" id="smokingPackYears" placeholder="e.g. 10 pack-years" />
-                                </div>
-                                <div class="field-group">
-                                    <label>Quit Date (if former smoker)</label>
-                                    <input type="date" id="smokingQuitDate" />
-                                </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                <div><label>Pack Years</label><div class="hint-sm">(Packs/day) × (Years)</div><input type="text" id="smokingPackYears" placeholder="e.g. 10" /></div>
+                                <div><label>Quit Date</label><input type="date" id="smokingQuitDate" /></div>
                             </div>
-                            <div class="field-group">
-                                <label>Additional Smoking Details</label>
-                                <input type="text" id="smokingDetails" placeholder="e.g. Started at 18, smokes 1 pack/day" />
-                            </div>
+                            <div style="margin-top:4px;"><label>Additional Details</label><input type="text" id="smokingDetails" placeholder="e.g. Started at 18, smokes 1 pack/day" /></div>
                         </div>
                     </div>
-
-                    <!-- ALCOHOL HISTORY - Radio buttons with conditional fields -->
                     <div class="full-width">
                         <label>Alcohol Consumption <span style="font-weight:400;text-transform:none;color:#718096;font-size:0.8rem;">(Hutchison's)</span></label>
                         <div class="radio-group">
@@ -1856,24 +1996,13 @@
                             <label><input type="radio" name="alcohol" value="heavy" onchange="toggleAlcoholDetails()" /> Heavy</label>
                         </div>
                         <div id="alcoholDetailsWrap" style="display:none; margin-top:0.5rem;">
-                            <div class="inline-row">
-                                <div class="field-group">
-                                    <label>Units per week</label>
-                                    <div class="hint-sm">1 unit = 8g alcohol (e.g. 1 small beer, 1 glass of wine)</div>
-                                    <input type="text" id="alcoholUnits" placeholder="e.g. 14 units/week" />
-                                </div>
-                                <div class="field-group">
-                                    <label>Type of Alcohol</label>
-                                    <input type="text" id="alcoholType" placeholder="e.g. Beer, Wine, Spirits" />
-                                </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                <div><label>Units per week</label><div class="hint-sm">1 unit = 8g alcohol</div><input type="text" id="alcoholUnits" placeholder="e.g. 14" /></div>
+                                <div><label>Type</label><input type="text" id="alcoholType" placeholder="e.g. Beer, Wine" /></div>
                             </div>
-                            <div class="field-group">
-                                <label>Additional Alcohol Details</label>
-                                <input type="text" id="alcoholDetails" placeholder="e.g. Started at 20, drinks on weekends" />
-                            </div>
+                            <div style="margin-top:4px;"><label>Additional Details</label><input type="text" id="alcoholDetails" placeholder="e.g. Started at 20, drinks on weekends" /></div>
                         </div>
                     </div>
-
                     <div class="full-width">
                         <label>Family History</label>
                         <textarea id="familyHistory" placeholder="Family history of chronic diseases, genetic disorders, TB, HIV, cancer..."></textarea>
@@ -1961,7 +2090,7 @@
     </div>
 
     <!-- ============================================================
-    PHYSICAL EXAMINATION (XP — Hutchison's steps with GCS)
+    PHYSICAL EXAMINATION (XP)
     ============================================================ -->
     <div class="xp-shell">
         <div class="xp-panel">
@@ -2138,7 +2267,7 @@
         }
 
         // ============================================================
-        // SMOKING TOGGLE (ObGyn style)
+        // SMOKING TOGGLE
         // ============================================================
         function toggleSmokingDetails() {
             const selected = document.querySelector('input[name="smoking"]:checked');
@@ -2154,7 +2283,7 @@
         }
 
         // ============================================================
-        // ALCOHOL TOGGLE (ObGyn style)
+        // ALCOHOL TOGGLE
         // ============================================================
         function toggleAlcoholDetails() {
             const selected = document.querySelector('input[name="alcohol"]:checked');
@@ -2726,68 +2855,298 @@
         };
 
         // ============================================================
-        // SYMPTOM HANDLERS
+        // THREE-SLOT PRESENTING COMPLAINT SYSTEM
         // ============================================================
-        let currentSymptom = '';
-        let symptomDetails = {};
 
-        function displayQuestions(symptom) {
-            const guide = symptomGuides[symptom];
-            const container = document.getElementById('dynamicQuestions');
-            if (!guide) {
-                container.innerHTML =
-                    `<div class="alert"><strong>Systematic approach for "${symptom}"</strong><br>Use: Site, Onset, Character, Radiation, Associations, Timing, Exacerbating/Relieving, Severity.</div>`;
-                return;
+        // Core data: array of 3 symptoms, array of 3 detail objects
+        let currentSymptoms = ['', '', ''];
+        let symptomDetails = [{}, {}, {}];
+
+        // Backward compatibility: currentSymptom is an alias for currentSymptoms[0]
+        Object.defineProperty(window, 'currentSymptom', {
+            get: function() { return currentSymptoms[0]; },
+            set: function(val) { currentSymptoms[0] = val; },
+            configurable: true,
+            enumerable: true
+        });
+
+        // List of all symptom names for buttons
+        const SYMPTOM_LIST = [
+            'fever', 'pain', 'chest pain', 'shortness of breath', 'cough', 'headache',
+            'dizziness', 'nausea', 'diarrhea', 'constipation', 'swelling',
+            'palpitations', 'fatigue', 'weight loss', 'joint pain', 'rash'
+        ];
+
+        // Display labels for symptoms
+        const SYMPTOM_LABELS = {
+            'fever': '🌡️ Fever',
+            'pain': '🩺 Pain (SOCRATES)',
+            'chest pain': '💔 Chest Pain',
+            'shortness of breath': '💨 SOB',
+            'cough': '🤧 Cough',
+            'headache': '🤕 Headache',
+            'dizziness': '🌀 Dizziness',
+            'nausea': '🤢 Nausea/Vomiting',
+            'diarrhea': '💩 Diarrhoea',
+            'constipation': '🚫 Constipation',
+            'swelling': '💧 Oedema',
+            'palpitations': '💓 Palpitations',
+            'fatigue': '😴 Fatigue',
+            'weight loss': '⚖️ Weight Loss',
+            'joint pain': '🦴 Joint Pain',
+            'rash': '🔴 Skin Rash'
+        };
+
+        const SLOT_LABELS = [
+            { label: 'Complaint 1', required: true, suffix: '*' },
+            { label: 'Complaint 2', required: false, suffix: '(optional)' },
+            { label: 'Complaint 3', required: false, suffix: '(optional)' }
+        ];
+
+        function buildComplaintSlots() {
+            const container = document.getElementById('complaintSlots');
+            let html = '';
+            for (let slotIdx = 0; slotIdx < 3; slotIdx++) {
+                const info = SLOT_LABELS[slotIdx];
+                const requiredMark = info.required ? '<span class="required-star">*</span>' : '';
+                const optionalTag = info.required ? '' : '<span class="optional-tag">optional</span>';
+                const currentSym = currentSymptoms[slotIdx] || '';
+                const hasSymptom = currentSym !== '';
+                const badgeText = hasSymptom ? (SYMPTOM_LABELS[currentSym] || currentSym) : 'None selected';
+                const badgeClass = hasSymptom ? 'has-symptom' : '';
+
+                html += `
+                    <div class="complaint-slot ${hasSymptom ? 'has-symptom' : ''}" data-slot="${slotIdx}" id="slot-${slotIdx}">
+                        <div class="slot-header">
+                            <div class="slot-label">
+                                ${info.label} ${requiredMark} ${optionalTag}
+                            </div>
+                            <span class="status-badge ${badgeClass}" id="slot-badge-${slotIdx}">${badgeText}</span>
+                        </div>
+                        <div class="slot-symptom-grid" id="slot-grid-${slotIdx}">
+                            ${SYMPTOM_LIST.map(sym => `
+                                <button class="slot-symptom-btn ${currentSym === sym ? 'active' : ''}"
+                                        data-slot="${slotIdx}"
+                                        data-symptom="${sym}"
+                                        onclick="selectSlotSymptom(${slotIdx}, '${sym}')">
+                                    ${SYMPTOM_LABELS[sym] || sym}
+                                </button>
+                            `).join('')}
+                        </div>
+                        <input type="text" class="slot-custom-input" id="slot-custom-${slotIdx}"
+                               placeholder="Or type a custom symptom..."
+                               value="${currentSym && !SYMPTOM_LABELS[currentSym] ? currentSym : ''}"
+                               onchange="selectSlotCustom(${slotIdx}, this.value)"
+                               onfocus="this.select()">
+                        <div class="slot-questions" id="slot-questions-${slotIdx}">
+                            ${currentSym ? renderSlotQuestions(slotIdx, currentSym) : ''}
+                        </div>
+                    </div>
+                `;
             }
-            let html =
-                `<div style="background:#f0f7ff;padding:14px;border-radius:12px;"><h4 style="color:#1e3c72;font-size:1rem;">${guide.title}</h4><small>${guide.chapter}</small>`;
-            guide.questions.forEach((item, idx) => {
-                html +=
-                    `<div style="margin-bottom:12px;"><label style="font-weight:600;font-size:0.85rem;">${item.q}</label><input type="text" id="pc_q${idx}" placeholder="Patient response..." onchange="savePCResponse(${idx}, this.value)" style="margin-top:3px;"><div class="ros-hint">${item.hint}</div></div>`;
-            });
-            if (guide.redFlags) html +=
-                `<div class="alert warning"><strong>⚠️ RED FLAGS:</strong><br>${guide.redFlags.join('<br>')}</div>`;
-            html += `</div>`;
             container.innerHTML = html;
+
+            // If slot 0 has a symptom, update guidance
+            if (currentSymptoms[0]) {
+                updateGuidancePanel(currentSymptoms[0]);
+            }
         }
 
-        function savePCResponse(idx, value) {
-            if (!symptomDetails[currentSymptom]) symptomDetails[currentSymptom] = {};
-            symptomDetails[currentSymptom][idx] = value;
+        function renderSlotQuestions(slotIdx, symptom) {
+            const guide = symptomGuides[symptom];
+            if (!guide) {
+                return `<div class="alert" style="margin-top:6px;"><strong>Systematic approach for "${symptom}"</strong><br>Use: Site, Onset, Character, Radiation, Associations, Timing, Exacerbating/Relieving, Severity.</div>`;
+            }
+            let html =
+                `<div style="background:#f0f7ff;padding:12px 14px;border-radius:10px;margin-top:4px;"><h4 style="color:#1e3c72;font-size:0.9rem;margin-bottom:4px;">${guide.title}</h4><small style="color:#64748b;">${guide.chapter}</small>`;
+            guide.questions.forEach((item, idx) => {
+                const stored = (symptomDetails[slotIdx] && symptomDetails[slotIdx][idx] !== undefined) ?
+                    symptomDetails[slotIdx][idx] : '';
+                html += `
+                    <div style="margin-bottom:10px;margin-top:6px;">
+                        <label style="font-weight:600;font-size:0.8rem;text-transform:none;color:#1e293b;">${item.q}</label>
+                        <input type="text" id="pc_q_${slotIdx}_${idx}"
+                               placeholder="Patient response..."
+                               value="${escapeHTML(stored)}"
+                               onchange="saveSlotResponse(${slotIdx}, ${idx}, this.value)"
+                               style="width:100%;padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:0.82rem;margin-top:2px;">
+                        <div class="ros-hint" style="font-size:0.65rem;margin-top:3px;">${item.hint}</div>
+                    </div>
+                `;
+            });
+            if (guide.redFlags) {
+                html +=
+                    `<div class="alert warning" style="margin-top:8px;"><strong>⚠️ RED FLAGS:</strong><br>${guide.redFlags.join('<br>')}</div>`;
+            }
+            html += `</div>`;
+            return html;
+        }
+
+        function selectSlotSymptom(slotIdx, symptom) {
+            // Update array
+            currentSymptoms[slotIdx] = symptom;
+
+            // Update button states in this slot
+            const grid = document.getElementById(`slot-grid-${slotIdx}`);
+            if (grid) {
+                grid.querySelectorAll('.slot-symptom-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.symptom === symptom);
+                });
+            }
+
+            // Clear custom input
+            const customInput = document.getElementById(`slot-custom-${slotIdx}`);
+            if (customInput) customInput.value = '';
+
+            // Update badge
+            const badge = document.getElementById(`slot-badge-${slotIdx}`);
+            if (badge) {
+                badge.textContent = SYMPTOM_LABELS[symptom] || symptom;
+                badge.className = 'status-badge has-symptom';
+            }
+
+            // Update card highlight
+            const card = document.getElementById(`slot-${slotIdx}`);
+            if (card) card.classList.add('has-symptom');
+
+            // Render questions for this slot
+            const qContainer = document.getElementById(`slot-questions-${slotIdx}`);
+            if (qContainer) {
+                qContainer.innerHTML = renderSlotQuestions(slotIdx, symptom);
+            }
+
+            // If slot 0, update guidance panel
+            if (slotIdx === 0) {
+                updateGuidancePanel(symptom);
+            }
+
             updateProgress();
         }
 
-        function setSymptom(symptom, event) {
-            currentSymptom = symptom;
-            document.querySelectorAll('.symptom-btn').forEach(b => b.classList.remove('active'));
-            if (event && event.target) {
-                event.target.classList.add('active');
-            } else {
-                document.querySelectorAll('.symptom-btn').forEach(b => {
-                    if (b.dataset.symptom === symptom) b.classList.add('active');
-                });
+        function selectSlotCustom(slotIdx, value) {
+            const trimmed = value.trim();
+            if (!trimmed) {
+                // If empty, clear the slot
+                currentSymptoms[slotIdx] = '';
+                const badge = document.getElementById(`slot-badge-${slotIdx}`);
+                if (badge) {
+                    badge.textContent = 'None selected';
+                    badge.className = 'status-badge';
+                }
+                const card = document.getElementById(`slot-${slotIdx}`);
+                if (card) card.classList.remove('has-symptom');
+                const grid = document.getElementById(`slot-grid-${slotIdx}`);
+                if (grid) {
+                    grid.querySelectorAll('.slot-symptom-btn').forEach(btn => btn.classList.remove('active'));
+                }
+                const qContainer = document.getElementById(`slot-questions-${slotIdx}`);
+                if (qContainer) qContainer.innerHTML = '';
+                if (slotIdx === 0) {
+                    document.getElementById('guidanceContent').innerHTML =
+                        `<div class="guidance-card"><h4>📚 Welcome</h4><p>Systematic history taking guide. Select a symptom for structured questions.</p></div><div class="guidance-card"><h4>💡 Key Principle</h4><p>SOCRATES is reserved for PAIN complaints. Other symptoms have specific guides.</p></div>`;
+                }
+                updateProgress();
+                return;
             }
-            document.getElementById('customSymptom').value = '';
-            displayQuestions(symptom);
-            updateGuidancePanel(symptom);
+
+            // Custom symptom
+            currentSymptoms[slotIdx] = trimmed;
+
+            // Clear button selection
+            const grid = document.getElementById(`slot-grid-${slotIdx}`);
+            if (grid) {
+                grid.querySelectorAll('.slot-symptom-btn').forEach(btn => btn.classList.remove('active'));
+            }
+
+            // Update badge
+            const badge = document.getElementById(`slot-badge-${slotIdx}`);
+            if (badge) {
+                badge.textContent = trimmed;
+                badge.className = 'status-badge has-symptom';
+            }
+
+            const card = document.getElementById(`slot-${slotIdx}`);
+            if (card) card.classList.add('has-symptom');
+
+            // Render generic questions
+            const qContainer = document.getElementById(`slot-questions-${slotIdx}`);
+            if (qContainer) {
+                qContainer.innerHTML =
+                    `<div class="alert" style="margin-top:6px;"><strong>Systematic approach for "${escapeHTML(trimmed)}"</strong><br>Use: Site, Onset, Character, Radiation, Associations, Timing, Exacerbating/Relieving, Severity.</div>`;
+            }
+
+            if (slotIdx === 0) {
+                updateGenericGuidance(trimmed);
+            }
+
+            updateProgress();
         }
 
-        function setCustomSymptom() {
-            const custom = document.getElementById('customSymptom').value.trim();
+        function saveSlotResponse(slotIdx, qIdx, value) {
+            if (!symptomDetails[slotIdx]) symptomDetails[slotIdx] = {};
+            symptomDetails[slotIdx][qIdx] = value;
+            updateProgress();
+        }
+
+        function getPresentingComplaintResponses() {
+            const allResponses = [];
+            for (let slotIdx = 0; slotIdx < 3; slotIdx++) {
+                const sym = currentSymptoms[slotIdx];
+                if (!sym) continue;
+                const guide = symptomGuides[sym];
+                const prefix = `Complaint ${slotIdx + 1} (${sym}):`;
+                if (guide && guide.questions) {
+                    const responses = guide.questions.map((item, idx) => {
+                        const val = (symptomDetails[slotIdx] && symptomDetails[slotIdx][idx] !== undefined) ?
+                            symptomDetails[slotIdx][idx] : '';
+                        return val ? `${prefix} ${item.q} ${val}` : '';
+                    }).filter(Boolean);
+                    if (responses.length) {
+                        allResponses.push(...responses);
+                    } else {
+                        allResponses.push(`${prefix} No structured responses documented.`);
+                    }
+                } else {
+                    allResponses.push(`${prefix} Custom symptom — no structured guide.`);
+                }
+            }
+            return allResponses;
+        }
+
+        // Backward compatibility: override the old displayQuestions function
+        const originalDisplayQuestions = window.displayQuestions;
+        window.displayQuestions = function(symptom) {
+            // This is now handled per-slot; but we keep this for compatibility
+            // If called, it updates slot 0
+            if (symptom) {
+                selectSlotSymptom(0, symptom);
+            }
+        };
+
+        // Backward compatibility: override old setSymptom
+        const originalSetSymptom = window.setSymptom;
+        window.setSymptom = function(symptom, event) {
+            selectSlotSymptom(0, symptom);
+        };
+
+        // Backward compatibility: override old setCustomSymptom
+        const originalSetCustomSymptom = window.setCustomSymptom;
+        window.setCustomSymptom = function() {
+            const custom = document.getElementById('customSymptom')?.value?.trim() || '';
             if (custom) {
-                currentSymptom = custom;
-                document.querySelectorAll('.symptom-btn').forEach(b => b.classList.remove('active'));
-                displayQuestions(custom);
-                updateGenericGuidance(custom);
+                selectSlotCustom(0, custom);
             }
-        }
+        };
 
+        // ============================================================
+        // GUIDANCE PANEL (updated for slot 0)
+        // ============================================================
         function updateGuidancePanel(symptom) {
             const guide = symptomGuides[symptom];
             const container = document.getElementById('guidanceContent');
             if (!guide) {
                 container.innerHTML =
-                    `<div class="guidance-card"><h4>🔍 ${symptom}</h4><p>Use systematic approach: Site, Onset, Character, Radiation, Associations, Timing, Exacerbating/Relieving, Severity.</p></div>`;
+                    `<div class="guidance-card"><h4>🔍 ${escapeHTML(symptom)}</h4><p>Use systematic approach: Site, Onset, Character, Radiation, Associations, Timing, Exacerbating/Relieving, Severity.</p></div>`;
                 return;
             }
             container.innerHTML =
@@ -2797,25 +3156,17 @@
         function updateGenericGuidance(symptom) {
             const container = document.getElementById('guidanceContent');
             container.innerHTML =
-                `<div class="guidance-card"><h4>🔍 ${symptom}</h4><p>Use systematic approach: Site, Onset, Character, Radiation, Associations, Timing, Exacerbating/Relieving, Severity.</p></div>`;
-        }
-
-        function getPresentingComplaintResponses() {
-            const guide = symptomGuides[currentSymptom];
-            if (!guide || !guide.questions) return [];
-            return guide.questions.map((item, idx) => {
-                const val = fieldValue(`pc_q${idx}`, '');
-                return val ? `${item.q} ${val}` : '';
-            }).filter(Boolean);
+                `<div class="guidance-card"><h4>🔍 ${escapeHTML(symptom)}</h4><p>Use systematic approach: Site, Onset, Character, Radiation, Associations, Timing, Exacerbating/Relieving, Severity.</p></div>`;
         }
 
         // ============================================================
-        // DIFFERENTIAL DIAGNOSIS GENERATOR
+        // DIFFERENTIAL DIAGNOSIS GENERATOR (uses currentSymptoms[0])
         // ============================================================
         function generateDifferentials() {
             const container = document.getElementById('ddxList');
             const data = collectPatientSummaryData();
-            const symptom = data.mainSymptom.toLowerCase();
+            // Use primary symptom (slot 0)
+            const symptom = (currentSymptoms[0] || data.mainSymptom || '').toLowerCase();
             const age = parseInt(data.age) || 0;
             const gender = data.gender || '';
             const pmh = data.pmh.toLowerCase();
@@ -2825,10 +3176,7 @@
             const ros = data.ros || [];
             const rosFindings = ros.map(r => r.findings.toLowerCase()).join(' ');
 
-            // Collect positive ROS findings
             const positiveROS = ros.filter(r => r.findings !== 'No findings documented').map(r => r.findings);
-
-            // Collect abnormal exam findings from XP data
             const abnormalExam = [];
             Object.keys(xpData).forEach(key => {
                 const d = xpData[key];
@@ -2851,13 +3199,12 @@
                 rosFindings,
                 positiveROS,
                 abnormalExam,
-                gcsTotal: data.gcsTotal || ''
+                gcsTotal: data.gcsTotal || '',
+                hivStatus: data.hivStatus || ''
             };
 
-            // Generate differentials based on clinical data
             let ddx = [];
 
-            // Symptom-based differentials
             const symptomMap = {
                 'chest pain': [
                     { name: 'Acute Coronary Syndrome', reason: 'Classic presentation with chest pain' },
@@ -2980,7 +3327,6 @@
                 ]
             };
 
-            // Get symptom-specific differentials
             let symptomDdx = [];
             for (const [key, list] of Object.entries(symptomMap)) {
                 if (symptom.includes(key) || key.includes(symptom)) {
@@ -2988,8 +3334,6 @@
                     break;
                 }
             }
-
-            // If no specific match, try partial match
             if (symptomDdx.length === 0) {
                 for (const [key, list] of Object.entries(symptomMap)) {
                     if (key.includes(symptom) || symptom.includes(key)) {
@@ -2998,14 +3342,10 @@
                     }
                 }
             }
-
-            // Add to ddx list
             if (symptomDdx.length > 0) {
                 ddx = [...symptomDdx];
             }
 
-            // Modify based on additional data
-            // HIV positive
             if (data.hivStatus && data.hivStatus.toLowerCase() === 'positive') {
                 ddx = ddx.map(item => {
                     if (item.name === 'Pneumonia') return { ...item, reason: item.reason + ' — consider PCP' };
@@ -3022,7 +3362,6 @@
                 });
             }
 
-            // Smoking
             if (smoking.toLowerCase().includes('current') || smoking.toLowerCase().includes('ex-smoker')) {
                 ddx = ddx.map(item => {
                     if (item.name === 'COPD/Asthma') return { ...item, reason: item.reason + ' — smoking history' };
@@ -3039,7 +3378,6 @@
                 });
             }
 
-            // Alcohol
             if (alcohol.toLowerCase().includes('regular') || alcohol.toLowerCase().includes('heavy')) {
                 const alcoholDdx = [
                     { name: 'Liver Cirrhosis', reason: 'Chronic alcohol use + jaundice + ascites' },
@@ -3051,7 +3389,6 @@
                 });
             }
 
-            // Age-based modifiers
             if (age > 60) {
                 ddx = ddx.map(item => {
                     if (item.name === 'Colorectal Cancer') return { ...item, reason: item.reason + ' — age >60' };
@@ -3065,7 +3402,6 @@
                 ddx = ddx.filter(item => !['Colorectal Cancer', 'Osteoarthritis', 'Lung Cancer'].includes(item.name));
             }
 
-            // GCS < 15
             if (data.gcsTotal && parseInt(data.gcsTotal) < 15) {
                 const neuroDdx = [
                     { name: 'Stroke', reason: 'Acute neurological deficit + GCS <15' },
@@ -3078,7 +3414,6 @@
                 });
             }
 
-            // Abnormal exam findings
             if (abnormalExam.length > 0) {
                 const examStr = abnormalExam.join(' ').toLowerCase();
                 if (examStr.includes('crackles') || examStr.includes('wheeze')) {
@@ -3109,7 +3444,6 @@
                 }
             }
 
-            // Remove duplicates (by name)
             const seen = new Set();
             ddx = ddx.filter(item => {
                 const key = item.name;
@@ -3118,12 +3452,11 @@
                 return true;
             });
 
-            // Limit to top 10 and rank by relevance
             const ranked = ddx.slice(0, 10);
 
-            // Render
             if (ranked.length === 0) {
-                container.innerHTML = `<div class="ddx-empty">No specific differentials generated. Please ensure you have entered clinical data and try again.</div>`;
+                container.innerHTML =
+                    `<div class="ddx-empty">No specific differentials generated. Please ensure you have entered clinical data and try again.</div>`;
             } else {
                 container.innerHTML = ranked.map((item, index) =>
                     `<div class="ddx-item">
@@ -3136,7 +3469,7 @@
         }
 
         // ============================================================
-        // SUMMARY GENERATION
+        // SUMMARY GENERATION (updated to use 3 slots)
         // ============================================================
         function getHIVSummaryItems() {
             const status = fieldValue('hivStatus', '');
@@ -3165,6 +3498,29 @@
             const refText = referralStatus !== 'Self-referred' && (refFrom || refReason) ?
                 `${referralStatus}; from ${refFrom}; reason: ${refReason}` :
                 referralStatus;
+
+            // Build complaint summaries from all 3 slots
+            const complaintSummaries = [];
+            for (let i = 0; i < 3; i++) {
+                const sym = currentSymptoms[i] || '';
+                if (!sym) continue;
+                const label = `Complaint ${i+1}`;
+                const detailObj = symptomDetails[i] || {};
+                const guide = symptomGuides[sym];
+                let detailText = '';
+                if (guide && guide.questions) {
+                    const parts = guide.questions.map((item, idx) => {
+                        const val = detailObj[idx] !== undefined ? detailObj[idx] : '';
+                        return val ? `${item.q} ${val}` : '';
+                    }).filter(Boolean);
+                    detailText = parts.length ? parts.join('; ') : 'No details documented.';
+                } else {
+                    detailText = 'Custom symptom — no structured guide.';
+                }
+                complaintSummaries.push(`${label}: ${sym} — ${detailText}`);
+            }
+            const mainSymptom = currentSymptoms[0] || 'Not specified';
+
             return {
                 generatedAt: new Date().toLocaleString(),
                 fullName: fieldValue('fullName'),
@@ -3178,7 +3534,8 @@
                 nextOfKin: fieldValue('nextOfKin'),
                 nearestHealthCentre: fieldValue('nearestHealthCentre'),
                 referralText: refText,
-                mainSymptom: currentSymptom || 'Not specified',
+                mainSymptom: mainSymptom,
+                complaintSummaries: complaintSummaries,
                 complaintResponses: getPresentingComplaintResponses(),
                 hpc: fieldValue('hpc', 'Not documented'),
                 pmh: fieldValue('pmh', 'None reported'),
@@ -3204,9 +3561,9 @@
         }
 
         function buildClinicalSummaryHTML(data) {
-            const complaintDetails = data.complaintResponses.length ?
-                `<ul class="summary-list">${data.complaintResponses.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>` :
-                'No structured PC responses documented';
+            const complaintDetails = data.complaintSummaries.length ?
+                `<ul class="summary-list">${data.complaintSummaries.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>` :
+                'No complaints documented';
             const rosList =
                 `<ul class="summary-list">${data.ros.map(item => `<li><strong>${escapeHTML(item.name)}:</strong> ${escapeHTML(item.findings)}</li>`).join('')}</ul>`;
             const hivList =
@@ -3233,12 +3590,12 @@
                             ${summaryField('Religion', data.religion)}${summaryField('Tribe', data.tribe)}
                             ${summaryField('Address', data.address)}${summaryField('Next of Kin', data.nextOfKin)}
                             ${summaryField('Health Centre', data.nearestHealthCentre)}${summaryField('Referral', data.referralText)}
-                            ${summaryField('Main Symptom', data.mainSymptom)}
+                            ${summaryField('Primary Symptom', data.mainSymptom)}
                             ${summaryField('Smoking', data.smokingStatus)}
                             ${summaryField('Alcohol', data.alcoholStatus)}
                             ${data.gcsTotal ? summaryField('GCS', data.gcsTotal) : ''}
                         </div>
-                        ${summaryBlock('Presenting Complaint', complaintDetails)}
+                        ${summaryBlock('Presenting Complaints (Hutchison\'s 3-Complaint Rule)', complaintDetails)}
                         ${summaryBlock('HPC', formatParagraph(data.hpc))}
                         ${summaryBlock('Past Medical History', formatParagraph(data.pmh))}
                         ${summaryBlock('Medications & Allergies', `<strong>Medications:</strong><br>${formatParagraph(data.medications)}<br><br><strong>Allergies:</strong><br>${formatParagraph(data.allergies)}`)}
@@ -3262,12 +3619,14 @@
             const alcohol = data.alcoholStatus && data.alcoholStatus !== '' ? `Alcohol: ${data.alcoholStatus}` : '';
             const socialBrief = [smoking, alcohol].filter(Boolean).join('; ');
             const gcsBrief = data.gcsTotal ? `GCS ${data.gcsTotal}` : '';
+            const complaintList = data.complaintSummaries.slice(0, 3).map(c => escapeHTML(c)).join('; ') ||
+                'No complaints documented';
             const items = [
                 `<strong>Patient:</strong> ${escapeHTML(data.fullName)}, ${escapeHTML(data.age)}-year-old ${escapeHTML(data.gender)}, ${escapeHTML(data.occupation)}, ${escapeHTML(data.maritalStatus)}. ${escapeHTML(data.referralText)}`,
-                `<strong>Presenting problem:</strong> ${escapeHTML(data.mainSymptom)} — ${escapeHTML(data.hpc)}`,
+                `<strong>Presenting complaints:</strong> ${complaintList}`,
                 `<strong>Major positives:</strong> ${keyRos.length ? escapeHTML(keyRos.join('; ')) : 'No positive ROS findings documented'}; PMH: ${escapeHTML(data.pmh)}; HIV: ${hivHighlights}; ${gcsBrief}`,
                 `<strong>Important negatives:</strong> ${negRos.length ? escapeHTML(negRos.join(', ')) + ' — no symptoms' : 'No key negatives documented'}; allergies: ${escapeHTML(data.allergies)}; ${socialBrief}`,
-                `<strong>Working impression:</strong> Overall pattern points toward the clinician's working diagnosis based on the presenting complaint, major positives, important negatives, PMH, medications (${escapeHTML(data.medications)}), and bedside assessment.`
+                `<strong>Working impression:</strong> Overall pattern points toward the clinician's working diagnosis based on the presenting complaints, major positives, important negatives, PMH, medications (${escapeHTML(data.medications)}), and bedside assessment.`
             ];
             return `<div class="summary-banner"><strong>5‑Line Ward Round Summary</strong> ${escapeHTML(data.generatedAt)}</div><ol class="summary-list">${items.map(item => `<li>${item}</li>`).join('')}</ol>`;
         }
@@ -3308,7 +3667,7 @@
         }
 
         // ============================================================
-        // RECORD MANAGEMENT
+        // RECORD MANAGEMENT (updated for 3 slots)
         // ============================================================
         function captureFormData() {
             const data = {};
@@ -3322,9 +3681,9 @@
             data.alcoholUnits = document.getElementById('alcoholUnits')?.value || '';
             data.alcoholType = document.getElementById('alcoholType')?.value || '';
             data.alcoholDetails = document.getElementById('alcoholDetails')?.value || '';
-            data._currentSymptom = currentSymptom || '';
+            data._currentSymptoms = currentSymptoms || ['', '', ''];
+            data._symptomDetails = symptomDetails || [{}, {}, {}];
             data._rosData = rosData || {};
-            data._symptomDetails = symptomDetails || {};
             data._xpData = xpData || {};
             return data;
         }
@@ -3345,25 +3704,28 @@
             document.getElementById('alcoholUnits').value = data.alcoholUnits || '';
             document.getElementById('alcoholType').value = data.alcoholType || '';
             document.getElementById('alcoholDetails').value = data.alcoholDetails || '';
-            currentSymptom = data._currentSymptom || currentSymptom || '';
-            rosData = data._rosData || rosData || {};
-            symptomDetails = data._symptomDetails || symptomDetails || {};
+
+            // Restore 3-slot data
+            if (data._currentSymptoms) {
+                currentSymptoms = data._currentSymptoms;
+            }
+            if (data._symptomDetails) {
+                symptomDetails = data._symptomDetails;
+            }
+            if (data._rosData) rosData = data._rosData;
             if (data._xpData) xpData = data._xpData;
+
             toggleReferralDetails();
             if (typeof toggleARTDetails === 'function') toggleARTDetails();
             Object.keys(reviewOfSystems).forEach(key => refreshROSCardState(key));
             if (data.referralStatus && data.referralStatus !== 'Self-referred') {
                 document.getElementById('referralDetails').style.display = 'block';
             }
-            if (data._currentSymptom) {
-                const btn = Array.from(document.querySelectorAll('.symptom-btn')).find(b => b.dataset.symptom === data
-                    ._currentSymptom);
-                if (btn) {
-                    btn.classList.add('active');
-                    displayQuestions(data._currentSymptom);
-                    updateGuidancePanel(data._currentSymptom);
-                }
-            }
+
+            // Rebuild slots
+            buildComplaintSlots();
+
+            // Restore XP
             if (data._xpData) {
                 Object.keys(data._xpData).forEach(key => {
                     xpData[key] = data._xpData[key];
@@ -3400,10 +3762,12 @@
             document.getElementById('clinicalSummary').innerHTML = '';
             document.getElementById('wardRoundSummary').innerHTML = '';
             document.getElementById('summarySection').style.display = 'none';
-            document.getElementById('dynamicQuestions').innerHTML = '';
-            document.getElementById('ddxList').innerHTML = `<div class="ddx-empty">Click "Generate Differentials" to see suggestions based on the clinical data entered.</div>`;
-            currentSymptom = '';
-            symptomDetails = {};
+            document.getElementById('ddxList').innerHTML =
+                `<div class="ddx-empty">Click "Generate Differentials" to see suggestions based on the clinical data entered.</div>`;
+
+            // Clear 3-slot data
+            currentSymptoms = ['', '', ''];
+            symptomDetails = [{}, {}, {}];
             rosData = {};
             xpData = {};
             xpRefreshAll();
@@ -3411,11 +3775,18 @@
             document.getElementById('gcsTotal').value = '';
             document.getElementById('gcsDetails').value = '';
             document.querySelectorAll('.gcs-item select').forEach(s => s.value = '');
-            // Clear smoking and alcohol
             document.querySelectorAll('input[name="smoking"]').forEach(r => r.checked = false);
             document.querySelectorAll('input[name="alcohol"]').forEach(r => r.checked = false);
             document.getElementById('smokingDetailsWrap').style.display = 'none';
             document.getElementById('alcoholDetailsWrap').style.display = 'none';
+
+            // Rebuild slots
+            buildComplaintSlots();
+
+            // Reset guidance
+            document.getElementById('guidanceContent').innerHTML =
+                `<div class="guidance-card"><h4>📚 Welcome</h4><p>Systematic history taking guide. Select a symptom for structured questions.</p></div><div class="guidance-card"><h4>💡 Key Principle</h4><p>SOCRATES is reserved for PAIN complaints. Other symptoms have specific guides.</p></div>`;
+
             updateProgress();
             showToast('New patient ready', '#2471a3');
         }
@@ -3502,7 +3873,8 @@
                             referral_status: formData.referralStatus || 'Self-referred',
                             referral_from: formData.referralFrom || '',
                             referral_reason: formData.referralReason || '',
-                            current_symptom: formData._currentSymptom || '',
+                            current_symptoms: formData._currentSymptoms || ['', '', ''],
+                            symptom_details: formData._symptomDetails || [{}, {}, {}],
                             hpc: formData.hpc || '',
                             pmh: formData.pmh || '',
                             medications: formData.medications || '',
@@ -3565,7 +3937,7 @@
                 savedAt: new Date().toISOString(),
                 user: userEmail,
                 name: name,
-                complaint: currentSymptom || '',
+                complaint: currentSymptoms[0] || '',
                 summary: document.getElementById('clinicalSummary').innerHTML,
                 wardRound: document.getElementById('wardRoundSummary').innerHTML,
                 ...formData
@@ -3578,7 +3950,7 @@
         }
 
         // ============================================================
-        // PHYSICAL EXAMINATION (XP) — WITH GCS
+        // PHYSICAL EXAMINATION (XP) — WITH GCS (unchanged)
         // ============================================================
         const XP = {
             general: {
@@ -4114,20 +4486,22 @@
         // INITIALISATION
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.symptom-btn').forEach(btn => {
-                const symptom = btn.dataset.symptom;
-                if (symptom) {
-                    btn.addEventListener('click', function(e) {
-                        setSymptom(symptom, e);
-                    });
-                }
-            });
+            // Build the 3 complaint slots
+            buildComplaintSlots();
 
+            // Build ROS
             buildROS();
+
+            // Init XP
             xpInit();
+
+            // Update progress
             updateProgress();
+
+            // Toggle referral details
             toggleReferralDetails();
-            console.log('✅ EaseMed Clinical Clerk System loaded with Internal Medicine module badge and enhanced smoking/alcohol assessment.');
+
+            console.log('✅ EaseMed Clinical Clerk System loaded with 3-complaint slots (Hutchison\'s rule).');
         });
     </script>
 </body>
