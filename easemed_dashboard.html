@@ -1903,7 +1903,7 @@
                 <textarea id="hpc" rows="3" placeholder="Chronological narrative: onset, progression, associated symptoms, treatments tried, impact on daily activities..."></textarea>
             </div>
 
-            <!-- 4. PAST MEDICAL HISTORY (with HIV) — now includes Past Surgical History -->
+            <!-- 4. PAST MEDICAL HISTORY (with HIV and Past Surgical History) -->
             <div class="form-section">
                 <h3>📜 Past Medical History</h3>
                 <textarea id="pmh" placeholder="Previous illnesses: Hypertension, Diabetes, Asthma, TB, Malaria, Hepatitis, Heart disease, Stroke, Cancer, Surgeries, Hospitalisations..."></textarea>
@@ -1911,7 +1911,7 @@
                 <textarea id="medications" placeholder="All current medications with doses and frequency..."></textarea>
                 <label style="margin-top:8px;">Allergies:</label>
                 <textarea id="allergies" placeholder="Drug allergies, food allergies, reactions..."></textarea>
-                <!-- New Past Surgical History field -->
+                <!-- Past Surgical History field -->
                 <label style="margin-top:8px;">Past Surgical History:</label>
                 <textarea id="surgicalHistory" placeholder="List all previous operations, dates, indications, and any complications..."></textarea>
                 <div class="expand-hiv" onclick="toggleHIVDetails()">
@@ -1960,7 +1960,7 @@
                 </div>
             </div>
 
-            <!-- 5. REVIEW OF SYSTEMS -->
+            <!-- 5. REVIEW OF SYSTEMS — symptoms only -->
             <div class="form-section">
                 <h3>🔄 Review of Systems <span class="stat-card">Hutchison's</span></h3>
                 <div id="rosContainer"></div>
@@ -2092,7 +2092,7 @@
     </div>
 
     <!-- ============================================================
-    PHYSICAL EXAMINATION (XP) — NEW HUTCHISON'S 4‑STEP with split Neuro
+    PHYSICAL EXAMINATION (XP) — signs only
     ============================================================ -->
     <div class="xp-shell">
         <div class="xp-panel">
@@ -2128,6 +2128,13 @@
     JAVASCRIPT — FULL WITH UPDATED XP AND COLLAPSIBLE SLOTS
     ============================================================ -->
     <script>
+        // ============================================================
+        // IMPORTANT: This module strictly separates SYMPTOMS (history)
+        // from SIGNS (physical examination) as per international clerkship guides.
+        // - Symptoms: Presenting Complaint slots, Review of Systems (ROS), HPC, PMH, Social.
+        // - Signs: All tags in the Physical Examination (XP) panels.
+        // ============================================================
+
         // ============================================================
         // SUPABASE CONSTANTS
         // ============================================================
@@ -2298,7 +2305,7 @@
         }
 
         // ============================================================
-        // REVIEW OF SYSTEMS (unchanged)
+        // REVIEW OF SYSTEMS — symptoms only
         // ============================================================
         const reviewOfSystems = {
             cardiovascular: {
@@ -2624,7 +2631,7 @@
         }
 
         // ============================================================
-        // FULL SYMPTOM GUIDES (unchanged)
+        // FULL SYMPTOM GUIDES (used in the complaint slots)
         // ============================================================
         const symptomGuides = {
             pain: {
@@ -2854,13 +2861,12 @@
         };
 
         // ============================================================
-        // THREE-SLOT PRESENTING COMPLAINT SYSTEM — with collapsible slots 2 & 3
+        // THREE-SLOT PRESENTING COMPLAINT SYSTEM — symptoms only
         // ============================================================
 
         let currentSymptoms = ['', '', ''];
         let symptomDetails = [{}, {}, {}];
-        // Collapse state: true = collapsed, false = expanded (slot 0 always expanded)
-        let slotCollapsed = [false, true, true]; // slots 2 & 3 collapsed by default
+        let slotCollapsed = [false, true, true];
 
         Object.defineProperty(window, 'currentSymptom', {
             get: function() { return currentSymptoms[0]; },
@@ -2911,7 +2917,7 @@
                 const hasSymptom = currentSym !== '';
                 const badgeText = hasSymptom ? (SYMPTOM_LABELS[currentSym] || currentSym) : 'None selected';
                 const badgeClass = hasSymptom ? 'has-symptom' : '';
-                const isCollapsed = slotCollapsed[slotIdx] && slotIdx > 0; // slot 0 always open
+                const isCollapsed = slotCollapsed[slotIdx] && slotIdx > 0;
                 const toggleIcon = isCollapsed ? '▶' : '▼';
 
                 html += `
@@ -2953,11 +2959,10 @@
         }
 
         function toggleSlotCollapse(slotIdx) {
-            if (slotIdx === 0) return; // slot 0 always open
+            if (slotIdx === 0) return;
             slotCollapsed[slotIdx] = !slotCollapsed[slotIdx];
             const body = document.getElementById(`slot-body-${slotIdx}`);
             if (body) body.classList.toggle('collapsed', slotCollapsed[slotIdx]);
-            // Update toggle icon
             const header = document.querySelector(`#slot-${slotIdx} .slot-header`);
             if (header) {
                 const icon = header.querySelector('.slot-toggle-icon');
@@ -3100,7 +3105,7 @@
             return allResponses;
         }
 
-        // Backward compatibility for old functions
+        // Backward compatibility
         window.setSymptom = function(symptom, event) { selectSlotSymptom(0, symptom); };
         window.setCustomSymptom = function() {
             const custom = document.getElementById('customSymptom')?.value?.trim() || '';
@@ -3129,7 +3134,7 @@
         }
 
         // ============================================================
-        // DIFFERENTIAL DIAGNOSIS (uses currentSymptoms[0])
+        // DIFFERENTIAL DIAGNOSIS (uses primary symptom)
         // ============================================================
         function generateDifferentials() {
             const container = document.getElementById('ddxList');
@@ -3911,8 +3916,7 @@
         }
 
         // ============================================================
-        // PHYSICAL EXAMINATION (XP) — NEW HUTCHISON'S 4-STEP (6 systems)
-        // with Neuro split into Motor, Sensory, Coordination, Cranial Nerves
+        // PHYSICAL EXAMINATION (XP) — SIGNS ONLY
         // ============================================================
 
         const XP = {
@@ -3923,21 +3927,21 @@
                 hasVitals: true,
                 normal: "Patient appears well, alert and orientated. No pallor, jaundice, cyanosis or clubbing. Hydration adequate. No oedema. Cervical, axillary and inguinal lymph nodes not palpable. Skin turgor normal. Capillary refill <2s.",
                 steps: [{
-                    name: "🔍 Inspection",
+                    name: "🔍 Inspection (signs)",
                     items: [
                         "Pallor", "Jaundice", "Central cyanosis", "Peripheral cyanosis",
                         "Clubbing", "Koilonychia", "Leukonychia", "Pedal oedema",
                         "Lymphadenopathy visible", "Dehydration", "Cachexia", "Pyrexia", "Respiratory distress"
                     ]
                 }, {
-                    name: "🖐 Palpation",
+                    name: "🖐 Palpation (signs)",
                     items: [
                         "Cervical lymphadenopathy", "Axillary lymphadenopathy", "Inguinal lymphadenopathy",
                         "Skin turgor reduced", "Capillary refill >2s", "Pitting oedema",
                         "Non-pitting oedema", "Tender lymph node", "Firm lymph node", "Matted lymph node"
                     ]
                 }, {
-                    name: "🥗 Nutrition & AVPU",
+                    name: "🥗 Nutrition & AVPU (signs)",
                     items: [
                         "Well-nourished", "Malnourished (mild)", "Malnourished (severe)", "Obese",
                         "Alert", "Responds to voice", "Responds to pain", "Unresponsive"
@@ -3950,13 +3954,13 @@
                 chapter: "Ch. 13",
                 normal: "JVP not elevated. Apex beat at 5th ICS MCL. No heaves or thrills. S1 + S2 heard. No murmurs. All peripheral pulses present. Capillary refill <2s. No radio-radial or radio-femoral delay.",
                 steps: [{
-                    name: "🔍 Inspection",
+                    name: "🔍 Inspection (signs)",
                     items: [
                         "Elevated JVP", "Praecordium scars", "Visible pulsations", "Pacemaker bulge",
                         "Cyanosis", "Oedema", "Clubbing"
                     ]
                 }, {
-                    name: "🖐 Palpation",
+                    name: "🖐 Palpation (signs)",
                     items: [
                         "Displaced apex beat", "LV heave", "RV heath", "Thrill",
                         "Apex beat tapping", "Apex beat diffuse", "Radial pulse present",
@@ -3964,13 +3968,13 @@
                         "Capillary refill >2s", "Radio-radial delay", "Radio-femoral delay"
                     ]
                 }, {
-                    name: "👊 Percussion",
+                    name: "👊 Percussion (signs)",
                     items: [
                         "Cardiac borders normal", "Cardiac dullness increased (effusion)",
                         "Cardiac dullness increased (cardiomegaly)"
                     ]
                 }, {
-                    name: "🔊 Auscultation",
+                    name: "🔊 Auscultation (signs)",
                     items: [
                         "S1 normal", "S2 normal", "S3 gallop", "S4",
                         "Ejection systolic murmur", "Pansystolic murmur", "Late systolic murmur",
@@ -3986,7 +3990,7 @@
                 chapter: "Ch. 12",
                 normal: "Chest symmetrical. Trachea central. Equal expansion. Resonant. Vesicular breath sounds. No added sounds.",
                 steps: [{
-                    name: "🔍 Inspection",
+                    name: "🔍 Inspection (signs)",
                     items: [
                         "RR >20/min", "Accessory muscle use", "Intercostal recession", "Nasal flaring",
                         "Pursed-lip breathing", "Tracheal deviation visible", "Barrel chest",
@@ -3994,14 +3998,14 @@
                         "Chest asymmetry", "Cyanosis"
                     ]
                 }, {
-                    name: "🖐 Palpation",
+                    name: "🖐 Palpation (signs)",
                     items: [
                         "Tracheal deviated", "Reduced expansion (R)", "Reduced expansion (L)",
                         "Tactile fremitus increased", "Tactile fremitus reduced",
                         "Subcutaneous emphysema", "Chest wall tenderness"
                     ]
                 }, {
-                    name: "👊 Percussion",
+                    name: "👊 Percussion (signs)",
                     items: [
                         "Resonant (upper R)", "Resonant (upper L)", "Resonant (mid R)",
                         "Resonant (mid L)", "Resonant (lower R)", "Resonant (lower L)",
@@ -4009,7 +4013,7 @@
                         "Dull (lower R)", "Dull (lower L)", "Stony dull", "Hyperresonant"
                     ]
                 }, {
-                    name: "🔊 Auscultation",
+                    name: "🔊 Auscultation (signs)",
                     items: [
                         "Vesicular normal", "Reduced vesicular", "Absent vesicular",
                         "Bronchial breathing", "Coarse crackles", "Fine crackles",
@@ -4025,7 +4029,7 @@
                 chapter: "Ch. 15",
                 normal: "Abdomen soft, non-tender, not distended. No masses. Bowel sounds present. Liver/spleen not palpable. No shifting dullness.",
                 steps: [{
-                    name: "🔍 Inspection",
+                    name: "🔍 Inspection (signs)",
                     items: [
                         "Flat", "Distended", "Scaphoid", "Visible peristalsis",
                         "Caput medusae", "Striae", "Cullen's sign", "Grey-Turner's sign",
@@ -4034,14 +4038,14 @@
                         "Respiratory movement absent"
                     ]
                 }, {
-                    name: "🔊 Auscultation (2nd)",
+                    name: "🔊 Auscultation (2nd — signs)",
                     items: [
                         "Normal bowel sounds", "Hyperactive bowel sounds", "Absent bowel sounds",
                         "Tinkling bowel sounds", "Aortic bruit", "Renal bruit",
                         "Iliac bruit", "Hepatic rub", "Splenic rub"
                     ]
                 }, {
-                    name: "🖐 Palpation (3rd)",
+                    name: "🖐 Palpation (3rd — signs)",
                     items: [
                         "Soft", "Non-tender", "Voluntary guarding", "Involuntary guarding",
                         "Rigidity", "Rebound tenderness", "Tenderness (RUQ)",
@@ -4053,7 +4057,7 @@
                         "Bladder palpable"
                     ]
                 }, {
-                    name: "👊 Percussion (4th)",
+                    name: "👊 Percussion (4th — signs)",
                     items: [
                         "Liver span normal", "Liver span increased", "Traube's space normal",
                         "Traube's space dull", "Shifting dullness", "Fluid thrill",
@@ -4068,7 +4072,7 @@
                 hasGCS: true,
                 normal: "GCS 15/15. Oriented. Cranial nerves intact. Power 5/5. Tone normal. Coordination intact. DTRs present. Plantars downgoing. Sensation intact. Gait normal.",
                 steps: [{
-                    name: "🔍 Inspection (General & Motor)",
+                    name: "🔍 Inspection (signs)",
                     items: [
                         "Conscious level reduced", "Orientation impaired", "Facial asymmetry",
                         "Ptosis", "Resting tremor", "Intention tremor", "Chorea",
@@ -4076,7 +4080,7 @@
                         "Fasciculations", "Abnormal posture", "Meningism"
                     ]
                 }, {
-                    name: "💪 Motor & Reflexes",
+                    name: "💪 Motor & Reflexes (signs)",
                     items: [
                         "Tone: spastic", "Tone: rigid", "Tone: flaccid",
                         "Power (proximal) reduced", "Power (distal) reduced",
@@ -4089,7 +4093,7 @@
                         "Abdominal reflexes present", "Abdominal reflexes absent"
                     ]
                 }, {
-                    name: "🖐 Sensory & Coordination",
+                    name: "🖐 Sensory & Coordination (signs)",
                     items: [
                         "Light touch reduced", "Pin-prick reduced",
                         "Vibration reduced", "Proprioception reduced",
@@ -4097,7 +4101,7 @@
                         "Heel-shin dysmetria", "Dysdiadochokinesia"
                     ]
                 }, {
-                    name: "🧠 Cranial Nerves & Gait",
+                    name: "🧠 Cranial Nerves & Gait (signs)",
                     items: [
                         "CN I (smell) intact", "CN II (vision) intact", "CN III/IV/VI (EOM) intact",
                         "CN V (sensation) intact", "CN VII (facial) intact", "CN VIII (hearing) intact",
@@ -4115,7 +4119,7 @@
                 chapter: "Ch. 20",
                 normal: "No joint deformity, swelling or erythema. Full active and passive ROM. No crepitus. No tenderness.",
                 steps: [{
-                    name: "🔍 Look (Inspection)",
+                    name: "🔍 Look (Inspection — signs)",
                     items: [
                         "Valgus deformity", "Varus deformity", "Joint swelling (soft tissue)",
                         "Joint swelling (bony)", "Erythema", "Muscle wasting (proximal)",
@@ -4126,7 +4130,7 @@
                         "Spinal curvature (scoliosis)"
                     ]
                 }, {
-                    name: "🖐 Feel (Palpation)",
+                    name: "🖐 Feel (Palpation — signs)",
                     items: [
                         "Joint warmth", "Joint tenderness", "Synovial thickening",
                         "Effusion", "Patellar tap", "Bulge sign", "Bony enlargement",
@@ -4136,7 +4140,7 @@
                         "Collateral stress (medial)", "Collateral stress (lateral)"
                     ]
                 }, {
-                    name: "👊 Percussion (Spinal / Bone)",
+                    name: "👊 Percussion (Spinal / Bone — signs)",
                     items: [
                         "Cervical spine percussion tenderness",
                         "Thoracic spine percussion tenderness",
@@ -4144,7 +4148,7 @@
                         "Sacroiliac tenderness", "Calcaneal tenderness"
                     ]
                 }, {
-                    name: "🏃 Move (ROM & Crepitus)",
+                    name: "🏃 Move (ROM & Crepitus — signs)",
                     items: [
                         "Flexion reduced", "Extension reduced", "Abduction reduced",
                         "Rotation reduced", "Restricted ROM", "Full ROM",
@@ -4156,7 +4160,7 @@
             }
         };
 
-        // Extended XP_DIFF with hints for all tags
+        // Extended XP_DIFF with hints for all signs
         const XP_DIFF = {
             // General
             "Pallor": "Think anaemia, chronic disease, or blood loss.",
@@ -4431,11 +4435,10 @@
             "Spinal curvature (scoliosis)": "Idiopathic, neuromuscular."
         };
 
-        // Add generic clue for any tag not explicitly defined
         function xpDifferentialClue(finding, key) {
             const custom = XP_DIFF[finding];
             const sys = XP[key]?.label || 'system';
-            return custom || `Correlate this ${sys} finding with history and further examination.`;
+            return custom || `Correlate this ${sys} sign with history and further examination.`;
         }
 
         let xpData = {};
@@ -4523,7 +4526,6 @@
                         </div>
                     `;
                 }
-                // Build accordion steps
                 let stepsHtml = '';
                 if (sys.steps) {
                     sys.steps.forEach((step, idx) => {
@@ -4558,8 +4560,8 @@
                         ${gcsHtml}
                         ${stepsHtml}
                         <button class="xp-normal-btn" onclick="xpMarkNormal('${key}')">✅ Normal findings</button>
-                        <textarea id="xp-narr-${key}" class="xp-narrative" placeholder="Describe any abnormal findings, relevant negatives, and overall impression…" oninput="xpSave('${key}')"></textarea>
-                        <div class="xp-abnormal" id="xp-alert-${key}">⚠️ Abnormal findings noted. Document in assessment.</div>
+                        <textarea id="xp-narr-${key}" class="xp-narrative" placeholder="Describe any abnormal signs, relevant negatives, and overall impression…" oninput="xpSave('${key}')"></textarea>
+                        <div class="xp-abnormal" id="xp-alert-${key}">⚠️ Abnormal signs noted. Document in assessment.</div>
                         <div class="xp-status-bar">
                             <span class="xp-status-pill" id="xp-status-${key}"><span class="xp-status-dot"></span> Not examined</span>
                         </div>
@@ -4743,7 +4745,7 @@
             xpInit();
             updateProgress();
             toggleReferralDetails();
-            console.log('✅ EaseMed loaded with Past Surgical History, split Neuro exam, and hints for all findings.');
+            console.log('✅ EaseMed loaded with strict symptom/sign separation.');
         });
     </script>
 </body>
