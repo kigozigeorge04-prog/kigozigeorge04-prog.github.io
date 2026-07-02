@@ -205,8 +205,14 @@
             grid-template-columns: 1fr 1fr;
             gap: 0.9rem;
         }
+        .inline-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.9rem;
+        }
         @media (max-width: 560px) {
-            .inline-row {
+            .inline-row,
+            .inline-row-3 {
                 grid-template-columns: 1fr;
             }
         }
@@ -369,15 +375,6 @@
             margin-bottom: 0.3rem;
             border-bottom: 1px solid #e8e0d0;
             padding-bottom: 0.2rem;
-        }
-
-        .ros-banner {
-            border-left: 6px solid var(--accent);
-            background: #fff8f5;
-        }
-        .ros-banner .card-title {
-            color: var(--accent);
-            border-bottom-color: #f0d0c0;
         }
 
         .sym-chips {
@@ -1001,6 +998,141 @@
             font-family: monospace;
             line-height: 1.6;
         }
+
+        /* ─── PE FINDING TAGS ─── */
+        .pe-finding-group {
+            margin-bottom: 0.6rem;
+        }
+        .pe-finding-group .pe-finding-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        .pe-finding-tag {
+            display: inline-block;
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.76rem;
+            cursor: pointer;
+            background: var(--bg);
+            color: var(--text);
+            user-select: none;
+            transition: all 0.15s;
+            margin: 0.15rem;
+        }
+        .pe-finding-tag:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        .pe-finding-tag.present {
+            background: #e6f6ee;
+            border-color: var(--success);
+            color: var(--success);
+            font-weight: 600;
+        }
+        .pe-finding-tag.present::before {
+            content: '✓ ';
+        }
+        .pe-finding-tag.absent {
+            background: #fdecea;
+            border-color: var(--danger);
+            color: var(--danger);
+            font-weight: 600;
+        }
+        .pe-finding-tag.absent::before {
+            content: '✗ ';
+        }
+        .pe-finding-tag .pe-clue {
+            display: none;
+            font-size: 0.68rem;
+            color: var(--muted);
+            margin-left: 0.3rem;
+            font-weight: 400;
+        }
+        .pe-finding-tag.present .pe-clue,
+        .pe-finding-tag.absent .pe-clue {
+            display: inline;
+        }
+        .pe-clue-popup {
+            display: none;
+            position: absolute;
+            background: #102a43;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            max-width: 220px;
+            z-index: 20;
+            font-weight: 400;
+            line-height: 1.4;
+            pointer-events: none;
+            white-space: normal;
+        }
+        .pe-finding-tag:hover .pe-clue-popup {
+            display: block;
+        }
+        .pe-finding-tag .pe-clue-icon {
+            font-size: 0.6rem;
+            margin-left: 0.2rem;
+            opacity: 0.6;
+        }
+        .pe-note-mini {
+            font-size: 0.78rem;
+            padding: 0.3rem 0.5rem;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            width: 100%;
+            margin-top: 0.3rem;
+            background: #fff;
+            transition: border-color 0.15s;
+            min-height: 40px;
+            resize: vertical;
+        }
+        .pe-note-mini:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26, 95, 122, 0.08);
+        }
+        .pe-section .pe-finding-group:last-child {
+            margin-bottom: 0;
+        }
+        .pe-section .pe-hint-box {
+            margin-bottom: 0.5rem;
+        }
+
+        /* ─── ROS COLLAPSIBLE ─── */
+        .ros-toggle {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .ros-toggle .chevron {
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+        }
+        .ros-toggle.open .chevron {
+            transform: rotate(180deg);
+        }
+        .ros-body {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease;
+        }
+        .ros-body.open {
+            max-height: 5000px;
+        }
+        .ros-card-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+        }
     </style>
 </head>
 <body>
@@ -1021,7 +1153,9 @@
 
     <div class="main-wrap">
 
-        <!-- SECTION 1: DEMOGRAPHICS -->
+        <!-- ============================================================
+        SECTION 1: DEMOGRAPHICS (HOUSING/ECONOMIC STATUS REMOVED)
+        ============================================================ -->
         <div class="section-header" style="margin-top:0.5rem;">
             <span class="section-badge">1</span>
             <span class="section-title">Demographics</span>
@@ -1082,9 +1216,19 @@
             </div>
         </div>
 
-        <!-- Social & referral -->
+        <!-- Social & Demographic Details (Housing/economic removed) -->
         <div class="card">
-            <div class="card-title">👤 Social & Referral</div>
+            <div class="card-title">👤 Social & Demographic Details</div>
+            <div class="inline-row">
+                <div class="field-group">
+                    <label>Nationality</label>
+                    <input type="text" id="nationality" placeholder="e.g. Ugandan" />
+                </div>
+                <div class="field-group">
+                    <label>Ethnicity / Tribe</label>
+                    <input type="text" id="ethnicity" placeholder="e.g. Muganda, Musoga" />
+                </div>
+            </div>
             <div class="inline-row">
                 <div class="field-group">
                     <label>Marital Status</label>
@@ -1110,6 +1254,29 @@
                     </select>
                 </div>
             </div>
+            <div class="inline-row">
+                <div class="field-group">
+                    <label>Education Level</label>
+                    <select id="educationLevel">
+                        <option value="">— Select —</option>
+                        <option>None</option>
+                        <option>Primary</option>
+                        <option>Secondary</option>
+                        <option>Diploma</option>
+                        <option>Degree</option>
+                        <option>Postgraduate</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>Occupation</label>
+                    <input type="text" id="occupationDetail" placeholder="e.g. Farmer, Teacher, Business" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Referral Section -->
+        <div class="card">
+            <div class="card-title">📋 Referral Information</div>
             <div class="field-group">
                 <label>Was the patient referred? <span class="req">*</span></label>
                 <div class="radio-group">
@@ -1145,7 +1312,9 @@
 
         <hr class="divider" />
 
-        <!-- SECTION 2: PRESENTING COMPLAINT (UPDATED WITH 3 PCs) -->
+        <!-- ============================================================
+        SECTION 2: PRESENTING COMPLAINT (WITH FULL SYMPTOM GUIDES)
+        ============================================================ -->
         <div class="section-header">
             <span class="section-badge">2</span>
             <span class="section-title">Presenting Complaints</span>
@@ -1378,7 +1547,9 @@
 
         <hr class="divider" />
 
-        <!-- SECTION 3: HPC -->
+        <!-- ============================================================
+        SECTION 3: HPC
+        ============================================================ -->
         <div class="section-header">
             <span class="section-badge">3</span>
             <span class="section-title">History of Presenting Complaint (HPC)</span>
@@ -1407,7 +1578,9 @@
 
         <hr class="divider" />
 
-        <!-- SECTION 4: ROS -->
+        <!-- ============================================================
+        SECTION 4: ROS (COLLAPSIBLE)
+        ============================================================ -->
         <div class="section-header">
             <span class="section-badge">4</span>
             <span class="section-title">Review of Other Systems</span>
@@ -1415,11 +1588,6 @@
         <div class="callout">
             <strong>How to use:</strong> Tap each symptom to toggle — <span style="color:var(--success);font-weight:700;">✓ Present</span> · <span style="color:var(--danger);font-weight:700;">✗ Absent</span> · grey = not asked.
             <br><strong>Click a system title</strong> to expand or collapse its symptom list.
-        </div>
-        <div id="ros-pc-banner" style="display:none;" class="card ros-banner">
-            <div class="card-title" id="ros-pc-title" style="color:var(--accent);">🎯 Presenting System</div>
-            <div id="ros-pc-chips" class="sym-chips"></div>
-            <textarea class="sys-notes" placeholder="Additional notes on the presenting system..." style="min-height:50px;"></textarea>
         </div>
 
         <!-- ─── ROS Collapsible Cards ─── -->
@@ -1496,7 +1664,9 @@
 
         <hr class="divider" />
 
-        <!-- SECTION 5: PAST MEDICAL & SURGICAL -->
+        <!-- ============================================================
+        SECTION 5: PAST MEDICAL & SURGICAL
+        ============================================================ -->
         <div class="section-header">
             <span class="section-badge">5</span>
             <span class="section-title">Past Medical & Surgical History</span>
@@ -1536,7 +1706,9 @@
 
         <hr class="divider" />
 
-        <!-- SECTION 6: DRUG HISTORY -->
+        <!-- ============================================================
+        SECTION 6: DRUG HISTORY
+        ============================================================ -->
         <div class="section-header">
             <span class="section-badge">6</span>
             <span class="section-title">Drug History & Allergies</span>
@@ -1566,7 +1738,9 @@
 
         <hr class="divider" />
 
-        <!-- SECTION 7: FAMILY & SOCIAL -->
+        <!-- ============================================================
+        SECTION 7: FAMILY & SOCIAL
+        ============================================================ -->
         <div class="section-header">
             <span class="section-badge">7</span>
             <span class="section-title">Family & Social History</span>
@@ -1616,38 +1790,60 @@
 
         <hr class="divider" />
 
-        <!-- SECTION 8: PHYSICAL EXAMINATION -->
+        <!-- ============================================================
+        SECTION 8: PHYSICAL EXAMINATION (ENHANCED)
+        ============================================================ -->
         <div class="section-header">
             <span class="section-badge">8</span>
             <span class="section-title">Physical Examination</span>
         </div>
         <div class="callout">
-            <strong>Collapsible sections:</strong> Click the header to expand/collapse. Each system is broken down by <strong>Inspection, Palpation, Percussion, and Auscultation</strong> where appropriate. <strong>Hints are shown outside the text boxes</strong> so you can always refer to them while typing.
+            <strong>Structured Findings:</strong> Click each finding to toggle <span style="color:var(--success);font-weight:700;">✓ Present</span> or <span style="color:var(--danger);font-weight:700;">✗ Absent</span>. 
+            <strong>Hover</strong> over a selected finding to see the <strong>clinical clue</strong>. 
+            Use the <strong>Notes</strong> fields for additional observations.
         </div>
 
         <div class="card">
-            <!-- General appearance & Vitals -->
+
+            <!-- ─── GENERAL APPEARANCE & VITALS ─── -->
             <div class="pe-toggle" onclick="togglePE(this)">
                 <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🩺 General Appearance & Vitals</div>
                 <span class="chevron">▼</span>
             </div>
             <div class="pe-body open">
-                <div class="field-group">
-                    <label>General appearance / level of consciousness</label>
-                    <div class="pe-hint-box"><strong>Look for:</strong> Well/unwell, distressed, pale, jaundiced, cachectic, alert, confused, toxic appearance, dehydration, respiratory distress.</div>
-                    <textarea id="peGeneral" placeholder="Describe your findings..." style="min-height:60px;"></textarea>
+                <div class="pe-section">
+                    <div class="pe-section-title">🔍 General Appearance</div>
+                    <div class="pe-hint-box"><strong>Look for:</strong> Level of consciousness, distress, pallor, jaundice, cyanosis, oedema, dehydration, cachexia, body habitus.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Well-looking" onclick="togglePEFinding(this)">Well-looking <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Normal appearance — reassuring</span></span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Ill-looking" onclick="togglePEFinding(this)">Ill-looking <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Systemic illness — sepsis, malignancy, organ failure</span></span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Toxic" onclick="togglePEFinding(this)">Toxic appearance <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Severe sepsis — urgent resuscitation needed</span></span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Pale" onclick="togglePEFinding(this)">Pallor <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Anaemia, acute blood loss, chronic disease</span></span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Jaundiced" onclick="togglePEFinding(this)">Jaundice <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Liver dysfunction, biliary obstruction, haemolysis</span></span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Cyanosed" onclick="togglePEFinding(this)">Cyanosis <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Hypoxaemia — cardiac or respiratory cause</span></span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Oedematous" onclick="togglePEFinding(this)">Oedema <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Heart failure, nephrotic syndrome, liver disease, malnutrition</span></span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Dehydrated" onclick="togglePEFinding(this)">Dehydrated <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Fluid loss — assess severity</span></span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Cachectic" onclick="togglePEFinding(this)">Cachexia <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Malignancy, chronic infection, malnutrition</span></span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Dysmorphic" onclick="togglePEFinding(this)">Dysmorphic features <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Congenital syndrome — consider genetic referral</span></span>
+                    </div>
                 </div>
-                <div class="inline-row">
-                    <div class="field-group"><label>BP (mmHg)</label><input type="text" id="peBP" placeholder="e.g. 120/80" /></div>
-                    <div class="field-group"><label>HR (bpm)</label><input type="text" id="peHR" placeholder="e.g. 72" /></div>
-                    <div class="field-group"><label>RR (breaths/min)</label><input type="text" id="peRR" placeholder="e.g. 18" /></div>
-                    <div class="field-group"><label>Temp (°C)</label><input type="text" id="peTemp" placeholder="e.g. 37.2" /></div>
-                    <div class="field-group"><label>SpO2 (%)</label><input type="text" id="peSpO2" placeholder="e.g. 98" /></div>
-                    <div class="field-group"><label>BMI / Weight</label><input type="text" id="peBMI" placeholder="e.g. 24.5" /></div>
+
+                <div class="pe-section">
+                    <div class="pe-section-title">📊 Vitals</div>
+                    <div class="inline-row-3">
+                        <div class="field-group"><label>BP (mmHg)</label><input type="text" id="peBP" placeholder="e.g. 120/80" /></div>
+                        <div class="field-group"><label>HR (bpm)</label><input type="text" id="peHR" placeholder="e.g. 72" /></div>
+                        <div class="field-group"><label>RR (breaths/min)</label><input type="text" id="peRR" placeholder="e.g. 18" /></div>
+                        <div class="field-group"><label>Temp (°C)</label><input type="text" id="peTemp" placeholder="e.g. 37.2" /></div>
+                        <div class="field-group"><label>SpO2 (%)</label><input type="text" id="peSpO2" placeholder="e.g. 98" /></div>
+                        <div class="field-group"><label>BMI / Weight</label><input type="text" id="peBMI" placeholder="e.g. 24.5" /></div>
+                    </div>
+                    <div class="pe-note-mini" contenteditable="true" placeholder="Additional vitals notes…"></div>
                 </div>
             </div>
 
-            <!-- CVS -->
+            <!-- ─── CARDIOVASCULAR ─── -->
             <div class="pe-toggle" onclick="togglePE(this)">
                 <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">❤️ Cardiovascular Examination</div>
                 <span class="chevron">▼</span>
@@ -1655,23 +1851,51 @@
             <div class="pe-body open">
                 <div class="pe-section">
                     <div class="pe-section-title">🔍 Inspection</div>
-                    <div class="pe-hint-box"><strong>Look for:</strong> Jugular venous pressure (JVP), visible pulsations, scars, chest wall deformity, peripheral oedema, cyanosis, clubbing.</div>
-                    <textarea placeholder="Inspection findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Look for:</strong> JVP, scars, visible pulsations, chest wall deformity, peripheral oedema, cyanosis, clubbing.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Elevated JVP" onclick="togglePEFinding(this)">Elevated JVP <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Right heart failure, fluid overload, tamponade — measure JVP height</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Praecordial scar" onclick="togglePEFinding(this)">Praecordial scar <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Previous cardiac surgery — sternotomy or thoracotomy</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Visible pulsations" onclick="togglePEFinding(this)">Visible pulsations <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Aneurysm, high-output state, cardiac hypertrophy</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Peripheral oedema" onclick="togglePEFinding(this)">Peripheral oedema <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Heart failure, venous insufficiency, renal disease</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Clubbing" onclick="togglePEFinding(this)">Clubbing <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Lung cancer, cyanotic heart disease, IBD, liver cirrhosis</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Central cyanosis" onclick="togglePEFinding(this)">Central cyanosis <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Cyanotic heart disease, severe lung disease — SpO2 < 85%</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">🖐 Palpation</div>
-                    <div class="pe-hint-box"><strong>Feel for:</strong> Apex beat (position, character), heaves, thrills, peripheral pulses (radial, brachial, femoral, dorsalis pedis) – rate, rhythm, volume, symmetry. Capillary refill time.</div>
-                    <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Feel for:</strong> Apex beat (position, character), heaves, thrills, peripheral pulses (rate, rhythm, volume).</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Apex beat displaced" onclick="togglePEFinding(this)">Apex beat displaced <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Cardiomegaly — LV enlargement</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="LV heave" onclick="togglePEFinding(this)">LV heave <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Left ventricular hypertrophy — hypertension, aortic stenosis</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="RV heave" onclick="togglePEFinding(this)">RV heave <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Right ventricular hypertrophy — pulmonary hypertension, pulmonary stenosis</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Thrill" onclick="togglePEFinding(this)">Thrill <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Palpable murmur — significant stenosis or regurgitation</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Tapping apex" onclick="togglePEFinding(this)">Tapping apex <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Mitral stenosis — palpable S1</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Weak pulses" onclick="togglePEFinding(this)">Weak pulses <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Peripheral vascular disease, low cardiac output</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Bounding pulses" onclick="togglePEFinding(this)">Bounding pulses <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Aortic regurgitation, PDA, high-output state</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Capillary refill >2s" onclick="togglePEFinding(this)">Capillary refill >2s <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Shock, hypovolaemia, peripheral vasoconstriction</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">👂 Auscultation</div>
-                    <div class="pe-hint-box"><strong>Listen for:</strong> Heart sounds (S1, S2), added sounds (S3, S4), murmurs (timing, location, radiation, intensity), bruits over carotids, femorals, renal arteries.</div>
-                    <textarea placeholder="Auscultation findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Listen for:</strong> Heart sounds, added sounds, murmurs (timing, location, radiation, intensity).</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="S3 gallop" onclick="togglePEFinding(this)">S3 gallop <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Heart failure, volume overload — 'ventricular gallop'</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="S4" onclick="togglePEFinding(this)">S4 <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Stiff ventricle — hypertension, aortic stenosis, ischaemia</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Ejection systolic murmur" onclick="togglePEFinding(this)">Ejection systolic murmur <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Aortic stenosis, pulmonary stenosis — listen for radiation</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Pansystolic murmur" onclick="togglePEFinding(this)">Pansystolic murmur <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Mitral regurgitation, VSD — radiates to axilla</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Early diastolic murmur" onclick="togglePEFinding(this)">Early diastolic murmur <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Aortic regurgitation — best heard at left sternal edge</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Mid-diastolic murmur" onclick="togglePEFinding(this)">Mid-diastolic murmur <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Mitral stenosis — opening snap may be present</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Pericardial rub" onclick="togglePEFinding(this)">Pericardial rub <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Pericarditis — scratchy sound, changes with position</span></span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Irregular rhythm" onclick="togglePEFinding(this)">Irregular rhythm <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Atrial fibrillation, ectopics — assess rate and symptoms</span></span>
+                    </div>
                 </div>
-                <div class="field-group"><label>Additional CVS notes</label><textarea id="peCVS" placeholder="Any other findings e.g. pericardial rub, signs of heart failure..." style="min-height:40px;"></textarea></div>
+                <div class="pe-note-mini" contenteditable="true" placeholder="Additional CVS notes…"></div>
             </div>
 
-            <!-- Respiratory -->
+            <!-- ─── RESPIRATORY ─── -->
             <div class="pe-toggle" onclick="togglePE(this)">
                 <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🫁 Respiratory Examination</div>
                 <span class="chevron">▼</span>
@@ -1679,28 +1903,59 @@
             <div class="pe-body open">
                 <div class="pe-section">
                     <div class="pe-section-title">🔍 Inspection</div>
-                    <div class="pe-hint-box"><strong>Look for:</strong> Respiratory rate, pattern, use of accessory muscles, tracheal position, chest symmetry, scars, deformities (kyphosis, scoliosis), colour of skin.</div>
-                    <textarea placeholder="Inspection findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Look for:</strong> Respiratory rate, accessory muscle use, tracheal position, chest symmetry, scars, deformities, cyanosis.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Tachypnoea" onclick="togglePEFinding(this)">Tachypnoea <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Pneumonia, asthma, acidosis, pulmonary embolism — count RR</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Accessory muscle use" onclick="togglePEFinding(this)">Accessory muscle use <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Respiratory distress — COPD, asthma, severe pneumonia</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Chest indrawing" onclick="togglePEFinding(this)">Chest indrawing <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Lower airway obstruction — pneumonia, bronchiolitis</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Nasal flaring" onclick="togglePEFinding(this)">Nasal flaring <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Respiratory distress — children and adults</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Tracheal deviation" onclick="togglePEFinding(this)">Tracheal deviation <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Pneumothorax, pleural effusion, lung collapse</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Barrel chest" onclick="togglePEFinding(this)">Barrel chest <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">COPD, asthma — hyperinflation</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Kyphoscoliosis" onclick="togglePEFinding(this)">Kyphoscoliosis <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Restrictive lung disease — may cause respiratory failure</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Pursed-lip breathing" onclick="togglePEFinding(this)">Pursed-lip breathing <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">COPD, asthma — maintaining airway pressure</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">🖐 Palpation</div>
-                    <div class="pe-hint-box"><strong>Feel for:</strong> Tracheal deviation, chest expansion (symmetry), tactile fremitus/vocal fremitus, tenderness, lumps.</div>
-                    <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Feel for:</strong> Tracheal position, chest expansion, tactile fremitus, tenderness.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Reduced expansion (R)" onclick="togglePEFinding(this)">Reduced expansion (R) <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Pneumothorax, effusion, collapse — right side</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Reduced expansion (L)" onclick="togglePEFinding(this)">Reduced expansion (L) <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Pneumothorax, effusion, collapse — left side</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Tactile fremitus increased" onclick="togglePEFinding(this)">Tactile fremitus increased <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Consolidation — lobar pneumonia</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Tactile fremitus reduced" onclick="togglePEFinding(this)">Tactile fremitus reduced <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Effusion, pneumothorax, fibrosis</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">👂 Percussion</div>
-                    <div class="pe-hint-box"><strong>Listen for:</strong> Percussion note – resonant, hyperresonant, dull, stony dull. Compare both sides.</div>
-                    <textarea placeholder="Percussion findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Listen for:</strong> Resonance, dullness, hyperresonance, stony dullness.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Dull (R base)" onclick="togglePEFinding(this)">Dull (R base) <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Pleural effusion — right side</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Dull (L base)" onclick="togglePEFinding(this)">Dull (L base) <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Pleural effusion — left side</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Stony dull" onclick="togglePEFinding(this)">Stony dull <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Massive pleural effusion — likely malignant</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Hyperresonant" onclick="togglePEFinding(this)">Hyperresonant <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Pneumothorax, bullous disease</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">👂 Auscultation</div>
-                    <div class="pe-hint-box"><strong>Listen for:</strong> Breath sounds (vesicular, bronchial), added sounds – crackles, wheeze, rhonchi, pleural rub. Vocal resonance.</div>
-                    <textarea placeholder="Auscultation findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Listen for:</strong> Breath sounds, added sounds – crackles, wheeze, rhonchi, pleural rub.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Coarse crackles" onclick="togglePEFinding(this)">Coarse crackles <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Secretions, bronchiectasis, pulmonary oedema</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Fine crackles" onclick="togglePEFinding(this)">Fine crackles <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Fibrosis, early oedema, interstitial lung disease</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Bilateral basal crackles" onclick="togglePEFinding(this)">Bilateral basal crackles <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Pulmonary oedema — consider heart failure</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Expiratory wheeze" onclick="togglePEFinding(this)">Expiratory wheeze <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Asthma, COPD — lower airway narrowing</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Bronchial breathing" onclick="togglePEFinding(this)">Bronchial breathing <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Consolidation — pneumonia above a patent airway</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Reduced breath sounds" onclick="togglePEFinding(this)">Reduced breath sounds <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Effusion, pneumothorax, collapse</span></span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Pleural rub" onclick="togglePEFinding(this)">Pleural rub <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Pleurisy, pulmonary infarction — scratchy, often painful</span></span>
+                    </div>
                 </div>
-                <div class="field-group"><label>Additional respiratory notes</label><textarea id="peResp" placeholder="Any other findings..." style="min-height:40px;"></textarea></div>
+                <div class="pe-note-mini" contenteditable="true" placeholder="Additional respiratory notes…"></div>
             </div>
 
-            <!-- Abdominal -->
+            <!-- ─── ABDOMINAL ─── -->
             <div class="pe-toggle" onclick="togglePE(this)">
                 <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🫃 Abdominal Examination</div>
                 <span class="chevron">▼</span>
@@ -1709,27 +1964,58 @@
                 <div class="pe-section">
                     <div class="pe-section-title">🔍 Inspection</div>
                     <div class="pe-hint-box"><strong>Look for:</strong> Shape, symmetry, scars, striae, veins (caput medusae), visible peristalsis, hernias, distension, masses.</div>
-                    <textarea placeholder="Inspection findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Distended" onclick="togglePEFinding(this)">Distended <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Ascites, obstruction, organomegaly</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Scaphoid" onclick="togglePEFinding(this)">Scaphoid <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Malnutrition, wasting — inspect for signs</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Visible peristalsis" onclick="togglePEFinding(this)">Visible peristalsis <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Intestinal obstruction — often pyloric stenosis in infants</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Caput medusae" onclick="togglePEFinding(this)">Caput medusae <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Portal hypertension — liver cirrhosis</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Surgical scar" onclick="togglePEFinding(this)">Surgical scar <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Previous laparotomy — note position and type</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Umbilical hernia" onclick="togglePEFinding(this)">Umbilical hernia <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Common in children — usually reducible</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">👂 Auscultation</div>
-                    <div class="pe-hint-box"><strong>Listen for:</strong> Bowel sounds (normal, absent, hyperactive, tinkling), bruits (aortic, renal, iliac).</div>
-                    <textarea placeholder="Auscultation findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Listen for:</strong> Bowel sounds (normal, absent, hyperactive, tinkling), bruits.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Bowel sounds absent" onclick="togglePEFinding(this)">Bowel sounds absent <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Ileus, peritonitis, late obstruction</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Hyperactive bowel sounds" onclick="togglePEFinding(this)">Hyperactive bowel sounds <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Early obstruction, gastroenteritis</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Tinkling bowel sounds" onclick="togglePEFinding(this)">Tinkling bowel sounds <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Mechanical obstruction — high-pitched</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Aortic bruit" onclick="togglePEFinding(this)">Aortic bruit <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Aortic stenosis, aneurysm — listen in epigastrium</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Renal bruit" onclick="togglePEFinding(this)">Renal bruit <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Renal artery stenosis — listen in flank</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">🖐 Palpation</div>
-                    <div class="pe-hint-box"><strong>Feel for:</strong> Superficial (tenderness, guarding, rigidity), deep (masses, organomegaly – liver, spleen, kidneys), hernia orifices, cough impulse.</div>
-                    <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Feel for:</strong> Tenderness, guarding, rigidity, masses, organomegaly, hernia orifices, cough impulse.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Generalised tenderness" onclick="togglePEFinding(this)">Generalised tenderness <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Peritonitis, gastroenteritis — assess severity</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="RIF tenderness" onclick="togglePEFinding(this)">RIF tenderness <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Appendicitis — McBurney's point, rebound</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="RUQ tenderness" onclick="togglePEFinding(this)">RUQ tenderness <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Cholecystitis, hepatitis — Murphy's sign</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Guarding" onclick="togglePEFinding(this)">Guarding <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Peritoneal irritation — surgical abdomen</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Rigidity" onclick="togglePEFinding(this)">Rigidity <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Peritonitis — board-like abdomen, emergency</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Rebound tenderness" onclick="togglePEFinding(this)">Rebound tenderness <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Peritoneal inflammation — appendicitis, peritonitis</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Hepatomegaly" onclick="togglePEFinding(this)">Hepatomegaly <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Hepatitis, congestion, malignancy — measure span</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Splenomegaly" onclick="togglePEFinding(this)">Splenomegaly <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Portal hypertension, malaria, haematological disease</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Palpable mass" onclick="togglePEFinding(this)">Palpable mass <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Tumour, cyst, inflammatory mass — assess location, size, consistency</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">👂 Percussion</div>
-                    <div class="pe-hint-box"><strong>Listen for:</strong> Dullness (liver span, splenic dullness, ascites – shifting dullness), tympany.</div>
-                    <textarea placeholder="Percussion findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Listen for:</strong> Dullness (liver span, splenic dullness), shifting dullness (ascites), tympany.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Shifting dullness" onclick="togglePEFinding(this)">Shifting dullness <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Ascites — liver, cardiac, malignant causes</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Liver span increased" onclick="togglePEFinding(this)">Liver span increased <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Hepatomegaly — measure in cm</span></span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Tympany" onclick="togglePEFinding(this)">Tympany <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Bowel obstruction, ileus — hyperresonant</span></span>
+                    </div>
                 </div>
-                <div class="field-group"><label>Additional abdominal notes</label><textarea id="peAbdo" placeholder="e.g. Ascites, fluid thrill..." style="min-height:40px;"></textarea></div>
+                <div class="pe-note-mini" contenteditable="true" placeholder="Additional abdominal notes…"></div>
             </div>
 
-            <!-- Genitourinary with DRE -->
+            <!-- ─── GENITOURINARY & DRE ─── -->
             <div class="pe-toggle" onclick="togglePE(this)">
                 <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">💧 Genitourinary Examination</div>
                 <span class="chevron">▼</span>
@@ -1738,38 +2024,48 @@
                 <div class="pe-section">
                     <div class="pe-section-title">🔍 Inspection</div>
                     <div class="pe-hint-box"><strong>Look for:</strong> External genitalia – penis, urethral meatus, scrotum, testicles, skin changes, swelling, discharge.</div>
-                    <textarea placeholder="Inspection findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Scrotal swelling" onclick="togglePEFinding(this)">Scrotal swelling <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Hydrocele, hernia, tumour, torsion — assess transillumination</span></span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Urethral discharge" onclick="togglePEFinding(this)">Urethral discharge <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">STI, urethritis — send for Gram stain and culture</span></span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Skin lesions" onclick="togglePEFinding(this)">Skin lesions (penis/scrotum) <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">STI, malignancy, infection — biopsy if suspected</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">🖐 Palpation</div>
                     <div class="pe-hint-box"><strong>Feel for:</strong> Testicular size, consistency, tenderness, masses, epididymis, spermatic cord, hernias.</div>
-                    <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
-                </div>
-                <div class="pe-section">
-                    <div class="pe-section-title">👂 Percussion</div>
-                    <div class="pe-hint-box"><strong>Listen for:</strong> Suprapubic dullness (bladder distension).</div>
-                    <textarea placeholder="Percussion findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Tender testis" onclick="togglePEFinding(this)">Tender testis <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Epididymitis, torsion, trauma — urgent Doppler</span></span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Testicular mass" onclick="togglePEFinding(this)">Testicular mass <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Testicular cancer — ultrasound and tumour markers</span></span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Inguinal hernia" onclick="togglePEFinding(this)">Inguinal hernia <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Assess reducibility, cough impulse, risk of incarceration</span></span>
+                    </div>
                 </div>
                 <div class="pe-section" style="border-left: 4px solid var(--accent);">
                     <div class="pe-section-title">🖐 Digital Rectal Examination (DRE)</div>
-                    <div class="pe-hint-box"><strong>Assess:</strong> Sphincter tone, prostate (males) – size, consistency, nodules, tenderness; rectal masses, blood on finger (glove), stool colour/consistency. In females – assess posterior vaginal wall, cervix, uterosacral ligaments.</div>
-                    <textarea placeholder="DRE findings..." style="min-height:50px;"></textarea>
+                    <div class="pe-hint-box"><strong>Assess:</strong> Sphincter tone, prostate (males) – size, consistency, nodules, tenderness; rectal masses, blood on glove, stool colour/consistency.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Enlarged prostate" onclick="togglePEFinding(this)">Enlarged prostate <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">BPH, cancer — record approximate size</span></span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Nodular prostate" onclick="togglePEFinding(this)">Nodular prostate <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Prostate cancer — consider PSA, biopsy</span></span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Rectal mass" onclick="togglePEFinding(this)">Rectal mass <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Rectal carcinoma — urgent colonoscopy</span></span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Blood on glove" onclick="togglePEFinding(this)">Blood on glove <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Lower GI bleed — consider malignancy, haemorrhoids, diverticular disease</span></span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Reduced sphincter tone" onclick="togglePEFinding(this)">Reduced sphincter tone <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Cauda equina, spinal cord lesion, previous surgery</span></span>
+                    </div>
                 </div>
-                <div class="field-group"><label>Additional GU notes</label><textarea id="peGU" placeholder="e.g. Transillumination of scrotal swelling, Prehn's sign..." style="min-height:40px;"></textarea></div>
+                <div class="pe-note-mini" contenteditable="true" placeholder="Additional GU notes…"></div>
             </div>
 
-            <!-- Neurological -->
+            <!-- ─── NEUROLOGICAL ─── -->
             <div class="pe-toggle" onclick="togglePE(this)">
                 <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🧠 Neurological Examination</div>
                 <span class="chevron">▼</span>
             </div>
             <div class="pe-body open">
-                <!-- GCS SECTION -->
+                <!-- GCS -->
                 <div class="pe-section" style="border-left: 4px solid var(--accent); background:#f9f4f0;">
-                    <div class="pe-section-title">🧠 Glasgow Coma Scale (GCS) – Systematic Assessment</div>
-                    <div class="pe-hint-box">
-                        <strong>Systematic Approach:</strong> Assess in order: <strong>Eye opening (E)</strong>, <strong>Verbal response (V)</strong>, <strong>Motor response (M)</strong>. Use the <em>best</em> response in each category. Record as <code>E_V_M</code> (e.g., E4V5M6 = 15/15). If intubated, record V as "Intubated" and note it. If eyes swollen, record E as "Swollen". Total = E + V + M (max 15).
-                    </div>
+                    <div class="pe-section-title">🧠 Glasgow Coma Scale (GCS)</div>
+                    <div class="pe-hint-box"><strong>Systematic:</strong> Eye opening (E 1–4), Verbal (V 1–5), Motor (M 1–6). Record as E4V5M6 = 15/15. If intubated, record V as "Intubated".</div>
                     <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-bottom:0.5rem;">
                         <div>
                             <label style="font-weight:600; font-size:0.85rem;">Eye Opening (E)</label>
@@ -1792,8 +2088,7 @@
                                 <option value="1">1 – None</option>
                             </select>
                             <div style="margin-top:0.2rem; font-size:0.75rem; color:var(--muted);">
-                                <span style="display:inline-block;">If intubated: </span>
-                                <input type="checkbox" id="gcsIntubated" onchange="calculateGCS()" style="margin-left:0.3rem;"> Intubated
+                                <input type="checkbox" id="gcsIntubated" onchange="calculateGCS()" style="margin-right:0.3rem;"> Intubated
                             </div>
                         </div>
                         <div>
@@ -1809,38 +2104,54 @@
                             </select>
                         </div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:1rem; margin-top:0.5rem; padding:0.5rem 0.8rem; background:#f0f4f8; border-radius:8px; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:1rem; padding:0.5rem 0.8rem; background:#f0f4f8; border-radius:8px; flex-wrap:wrap;">
                         <div style="font-weight:700; font-size:1rem;">GCS Score:</div>
                         <div id="gcsDisplay" style="font-size:1.5rem; font-weight:700; color:var(--primary);">E_V_M / 15</div>
-                        <div style="font-size:0.85rem; color:var(--muted); margin-left:auto;">
-                            Total: <span id="gcsTotal">-</span> / 15
-                        </div>
+                        <div style="font-size:0.85rem; color:var(--muted); margin-left:auto;">Total: <span id="gcsTotal">-</span> / 15</div>
                     </div>
-                    <div class="field-group" style="margin-top:0.5rem;">
-                        <label style="font-size:0.82rem;">Additional GCS notes</label>
-                        <textarea id="gcsNotes" placeholder="e.g., Patient intubated, E1V1M?; withdrawal to pain only..." style="min-height:40px;"></textarea>
+                    <div style="margin-top:0.5rem;">
+                        <div class="pe-note-mini" contenteditable="true" placeholder="GCS notes (e.g. patient intubated, E1V1M?; withdrawal to pain only)…"></div>
                     </div>
                 </div>
 
                 <div class="pe-section">
                     <div class="pe-section-title">🔍 Inspection & Mental Status</div>
-                    <div class="pe-hint-box"><strong>Assess:</strong> GCS (E/V/M), pupil size & reaction, speech, level of consciousness, posture.</div>
-                    <textarea placeholder="Findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Assess:</strong> Consciousness, speech, pupils, posture, facial asymmetry, involuntary movements.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Confused/drowsy" onclick="togglePEFinding(this)">Confused/drowsy <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Metabolic, toxic, CNS infection, raised ICP</span></span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Facial asymmetry" onclick="togglePEFinding(this)">Facial asymmetry <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Cranial nerve VII palsy, stroke — differentiate UMN/LMN</span></span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Ptosis" onclick="togglePEFinding(this)">Ptosis <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">CN III palsy, Horner's, myasthenia gravis</span></span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Abnormal pupillary response" onclick="togglePEFinding(this)">Abnormal pupillary response <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">CN II/III lesion, raised ICP — check both eyes</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
-                    <div class="pe-section-title">🖐 Motor & Sensory</div>
-                    <div class="pe-hint-box"><strong>Test:</strong> Power (MRC grade), tone (spastic/rigid/flaccid), coordination (finger-nose, heel-shin), sensation (light touch, pain, proprioception), reflexes (biceps, triceps, knee, ankle, plantar response).</div>
-                    <textarea placeholder="Findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-section-title">🖐 Motor, Sensory & Reflexes</div>
+                    <div class="pe-hint-box"><strong>Test:</strong> Power (MRC grade), tone, coordination, sensation, reflexes (biceps, triceps, knee, ankle, plantar).</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Power reduced (R)" onclick="togglePEFinding(this)">Power reduced (R) <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">UMN or LMN lesion — grade on MRC scale</span></span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Power reduced (L)" onclick="togglePEFinding(this)">Power reduced (L) <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">UMN or LMN lesion — grade on MRC scale</span></span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Increased tone" onclick="togglePEFinding(this)">Increased tone <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">UMN lesion — spasticity, rigidity</span></span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Decreased tone" onclick="togglePEFinding(this)">Decreased tone <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">LMN lesion — flaccidity, hypotonia</span></span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Babinski positive" onclick="togglePEFinding(this)">Babinski positive <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">UMN lesion — corticospinal tract</span></span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Clonus" onclick="togglePEFinding(this)">Clonus <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">UMN lesion — sustained clonus = upper motor neuron</span></span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Sensory level" onclick="togglePEFinding(this)">Sensory level <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Spinal cord lesion — define level</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">🖐 Cranial Nerves</div>
-                    <div class="pe-hint-box"><strong>Test:</strong> Olfactory to hypoglossal – as clinically indicated.</div>
-                    <textarea placeholder="Cranial nerve findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Test:</strong> CN I–XII as clinically indicated — vision, EOMs, facial sensation/movement, hearing, swallow, tongue.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="CN deficit" onclick="togglePEFinding(this)">CN deficit (specify) <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Cranial nerve palsy — localise lesion</span></span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Visual field defect" onclick="togglePEFinding(this)">Visual field defect <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Optic chiasm or optic nerve lesion</span></span>
+                    </div>
                 </div>
-                <div class="field-group"><label>Additional neuro notes</label><textarea id="peNeuro" placeholder="e.g. Signs of meningism, cerebellar signs..." style="min-height:40px;"></textarea></div>
+                <div class="pe-note-mini" contenteditable="true" placeholder="Additional neuro notes…"></div>
             </div>
 
-            <!-- Musculoskeletal -->
+            <!-- ─── MUSCULOSKELETAL ─── -->
             <div class="pe-toggle" onclick="togglePE(this)">
                 <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🦴 Musculoskeletal Examination</div>
                 <span class="chevron">▼</span>
@@ -1848,23 +2159,40 @@
             <div class="pe-body open">
                 <div class="pe-section">
                     <div class="pe-section-title">🔍 Inspection</div>
-                    <div class="pe-hint-box"><strong>Look for:</strong> Deformity, swelling, discolouration, muscle wasting, limb length discrepancy, skin changes (ulcers, scars).</div>
-                    <textarea placeholder="Inspection findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Look for:</strong> Deformity, swelling, discolouration, muscle wasting, limb length discrepancy, skin changes.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Deformity" onclick="togglePEFinding(this)">Deformity <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Fracture, arthritis, congenital — describe angulation</span></span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Swelling" onclick="togglePEFinding(this)">Swelling <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Effusion, soft tissue, bony — assess size and consistency</span></span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Muscle wasting" onclick="togglePEFinding(this)">Muscle wasting <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Neuropathy, myopathy, disuse — measure circumference</span></span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Skin changes" onclick="togglePEFinding(this)">Skin changes <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Ulcer, pigmentation, scar — note location</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">🖐 Palpation</div>
-                    <div class="pe-hint-box"><strong>Feel for:</strong> Tenderness, warmth, crepitus, joint effusion, bone alignment, peripheral pulses, capillary refill, sensation distal to injury.</div>
-                    <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Feel for:</strong> Tenderness, warmth, crepitus, joint effusion, bone alignment, peripheral pulses, capillary refill, sensation distal.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Tenderness" onclick="togglePEFinding(this)">Tenderness <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Fracture, infection, inflammation — localise</span></span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Crepitus" onclick="togglePEFinding(this)">Crepitus <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Osteoarthritis, loose body, fracture — feel and listen</span></span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Joint effusion" onclick="togglePEFinding(this)">Joint effusion <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Inflammatory, traumatic, septic — assess bulge sign</span></span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Warmth" onclick="togglePEFinding(this)">Warmth <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Infection, inflammation — compare to contralateral</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">🔄 Range of Motion</div>
                     <div class="pe-hint-box"><strong>Assess:</strong> Active and passive ROM; pain, restriction, instability.</div>
-                    <textarea placeholder="ROM findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Restricted ROM" onclick="togglePEFinding(this)">Restricted ROM <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Arthritis, effusion, contracture — measure degrees</span></span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Pain on movement" onclick="togglePEFinding(this)">Pain on movement <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Inflammatory, traumatic, septic — localise</span></span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Joint instability" onclick="togglePEFinding(this)">Joint instability <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Ligament injury — assess for laxity</span></span>
+                    </div>
                 </div>
-                <div class="field-group"><label>Additional MSK notes</label><textarea id="peMSK" placeholder="e.g. Special tests – Lachman, anterior drawer, Ottawa ankle rules..." style="min-height:40px;"></textarea></div>
+                <div class="pe-note-mini" contenteditable="true" placeholder="Additional MSK notes…"></div>
             </div>
 
-            <!-- Wound Examination -->
+            <!-- ─── WOUND / ULCER ─── -->
             <div class="pe-toggle" onclick="togglePE(this)">
                 <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">🩹 Wound / Ulcer Examination</div>
                 <span class="chevron">▼</span>
@@ -1872,40 +2200,59 @@
             <div class="pe-body open">
                 <div class="pe-section">
                     <div class="pe-section-title">🔍 Inspection</div>
-                    <div class="pe-hint-box"><strong>Look for:</strong> Site, size (measure in cm), number of wounds. Edge: sloping (healing), punched-out (trophic), undermined (TB), everted (carcinoma), rolled (BCC). Base: slough, granulation, pale/ischaemic, exposed bone/tendon. Discharge: serous, purulent, haemorrhagic, watery. Surrounding skin: erythema, warmth, induration, cellulitis.</div>
-                    <textarea placeholder="Inspection findings..." style="min-height:50px;"></textarea>
+                    <div class="pe-hint-box"><strong>Look for:</strong> Site, size (cm), edges (sloping, punched-out, undermined, everted, rolled), base (slough, granulation, necrotic, exposed bone/tendon), discharge (serous, purulent, haemorrhagic), surrounding skin.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Necrotic base" onclick="togglePEFinding(this)">Necrotic base <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Ischaemia, infection, pressure — consider debridement</span></span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Purulent discharge" onclick="togglePEFinding(this)">Purulent discharge <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Infection — send for culture and sensitivity</span></span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Everted edges" onclick="togglePEFinding(this)">Everted edges <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Squamous cell carcinoma (Marjolin's) — biopsy</span></span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Undermined edges" onclick="togglePEFinding(this)">Undermined edges <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Tuberculosis, Buruli ulcer — probe for sinus</span></span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Granulation tissue" onclick="togglePEFinding(this)">Granulation tissue <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Healing wound — moist, pink-red</span></span>
+                    </div>
                 </div>
                 <div class="pe-section">
                     <div class="pe-section-title">🖐 Palpation</div>
-                    <div class="pe-hint-box"><strong>Feel for:</strong> Tenderness, temperature, subcutaneous emphysema (crepitus), deep extension, sinus tracts, regional lymphadenopathy. Assess for distal pulses and sensation if on a limb.</div>
-                    <textarea placeholder="Palpation findings..." style="min-height:40px;"></textarea>
+                    <div class="pe-hint-box"><strong>Feel for:</strong> Tenderness, temperature, subcutaneous emphysema, deep extension, sinus tracts, regional lymphadenopathy, distal pulses.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Subcutaneous emphysema" onclick="togglePEFinding(this)">Subcutaneous emphysema <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Necrotising fasciitis, gas gangrene — emergency</span></span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Regional lymphadenopathy" onclick="togglePEFinding(this)">Regional lymphadenopathy <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Infection, malignancy — assess nodes</span></span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Palpable sinus" onclick="togglePEFinding(this)">Palpable sinus <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Chronic infection, osteomyelitis — probe</span></span>
+                    </div>
                 </div>
-                <div class="pe-section">
-                    <div class="pe-section-title">👂 Auscultation / Special</div>
-                    <div class="pe-hint-box"><strong>Listen for:</strong> Bruits over a vascular ulcer. Probe for sinus tracts using a sterile probe (if appropriate).</div>
-                    <textarea placeholder="Auscultation/special findings..." style="min-height:40px;"></textarea>
-                </div>
-                <div class="field-group"><label>Additional wound notes</label><textarea id="peWound" placeholder="e.g. Odour, presence of foreign body, wound swab taken, photograph..." style="min-height:40px;"></textarea></div>
+                <div class="pe-note-mini" contenteditable="true" placeholder="Additional wound notes…"></div>
             </div>
 
-            <!-- Other -->
+            <!-- ─── LYMPHATICS, SKIN, BREAST, NECK ─── -->
             <div class="pe-toggle" onclick="togglePE(this)">
-                <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">➕ Other Systems (Skin, Breast, Neck, Lymphatics)</div>
+                <div class="card-title" style="border-bottom:none; padding-bottom:0; margin-bottom:0.3rem;">➕ Lymphatics, Skin, Breast, Neck</div>
                 <span class="chevron">▼</span>
             </div>
             <div class="pe-body open">
                 <div class="pe-section">
                     <div class="pe-section-title">🔍 Inspection & Palpation</div>
-                    <div class="pe-hint-box"><strong>Look and feel for:</strong> Skin: rashes, pigmentation, ulcers, surgical scars, pressure areas. Lymph nodes: cervical, axillary, inguinal – size, consistency, tenderness, mobility. Breast: inspection (symmetry, peau d'orange, nipple retraction), palpation (quadrants, axillary tail). Thyroid: inspection, palpation (size, consistency, nodules, tracheal deviation), auscultation for bruit.</div>
-                    <textarea placeholder="Findings..." style="min-height:60px;"></textarea>
+                    <div class="pe-hint-box"><strong>Look and feel for:</strong> Lymph nodes: cervical, axillary, inguinal – size, consistency, tenderness, mobility. Skin: rashes, pigmentation, scars, pressure areas. Breast: symmetry, peau d'orange, nipple retraction, quadrants, axillary tail. Thyroid: size, consistency, nodules, bruit.</div>
+                    <div class="pe-finding-group">
+                        <span class="pe-finding-label">Findings (click to toggle):</span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Cervical lymphadenopathy" onclick="togglePEFinding(this)">Cervical lymphadenopathy <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Infection (URTI, TB), lymphoma, malignancy — assess size and consistency</span></span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Axillary lymphadenopathy" onclick="togglePEFinding(this)">Axillary lymphadenopathy <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Breast cancer, lymphoma, infection — unilateral vs bilateral</span></span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Inguinal lymphadenopathy" onclick="togglePEFinding(this)">Inguinal lymphadenopathy <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">STI, lower limb infection, lymphoma, malignancy</span></span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Breast lump" onclick="togglePEFinding(this)">Breast lump <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Fibroadenoma, cyst, carcinoma — assess size, mobility, skin changes</span></span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Peau d'orange" onclick="togglePEFinding(this)">Peau d'orange <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Inflammatory breast cancer — urgent referral</span></span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Thyroid nodule" onclick="togglePEFinding(this)">Thyroid nodule <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Thyroid cancer, adenoma, goitre — ultrasound and FNA</span></span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Skin rash" onclick="togglePEFinding(this)">Skin rash <span class="pe-clue-icon">💡</span><span class="pe-clue-popup">Allergy, infection, drug reaction — describe morphology</span></span>
+                    </div>
                 </div>
-                <div class="field-group"><label>Additional notes</label><textarea id="peOther" placeholder="Any other findings..." style="min-height:40px;"></textarea></div>
+                <div class="pe-note-mini" contenteditable="true" placeholder="Additional notes (skin, breast, neck, lymphatics)…"></div>
             </div>
+
         </div>
 
         <hr class="divider" />
 
-        <!-- SECTION 9: SUMMARY / CLERK'S ASSESSMENT -->
+        <!-- ============================================================
+        SECTION 9: SUMMARY / CLERK'S ASSESSMENT
+        ============================================================ -->
         <div class="section-header">
             <span class="section-badge">9</span>
             <span class="section-title">Summary / Clerk's Assessment</span>
@@ -1969,7 +2316,7 @@
             </div>
         </div>
 
-        <!-- SECTION 10: SIMPLIFIED FILE UPLOAD (replaces AI Vision) -->
+        <!-- SECTION 10: FILE UPLOAD -->
         <div class="section-header">
             <span class="section-badge">📎</span>
             <span class="section-title">Document Upload</span>
@@ -2001,7 +2348,6 @@
                 </div>
             </div>
 
-            <!-- File preview area -->
             <div id="fileTextPreview" style="display:none; margin-top:12px;">
                 <div style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--muted); margin-bottom:0.5rem;">📝 Extracted Text Preview</div>
                 <div id="filePreviewContent" class="file-preview-text"></div>
@@ -2039,34 +2385,33 @@
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
             (async function checkAuth() {
-                const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-                const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) {
-                    window.location.replace('easemed_login.html');
-                    return;
-                }
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('is_active, expires_at')
-                    .eq('id', session.user.id)
-                    .single();
-                if (!profile || !profile.is_active) {
-                    window.location.replace('easemed_payment.html');
-                    return;
-                }
-                if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
-                    await supabase
+                try {
+                    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+                    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) {
+                        window.location.replace('easemed_login.html');
+                        return;
+                    }
+                    const { data: profile } = await supabase
                         .from('profiles')
-                        .update({ is_active: false })
-                        .eq('id', session.user.id);
-                    window.location.replace('easemed_payment.html?reason=expired');
-                    return;
-                }
+                        .select('is_active, expires_at')
+                        .eq('id', session.user.id)
+                        .single();
+                    if (!profile || !profile.is_active) {
+                        window.location.replace('easemed_payment.html');
+                        return;
+                    }
+                    if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
+                        await supabase.from('profiles').update({ is_active: false }).eq('id', session.user.id);
+                        window.location.replace('easemed_payment.html?reason=expired');
+                        return;
+                    }
+                } catch (e) { console.warn('Auth check error:', e); }
             })();
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 2. FILE UPLOAD SYSTEM (replaces AI Vision)
+            // 2. FILE UPLOAD SYSTEM
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             let uploadedFiles = [];
             let fileTextContent = '';
@@ -2084,31 +2429,25 @@
                             size: file.size,
                             data: e.target.result
                         };
-
-                        // For text-based files, try to extract text
                         if (file.type.startsWith('text/') || file.name.endsWith('.txt') ||
                             file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
                             fileData.text = e.target.result;
                             fileTextContent += `\n--- ${file.name} ---\n${e.target.result}\n`;
                         } else if (file.type.startsWith('image/')) {
-                            // Images are stored as data URLs
                             fileData.text = `[Image: ${file.name}]`;
                         } else {
                             fileData.text = `[File: ${file.name}]`;
                         }
-
                         uploadedFiles.push(fileData);
                         renderUploadedFiles();
                         updateFileCounter();
                     };
-
                     if (file.type.startsWith('image/')) {
                         reader.readAsDataURL(file);
                     } else {
                         reader.readAsText(file);
                     }
                 });
-
                 event.target.value = '';
                 showToast(`📁 ${files.length} file(s) uploaded`, '#2a9d8f');
             }
@@ -2135,8 +2474,6 @@
                     container.appendChild(div);
                 });
                 updateFileCounter();
-
-                // Show text preview if there's text content
                 if (fileTextContent.trim()) {
                     document.getElementById('fileTextPreview').style.display = 'block';
                     document.getElementById('filePreviewContent').textContent = fileTextContent.substring(0, 2000) + (fileTextContent
@@ -2152,11 +2489,8 @@
 
             function removeFile(index) {
                 uploadedFiles.splice(index, 1);
-                // Rebuild text content
                 fileTextContent = '';
-                uploadedFiles.forEach(f => {
-                    if (f.text) fileTextContent += `\n--- ${f.name} ---\n${f.text}\n`;
-                });
+                uploadedFiles.forEach(f => { if (f.text) fileTextContent += `\n--- ${f.name} ---\n${f.text}\n`; });
                 renderUploadedFiles();
                 showToast('🗑️ File removed', '#95a5a6');
             }
@@ -2172,10 +2506,7 @@
             }
 
             function applyFilesToSummary() {
-                if (!uploadedFiles.length) {
-                    showToast('⚠️ No files to apply. Upload some files first.', '#e67e22');
-                    return;
-                }
+                if (!uploadedFiles.length) { showToast('⚠️ No files to apply.', '#e67e22'); return; }
                 const summaryField = document.getElementById('summary');
                 if (!summaryField) return;
                 let summary = summaryField.value || '';
@@ -2195,15 +2526,13 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 3. DATA COLLECTION (UPDATED with file uploads)
+            // 3. DATA COLLECTION
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function collectFormData() {
                 const getVal = (id) => document.getElementById(id)?.value || '';
                 const getText = (id) => document.getElementById(id)?.value || '';
-                const getRadio = (name) => {
-                    const el = document.querySelector(`input[name="${name}"]:checked`);
-                    return el ? el.value : '';
-                };
+                const getRadio = (name) => { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el
+                        .value : ''; };
 
                 const getPC = (num) => {
                     const prefix = 'pc' + num;
@@ -2243,6 +2572,21 @@
                     };
                 });
 
+                // PE data - collect all findings
+                const peData = {};
+                document.querySelectorAll('.pe-finding-tag').forEach(tag => {
+                    const system = tag.dataset.pe;
+                    const finding = tag.dataset.finding;
+                    if (!peData[system]) peData[system] = { present: [], absent: [] };
+                    if (tag.classList.contains('present')) peData[system].present.push(finding);
+                    else if (tag.classList.contains('absent')) peData[system].absent.push(finding);
+                });
+                const peNotes = {};
+                document.querySelectorAll('.pe-body .pe-note-mini').forEach((note, idx) => {
+                    const system = ['general', 'cvs', 'resp', 'abdo', 'gu', 'neuro', 'msk', 'wound', 'other'][idx] || 'other';
+                    peNotes[system] = note.textContent || '';
+                });
+
                 return {
                     demographics: {
                         patientName: getVal('patientName'),
@@ -2252,8 +2596,12 @@
                         admissionDate: getVal('admissionDate'),
                         ward: getVal('ward'),
                         clerkedBy: getVal('clerkedBy'),
+                        nationality: getVal('nationality'),
+                        ethnicity: getVal('ethnicity'),
                         maritalStatus: getVal('maritalStatus'),
                         religion: getVal('religion'),
+                        educationLevel: getVal('educationLevel'),
+                        occupationDetail: getVal('occupationDetail'),
                         referred: getRadio('referred'),
                         referralFacility: getVal('referralFacility'),
                         referralLevel: getVal('referralLevel'),
@@ -2301,26 +2649,18 @@
                         living: getText('livingSituation')
                     },
                     physicalExam: {
-                        general: getText('peGeneral'),
                         bp: getVal('peBP'),
                         hr: getVal('peHR'),
                         rr: getVal('peRR'),
                         temp: getVal('peTemp'),
                         spo2: getVal('peSpO2'),
                         bmi: getVal('peBMI'),
-                        cvs: getText('peCVS'),
-                        resp: getText('peResp'),
-                        abdo: getText('peAbdo'),
-                        gu: getText('peGU'),
-                        neuro: getText('peNeuro'),
-                        msk: getText('peMSK'),
-                        wound: getText('peWound'),
-                        other: getText('peOther'),
                         gcsEye: getVal('gcsEye'),
                         gcsVerbal: getVal('gcsVerbal'),
                         gcsMotor: getVal('gcsMotor'),
                         gcsIntubated: document.getElementById('gcsIntubated')?.checked || false,
-                        gcsNotes: getText('gcsNotes')
+                        findings: peData,
+                        notes: peNotes
                     },
                     assessment: {
                         summary: getText('summary'),
@@ -2333,19 +2673,16 @@
                     },
                     files: uploadedFiles.map(f => ({ name: f.name, type: f.type, size: f.size })),
                     fileContent: fileTextContent,
-                    metadata: {
-                        savedAt: new Date().toISOString()
-                    }
+                    metadata: { savedAt: new Date().toISOString() }
                 };
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 4. COMPREHENSIVE CLINICAL SUMMARY GENERATOR
+            // 4. CLINICAL SUMMARY GENERATOR
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function generateClerkshipSummary() {
                 const data = collectFormData();
                 const d = data;
-
                 const now = new Date().toLocaleString();
                 const name = d.demographics.patientName || 'Not documented';
                 const age = d.demographics.age || '?';
@@ -2393,7 +2730,6 @@
                     hpcHtml += `<div style="margin-top:0.4rem; font-size:0.85rem; color:var(--muted);">${socrates.join(' · ')}</div>`;
                 }
 
-                let rosHtml = '';
                 const sysLabels = {
                     cvs: '❤️ Cardiovascular',
                     resp: '🫁 Respiratory',
@@ -2403,6 +2739,7 @@
                     msk: '🦴 Musculoskeletal',
                     endo: '⚗️ Endocrine'
                 };
+                let rosHtml = '';
                 Object.entries(d.ros).forEach(([sys, data]) => {
                     const present = data.symptoms.filter(s => s.status === 'present').map(s => s.name);
                     const absent = data.symptoms.filter(s => s.status === 'absent').map(s => s.name);
@@ -2424,14 +2761,14 @@
                 if (!pastHtml) pastHtml = '<div style="color:var(--muted);">No past history documented.</div>';
 
                 let drugHtml = '';
-                if (d.drugHistory.currentMeds) drugHtml += `<div><strong>Current medications:</strong> ${d.drugHistory.currentMeds}</div>`;
-                if (d.drugHistory.herbalMeds) drugHtml += `<div><strong>Herbal/traditional:</strong> ${d.drugHistory.herbalMeds}</div>`;
+                if (d.drugHistory.currentMeds) drugHtml += `<div><strong>Current meds:</strong> ${d.drugHistory.currentMeds}</div>`;
+                if (d.drugHistory.herbalMeds) drugHtml += `<div><strong>Herbal:</strong> ${d.drugHistory.herbalMeds}</div>`;
                 if (d.drugHistory.allergies) drugHtml += `<div><strong>Allergies:</strong> ${d.drugHistory.allergies}</div>`;
                 if (d.drugHistory.adr) drugHtml += `<div><strong>ADR:</strong> ${d.drugHistory.adr}</div>`;
                 if (!drugHtml) drugHtml = '<div style="color:var(--muted);">No drug history documented.</div>';
 
                 let famHtml = '';
-                if (d.familySocial.familyHistory) famHtml += `<div><strong>Family history:</strong> ${d.familySocial.familyHistory}</div>`;
+                if (d.familySocial.familyHistory) famHtml += `<div><strong>Family:</strong> ${d.familySocial.familyHistory}</div>`;
                 if (d.familySocial.familySurgical) famHtml += `<div><strong>Family surgical:</strong> ${d.familySocial.familySurgical}</div>`;
                 if (d.familySocial.occupation) famHtml += `<div><strong>Occupation:</strong> ${d.familySocial.occupation}</div>`;
                 let smoking = d.familySocial.smoking || 'Not documented';
@@ -2440,11 +2777,37 @@
                 let alcohol = d.familySocial.alcohol || 'Not documented';
                 if (d.familySocial.alcoholDetail) alcohol += ` (${d.familySocial.alcoholDetail})`;
                 famHtml += `<div><strong>Alcohol:</strong> ${alcohol}</div>`;
-                if (d.familySocial.living) famHtml += `<div><strong>Living situation:</strong> ${d.familySocial.living}</div>`;
+                if (d.familySocial.living) famHtml += `<div><strong>Living:</strong> ${d.familySocial.living}</div>`;
+
+                const peFindings = d.physicalExam.findings || {};
+                let peHtml = '';
+                const peLabels = {
+                    general: '🩺 General',
+                    cvs: '❤️ CVS',
+                    resp: '🫁 Respiratory',
+                    abdo: '🫃 Abdominal',
+                    gu: '💧 Genitourinary',
+                    neuro: '🧠 Neurological',
+                    msk: '🦴 MSK',
+                    wound: '🩹 Wound',
+                    other: '➕ Other'
+                };
+                Object.entries(peFindings).forEach(([system, data]) => {
+                    const label = peLabels[system] || system.toUpperCase();
+                    const present = data.present || [];
+                    const absent = data.absent || [];
+                    let parts = [];
+                    if (present.length) parts.push(`<span style="color:var(--success);">${present.join(', ')} (present)</span>`);
+                    if (absent.length) parts.push(`<span style="color:var(--danger);">${absent.join(', ')} (absent)</span>`);
+                    const notes = d.physicalExam.notes?.[system] || '';
+                    if (parts.length) {
+                        peHtml += `<div><strong>${label}:</strong> ${parts.join('; ')}${notes ? ' — ' + notes : ''}</div>`;
+                    }
+                });
+                if (!peHtml) peHtml = '<div style="color:var(--muted);">No PE findings documented.</div>';
 
                 const pe = d.physicalExam;
-                let peHtml = '';
-                peHtml += `<div class="vitals-row">
+                const vitalsHtml = `<div class="vitals-row">
                     <span class="vital-item"><strong>BP:</strong> ${pe.bp || 'N/A'}</span>
                     <span class="vital-item"><strong>HR:</strong> ${pe.hr || 'N/A'}</span>
                     <span class="vital-item"><strong>RR:</strong> ${pe.rr || 'N/A'}</span>
@@ -2452,36 +2815,17 @@
                     <span class="vital-item"><strong>SpO2:</strong> ${pe.spo2 || 'N/A'}</span>
                     <span class="vital-item"><strong>BMI:</strong> ${pe.bmi || 'N/A'}</span>
                 </div>`;
-                if (pe.general) peHtml += `<div><strong>General:</strong> ${pe.general}</div>`;
-                if (pe.cvs) peHtml += `<div><strong>CVS:</strong> ${pe.cvs}</div>`;
-                if (pe.resp) peHtml += `<div><strong>Respiratory:</strong> ${pe.resp}</div>`;
-                if (pe.abdo) peHtml += `<div><strong>Abdominal:</strong> ${pe.abdo}</div>`;
-                if (pe.gu) peHtml += `<div><strong>Genitourinary:</strong> ${pe.gu}</div>`;
-                if (pe.neuro) peHtml += `<div><strong>Neurological:</strong> ${pe.neuro}</div>`;
-                if (pe.msk) peHtml += `<div><strong>MSK:</strong> ${pe.msk}</div>`;
-                if (pe.wound) peHtml += `<div><strong>Wound/Ulcer:</strong> ${pe.wound}</div>`;
-                if (pe.other) peHtml += `<div><strong>Other:</strong> ${pe.other}</div>`;
 
                 const eye = parseInt(pe.gcsEye) || 0;
                 const verbalRaw = parseInt(pe.gcsVerbal) || 0;
                 const motor = parseInt(pe.gcsMotor) || 0;
                 const intubated = pe.gcsIntubated || false;
                 let verbalDisplay = verbalRaw;
-                let verbalScore = verbalRaw;
-                if (intubated) { verbalDisplay = 'Intubated';
-                    verbalScore = 0; }
+                if (intubated) verbalDisplay = 'Intubated';
                 const total = eye + (intubated ? 0 : verbalRaw) + motor;
-                let gcsInterp = '';
-                if (total >= 13) gcsInterp = 'Mild brain injury';
-                else if (total >= 9) gcsInterp = 'Moderate brain injury';
-                else if (total >= 3) gcsInterp = 'Severe brain injury (comatose)';
-                else gcsInterp = 'Unrecordable';
-                let gcsHtml = `<div class="gcs-box">
-                    <span>E${eye} V${verbalDisplay} M${motor} = </span>
-                    <span class="gcs-total">${total}/15</span>
-                    <span class="gcs-interp">(${gcsInterp})</span>
-                    ${pe.gcsNotes ? '<div style="font-weight:400; font-size:0.82rem; margin-top:0.2rem;">' + pe.gcsNotes + '</div>' : ''}
-                </div>`;
+                let gcsInterp = total >= 13 ? 'Mild' : total >= 9 ? 'Moderate' : total >= 3 ? 'Severe' : 'Unrecordable';
+                let gcsHtml =
+                    `<div class="gcs-box">E${eye} V${verbalDisplay} M${motor} = <span class="gcs-total">${total}/15</span> <span class="gcs-interp">(${gcsInterp})</span></div>`;
 
                 let diffHtml = '';
                 const diffs = d.assessment.differentials || [];
@@ -2495,21 +2839,11 @@
                     diffHtml = '<div style="color:var(--muted);">No differentials documented.</div>';
                 }
 
-                let invHtml = d.assessment.investigations || 'Not documented';
-                let planHtml = d.assessment.treatmentPlan || 'Not documented';
-                let refHtml = d.assessment.referrals || 'Not documented';
-
-                // File summary
                 let fileHtml = '';
                 if (d.files && d.files.length) {
                     fileHtml = '<ul>';
-                    d.files.forEach(f => {
-                        fileHtml += `<li>${f.name} (${(f.size / 1024).toFixed(1)} KB)</li>`;
-                    });
+                    d.files.forEach(f => { fileHtml += `<li>${f.name} (${(f.size/1024).toFixed(1)} KB)</li>`; });
                     fileHtml += '</ul>';
-                    if (d.fileContent) {
-                        fileHtml += `<div style="font-size:0.82rem; color:var(--muted); margin-top:0.3rem;">Extracted text available in full summary.</div>`;
-                    }
                 } else {
                     fileHtml = '<div style="color:var(--muted);">No documents uploaded.</div>';
                 }
@@ -2519,7 +2853,6 @@
                         <h1>🩺 EaseMed Surgery Clerkship</h1>
                         <div class="subtitle">Comprehensive Clinical Summary — ${now}</div>
                     </div>
-                    
                     <div class="summary-meta">
                         <div><span>Patient:</span> ${name}</div>
                         <div><span>Age/Sex:</span> ${age} / ${sex}</div>
@@ -2528,167 +2861,78 @@
                         <div><span>Admission:</span> ${admission}</div>
                         <div><span>Clerked by:</span> ${clerkedBy}</div>
                     </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">📋 Presenting Complaint(s)</div>
-                        <div class="summary-section-content">${pcHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">📖 History of Presenting Complaint</div>
-                        <div class="summary-section-content">${hpcHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">🔄 Review of Systems</div>
-                        <div class="summary-section-content">${rosHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">🩺 Past Medical & Surgical History</div>
-                        <div class="summary-section-content">${pastHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">💊 Drug History & Allergies</div>
-                        <div class="summary-section-content">${drugHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">👪 Family & Social History</div>
-                        <div class="summary-section-content">${famHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">🔬 Physical Examination</div>
-                        <div class="summary-section-content">${peHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">🧠 Glasgow Coma Scale (GCS)</div>
-                        <div class="summary-section-content">${gcsHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">🧠 Differential Diagnosis</div>
-                        <div class="summary-section-content">${diffHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">📋 Investigations Requested</div>
-                        <div class="summary-section-content">${invHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">📋 Management Plan</div>
-                        <div class="summary-section-content">${planHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">📋 Referrals</div>
-                        <div class="summary-section-content">${refHtml}</div>
-                    </div>
-
-                    <div class="summary-section">
-                        <div class="summary-section-title">📁 Uploaded Documents</div>
-                        <div class="summary-section-content">${fileHtml}</div>
-                    </div>
-
+                    <div class="summary-section"><div class="summary-section-title">📋 Presenting Complaint(s)</div><div class="summary-section-content">${pcHtml}</div></div>
+                    <div class="summary-section"><div class="summary-section-title">📖 History of Presenting Complaint</div><div class="summary-section-content">${hpcHtml}</div></div>
+                    <div class="summary-section"><div class="summary-section-title">🔄 Review of Systems</div><div class="summary-section-content">${rosHtml}</div></div>
+                    <div class="summary-section"><div class="summary-section-title">🩺 Past Medical & Surgical History</div><div class="summary-section-content">${pastHtml}</div></div>
+                    <div class="summary-section"><div class="summary-section-title">💊 Drug History & Allergies</div><div class="summary-section-content">${drugHtml}</div></div>
+                    <div class="summary-section"><div class="summary-section-title">👪 Family & Social History</div><div class="summary-section-content">${famHtml}</div></div>
+                    <div class="summary-section"><div class="summary-section-title">🔬 Physical Examination</div><div class="summary-section-content">${vitalsHtml}${peHtml}</div></div>
+                    <div class="summary-section"><div class="summary-section-title">🧠 Glasgow Coma Scale (GCS)</div><div class="summary-section-content">${gcsHtml}</div></div>
+                    <div class="summary-section"><div class="summary-section-title">🧠 Differential Diagnosis</div><div class="summary-section-content">${diffHtml}</div></div>
+                    <div class="summary-section"><div class="summary-section-title">📋 Investigations & Plan</div><div class="summary-section-content"><strong>Investigations:</strong> ${d.assessment.investigations || 'Not documented'}<br><strong>Plan:</strong> ${d.assessment.treatmentPlan || 'Not documented'}<br><strong>Referrals:</strong> ${d.assessment.referrals || 'Not documented'}</div></div>
+                    <div class="summary-section"><div class="summary-section-title">📁 Uploaded Documents</div><div class="summary-section-content">${fileHtml}</div></div>
                     <div class="summary-section" style="margin-top:1.5rem; border-top:2px solid var(--primary-light); padding-top:1rem; text-align:right; font-style:italic; color:var(--muted);">
-                        Generated by EaseMed Surgery Clerkship · ${now}<br>
-                        Clerk: ${clerkedBy}
+                        Generated by EaseMed Surgery Clerkship · ${now}<br>Clerk: ${clerkedBy}
                     </div>
                 `;
 
                 document.getElementById('summaryBody').innerHTML = summaryHTML;
                 document.getElementById('summaryModal').classList.add('visible');
-
                 const plainText = summaryHTML.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
                 document.getElementById('summary').value = plainText;
-
-                showToast('✅ Summary generated successfully!', '#2a9d8f');
+                showToast('✅ Summary generated!', '#2a9d8f');
                 return summaryHTML;
             }
 
-            // ─── Modal Controls ──────────────────────────────────────────
-            function closeSummaryModal() {
-                document.getElementById('summaryModal').classList.remove('visible');
-            }
+            function closeSummaryModal() { document.getElementById('summaryModal').classList.remove('visible'); }
 
-            function printSummary() {
-                window.print();
-            }
+            function printSummary() { window.print(); }
 
             function copySummary() {
                 const body = document.getElementById('summaryBody');
-                const text = body.textContent.trim();
-                navigator.clipboard.writeText(text).then(() => {
-                    showToast('📋 Summary copied to clipboard!', '#2a9d8f');
-                }).catch(() => {
-                    const range = document.createRange();
-                    range.selectNode(body);
-                    window.getSelection().removeAllRanges();
-                    window.getSelection().addRange(range);
-                    document.execCommand('copy');
-                    window.getSelection().removeAllRanges();
-                    showToast('📋 Summary copied!', '#2a9d8f');
-                });
+                navigator.clipboard.writeText(body.textContent.trim()).then(() => showToast('📋 Copied!', '#2a9d8f'))
+                    .catch(() => { const r = document.createRange();
+                        r.selectNode(body);
+                        window.getSelection().removeAllRanges();
+                        window.getSelection().addRange(r);
+                        document.execCommand('copy');
+                        window.getSelection().removeAllRanges();
+                        showToast('📋 Copied!', '#2a9d8f'); });
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 5. SAVE DRAFT (LOCAL + SUPABASE + PDF)
+            // 5. SAVE DRAFT
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             async function saveDraft() {
                 const data = collectFormData();
-
-                try {
-                    localStorage.setItem('easeMed_surgery_draft', JSON.stringify(data));
-                } catch (e) {
-                    console.warn('LocalStorage error:', e);
-                    showToast('⚠️ Local save failed.', '#e67e22');
-                    return;
-                }
-
+                localStorage.setItem('easeMed_surgery_draft', JSON.stringify(data));
                 try {
                     const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
                     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     const { data: { session } } = await supabase.auth.getSession();
-
-                    if (!session) {
-                        showToast('✅ Saved locally — not logged in to cloud.', '#2a9d8f');
-                        return;
-                    }
-
-                    const { error } = await supabase
-                        .from('surgery_drafts')
-                        .upsert({
+                    if (session) {
+                        await supabase.from('surgery_drafts').upsert({
                             user_id: session.user.id,
                             patient_name: data.demographics.patientName || 'unnamed',
                             draft_data: data,
                             updated_at: new Date().toISOString()
                         }, { onConflict: 'user_id, patient_name' });
-
-                    if (error) {
-                        console.error('Supabase save error:', error);
-                        showToast('✅ Saved locally — cloud sync failed.', '#e67e22');
-                    } else {
-                        showToast('✅ Saved locally + cloud ✅', '#2a9d8f');
-                    }
-                } catch (e) {
-                    console.error('Supabase save error:', e);
-                    showToast('✅ Saved locally — cloud sync failed.', '#e67e22');
-                }
+                        showToast('✅ Saved locally + cloud', '#2a9d8f');
+                    } else { showToast('✅ Saved locally', '#2a9d8f'); }
+                } catch (e) { showToast('✅ Saved locally (cloud unavailable)', '#e67e22'); }
             }
 
-            async function downloadDraftAsPDF() {
-                generateClerkshipSummary();
-                setTimeout(() => {
-                    window.print();
-                }, 400);
+            function downloadDraftAsPDF() { generateClerkshipSummary();
+                setTimeout(() => window.print(), 400); }
+
+            function exitForm() {
+                if (confirm('Save draft before exiting?')) { saveDraft().then(() => { window.location.href = 'modules.html'; }); } else
+                    window.location.href = 'modules.html';
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 6. COMPLAINT CATEGORIES (UPDATED: "abdominal swelling" → "abdominal distension")
+            // 6. COMPLAINT CATEGORIES
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             const complaintCategories = [
                 'abdo-pain', 'abdo-distension', 'vomiting', 'bowel', 'rectal-bleed', 'jaundice',
@@ -2734,25 +2978,21 @@
             };
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 7. EXHAUSTIVE HINT PANELS (ORIGINAL MEDICAL TERMINOLOGY - UNCHANGED)
+            // 7. EXHAUSTIVE HINT PANELS (RESTORED)
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // Note: Hint panels use the original medical terminology as requested.
-            // Only the category name was changed from "abdominal swelling" to "abdominal distension".
-            // The panel content remains unchanged.
-
             const HINT_PANELS = {
                 'abdo-pain': {
                     icon: '🔴',
                     title: 'Abdominal Pain',
                     questions: [
-                        'Where exactly is the pain? Does it radiate to the back, groin, or shoulder? [Helps localise the source]',
-                        'Was the onset sudden or gradual? Has it changed since it started? [Sudden onset suggests perforation, obstruction, or ischaemia]',
-                        'How would you describe the pain — sharp, dull, colicky, burning, or stabbing? [Colicky suggests hollow organ, constant suggests inflammation]',
-                        'Rate the pain on a 0–10 scale. Does it wake you at night? [Severe nocturnal pain suggests serious pathology]',
-                        'Is the pain related to meals, fasting, or specific foods? [Post-prandial suggests biliary or peptic ulcer]',
-                        'What makes it worse — movement, coughing, deep breathing, or lying still? [Peritoneal irritation worsens with movement]',
-                        'What provides relief — passing stool, antacids, or lying in a particular position? [Helps identify biliary vs peritoneal]',
-                        'Have you had similar pain before? Any known gallstones, ulcers, or diverticulosis? [Recurrent pain suggests chronic condition]'
+                        'Where exactly is the pain? Does it radiate to the back, groin, or shoulder?',
+                        'Was the onset sudden or gradual? Has it changed since it started?',
+                        'How would you describe the pain — sharp, dull, colicky, burning, or stabbing?',
+                        'Rate the pain on a 0–10 scale. Does it wake you at night?',
+                        'Is the pain related to meals, fasting, or specific foods?',
+                        'What makes it worse — movement, coughing, deep breathing, or lying still?',
+                        'What provides relief — passing stool, antacids, or lying in a particular position?',
+                        'Have you had similar pain before? Any known gallstones, ulcers, or diverticulosis?'
                     ],
                     socrates: [
                         'Site: Where is the pain most intense?',
@@ -2789,14 +3029,14 @@
                     icon: '🔵',
                     title: 'Abdominal Distension',
                     questions: [
-                        'Where is the distension — generalised or localised? Upper, lower, or asymmetrical? [Helps identify organ involvement]',
-                        'When was it first noticed? Was it sudden or gradual? Is it progressive or intermittent? [Rapid distension suggests obstruction or ascites]',
-                        'Is it painful — constant, colicky, or painless? [Painless distension is more concerning for malignancy]',
-                        'Do you have nausea, vomiting, or absolute constipation? [Suggests intestinal obstruction]',
-                        'Have you had fever, weight loss, or anorexia? [Constitutional symptoms suggest infection or malignancy]',
-                        'Any change in bowel habit or flatus? [Obstruction or motility disorder]',
-                        'History of liver disease, heart failure, or malignancy? [Ascites or intra-abdominal masses]',
-                        'Previous abdominal surgeries? [Adhesions, hernia, or incisional complications]'
+                        'Where is the distension — generalised or localised? Upper, lower, or asymmetrical?',
+                        'When was it first noticed? Was it sudden or gradual? Is it progressive or intermittent?',
+                        'Is it painful — constant, colicky, or painless?',
+                        'Do you have nausea, vomiting, or absolute constipation?',
+                        'Have you had fever, weight loss, or anorexia?',
+                        'Any change in bowel habit or flatus?',
+                        'History of liver disease, heart failure, or malignancy?',
+                        'Previous abdominal surgeries?'
                     ],
                     socrates: [
                         'Site: Generalised or localised?',
@@ -2831,14 +3071,14 @@
                     icon: '🟡',
                     title: 'Nausea / Vomiting',
                     questions: [
-                        'What is coming up — food, bile, blood (fresh/coffee‑ground), or faeculent? [Content indicates site of obstruction]',
-                        'When does it happen — related to meals? In the morning? Projectile? [Morning suggests pregnancy/uraemia; projectile suggests raised ICP]',
-                        'How many times per day? Is it massive or small volume? [Volume helps assess dehydration and obstruction]',
-                        'Do you have nausea before vomiting? Does it relieve your symptoms? [Nausea suggests gastric outlet or toxins]',
-                        'Do you have abdominal pain, distension, fever, headache, or dizziness? [Associated symptoms localise the cause]',
-                        'Are you thirsty? Reduced urine output? Postural dizziness? [Signs of dehydration]',
-                        'Are you on any medications — opioids, chemotherapy, antibiotics, digoxin? [Drug-induced vomiting is common]',
-                        'Any neurological symptoms — headache, visual changes, neck stiffness? [Meningism or raised ICP]'
+                        'What is coming up — food, bile, blood (fresh/coffee‑ground), or faeculent?',
+                        'When does it happen — related to meals? In the morning? Projectile?',
+                        'How many times per day? Is it massive or small volume?',
+                        'Do you have nausea before vomiting? Does it relieve your symptoms?',
+                        'Do you have abdominal pain, distension, fever, headache, or dizziness?',
+                        'Are you thirsty? Reduced urine output? Postural dizziness?',
+                        'Are you on any medications — opioids, chemotherapy, antibiotics, digoxin?',
+                        'Any neurological symptoms — headache, visual changes, neck stiffness?'
                     ],
                     socrates: [
                         'Site: Where does the nausea originate?',
@@ -2873,14 +3113,14 @@
                     icon: '🟤',
                     title: 'Bowel Change',
                     questions: [
-                        'Has your bowel frequency changed — more constipated or more diarrhoea? How long? [Duration suggests acute vs chronic]',
-                        'What does the stool look like — hard, watery, ribbon‑like, mucous, or bloody? [Character helps identify pathology]',
-                        'Is the blood fresh (on the surface) or dark (mixed in)? [Fresh = lower GI; dark = upper GI]',
-                        'Do you have cramping, tenesmus, or urgency? [Suggests colonic inflammation or mass]',
-                        'Have you lost weight, had anorexia, or felt fatigued? [Constitutional symptoms — malignancy]',
-                        'Do you have a history of IBS, IBD, diverticular disease, polyps, or cancer? [Past history guides risk]',
-                        'Have you travelled recently or taken antibiotics? [Infection or C. difficile]',
-                        'Any family history of colorectal cancer or polyps? [Inherited syndromes]'
+                        'Has your bowel frequency changed — more constipated or more diarrhoea? How long?',
+                        'What does the stool look like — hard, watery, ribbon‑like, mucous, or bloody?',
+                        'Is the blood fresh (on the surface) or dark (mixed in)?',
+                        'Do you have cramping, tenesmus, or urgency?',
+                        'Have you lost weight, had anorexia, or felt fatigued?',
+                        'Do you have a history of IBS, IBD, diverticular disease, polyps, or cancer?',
+                        'Have you travelled recently or taken antibiotics?',
+                        'Any family history of colorectal cancer or polyps?'
                     ],
                     socrates: [
                         'Site: Any abdominal pain or discomfort?',
@@ -2915,14 +3155,14 @@
                     icon: '🔴',
                     title: 'Rectal Bleeding',
                     questions: [
-                        'What colour is the blood — bright red, dark red, or black/tarry? [Colour indicates site of bleeding]',
-                        'How much — drops, clots, mixed with stool, or large volume? [Volume determines urgency]',
-                        'When does it happen — before, during, or after defecation? Is it painful? [Pain suggests fissure or haemorrhoids]',
-                        'Do you have tenesmus, change in bowel habit, abdominal pain, or weight loss? [Associated symptoms suggest malignancy]',
-                        'Have you had this before? Any history of haemorrhoids, fissures, or diverticulosis? [Recurrent benign causes]',
-                        'Are you on anticoagulants or antiplatelets? [Drug-induced bleeding]',
-                        'Any family history of colorectal cancer or polyps? [Risk stratification]',
-                        'Any recent travel or infections? [Dysentery, amoebiasis]'
+                        'What colour is the blood — bright red, dark red, or black/tarry?',
+                        'How much — drops, clots, mixed with stool, or large volume?',
+                        'When does it happen — before, during, or after defecation? Is it painful?',
+                        'Do you have tenesmus, change in bowel habit, abdominal pain, or weight loss?',
+                        'Have you had this before? Any history of haemorrhoids, fissures, or diverticulosis?',
+                        'Are you on anticoagulants or antiplatelets?',
+                        'Any family history of colorectal cancer or polyps?',
+                        'Any recent travel or infections?'
                     ],
                     socrates: [
                         'Site: Where does the bleeding come from?',
@@ -2957,14 +3197,14 @@
                     icon: '🟡',
                     title: 'Jaundice',
                     questions: [
-                        'When did you first notice the yellowing? Was it sudden or gradual? Fluctuating? [Sudden suggests acute hepatitis or obstruction]',
-                        'Have you noticed dark urine or pale stools? [Obstructive jaundice → dark urine, pale stools]',
-                        'Any itching (pruritus)? [Bile salt accumulation in obstructive jaundice]',
-                        'Do you have abdominal pain — especially in the right upper quadrant? [RUQ pain suggests biliary or hepatic cause]',
-                        'Do you have fever, chills, or night sweats? [Infection, cholangitis]',
-                        'Have you lost weight, had anorexia, nausea, or vomiting? [Constitutional symptoms]',
-                        'Any risk factors — alcohol, viral exposure, blood transfusions, IVDU, tattoos, sexual history? [Hepatitis B/C]',
-                        'Are you on any medications — paracetamol, INH, phenytoin? [Hepatotoxic drugs]'
+                        'When did you first notice the yellowing? Was it sudden or gradual? Fluctuating?',
+                        'Have you noticed dark urine or pale stools?',
+                        'Any itching (pruritus)?',
+                        'Do you have abdominal pain — especially in the right upper quadrant?',
+                        'Do you have fever, chills, or night sweats?',
+                        'Have you lost weight, had anorexia, nausea, or vomiting?',
+                        'Any risk factors — alcohol, viral exposure, blood transfusions, IVDU, tattoos, sexual history?',
+                        'Are you on any medications — paracetamol, INH, phenytoin?'
                     ],
                     socrates: [
                         'Site: Any abdominal pain?',
@@ -2999,13 +3239,13 @@
                     icon: '🔴',
                     title: 'Haematuria',
                     questions: [
-                        'When does the blood appear — at the start, throughout, or at the end of urination? [Initial = urethral, terminal = bladder/prostate, total = renal/ureteric]',
-                        'What colour is the urine — pink, bright red, smoky, or with clots? [Clots suggest bleeding in bladder or kidney]',
-                        'Do you have any pain — loin pain (renal colic), suprapubic pain, or dysuria? [Pain differentiates stones from malignancy]',
-                        'Do you have frequency, urgency, hesitancy, or a poor stream? [Lower urinary tract symptoms]',
-                        'Do you have fever, weight loss, hypertension, or oedema? [Systemic causes]',
-                        'Any risk factors — schistosomiasis, smoking, occupational exposure, family history of renal cancer? [Common in Uganda]',
-                        'Have you had a recent UTI, stones, trauma, or instrumentation? [Precipitating factors]'
+                        'When does the blood appear — at the start, throughout, or at the end of urination?',
+                        'What colour is the urine — pink, bright red, smoky, or with clots?',
+                        'Do you have any pain — loin pain (renal colic), suprapubic pain, or dysuria?',
+                        'Do you have frequency, urgency, hesitancy, or a poor stream?',
+                        'Do you have fever, weight loss, hypertension, or oedema?',
+                        'Any risk factors — schistosomiasis, smoking, occupational exposure, family history of renal cancer?',
+                        'Have you had a recent UTI, stones, trauma, or instrumentation?'
                     ],
                     socrates: [
                         'Site: Where does the blood come from?',
@@ -3040,14 +3280,14 @@
                     icon: '🔵',
                     title: 'Urinary Symptoms',
                     questions: [
-                        'Do you have hesitancy, a poor stream, straining, or terminal dribbling? [Obstructive symptoms — BPH, stricture]',
-                        'Do you have frequency, urgency, nocturia, or dysuria? [Irritative symptoms — UTI, overactive bladder]',
-                        'Can you empty your bladder completely? Do you have a palpable bladder? [Retention — acute or chronic]',
-                        'What does your urine look like — bloody, cloudy, offensive? [Infection, stones, malignancy]',
-                        'Is there any urethral discharge? If so, what colour and amount? [STI, urethritis]',
-                        'Do you have fever, back pain, weight loss, or neurological symptoms? [Systemic or neurological causes]',
-                        'Any risk factors — age, BPH, diabetes, spinal injury, STIs, instrumentation? [Risk stratification]',
-                        'Are you on any medications — anticholinergics, sympathomimetics, diuretics? [Drug-induced symptoms]'
+                        'Do you have hesitancy, a poor stream, straining, or terminal dribbling?',
+                        'Do you have frequency, urgency, nocturia, or dysuria?',
+                        'Can you empty your bladder completely? Do you have a palpable bladder?',
+                        'What does your urine look like — bloody, cloudy, offensive?',
+                        'Is there any urethral discharge? If so, what colour and amount?',
+                        'Do you have fever, back pain, weight loss, or neurological symptoms?',
+                        'Any risk factors — age, BPH, diabetes, spinal injury, STIs, instrumentation?',
+                        'Are you on any medications — anticholinergics, sympathomimetics, diuretics?'
                     ],
                     socrates: [
                         'Site: Where is the discomfort?',
@@ -3082,12 +3322,12 @@
                     icon: '🟢',
                     title: 'Scrotal Swelling/Pain',
                     questions: [
-                        'When did it start — sudden or gradual? [Sudden suggests torsion or trauma]',
-                        'Is there severe pain? Does it radiate to the groin or abdomen? [Torsion pain is sudden, severe]',
-                        'Is there a swelling? What size, does it fluctuate, transilluminate, or have a cough impulse? [Hydrocele, hernia, varicocele]',
-                        'Do you have fever, nausea, vomiting? [Torsion, infection]',
-                        'Was there any trauma, exercise, or sexual activity? [Precipitating factors]',
-                        'Have you had this before? Any history of hernias, previous torsion, or STIs? [Recurrent causes]'
+                        'When did it start — sudden or gradual?',
+                        'Is there severe pain? Does it radiate to the groin or abdomen?',
+                        'Is there a swelling? What size, does it fluctuate, transilluminate, or have a cough impulse?',
+                        'Do you have fever, nausea, vomiting?',
+                        'Was there any trauma, exercise, or sexual activity?',
+                        'Have you had this before? Any history of hernias, previous torsion, or STIs?'
                     ],
                     socrates: [
                         'Site: Which side, location?',
@@ -3121,14 +3361,14 @@
                     icon: '🔴',
                     title: 'Loin Pain',
                     questions: [
-                        'Which side? Does it radiate to the groin or abdomen? [Renal colic radiates to the groin]',
-                        'Was the onset sudden or gradual? [Sudden suggests renal colic or pyelonephritis]',
-                        'Is the pain colicky (comes in waves) or constant? [Colicky = stone; constant = infection or malignancy]',
-                        'Rate the pain on a 0–10 scale. [Severe pain suggests stone or obstruction]',
-                        'Do you have fever, chills, or rigors? [Pyelonephritis, abscess]',
-                        'Do you have haematuria, dysuria, or frequency? [Stone, UTI]',
-                        'Have you had stones before? Any family history? [Recurrent stones]',
-                        'Any trauma, recent procedures, or instrumentation? [Precipitating factors]'
+                        'Which side? Does it radiate to the groin or abdomen?',
+                        'Was the onset sudden or gradual?',
+                        'Is the pain colicky (comes in waves) or constant?',
+                        'Rate the pain on a 0–10 scale.',
+                        'Do you have fever, chills, or rigors?',
+                        'Do you have haematuria, dysuria, or frequency?',
+                        'Have you had stones before? Any family history?',
+                        'Any trauma, recent procedures, or instrumentation?'
                     ],
                     socrates: [
                         'Site: Which side?',
@@ -3163,14 +3403,14 @@
                     icon: '🔵',
                     title: 'Prostate Symptoms',
                     questions: [
-                        'Do you have hesitancy, a poor stream, straining, or terminal dribbling? [Obstructive symptoms of BPH]',
-                        'Do you have frequency, urgency, nocturia, or dysuria? [Irritative symptoms]',
-                        'Can you empty your bladder completely? Any acute retention? [Retention is a complication]',
-                        'Do you have pain in the perineum, lower back, or during ejaculation? [Prostatitis]',
-                        'Do you have haematuria or haematospermia? [Prostate carcinoma, prostatitis]',
-                        'Have you had UTIs or epididymitis? [Complications of obstruction]',
-                        'Any family history of prostate cancer? [Risk stratification]',
-                        'Any neurological symptoms — leg weakness, numbness, or bowel/bladder dysfunction? [Cauda equina]'
+                        'Do you have hesitancy, a poor stream, straining, or terminal dribbling?',
+                        'Do you have frequency, urgency, nocturia, or dysuria?',
+                        'Can you empty your bladder completely? Any acute retention?',
+                        'Do you have pain in the perineum, lower back, or during ejaculation?',
+                        'Do you have haematuria or haematospermia?',
+                        'Have you had UTIs or epididymitis?',
+                        'Any family history of prostate cancer?',
+                        'Any neurological symptoms — leg weakness, numbness, or bowel/bladder dysfunction?'
                     ],
                     socrates: [
                         'Site: Perineal, lower back?',
@@ -3204,14 +3444,14 @@
                     icon: '🦴',
                     title: 'Bone/Joint Pain',
                     questions: [
-                        'Which joint or bone is affected? Is it unilateral or bilateral? [Localises the pathology]',
-                        'Was the onset sudden (trauma, crystal) or gradual (degenerative)? [Differentiates causes]',
-                        'How would you describe the pain — dull ache, sharp, throbbing, or stiffness? [Character helps identify pathology]',
-                        'What makes it worse — movement, rest, weight‑bearing, or weather? [Mechanical vs inflammatory]',
-                        'Is there swelling, redness, or warmth over the joint? [Inflammation, infection, or crystal]',
-                        'Do you have fever, night sweats, or weight loss? [Systemic infection or malignancy]',
-                        'How does it affect your function — gait, activities of daily living? [Functional impact]',
-                        'Any risk factors — sickle cell disease, TB, HIV, diabetes, trauma, sports? [Contextual factors]'
+                        'Which joint or bone is affected? Is it unilateral or bilateral?',
+                        'Was the onset sudden (trauma, crystal) or gradual (degenerative)?',
+                        'How would you describe the pain — dull ache, sharp, throbbing, or stiffness?',
+                        'What makes it worse — movement, rest, weight‑bearing, or weather?',
+                        'Is there swelling, redness, or warmth over the joint?',
+                        'Do you have fever, night sweats, or weight loss?',
+                        'How does it affect your function — gait, activities of daily living?',
+                        'Any risk factors — sickle cell disease, TB, HIV, diabetes, trauma, sports?'
                     ],
                     socrates: [
                         'Site: Which joint/bone?',
@@ -3245,14 +3485,14 @@
                     icon: '🦴',
                     title: 'Fracture',
                     questions: [
-                        'How did it happen — high-energy (RTA, fall from height) or low-energy (simple fall)? [Pathological fracture]',
-                        'Is the wound open or closed? Any skin breach or contamination? [Open fracture requires urgent antibiotics]',
-                        'Is there any deformity — angulation, shortening, or rotation? [Clinical sign of fracture]',
-                        'Check neurovascular status — sensation, motor function, pulses, capillary refill. [Vascular injury is an emergency]',
-                        'Is there pain out of proportion to the injury? Any paraesthesia? [Compartment syndrome]',
-                        'Are there any other injuries — head, chest, abdomen, pelvis, spine? [Polytrauma]',
-                        'Is there visible bleeding — external or occult (pelvic, femoral)? [Haemorrhage risk]',
-                        'Any risk factors — osteoporosis, malignancy, metabolic bone disease? [Pathological fracture]'
+                        'How did it happen — high-energy (RTA, fall from height) or low-energy (simple fall)?',
+                        'Is the wound open or closed? Any skin breach or contamination?',
+                        'Is there any deformity — angulation, shortening, or rotation?',
+                        'Check neurovascular status — sensation, motor function, pulses, capillary refill.',
+                        'Is there pain out of proportion to the injury? Any paraesthesia?',
+                        'Are there any other injuries — head, chest, abdomen, pelvis, spine?',
+                        'Is there visible bleeding — external or occult (pelvic, femoral)?',
+                        'Any risk factors — osteoporosis, malignancy, metabolic bone disease?'
                     ],
                     socrates: [
                         'Site: Where is the pain?',
@@ -3287,14 +3527,14 @@
                     icon: '⚠️',
                     title: 'Trauma / Injury',
                     questions: [
-                        'What happened — blunt, penetrating, crush, fall, RTA, assault? [Mechanism determines injury pattern]',
-                        'When did it happen? Any loss of consciousness (duration)? [Head injury risk]',
-                        'What injuries were sustained — fractures, lacerations, head injury, chest/abdominal injuries? [Systematic assessment]',
-                        'Is there bleeding — site, amount, control? Any signs of internal bleeding? [Haemorrhage assessment]',
-                        'Check neurovascular status — sensation, movement, pulses distal to injury. [Vascular injury]',
-                        'Is there pain out of proportion to the injury? Any paraesthesia? [Compartment syndrome]',
-                        'Do you have chest pain, dyspnoea, abdominal pain, or haematuria? [Internal injuries]',
-                        'Any history of bleeding disorders, anticoagulants, or tetanus vaccination status? [Pre-existing factors]'
+                        'What happened — blunt, penetrating, crush, fall, RTA, assault?',
+                        'When did it happen? Any loss of consciousness (duration)?',
+                        'What injuries were sustained — fractures, lacerations, head injury, chest/abdominal injuries?',
+                        'Is there bleeding — site, amount, control? Any signs of internal bleeding?',
+                        'Check neurovascular status — sensation, movement, pulses distal to injury.',
+                        'Is there pain out of proportion to the injury? Any paraesthesia?',
+                        'Do you have chest pain, dyspnoea, abdominal pain, or haematuria?',
+                        'Any history of bleeding disorders, anticoagulants, or tetanus vaccination status?'
                     ],
                     socrates: [
                         'Site: Where is the pain/injury?',
@@ -3330,14 +3570,14 @@
                     icon: '🔵',
                     title: 'Back Pain',
                     questions: [
-                        'Where is the pain — cervical, thoracic, lumbar, or sacral? [Localises the pathology]',
-                        'Was the onset sudden (injury) or gradual (degenerative)? [Differentiates causes]',
-                        'Does the pain radiate to the buttocks or legs? Any numbness or weakness? [Radicular pain, nerve compression]',
-                        'What makes it worse — sitting, standing, bending, or coughing? [Mechanical vs inflammatory]',
-                        'Do you have fever, weight loss, or night sweats? [Infection, malignancy, or TB]',
-                        'Any trauma or injury? [Traumatic causes]',
-                        'Do you have any neurological symptoms — leg weakness, numbness, or bowel/bladder dysfunction? [Cauda equina — emergency]',
-                        'Any history of osteoporosis, malignancy, or TB? [Risk factors]'
+                        'Where is the pain — cervical, thoracic, lumbar, or sacral?',
+                        'Was the onset sudden (injury) or gradual (degenerative)?',
+                        'Does the pain radiate to the buttocks or legs? Any numbness or weakness?',
+                        'What makes it worse — sitting, standing, bending, or coughing?',
+                        'Do you have fever, weight loss, or night sweats?',
+                        'Any trauma or injury?',
+                        'Do you have any neurological symptoms — leg weakness, numbness, or bowel/bladder dysfunction?',
+                        'Any history of osteoporosis, malignancy, or TB?'
                     ],
                     socrates: [
                         'Site: Which part of the back?',
@@ -3372,13 +3612,13 @@
                     icon: '🔴',
                     title: 'Joint Swelling',
                     questions: [
-                        'Which joint is affected? Is it unilateral or bilateral? [Localises the pathology]',
-                        'Was the onset sudden (trauma, crystal) or gradual (degenerative, inflammatory)? [Differentiates causes]',
-                        'Is it painful? What is the character — aching, throbbing, stiffness? [Helps identify pathology]',
-                        'Is there redness or warmth over the joint? [Inflammation, infection, or crystal]',
-                        'Do you have fever, night sweats, or weight loss? [Systemic infection or inflammation]',
-                        'Any history of gout, psoriasis, IBD, or sickle cell disease? [Risk factors]',
-                        'How does it affect your function — gait, range of motion? [Functional impact]'
+                        'Which joint is affected? Is it unilateral or bilateral?',
+                        'Was the onset sudden (trauma, crystal) or gradual (degenerative, inflammatory)?',
+                        'Is it painful? What is the character — aching, throbbing, stiffness?',
+                        'Is there redness or warmth over the joint?',
+                        'Do you have fever, night sweats, or weight loss?',
+                        'Any history of gout, psoriasis, IBD, or sickle cell disease?',
+                        'How does it affect your function — gait, range of motion?'
                     ],
                     socrates: [
                         'Site: Which joint?',
@@ -3412,14 +3652,14 @@
                     icon: '🟢',
                     title: 'Surface Swelling',
                     questions: [
-                        'Where is the swelling — site, size, shape, skin changes? [Characterises the lesion]',
-                        'When was it first noticed? Was it sudden or gradual? Is it growing? [Growth rate suggests benign vs malignant]',
-                        'Is it painful or tender? Spontaneous or on pressure? [Pain suggests inflammation or infection]',
-                        'What is the consistency — firm, soft, cystic, fluctuant? [Helps identify type]',
-                        'Is it mobile or fixed to skin or deep structures? [Attachments suggest origin]',
-                        'Are there any associated regional lymph nodes? [Lymphadenopathy suggests infection or malignancy]',
-                        'Do you have fever, weight loss, or night sweats? [Constitutional symptoms]',
-                        'Any risk factors — sun exposure, trauma, infection, immunosuppression? [Risk stratification]'
+                        'Where is the swelling — site, size, shape, skin changes?',
+                        'When was it first noticed? Was it sudden or gradual? Is it growing?',
+                        'Is it painful or tender? Spontaneous or on pressure?',
+                        'What is the consistency — firm, soft, cystic, fluctuant?',
+                        'Is it mobile or fixed to skin or deep structures?',
+                        'Are there any associated regional lymph nodes?',
+                        'Do you have fever, weight loss, or night sweats?',
+                        'Any risk factors — sun exposure, trauma, infection, immunosuppression?'
                     ],
                     socrates: [
                         'Site: Exact location',
@@ -3453,14 +3693,14 @@
                     icon: '🟠',
                     title: 'Wound / Ulcer',
                     questions: [
-                        'Where is the wound — site, size, depth, exposed tissues? [Characterises the wound]',
-                        'What does the edge look like — sloping, punched‑out, undermined, everted, rolled? [Helps identify cause]',
-                        'What is the base like — slough, granulation, necrotic, pale/ischaemic, exposed bone/tendon? [Healing status]',
-                        'Is there any discharge — serous, purulent, haemorrhagic, watery, foul‑smelling? [Infection or necrosis]',
-                        'What is the surrounding skin like — erythema, warmth, induration, cellulitis, oedema? [Signs of infection]',
-                        'How painful is it? Is it related to dressing changes or weight‑bearing? [Functional impact]',
-                        'When did it start? Is it healing or worsening? [Chronicity]',
-                        'Any risk factors — diabetes, peripheral vascular disease, neuropathy, trauma, pressure, HIV, malnutrition? [Underlying causes]'
+                        'Where is the wound — site, size, depth, exposed tissues?',
+                        'What does the edge look like — sloping, punched‑out, undermined, everted, rolled?',
+                        'What is the base like — slough, granulation, necrotic, pale/ischaemic, exposed bone/tendon?',
+                        'Is there any discharge — serous, purulent, haemorrhagic, watery, foul‑smelling?',
+                        'What is the surrounding skin like — erythema, warmth, induration, cellulitis, oedema?',
+                        'How painful is it? Is it related to dressing changes or weight‑bearing?',
+                        'When did it start? Is it healing or worsening?',
+                        'Any risk factors — diabetes, peripheral vascular disease, neuropathy, trauma, pressure, HIV, malnutrition?'
                     ],
                     socrates: [
                         'Site: Exact location',
@@ -3494,14 +3734,14 @@
                     icon: '🟤',
                     title: 'Skin Lesion',
                     questions: [
-                        'Where is the lesion — site, size, shape, colour, and borders? [Characterises the lesion]',
-                        'When was it first noticed? Is it changing in size, colour, or shape? [Growth suggests malignancy]',
-                        'Is it painful, itchy, or bleeding? [Symptoms guide diagnosis]',
-                        'What does the surface look like — scaly, ulcerated, crusted, or weeping? [Character]',
-                        'Is it raised or flat? What is the consistency — firm, soft, cystic? [Palpation]',
-                        'Are there any other lesions — similar or different? [Multiple lesions suggest systemic disease]',
-                        'Do you have fever, weight loss, or night sweats? [Constitutional symptoms]',
-                        'Any risk factors — sun exposure, trauma, family history of skin cancer, HIV? [Risk stratification]'
+                        'Where is the lesion — site, size, shape, colour, and borders?',
+                        'When was it first noticed? Is it changing in size, colour, or shape?',
+                        'Is it painful, itchy, or bleeding?',
+                        'What does the surface look like — scaly, ulcerated, crusted, or weeping?',
+                        'Is it raised or flat? What is the consistency — firm, soft, cystic?',
+                        'Are there any other lesions — similar or different?',
+                        'Do you have fever, weight loss, or night sweats?',
+                        'Any risk factors — sun exposure, trauma, family history of skin cancer, HIV?'
                     ],
                     socrates: [
                         'Site: Exact location',
@@ -3535,14 +3775,14 @@
                     icon: '🔵',
                     title: 'Lymph Node Swelling',
                     questions: [
-                        'Where are the swollen nodes — cervical, axillary, inguinal, or generalized? [Localises the pathology]',
-                        'When were they first noticed? Are they growing? [Growth rate suggests benign vs malignant]',
-                        'Are they painful or tender? [Pain suggests infection or inflammation]',
-                        'What is the consistency — firm, rubbery, hard? Are they mobile or fixed? [Malignant nodes are hard and fixed]',
-                        'Are there any other symptoms — fever, weight loss, night sweats, or rash? [Constitutional symptoms]',
-                        'Any risk factors — HIV, TB, travel, exposure to animals? [Contextual factors]',
-                        'Any history of infection in the drainage area — skin infection, URTI, dental? [Reactive lymphadenopathy]',
-                        'Any family history of lymphoma or leukaemia? [Genetic risk]'
+                        'Where are the swollen nodes — cervical, axillary, inguinal, or generalized?',
+                        'When were they first noticed? Are they growing?',
+                        'Are they painful or tender?',
+                        'What is the consistency — firm, rubbery, hard? Are they mobile or fixed?',
+                        'Are there any other symptoms — fever, weight loss, night sweats, or rash?',
+                        'Any risk factors — HIV, TB, travel, exposure to animals?',
+                        'Any history of infection in the drainage area — skin infection, URTI, dental?',
+                        'Any family history of lymphoma or leukaemia?'
                     ],
                     socrates: [
                         'Site: Location of nodes',
@@ -3576,14 +3816,14 @@
                     icon: '🩷',
                     title: 'Breast Lump',
                     questions: [
-                        'Where is the lump — which quadrant? Is it in one or both breasts? [Localises the pathology]',
-                        'When was it first noticed? Is it growing? [Growth rate suggests benign vs malignant]',
-                        'What is the consistency — firm, hard, or cystic? Is it mobile or fixed to skin or deep structures? [Malignant lumps are hard and fixed]',
-                        'Are there any skin changes — dimpling, peau d\'orange, ulceration, or redness? [Signs of malignancy]',
-                        'Any nipple changes — discharge (bloody, clear, milky), retraction, crusting, or eczema? [Paget\'s disease, malignancy]',
-                        'Is it painful? [Pain suggests infection or hormonal changes]',
-                        'Are there any axillary lymph nodes? [Palpable nodes suggest metastasis]',
-                        'Any risk factors — age, family history (BRCA), nulliparity, early menarche, late menopause, HRT, alcohol? [Risk stratification]'
+                        'Where is the lump — which quadrant? Is it in one or both breasts?',
+                        'When was it first noticed? Is it growing?',
+                        'What is the consistency — firm, hard, or cystic? Is it mobile or fixed to skin or deep structures?',
+                        'Are there any skin changes — dimpling, peau d\'orange, ulceration, or redness?',
+                        'Any nipple changes — discharge (bloody, clear, milky), retraction, crusting, or eczema?',
+                        'Is it painful?',
+                        'Are there any axillary lymph nodes?',
+                        'Any risk factors — age, family history (BRCA), nulliparity, early menarche, late menopause, HRT, alcohol?'
                     ],
                     socrates: [
                         'Site: Which quadrant?',
@@ -3617,14 +3857,14 @@
                     icon: '🩷',
                     title: 'Breast Pain',
                     questions: [
-                        'Is the pain cyclical — related to your menstrual cycle? [Hormonal]',
-                        'Where is the pain — diffuse or localised? [Diffuse suggests hormonal, localised suggests focal pathology]',
-                        'Is there any lump or swelling? [Focal pain with lump needs investigation]',
-                        'Is there any redness, warmth, or discharge? [Infection or inflammation]',
-                        'Are you pregnant or breastfeeding? [Mastitis, abscess, or galactocele]',
-                        'Any trauma or injury? [Traumatic cause]',
-                        'Do you have fever or systemic symptoms? [Infection]',
-                        'Any risk factors — hormonal therapy, family history? [Risk stratification]'
+                        'Is the pain cyclical — related to your menstrual cycle?',
+                        'Where is the pain — diffuse or localised?',
+                        'Is there any lump or swelling?',
+                        'Is there any redness, warmth, or discharge?',
+                        'Are you pregnant or breastfeeding?',
+                        'Any trauma or injury?',
+                        'Do you have fever or systemic symptoms?',
+                        'Any risk factors — hormonal therapy, family history?'
                     ],
                     socrates: [
                         'Site: Which part of the breast?',
@@ -3658,14 +3898,14 @@
                     icon: '🩷',
                     title: 'Nipple Discharge',
                     questions: [
-                        'What colour is the discharge — clear, milky, yellow, green, or bloody? [Colour suggests cause]',
-                        'Is it from one or both nipples? [Bilateral suggests hormonal, unilateral suggests local pathology]',
-                        'Is it spontaneous or expressed? [Spontaneous suggests endocrine or malignancy]',
-                        'Are there any associated lumps or breast changes? [Lump with discharge suggests malignancy]',
-                        'Are you on any medications — oral contraceptives, antipsychotics, or other? [Drug-induced galactorrhoea]',
-                        'Are you pregnant, breastfeeding, or recently postpartum? [Galactorrhoea, galactocele]',
-                        'Do you have headaches, visual changes, or menstrual irregularities? [Prolactinoma]',
-                        'Any history of breast surgery or trauma? [Precipitating factors]'
+                        'What colour is the discharge — clear, milky, yellow, green, or bloody?',
+                        'Is it from one or both nipples?',
+                        'Is it spontaneous or expressed?',
+                        'Are there any associated lumps or breast changes?',
+                        'Are you on any medications — oral contraceptives, antipsychotics, or other?',
+                        'Are you pregnant, breastfeeding, or recently postpartum?',
+                        'Do you have headaches, visual changes, or menstrual irregularities?',
+                        'Any history of breast surgery or trauma?'
                     ],
                     socrates: [
                         'Site: Which nipple?',
@@ -3699,14 +3939,14 @@
                     icon: '🔵',
                     title: 'Neck/Thyroid Swelling',
                     questions: [
-                        'Where is the swelling — midline or lateral? Does it move with swallowing? [Midline and moves with swallowing = thyroid]',
-                        'Is it painful or tender? [Pain suggests infection, inflammation, or haemorrhage]',
-                        'Do you have any difficulty swallowing (dysphagia) or voice changes (hoarseness)? [Compressive symptoms]',
-                        'Do you have any symptoms of hyperthyroidism — palpitations, tremor, heat intolerance, weight loss? [Hyperthyroid]',
-                        'Do you have any symptoms of hypothyroidism — cold intolerance, weight gain, lethargy, constipation? [Hypothyroid]',
-                        'Are there any enlarged lymph nodes in the neck? [Lymphadenopathy suggests infection or malignancy]',
-                        'Do you have fever or systemic symptoms? [Infection, thyroiditis]',
-                        'Any risk factors — iodine deficiency, family history of thyroid disease, radiation exposure? [Risk stratification]'
+                        'Where is the swelling — midline or lateral? Does it move with swallowing?',
+                        'Is it painful or tender?',
+                        'Do you have any difficulty swallowing (dysphagia) or voice changes (hoarseness)?',
+                        'Do you have any symptoms of hyperthyroidism — palpitations, tremor, heat intolerance, weight loss?',
+                        'Do you have any symptoms of hypothyroidism — cold intolerance, weight gain, lethargy, constipation?',
+                        'Are there any enlarged lymph nodes in the neck?',
+                        'Do you have fever or systemic symptoms?',
+                        'Any risk factors — iodine deficiency, family history of thyroid disease, radiation exposure?'
                     ],
                     socrates: [
                         'Site: Midline or lateral?',
@@ -3740,14 +3980,14 @@
                     icon: '🔵',
                     title: 'Varicose Veins',
                     questions: [
-                        'Where are the veins — legs, thighs, or other? [Location helps identify venous system]',
-                        'When did they first appear? Are they increasing in number or size? [Progression suggests worsening venous insufficiency]',
-                        'Are they painful, aching, or heavy? [Symptoms of venous insufficiency]',
-                        'Is there any swelling (oedema) of the legs? [Venous stasis]',
-                        'Are there any skin changes — pigmentation, eczema, lipodermatosclerosis, or ulcers? [Chronic venous insufficiency]',
-                        'Any history of deep vein thrombosis? [Post-thrombotic syndrome]',
-                        'Do you have a family history of varicose veins? [Inherited predisposition]',
-                        'Are you pregnant or overweight? [Risk factors]'
+                        'Where are the veins — legs, thighs, or other?',
+                        'When did they first appear? Are they increasing in number or size?',
+                        'Are they painful, aching, or heavy?',
+                        'Is there any swelling (oedema) of the legs?',
+                        'Are there any skin changes — pigmentation, eczema, lipodermatosclerosis, or ulcers?',
+                        'Any history of deep vein thrombosis?',
+                        'Do you have a family history of varicose veins?',
+                        'Are you pregnant or overweight?'
                     ],
                     socrates: [
                         'Site: Which leg?',
@@ -3781,14 +4021,14 @@
                     icon: '🔴',
                     title: 'Leg Ulcer',
                     questions: [
-                        'Where is the ulcer — gaiter area, foot, or other? [Venous ulcers are in the gaiter area]',
-                        'What does the edge look like — sloping, punched‑out, undermined, everted? [Helps identify cause]',
-                        'What is the base like — slough, granulation, necrotic, exposed bone/tendon? [Healing status]',
-                        'Is there any discharge — serous, purulent, haemorrhagic, watery, foul‑smelling? [Infection or necrosis]',
-                        'What is the surrounding skin like — erythema, warmth, induration, cellulitis, oedema? [Signs of infection]',
-                        'Is it painful? [Pain suggests arterial or neuropathic ulcer]',
-                        'When did it start? Is it healing or worsening? [Chronicity]',
-                        'Any risk factors — diabetes, peripheral vascular disease, neuropathy, trauma, HIV, malnutrition? [Underlying causes]'
+                        'Where is the ulcer — gaiter area, foot, or other?',
+                        'What does the edge look like — sloping, punched‑out, undermined, everted?',
+                        'What is the base like — slough, granulation, necrotic, exposed bone/tendon?',
+                        'Is there any discharge — serous, purulent, haemorrhagic, watery, foul‑smelling?',
+                        'What is the surrounding skin like — erythema, warmth, induration, cellulitis, oedema?',
+                        'Is it painful?',
+                        'When did it start? Is it healing or worsening?',
+                        'Any risk factors — diabetes, peripheral vascular disease, neuropathy, trauma, HIV, malnutrition?'
                     ],
                     socrates: [
                         'Site: Exact location',
@@ -3822,14 +4062,14 @@
                     icon: '🔴',
                     title: 'Claudication',
                     questions: [
-                        'What is the walking distance that causes pain? [Claudication distance]',
-                        'Where is the pain — buttocks, thigh, or calf? [Level of arterial disease]',
-                        'What does the pain feel like — cramping, aching, tiredness? [Character]',
-                        'Does the pain go away with rest? How long does it take? [Intermittent claudication]',
-                        'Do you have any skin changes — hair loss, shiny skin, colour changes? [Chronic ischaemia]',
-                        'Have you had any ulcers or infections of the feet? [Critical limb ischaemia]',
-                        'Any risk factors — smoking, diabetes, hypertension, dyslipidaemia? [Atherosclerotic risk factors]',
-                        'Any history of heart disease or stroke? [Generalised atherosclerosis]'
+                        'What is the walking distance that causes pain?',
+                        'Where is the pain — buttocks, thigh, or calf?',
+                        'What does the pain feel like — cramping, aching, tiredness?',
+                        'Does the pain go away with rest? How long does it take?',
+                        'Do you have any skin changes — hair loss, shiny skin, colour changes?',
+                        'Have you had any ulcers or infections of the feet?',
+                        'Any risk factors — smoking, diabetes, hypertension, dyslipidaemia?',
+                        'Any history of heart disease or stroke?'
                     ],
                     socrates: [
                         'Site: Where is the pain?',
@@ -3863,14 +4103,14 @@
                     icon: '🟢',
                     title: 'Hernia',
                     questions: [
-                        'Where is the swelling — groin, umbilicus, or surgical scar? [Location identifies hernia type]',
-                        'When was it first noticed? Is it growing? [Growth suggests complications]',
-                        'Is it reducible — does it go away on lying down or with gentle pressure? [Reducible hernias are less urgent]',
-                        'Is there a cough impulse? [Cough impulse confirms hernia]',
-                        'Is it painful or tender? [Pain suggests incarceration or strangulation]',
-                        'Do you have nausea, vomiting, or abdominal distension? [Obstruction]',
-                        'Any history of previous hernias or surgery? [Recurrent or incisional hernia]',
-                        'Are you straining or lifting heavy objects? [Precipitating factors]'
+                        'Where is the swelling — groin, umbilicus, or surgical scar?',
+                        'When was it first noticed? Is it growing?',
+                        'Is it reducible — does it go away on lying down or with gentle pressure?',
+                        'Is there a cough impulse?',
+                        'Is it painful or tender?',
+                        'Do you have nausea, vomiting, or abdominal distension?',
+                        'Any history of previous hernias or surgery?',
+                        'Are you straining or lifting heavy objects?'
                     ],
                     socrates: [
                         'Site: Groin, umbilicus, or scar?',
@@ -3904,14 +4144,14 @@
                     icon: '🔴',
                     title: 'Haemorrhoids',
                     questions: [
-                        'Do you have any bleeding — fresh blood on the paper, in the toilet, or mixed with stool? [Location of bleeding]',
-                        'Is there any pain during or after defecation? [Thrombosed or external haemorrhoids]',
-                        'Do you have any itching or irritation? [Pruritus]',
-                        'Are there any lumps or prolapse — do they come out with defecation? [Prolapsing haemorrhoids]',
-                        'Do you have any tenesmus or change in bowel habit? [May suggest other pathology]',
-                        'What is your diet — fibre intake? [Constipation predisposes to haemorrhoids]',
-                        'Are you pregnant or postpartum? [Predisposing factors]',
-                        'Any family history of colorectal cancer? [Risk stratification]'
+                        'Do you have any bleeding — fresh blood on the paper, in the toilet, or mixed with stool?',
+                        'Is there any pain during or after defecation?',
+                        'Do you have any itching or irritation?',
+                        'Are there any lumps or prolapse — do they come out with defecation?',
+                        'Do you have any tenesmus or change in bowel habit?',
+                        'What is your diet — fibre intake?',
+                        'Are you pregnant or postpartum?',
+                        'Any family history of colorectal cancer?'
                     ],
                     socrates: [
                         'Site: Where is the pain/bleeding?',
@@ -3945,14 +4185,14 @@
                     icon: '🟠',
                     title: 'Abscess',
                     questions: [
-                        'Where is the swelling — skin, subcutaneous, perianal, or other? [Location helps identify type]',
-                        'When was it first noticed? Is it growing? [Growth suggests increasing infection]',
-                        'Is it painful, tender, or red? [Signs of infection]',
-                        'Is there any pus or discharge? [Suppuration]',
-                        'Is there a sinus or fistula? [Chronic infection]',
-                        'Do you have fever, chills, or rigors? [Systemic infection]',
-                        'Any risk factors — diabetes, HIV, immunosuppression, poor hygiene? [Risk factors]',
-                        'Any history of previous abscesses or infections? [Recurrent infections]'
+                        'Where is the swelling — skin, subcutaneous, perianal, or other?',
+                        'When was it first noticed? Is it growing?',
+                        'Is it painful, tender, or red?',
+                        'Is there any pus or discharge?',
+                        'Is there a sinus or fistula?',
+                        'Do you have fever, chills, or rigors?',
+                        'Any risk factors — diabetes, HIV, immunosuppression, poor hygiene?',
+                        'Any history of previous abscesses or infections?'
                     ],
                     socrates: [
                         'Site: Exact location',
@@ -4038,9 +4278,7 @@
                     btn.className = 'tag-btn' + (cat === selected ? ' selected' : '');
                     btn.textContent = CATEGORY_LABELS[cat] || cat;
                     btn.dataset.cat = cat;
-                    btn.onclick = function() {
-                        selectTagPC(pcNum, cat, this);
-                    };
+                    btn.onclick = function() { selectTagPC(pcNum, cat, this); };
                     container.appendChild(btn);
                 });
             }
@@ -4062,11 +4300,8 @@
                 const cat = document.getElementById('pc' + num + 'Category').value;
                 const label = document.getElementById('pc' + num + 'Label');
                 if (!label) return;
-                if (cat && CATEGORY_LABELS[cat]) {
-                    label.textContent = CATEGORY_LABELS[cat];
-                } else {
-                    label.textContent = num === 1 ? 'Primary Complaint' : 'Complaint ' + num;
-                }
+                if (cat && CATEGORY_LABELS[cat]) label.textContent = CATEGORY_LABELS[cat];
+                else label.textContent = num === 1 ? 'Primary Complaint' : 'Complaint ' + num;
             }
 
             function togglePCTab(tabId) {
@@ -4162,10 +4397,7 @@
                 const container = document.getElementById(containerId);
                 if (!container) return;
                 const data = HINT_PANELS[category];
-                if (!data) {
-                    container.innerHTML = '';
-                    return;
-                }
+                if (!data) { container.innerHTML = ''; return; }
                 let html = `
                     <div class="hint-panel visible" style="display:block;">
                         <div class="hint-panel-title" onclick="toggleHintPanel(this)">
@@ -4175,37 +4407,27 @@
                         <div class="hint-panel-body open">
                 `;
                 if (data.questions && data.questions.length) {
-                    html += `<div class="hint-section">
-                        <div class="hint-section-title">📋 Essential Questions to Ask</div>
-                        <ul>`;
+                    html += `<div class="hint-section"><div class="hint-section-title">📋 Essential Questions to Ask</div><ul>`;
                     data.questions.forEach(q => { html += `<li>${q}</li>`; });
                     html += `</ul></div>`;
                 }
                 if (data.socrates && data.socrates.length) {
-                    html += `<div class="hint-section">
-                        <div class="hint-section-title">🔍 Key Characteristics to Establish (SOCRATES)</div>
-                        <ul>`;
+                    html += `<div class="hint-section"><div class="hint-section-title">🔍 Key Characteristics (SOCRATES)</div><ul>`;
                     data.socrates.forEach(s => { html += `<li>${s}</li>`; });
                     html += `</ul></div>`;
                 }
                 if (data.associated && data.associated.length) {
-                    html += `<div class="hint-section">
-                        <div class="hint-section-title">⚕️ Associated Symptoms to Screen For</div>
-                        <ul>`;
+                    html += `<div class="hint-section"><div class="hint-section-title">⚕️ Associated Symptoms</div><ul>`;
                     data.associated.forEach(a => { html += `<li>${a}</li>`; });
                     html += `</ul></div>`;
                 }
                 if (data.redFlags && data.redFlags.length) {
-                    html += `<div class="hint-section red-flags">
-                        <div class="red-flags-title">🚨 Red Flags — Act Immediately</div>
-                        <ul>`;
+                    html += `<div class="hint-section red-flags"><div class="red-flags-title">🚨 Red Flags</div><ul>`;
                     data.redFlags.forEach(r => { html += `<li>${r}</li>`; });
                     html += `</ul></div>`;
                 }
                 if (data.uganda && data.uganda.length) {
-                    html += `<div class="hint-section">
-                        <div class="hint-section-title">🇺🇬 Uganda Context</div>
-                        <ul>`;
+                    html += `<div class="hint-section"><div class="hint-section-title">🇺🇬 Uganda Context</div><ul>`;
                     data.uganda.forEach(u => { html += `<li>${u}</li>`; });
                     html += `</ul></div>`;
                 }
@@ -4223,48 +4445,6 @@
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             // 9. ROS & HELPERS
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            const COMPLAINT_SYSTEM = {
-                'abdo-pain': 'git',
-                'abdo-distension': 'git',
-                'vomiting': 'git',
-                'bowel': 'git',
-                'rectal-bleed': 'git',
-                'jaundice': 'git',
-                'haematuria': 'uro',
-                'urinary-sx': 'uro',
-                'scrotal': 'uro',
-                'loin-pain': 'uro',
-                'prostate': 'uro',
-                'ortho-pain': 'msk',
-                'fracture': 'msk',
-                'trauma': 'msk',
-                'back-pain': 'msk',
-                'joint-swelling': 'msk',
-                'swelling-surface': null,
-                'wound': null,
-                'skin-lesion': null,
-                'lymph-node': null,
-                'breast': null,
-                'breast-pain': null,
-                'breast-discharge': null,
-                'neck': 'endo',
-                'varicose': null,
-                'leg-ulcer': null,
-                'claudication': null,
-                'hernia': null,
-                'haemorrhoids': null,
-                'abscess': null,
-                'other': null
-            };
-            const SYS_LABELS = {
-                cvs: '❤️ Cardiovascular',
-                resp: '🫁 Respiratory',
-                git: '🫃 Gastrointestinal',
-                uro: '💧 Genitourinary',
-                neuro: '🧠 Neurological',
-                msk: '🦴 Musculoskeletal',
-                endo: '⚗️ Endocrine'
-            };
             const SYS_SYMPTOMS = {
                 cvs: ['Chest pain', 'Palpitations', 'Dyspnoea on exertion', 'Orthopnoea', 'PND', 'Ankle swelling', 'Syncope',
                     'Claudication', 'Paroxysmal nocturnal dyspnoea', 'Precordial pain', 'Exertional chest pain',
@@ -4300,6 +4480,7 @@
                     'Goitre', 'Palpitations', 'Acne', 'Galactorrhoea'
                 ]
             };
+
             const chipState = {};
 
             function buildAllChips() {
@@ -4318,8 +4499,7 @@
                             chipState[key] = cur === '' ? 'present' : cur === 'present' ? 'absent' : '';
                             chip.className = 'sym-chip' + (chipState[key] ? ' ' + chipState[key] : '');
                             chip.textContent = sym;
-                            const bannerChip = document.querySelector(
-                            `#ros-pc-chips [data-key="${key}"]`);
+                            const bannerChip = document.querySelector(`#ros-pc-chips [data-key="${key}"]`);
                             if (bannerChip) { bannerChip.className = chip.className;
                                 bannerChip.textContent = sym; }
                         });
@@ -4328,8 +4508,6 @@
                 });
             }
             buildAllChips();
-
-            let activePCSystem = null;
 
             function togglePE(headerEl) {
                 const body = headerEl.nextElementSibling;
@@ -4346,6 +4524,21 @@
                 headerEl.classList.toggle('open');
             }
 
+            function togglePEFinding(el) {
+                if (el.classList.contains('present')) {
+                    el.classList.remove('present');
+                    el.classList.add('absent');
+                } else if (el.classList.contains('absent')) {
+                    el.classList.remove('absent');
+                } else {
+                    el.classList.add('present');
+                }
+                updateProgress();
+            }
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // 10. DIFFERENTIAL GENERATOR
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function generateDifferentials() {
                 const cats = [];
                 for (let i = 1; i <= 3; i++) {
@@ -4721,12 +4914,8 @@
                     if (!isPaed && ddx.adult) list = list.concat(ddx.adult);
                     if (isPaed && ddx.paed) list = list.concat(ddx.paed);
                     if (isFemale && ddx.female) list = list.concat(ddx.female);
-                    list.forEach(item => {
-                        if (!seen.has(item)) {
-                            seen.add(item);
-                            allDdx.push(item);
-                        }
-                    });
+                    list.forEach(item => { if (!seen.has(item)) { seen.add(item);
+                            allDdx.push(item); } });
                 });
                 if (allDdx.length === 0) allDdx = ['Surgical infection', 'Abscess', 'Cellulitis', 'Malignancy'];
                 allDdx = allDdx.slice(0, 6);
@@ -4763,27 +4952,8 @@
                 container.appendChild(div);
             }
 
-            function updateProgress() {
-                const inputs = document.querySelectorAll('input:not(.btn-camera):not([type="file"]), textarea, select');
-                let filled = 0;
-                inputs.forEach(el => { if (el.value && el.value.trim() !== '') filled++; });
-                const totalInputs = inputs.length;
-                const fileBonus = Math.min(uploadedFiles.length, 3) * 1;
-                const percent = Math.min(((filled / totalInputs) * 60) + fileBonus + 10, 100);
-                document.getElementById('progressFill').style.width = percent + '%';
-            }
-
-            function checkAge() {
-                const age = parseInt(document.getElementById('age').value);
-                document.getElementById('paedFlag').style.display = (!isNaN(age) && age < 18) ? 'block' : 'none';
-            }
-
-            function toggleReferral(show) {
-                document.getElementById('referralDetails').style.display = show ? 'block' : 'none';
-            }
-
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 10. GCS CALCULATION
+            // 11. GCS CALCULATION
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function calculateGCS() {
                 const eye = parseInt(document.getElementById('gcsEye').value) || 0;
@@ -4791,19 +4961,14 @@
                 const motor = parseInt(document.getElementById('gcsMotor').value) || 0;
                 const intubated = document.getElementById('gcsIntubated').checked;
                 let verbalDisplay = verbalRaw;
-                let verbalScore = verbalRaw;
-                if (intubated) { verbalDisplay = 'Intubated';
-                    verbalScore = 0; }
+                if (intubated) verbalDisplay = 'Intubated';
                 const total = eye + (intubated ? 0 : verbalRaw) + motor;
-                const maxTotal = 4 + (intubated ? 0 : 5) + 6;
-                let displayStr = `E${eye} V${verbalDisplay} M${motor}`;
-                if (intubated) displayStr += ' (intubated)';
-                document.getElementById('gcsDisplay').textContent = `${displayStr} / ${maxTotal + (intubated ? 5 : 0)}`;
+                document.getElementById('gcsDisplay').textContent = `E${eye} V${verbalDisplay} M${motor}`;
                 document.getElementById('gcsTotal').textContent = total;
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 11. TOAST
+            // 12. TOAST
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function showToast(msg, color = '#2a9d8f') {
                 const toast = document.createElement('div');
@@ -4825,20 +4990,9 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 12. EXIT & SUBMIT
+            // 13. SUBMIT
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            function exitForm() {
-                if (confirm('Do you want to save a draft before exiting?')) {
-                    saveDraft().then(() => {
-                        showToast('📂 Draft saved. Exiting...');
-                        setTimeout(() => window.location.href = 'modules.html', 500);
-                    });
-                } else {
-                    window.location.href = 'modules.html';
-                }
-            }
-
-            async function submitForm() {
+            function submitForm() {
                 const name = document.getElementById('patientName').value.trim();
                 const age = document.getElementById('age').value;
                 const sex = document.getElementById('sex').value;
@@ -4849,30 +5003,27 @@
                 const hpc = document.getElementById('hpcNarrative').value.trim();
                 const summary = document.getElementById('summary').value.trim();
 
-                if (!name || !age || !sex) { alert('Please complete required demographics: Name, Age, and Sex.'); return; }
+                if (!name || !age || !sex) { alert('Please complete required demographics.'); return; }
                 if (!pc1Verbatim || !pc1DurVal || !pc1DurUnit || !pc1Cat) { alert('Please complete PC 1 (required).'); return; }
-                if (!hpc) { alert('Please write the History of Presenting Complaint narrative.'); return; }
+                if (!hpc) { alert('Please write the HPC narrative.'); return; }
                 if (!summary) { alert('Please write a summary in the Clerk\'s Assessment section.'); return; }
 
                 const data = collectFormData();
                 data.metadata.submittedAt = new Date().toISOString();
                 data.metadata.status = 'submitted';
-
                 console.log('📋 Full Patient Data:', data);
                 alert(`✅ All sections complete!\n\n📁 Files uploaded: ${uploadedFiles.length}\n\nCheck console for full data.`);
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 13. LOAD DRAFT
+            // 14. LOAD DRAFT
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function loadDraft() {
-                const saved = loadFromLocalStorage();
+                const saved = localStorage.getItem('easeMed_surgery_draft');
                 if (!saved) return;
-                const setVal = (id, val) => {
-                    const el = document.getElementById(id);
-                    if (el && val !== undefined && val !== null) el.value = val;
-                };
-                const d = saved;
+                const d = JSON.parse(saved);
+                const setVal = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined && val !== null)
+                        el.value = val; };
                 if (d.demographics) {
                     setVal('patientName', d.demographics.patientName);
                     setVal('age', d.demographics.age);
@@ -4881,11 +5032,20 @@
                     setVal('admissionDate', d.demographics.admissionDate);
                     setVal('ward', d.demographics.ward);
                     setVal('clerkedBy', d.demographics.clerkedBy);
+                    setVal('nationality', d.demographics.nationality);
+                    setVal('ethnicity', d.demographics.ethnicity);
                     setVal('maritalStatus', d.demographics.maritalStatus);
                     setVal('religion', d.demographics.religion);
+                    setVal('educationLevel', d.demographics.educationLevel);
+                    setVal('occupationDetail', d.demographics.occupationDetail);
                     setVal('referralFacility', d.demographics.referralFacility);
                     setVal('referralLevel', d.demographics.referralLevel);
                     setVal('referralReason', d.demographics.referralReason);
+                    if (d.demographics.referred) {
+                        const r = document.querySelector(`input[name="referred"][value="${d.demographics.referred}"]`);
+                        if (r) r.checked = true;
+                        toggleReferral(d.demographics.referred === 'yes' || d.demographics.referred === 'transferred');
+                    }
                 }
                 if (d.complaint) {
                     const pc1 = d.complaint.pc1;
@@ -4912,8 +5072,7 @@
                         }
                     }
                     const pc2 = d.complaint.pc2;
-                    if (pc2 && pc2.verbatim) {
-                        addPC(2);
+                    if (pc2 && pc2.verbatim) { addPC(2);
                         setVal('pc2Verbatim', pc2.verbatim);
                         setVal('pc2DurationValue', pc2.durationValue);
                         setVal('pc2DurationUnit', pc2.durationUnit);
@@ -4933,11 +5092,9 @@
                                     updatePCLabel(2);
                                 }
                             });
-                        }
-                    }
+                        } }
                     const pc3 = d.complaint.pc3;
-                    if (pc3 && pc3.verbatim) {
-                        addPC(3);
+                    if (pc3 && pc3.verbatim) { addPC(3);
                         setVal('pc3Verbatim', pc3.verbatim);
                         setVal('pc3DurationValue', pc3.durationValue);
                         setVal('pc3DurationUnit', pc3.durationUnit);
@@ -4957,8 +5114,7 @@
                                     updatePCLabel(3);
                                 }
                             });
-                        }
-                    }
+                        } }
                 }
                 if (d.hpc) {
                     setVal('hpcNarrative', d.hpc.narrative);
@@ -4973,29 +5129,36 @@
                     setVal('hpcAssociations', d.hpc.associations);
                 }
                 if (d.physicalExam) {
-                    setVal('peGeneral', d.physicalExam.general);
                     setVal('peBP', d.physicalExam.bp);
                     setVal('peHR', d.physicalExam.hr);
                     setVal('peRR', d.physicalExam.rr);
                     setVal('peTemp', d.physicalExam.temp);
                     setVal('peSpO2', d.physicalExam.spo2);
                     setVal('peBMI', d.physicalExam.bmi);
-                    setVal('peCVS', d.physicalExam.cvs);
-                    setVal('peResp', d.physicalExam.resp);
-                    setVal('peAbdo', d.physicalExam.abdo);
-                    setVal('peGU', d.physicalExam.gu);
-                    setVal('peNeuro', d.physicalExam.neuro);
-                    setVal('peMSK', d.physicalExam.msk);
-                    setVal('peWound', d.physicalExam.wound);
-                    setVal('peOther', d.physicalExam.other);
                     setVal('gcsEye', d.physicalExam.gcsEye);
                     setVal('gcsVerbal', d.physicalExam.gcsVerbal);
                     setVal('gcsMotor', d.physicalExam.gcsMotor);
                     if (d.physicalExam.gcsIntubated !== undefined) {
                         document.getElementById('gcsIntubated').checked = d.physicalExam.gcsIntubated;
                     }
-                    setVal('gcsNotes', d.physicalExam.gcsNotes);
                     calculateGCS();
+                    if (d.physicalExam.findings) {
+                        Object.entries(d.physicalExam.findings).forEach(([system, data]) => {
+                            const tags = document.querySelectorAll(`.pe-finding-tag[data-pe="${system}"]`);
+                            tags.forEach(tag => {
+                                const finding = tag.dataset.finding;
+                                if (data.present && data.present.includes(finding)) {
+                                    tag.classList.add('present');
+                                    tag.classList.remove('absent');
+                                } else if (data.absent && data.absent.includes(finding)) {
+                                    tag.classList.add('absent');
+                                    tag.classList.remove('present');
+                                } else {
+                                    tag.classList.remove('present', 'absent');
+                                }
+                            });
+                        });
+                    }
                 }
                 if (d.assessment) {
                     setVal('summary', d.assessment.summary);
@@ -5025,33 +5188,39 @@
                     setVal('alcoholDetail', d.familySocial.alcoholDetail);
                     setVal('livingSituation', d.familySocial.living);
                 }
-                if (d.files && d.files.length) {
-                    uploadedFiles = d.files;
-                    renderUploadedFiles();
-                }
-                if (d.fileContent) {
-                    fileTextContent = d.fileContent;
-                    renderUploadedFiles();
-                }
-                showToast('📂 Draft loaded from local storage.');
+                if (d.files && d.files.length) { uploadedFiles = d.files;
+                    renderUploadedFiles(); }
+                if (d.fileContent) { fileTextContent = d.fileContent;
+                    renderUploadedFiles(); }
+                showToast('📂 Draft loaded.', '#2a9d8f');
                 updateProgress();
             }
 
-            function saveToLocalStorage(data) {
-                try {
-                    localStorage.setItem('easeMed_surgery_draft', JSON.stringify(data));
-                } catch (e) { console.warn('LocalStorage error:', e); }
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // 15. PROGRESS
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            function updateProgress() {
+                const inputs = document.querySelectorAll('input:not(.btn-camera):not([type="file"]), textarea, select');
+                let filled = 0;
+                inputs.forEach(el => { if (el.value && el.value.trim() !== '') filled++; });
+                const peTags = document.querySelectorAll('.pe-finding-tag.present, .pe-finding-tag.absent');
+                const totalInputs = inputs.length + Math.min(peTags.length, 20);
+                const filledTotal = filled + peTags.length;
+                const percent = Math.min(((filledTotal / totalInputs) * 70) + 10, 100);
+                document.getElementById('progressFill').style.width = percent + '%';
             }
 
-            function loadFromLocalStorage() {
-                try {
-                    const raw = localStorage.getItem('easeMed_surgery_draft');
-                    return raw ? JSON.parse(raw) : null;
-                } catch (e) { return null; }
+            function checkAge() {
+                const age = parseInt(document.getElementById('age').value);
+                document.getElementById('paedFlag').style.display = (!isNaN(age) && age < 18) ? 'block' : 'none';
+            }
+
+            function toggleReferral(show) {
+                document.getElementById('referralDetails').style.display = show ? 'block' : 'none';
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 14. INIT
+            // 16. INIT
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             document.addEventListener('DOMContentLoaded', function() {
                 renderTags(1);
@@ -5060,31 +5229,19 @@
                 document.querySelectorAll('input, textarea, select').forEach(el => {
                     el.addEventListener('input', updateProgress);
                 });
-                document.querySelectorAll('.tag-btn').forEach(btn => {
-                    btn.addEventListener('click', updateProgress);
-                });
 
-                document.querySelectorAll('input[name="referred"]').forEach(r => {
-                    r.addEventListener('change', function() {
-                        toggleReferral(this.value === 'yes' || this.value === 'transferred');
-                    });
-                });
                 const checkedReferral = document.querySelector('input[name="referred"]:checked');
-                if (checkedReferral) {
-                    toggleReferral(checkedReferral.value === 'yes' || checkedReferral.value === 'transferred');
-                }
+                if (checkedReferral) toggleReferral(checkedReferral.value === 'yes' || checkedReferral.value ===
+                    'transferred');
 
                 calculateGCS();
                 updateProgress();
 
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') closeSummaryModal();
-                });
+                document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSummaryModal(); });
                 document.getElementById('summaryModal').addEventListener('click', function(e) {
                     if (e.target === this) closeSummaryModal();
                 });
 
-                // Drag and drop support for file upload
                 const uploadArea = document.getElementById('uploadArea');
                 if (uploadArea) {
                     uploadArea.addEventListener('dragover', function(e) {
