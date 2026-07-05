@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8" /> 
     <script 
   src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js"
   crossorigin="anonymous"
@@ -4292,7 +4292,22 @@
             body.classList.toggle('open');
             toggle.classList.toggle('open');
         }
-
+function showExamFindingClue(btn) {
+    const examKey = btn.dataset.exam;
+    const stepName = btn.dataset.step;
+    const finding = btn.dataset.finding;
+    const clue = getExamFindingClue(examKey, stepName, finding);
+    const wrap = btn.closest('.pe-findings-wrap');
+    if (!wrap) return;
+    // Remove existing clue panel
+    let panel = wrap.querySelector('.exam-clue-panel');
+    if (panel) panel.remove();
+    // Create new panel
+    panel = document.createElement('div');
+    panel.className = 'exam-clue-panel';
+    panel.innerHTML = `<strong>💡 Clue:</strong> ${clue}`;
+    wrap.appendChild(panel);
+}
         function getExamFindingClue(examKey, stepName, finding) {
             const text = String(finding || '').toLowerCase();
             const systemName = examSystems[examKey]?.name || 'this system';
@@ -5142,13 +5157,32 @@ const examFindingClues = {
                 'neonatal problems': 'neonatal problems'
             };
             const lastSymptom = selected.length ? symptomMap[selected[selected.length - 1]] : '';
-            if (lastSymptom) {
+            if (lastSymptom) { 
+                 currentSymptom = lastSymptom;                     // <-- ADD THIS
+        updateGuidance(lastSymptom);                      // <-- ADD THIS
                 const symptomBtn = document.querySelector(`.symptom-btn[data-symptom="${lastSymptom}"]`);
                 if (symptomBtn) setSymptom(symptomBtn, lastSymptom);
                 else displayQuestions(lastSymptom);
             }
             updateProgress();
-        }
+        } 
+        function updateGuidance(symptom) {
+    const guide = symptomGuides[symptom];
+    const guidanceDiv = document.getElementById('guidanceContent');
+    if (!guidanceDiv) return;
+    if (guide) {
+        let questionsList = '';
+        guide.questions.forEach(q => { questionsList += `<li>${q.q}</li>`; });
+        guidanceDiv.innerHTML = `
+            <div class="guidance-tip"><strong>📖 ${guide.title}</strong><br>${guide.chapter}</div>
+            <div class="guidance-tip"><strong>🎯 Key questions</strong><ul style="margin-top:4px; margin-left:16px;">${questionsList}</ul></div>
+            <div class="guidance-tip" style="border-left-color:#dc2626;"><strong>🚨 RED FLAGS</strong><br>${guide.redFlags.join('<br>')}</div>
+            <div class="guidance-tip"><strong>💎 Clinical Tips</strong><br>${guide.tips.join('<br>')}</div>
+        `;
+    } else {
+        guidanceDiv.innerHTML = `<div class="guidance-tip"><strong>Presenting Complaint</strong><br>Document the symptom in detail below.</div>`;
+    }
+}
         // ============================================================
         // HIV TOGGLE
         // ============================================================
@@ -5311,6 +5345,8 @@ const examFindingClues = {
             document.querySelectorAll('.vaccine-item').forEach(item => {
                 const cb = item.querySelector('.vaccine-cb');
                 if (cb.checked) immunizations.push({ vaccine: cb.dataset.vaccine });
+                // Inside captureFormData(), add:
+symptomDetails: symptomDetails,
             });
             const rosData = {};
             for (const key of Object.keys(pedsROS)) {
