@@ -1290,6 +1290,54 @@
             background: #cbd5e1;
         }
 
+        .exam-clue-panel {
+            flex-basis: 100%;
+            margin-top: 6px;
+            padding: 8px 10px;
+            border: 1px solid #bfdbfe;
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            background: #eff6ff;
+            color: #1e3a5f;
+            font-size: 0.76rem;
+            line-height: 1.45;
+        }
+        .exam-clue-panel strong {
+            color: var(--primary);
+        }
+        .pediatric-gcs-box {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #f8fafc;
+            padding: 10px;
+        }
+        .pediatric-gcs-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .pediatric-gcs-guide {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.72rem;
+            color: #475569;
+            line-height: 1.45;
+        }
+        .pediatric-gcs-total {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 640px) {
+            .pediatric-gcs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* --- Milestone Warning --- */
         .milestone-warning {
             background: #fef9c3;
@@ -2866,6 +2914,18 @@
             <span class="section-badge hpc">3</span>
             <span class="section-title">History of Presenting Complaint</span>
         </div>
+        <div class="card hpc-card">
+            <div class="card-title">History of Presenting Complaint</div>
+            <div class="field-group">
+                <label>HPC narrative <span class="req">*</span></label>
+                <div class="hint">Write the story from onset to now: sequence, severity, associated symptoms, treatment already given, and current state.</div>
+                <textarea id="hpcNarrative" rows="7" placeholder="Example: The child was well until... The symptom started... It has progressed... Associated symptoms include..."></textarea>
+            </div>
+            <div class="field-group">
+                <label>Guided symptom prompts</label>
+                <div id="dynamicQuestions"></div>
+            </div>
+        </div>
         <div style="display:none;">
             <input type="hidden" id="hpcSite" value="">
             <input type="hidden" id="hpcOnset" value="">
@@ -3917,12 +3977,12 @@
                             <div class="ros-header" onclick="toggleROS('${key}')">
                                 <h3><span class="ros-icon">${sys.icon}</span> ${sys.name}</h3>
                                 <span class="ros-toggle" id="ros-toggle-${key}">▼</span>
-                            </div>
-                            <div class="ros-body" id="ros-body-${key}">
-                                ${renderRosGuide(key)}<div class="ros-buttons" id="ros-buttons-${key}"></div>
-                                <div class="ros-other">
-                                    <label style="font-size:0.7rem; color:var(--muted);">Other symptoms:</label>
-                                    <input type="text" id="ros-other-${key}" placeholder="Specify any other symptoms...">
+                             </div>
+                             <div class="ros-body" id="ros-body-${key}">
+                                <div class="ros-buttons" id="ros-buttons-${key}"></div>
+                                 <div class="ros-other">
+                                     <label style="font-size:0.7rem; color:var(--muted);">Other symptoms:</label>
+                                     <input type="text" id="ros-other-${key}" placeholder="Specify any other symptoms...">
                                 </div>
                             </div>
                         </div>`;
@@ -4106,7 +4166,7 @@
                                 <span class="pe-toggle" id="pe-toggle-${key}">▼</span>
                             </div>`;
 
-                let bodyHtml = `<div class="pe-body" id="pe-body-${key}">${renderExamGuide(key)}`;
+                let bodyHtml = `<div class="pe-body" id="pe-body-${key}">`;
 
                 if (sys.hasVitals) {
                     bodyHtml += `
@@ -4131,38 +4191,78 @@
                                     <div class="pe-step-title"><span class="step-badge ${stepClass}">${step.name.charAt(0)}</span> ${step.name}</div>
                                     <div class="pe-findings-wrap" data-exam="${key}" data-step="${step.name}">
                             `;
-                    step.items.forEach(item => {
-                        bodyHtml +=
-                            `<button class="pe-finding-tag" data-finding="${item}" onclick="togglePEFinding(this)">${item}</button>`;
-                    });
+                     step.items.forEach(item => {
+                         bodyHtml +=
+                            `<button class="pe-finding-tag" data-exam="${key}" data-step="${step.name}" data-finding="${item}" onclick="togglePEFinding(this)">${item}</button>`;
+                     });
                     bodyHtml += `
                                     </div>
                                 </div>
                             `;
                 });
 
-                if (sys.hasGcs) {
-                    bodyHtml += `
-                                <div class="pe-step">
-                                    <div class="pe-step-title"><span class="step-badge inspection">G</span> GCS (3-15)</div>
-                                    <div class="pe-findings-wrap">
-                                        <label style="font-size:0.7rem; display:flex; align-items:center; gap:6px;">
-                                            GCS Score: <input type="number" id="gcs" min="3" max="15" class="gcs-input" placeholder="15" oninput="updateProgress()">
-                                        </label>
-                                    </div>
-                                </div>
-                            `;
+                 if (sys.hasGcs) {
+                     bodyHtml += `
+                                 <div class="pe-step">
+                                    <div class="pe-step-title"><span class="step-badge inspection">G</span> Modified Pediatric GCS (3-15)</div>
+                                     <div class="pe-findings-wrap">
+                                        <div class="pediatric-gcs-box">
+                                            <div class="pediatric-gcs-grid">
+                                                <label>Eye opening
+                                                    <select id="pGcsEye" onchange="updatePediatricGCS()">
+                                                        <option value="">Select</option>
+                                                        <option value="4">4 - Spontaneous</option>
+                                                        <option value="3">3 - To voice</option>
+                                                        <option value="2">2 - To pain</option>
+                                                        <option value="1">1 - None</option>
+                                                    </select>
+                                                </label>
+                                                <label>Verbal / pediatric response
+                                                    <select id="pGcsVerbal" onchange="updatePediatricGCS()">
+                                                        <option value="">Select</option>
+                                                        <option value="5">5 - Smiles, coos, oriented, appropriate words</option>
+                                                        <option value="4">4 - Cries but consolable / confused words</option>
+                                                        <option value="3">3 - Inconsistently consolable / inappropriate words</option>
+                                                        <option value="2">2 - Inconsolable, agitated / incomprehensible sounds</option>
+                                                        <option value="1">1 - No verbal response</option>
+                                                    </select>
+                                                </label>
+                                                <label>Motor response
+                                                    <select id="pGcsMotor" onchange="updatePediatricGCS()">
+                                                        <option value="">Select</option>
+                                                        <option value="6">6 - Obeys commands / normal spontaneous movement</option>
+                                                        <option value="5">5 - Localises pain / withdraws to touch</option>
+                                                        <option value="4">4 - Withdraws from pain</option>
+                                                        <option value="3">3 - Abnormal flexion</option>
+                                                        <option value="2">2 - Abnormal extension</option>
+                                                        <option value="1">1 - No motor response</option>
+                                                    </select>
+                                                </label>
+                                            </div>
+                                            <div class="pediatric-gcs-total">
+                                                <label style="font-size:0.75rem;">Total:
+                                                    <input type="number" id="gcs" min="3" max="15" class="gcs-input" placeholder="15" readonly>
+                                                </label>
+                                                <span id="pGcsInterpretation" class="hint-sm">Select eye, verbal, and motor responses.</span>
+                                            </div>
+                                            <div class="pediatric-gcs-guide">
+                                                Guide: assess after ABC and glucose. Use the best observed response. Score 13-15 mild, 9-12 moderate, 8 or less severe: protect airway, treat hypoglycaemia/seizures, and urgently assess for meningitis, malaria, trauma, poisoning, or raised ICP.
+                                            </div>
+                                        </div>
+                                     </div>
+                                 </div>
+                             `;
                 }
 
                 if (sys.hasAvpu) {
                     bodyHtml += `
                                 <div class="pe-step">
-                                    <div class="pe-step-title"><span class="step-badge inspection">A</span> AVPU</div>
-                                    <div class="pe-findings-wrap avpu-group" id="avpu-group-${key}">
-                                        ${['Alert','Voice','Pain','Unresponsive'].map(opt => `<button class="pe-finding-tag" data-finding="${opt}" onclick="togglePEFinding(this)">${opt}</button>`).join('')}
-                                    </div>
-                                </div>
-                            `;
+                                     <div class="pe-step-title"><span class="step-badge inspection">A</span> AVPU</div>
+                                     <div class="pe-findings-wrap avpu-group" id="avpu-group-${key}">
+                                        ${['Alert','Voice','Pain','Unresponsive'].map(opt => `<button class="pe-finding-tag" data-exam="${key}" data-step="AVPU" data-finding="${opt}" onclick="togglePEFinding(this)">${opt}</button>`).join('')}
+                                     </div>
+                                 </div>
+                             `;
                 }
 
                 bodyHtml += `
@@ -4191,6 +4291,67 @@
             const toggle = document.getElementById(`pe-toggle-${key}`);
             body.classList.toggle('open');
             toggle.classList.toggle('open');
+        }
+
+        function getExamFindingClue(examKey, stepName, finding) {
+            const text = String(finding || '').toLowerCase();
+            const systemName = examSystems[examKey]?.name || 'this system';
+            const specificClues = [
+                { match: /cyanosis/, clue: 'Cyanosis suggests hypoxaemia or poor perfusion. Check SpO2, respiratory effort, pulses, and cardiac signs.' },
+                { match: /capillary refill >2s|weak pulses|cold extremities|shock/, clue: 'This is a perfusion warning sign. Reassess airway, breathing, circulation, hydration, sepsis, and blood loss.' },
+                { match: /indrawing|nasal flaring|grunting|stridor|wheeze|crackles|reduced air entry|absent air entry/, clue: 'Localise respiratory disease: count RR, check SpO2, compare both sides, and link with cough, fever, choking, or asthma history.' },
+                { match: /murmur|gallop|thrill|heave|apex beat displaced|precordial bulge/, clue: 'A cardiac finding should be linked to pulses, perfusion, hepatomegaly, cyanosis, feeding fatigue, sweating, and growth.' },
+                { match: /hepatomegaly|splenomegaly|hepatosplenomegaly/, clue: 'Organ enlargement can point to infection, malaria, haemolysis, malignancy, storage disease, or heart failure.' },
+                { match: /guarding|rigid|tenderness|rebound|absent bowel|tinkling|shifting dullness|mass/, clue: 'This may signal an acute abdomen, obstruction, ascites, or mass. Ask about pain, vomiting, stool, fever, and urine.' },
+                { match: /drowsy|confused|unresponsive|abnormal posture|bulging fontanelle|neck stiffness|kernig|brudzinski|pupils unequal|gaze deviation|weakness|hyperreflexia|babinski|clonus/, clue: 'This is a neurological danger clue. Check glucose, temperature, pediatric GCS/AVPU, pupils, meningism, seizures, trauma, and malaria risk.' },
+                { match: /fontanelle sunken|sunken fontanelle|skin turgor reduced|dry mucous membranes/, clue: 'Think dehydration. Check drinking ability, sunken eyes, urine output, pulse volume, CRT, weight loss, and diarrhoea/vomiting.' },
+                { match: /pallor/, clue: 'Pallor may suggest anaemia or shock. Look for jaundice, splenomegaly, bleeding, nutrition, malaria, and haemoglobin results.' },
+                { match: /jaundice/, clue: 'Jaundice should be linked to age of onset, stool/urine colour, pallor, hepatosplenomegaly, malaria, haemolysis, and liver disease.' },
+                { match: /petechiae|purpura|bruising|non-blanching/, clue: 'Non-blanching rash or unexplained bruising can be urgent. Consider sepsis, meningococcaemia, platelets/coagulation, trauma, or malignancy.' },
+                { match: /oedema|flaky paint|wasting|loose skin|muac/, clue: 'Nutrition clue: check bilateral pitting oedema, MUAC, weight-for-height, appetite test, hair/skin changes, infections, and HIV/TB risk.' },
+                { match: /ear discharge|perforated|mastoid|tonsillar|thrush|koplik|red eye|photophobia/, clue: 'ENT finding: document side, duration, pain, fever, hearing/vision changes, discharge character, and danger signs.' },
+                { match: /normal|alert|soft|flat|bowel sounds normal|pupils equal reactive|tone normal|power normal|reflexes normal|capillary refill <2s/, clue: 'A normal finding is useful when it rules against severe disease. Document it clearly and compare with the presenting complaint.' }
+            ];
+            const hit = specificClues.find(item => item.match.test(text));
+            if (hit) return hit.clue;
+            return `In ${systemName}, this ${stepName || 'finding'} should be described by site, side, severity, duration, and whether it supports or rules against the main complaint.`;
+        }
+
+        function showExamFindingClue(btn) {
+            const wrap = btn.closest('.pe-findings-wrap');
+            if (!wrap) return;
+            let panel = wrap.querySelector('.exam-clue-panel');
+            if (!panel) {
+                panel = document.createElement('div');
+                panel.className = 'exam-clue-panel';
+                wrap.appendChild(panel);
+            }
+            const finding = btn.dataset.finding || btn.textContent.replace(' âœ“', '');
+            panel.innerHTML = `<strong>${finding} clue:</strong> ${getExamFindingClue(btn.dataset.exam, btn.dataset.step, finding)}`;
+        }
+
+        function updatePediatricGCS() {
+            const eye = parseInt(document.getElementById('pGcsEye')?.value || '0', 10);
+            const verbal = parseInt(document.getElementById('pGcsVerbal')?.value || '0', 10);
+            const motor = parseInt(document.getElementById('pGcsMotor')?.value || '0', 10);
+            const totalField = document.getElementById('gcs');
+            const label = document.getElementById('pGcsInterpretation');
+            if (!eye || !verbal || !motor) {
+                if (totalField) totalField.value = '';
+                if (label) label.textContent = 'Select eye, verbal, and motor responses.';
+                updateProgress();
+                return;
+            }
+            const total = eye + verbal + motor;
+            if (totalField) totalField.value = total;
+            if (label) {
+                const severity = total <= 8 ? 'Severe: protect airway and urgently treat reversible causes.' :
+                    total <= 12 ? 'Moderate: close monitoring and urgent senior review.' :
+                    'Mild/normal range: continue reassessment and document trend.';
+                label.textContent = `Pediatric GCS ${total}/15. ${severity}`;
+            }
+            showExamFindingClue(btn);
+            updateProgress();
         }
 
         function togglePEFinding(btn) {
