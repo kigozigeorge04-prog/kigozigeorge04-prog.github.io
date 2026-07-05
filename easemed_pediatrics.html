@@ -4348,19 +4348,22 @@
                 const severity = total <= 8 ? 'Severe: protect airway and urgently treat reversible causes.' :
                     total <= 12 ? 'Moderate: close monitoring and urgent senior review.' :
                     'Mild/normal range: continue reassessment and document trend.';
-                label.textContent = `Pediatric GCS ${total}/15. ${severity}`;
+              label.textContent = `Pediatric GCS ${total}/15. ${severity}`;
             }
-            showExamFindingClue(btn);
             updateProgress();
         }
 
-        function togglePEFinding(btn) {
+       function togglePEFinding(btn) {
             if (btn.classList.contains('active-present')) {
                 btn.classList.remove('active-present');
                 btn.textContent = btn.textContent.replace(' ✓', '');
+                const wrap = btn.closest('.pe-findings-wrap');
+                const panel = wrap ? wrap.querySelector('.exam-clue-panel') : null;
+                if (panel) panel.remove();
             } else {
                 btn.classList.add('active-present');
                 btn.textContent = btn.textContent + ' ✓';
+                showExamFindingClue(btn);
             }
             updateProgress();
         }
