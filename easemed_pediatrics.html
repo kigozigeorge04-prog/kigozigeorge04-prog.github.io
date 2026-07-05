@@ -4074,12 +4074,7 @@
                             "Thrill", "Weak pulses", "Bounding pulses", "Capillary refill <2s",
                             "Capillary refill >2s"
                         ] },
-                    { name: "Auscultation", items: ["Normal S1 S2", "S3 (gallop)", "S4", "Systolic ejection murmur",
-    "Pansystolic murmur",
-    "Diastolic murmur",
-    "Continuous murmur",
-    "Innocent murmur",
-    "Murmur - unspecified",
+                    { name: "Auscultation", items: ["Normal S1 S2", "S3 (gallop)", "S4", "Murmur present",
                             "Pericardial rub"
                         ] }
                 ]
@@ -4321,261 +4316,20 @@
             if (hit) return hit.clue;
             return `In ${systemName}, this ${stepName || 'finding'} should be described by site, side, severity, duration, and whether it supports or rules against the main complaint.`;
         }
-const examFindingClues = {
-    // ===== ANTHROPOMETRY =====
-    "MUAC <11.5cm": "Severe acute malnutrition (SAM) by MUAC criteria. Check for bilateral pitting oedema (kwashiorkor vs marasmus), assess appetite test, and screen for danger signs — this child needs nutritional rehabilitation (F-75/F-100) and infection screening.",
-    "MUAC 11.5-12.4cm": "Moderate acute malnutrition (MAM). Needs supplementary feeding programme referral and close growth monitoring; check for underlying cause (feeding history, recurrent infections, HIV/TB).",
-    "MUAC ≥12.5cm": "Normal MUAC — reassuring against acute wasting, but does not rule out stunting (chronic) or underweight (composite). Still plot WHZ/HAZ/WAZ.",
-    "Weight-for-Height Z-score < -3": "Severe wasting (SAM). High mortality risk — assess for complications (oedema, infection, hypoglycaemia, hypothermia) to decide inpatient vs outpatient therapeutic feeding.",
-    "Weight-for-Height Z-score -3 to -2": "Moderate wasting (MAM). Consider supplementary feeding and evaluate for an underlying acute illness driving weight loss.",
-    "Height-for-Age Z-score < -3": "Severe stunting — reflects chronic malnutrition or long-standing illness (recurrent infections, chronic diarrhoea, TB, HIV, congenital conditions). Rarely reversible; focus on preventing further decline and treating underlying cause.",
-    "Height-for-Age Z-score -3 to -2": "Moderate stunting — suggests chronic nutritional deficiency or repeated illness episodes. Review feeding history and infection burden.",
-    "Weight-for-Age Z-score < -3": "Severely underweight — composite marker of both acute and chronic malnutrition. Needs full nutritional assessment (MUAC, WHZ, HAZ) to characterise as wasted, stunted, or both.",
-    "Weight-for-Age Z-score -3 to -2": "Moderately underweight — monitor growth trend; a single data point matters less than a declining trajectory across visits.",
-    "Bilateral pitting oedema present": "Kwashiorkor (oedematous SAM) regardless of weight — this alone classifies the child as SAM. Assess grading (+, ++, +++), check for skin/hair changes, and start F-75 cautiously (risk of refeeding syndrome and fluid overload).",
-    "Head circumference < 3rd centile (microcephaly)": "Suggests congenital infection (TORCH), genetic syndrome, perinatal insult, or poor brain growth. Correlate with developmental milestones and neuro exam.",
-    "Head circumference > 97th centile (macrocephaly)": "Suggests hydrocephalus, raised intracranial pressure, or a familial large-head pattern. Check fontanelle tension, sutures, and for developmental regression.",
-    "Weight loss / crossed ≥2 centile lines on growth chart": "Significant growth faltering — suggests an organic cause (malabsorption, chronic infection, cardiac/renal disease) if the trajectory has clearly dropped rather than tracking a low but stable centile.",
-
-        // Add these to the same examFindingClues object
-
-    // ===== GENERAL — Inspection =====
-    "Well": "No signs of systemic illness — reassuring, but still correlate with vitals, feeding, and the presenting complaint before discharging reassurance to the parent.",
-    "Ill-looking": "Non-specific but important — suggests an active systemic process (sepsis, severe malaria, pneumonia, meningitis). Prioritise vitals, glucose, and a septic screen.",
-    "Toxic": "Suggests sepsis, bacteraemia, or severe systemic infection. Treat as an emergency — start ABC, glucose, and empirical IV antibiotics without delay.",
-    "Pale": "Suggests anaemia (malaria, haemolysis, iron deficiency, chronic disease) or poor perfusion/shock. Check conjunctivae, palms, capillary refill, and send FBC.",
-    "Jaundiced": "Suggests haemolysis, hepatitis, or biliary obstruction. Onset <24h in a neonate = haemolytic disease; later onset in an older child = hepatitis, malaria, or sickle crisis.",
-    "Cyanosed": "Suggests hypoxaemia from respiratory disease (severe pneumonia, foreign body, bronchiolitis) or cyanotic congenital heart disease. Check SpO2 immediately and look for clubbing/murmurs.",
-    "Oedematous": "Suggests kwashiorkor, nephrotic syndrome, or cardiac failure. Check for pitting, distribution (facial vs dependent), and correlate with MUAC and urine findings.",
-    "Dehydrated": "Suggests fluid loss from diarrhoea/vomiting or reduced intake. Grade severity (some vs severe dehydration) using eyes, skin turgor, thirst, and mental state to choose Plan A/B/C.",
-    "Malnourished": "Points toward SAM/MAM as either the primary problem or a risk factor for the presenting complaint (higher infection risk, atypical presentations, hypoglycaemia risk). Cross-check MUAC and Z-scores.",
-    "Dysmorphic features": "Suggests an underlying genetic syndrome (e.g. Down syndrome, fetal alcohol syndrome) which may explain developmental delay, congenital heart disease, or recurrent infections — consider genetics referral.",
-
-    // ===== GENERAL — Palpation =====
-    "Skin turgor normal": "Reassuring against significant dehydration at the time of examination, though early or mild dehydration can still be present with normal turgor.",
-    "Reduced skin turgor": "Indicates at least moderate dehydration (skin pinch goes back slowly). Combine with sunken eyes and thirst to grade severity and start appropriate rehydration.",
-    "Lymphadenopathy present": "Consider reactive infection (local or systemic), TB, HIV, or malignancy (lymphoma, leukaemia) depending on distribution, size, tenderness, and chronicity — note site(s) and whether generalised.",
-
-    // ===== GENERAL — Vitals-linked (used in checkVitals warnings) =====
-    "HR outside normal range": "Tachycardia may reflect fever, pain, dehydration, anaemia, sepsis, or cardiac failure; bradycardia in a sick child is a late and ominous sign (raised ICP, severe hypoxia, terminal deterioration) — recheck immediately and correlate with perfusion.",
-    "RR outside normal range": "Tachypnoea is a key IMCI danger sign for pneumonia and may also reflect fever, sepsis, metabolic acidosis (e.g. DKA, severe dehydration), or heart failure; bradypnoea/apnoea suggests CNS depression or impending respiratory failure.",
-
-        // ===== RESPIRATORY — Inspection =====
-    "Normal chest shape": "Reassuring against chronic respiratory disease (e.g. long-standing asthma, TB) which can cause chest wall deformity over time.",
-    "Barrel chest": "Suggests chronic air trapping — consider poorly controlled asthma or chronic lung disease with hyperinflation.",
-    "Chest asymmetry": "Suggests a unilateral process — pneumothorax, large pleural effusion, or collapse/consolidation on one side. Correlate with percussion and air entry on each side.",
-    "Harrison's sulcus": "Suggests chronic respiratory distress in early childhood (severe asthma, rickets causing a soft rib cage) — indentation at the lower rib margin from prolonged diaphragmatic pull.",
-    "Chest indrawing (subcostal)": "IMCI danger sign for severe pneumonia in a child with cough/fever. Combine with fast breathing and grunting to grade severity of respiratory distress.",
-    "Intercostal recession": "Sign of increased work of breathing — seen in pneumonia, bronchiolitis, or asthma exacerbation. More prominent recession = more severe distress.",
-    "Nasal flaring": "Marker of significant respiratory distress in infants and young children — often accompanies pneumonia or bronchiolitis; treat as a warning sign, not an isolated finding.",
-    "Tracheal tug": "Suggests severe upper or lower airway obstruction/increased work of breathing — seen in severe asthma, croup, or severe pneumonia.",
-    "Head nodding": "Sign of severe respiratory distress in infants, using accessory neck muscles to breathe — an ominous sign requiring urgent oxygen and senior review.",
-    "Grunting": "Serious danger sign — the child is trying to maintain positive end-expiratory pressure to keep alveoli open. Strongly suggests severe pneumonia, severe bronchiolitis, or impending respiratory failure; needs urgent oxygen and antibiotics.",
-    "Use of accessory muscles": "Reflects significant increased work of breathing — asthma exacerbation, severe pneumonia, or bronchiolitis. Escalate monitoring and consider oxygen.",
-    "Cyanosis": "Suggests hypoxaemia — severe pneumonia, foreign body aspiration, severe asthma, or cyanotic heart disease. Check SpO2 immediately and give oxygen if <90%.",
-
-    // ===== RESPIRATORY — Palpation =====
-    "Trachea central": "Reassuring against a large unilateral space-occupying process (tension pneumothorax, massive effusion) pushing the mediastinum.",
-    "Trachea deviated": "Suggests a large unilateral pathology pushing (pushed away by tension pneumothorax/effusion) or pulling (pulled toward collapse/fibrosis) the trachea — urgent CXR needed.",
-    "Reduced chest expansion": "Suggests consolidation, effusion, or collapse on the affected side, or bilateral restriction in severe asthma/chronic disease.",
-    "Tactile fremitus normal": "Reassuring against significant consolidation or effusion at the point examined.",
-    "Tactile fremitus increased": "Suggests underlying consolidation (pneumonia) — sound transmits better through consolidated lung tissue.",
-    "Tactile fremitus reduced": "Suggests pleural effusion, pneumothorax, or collapse — air or fluid between the chest wall and lung reduces transmitted vibration.",
-
-    // ===== RESPIRATORY — Percussion =====
-    "Resonant": "Normal aerated lung — reassuring at the area percussed.",
-    "Dull": "Suggests consolidation (pneumonia) or collapse at that area — correlate with reduced air entry and crackles/bronchial breathing.",
-    "Stony dull": "Classic for pleural effusion or empyema — needs urgent ultrasound-guided aspiration if the child is unwell, especially with ongoing fever despite antibiotics.",
-    "Hyperresonant": "Suggests air trapping (asthma, bronchiolitis) or pneumothorax — correlate with reduced air entry and clinical severity to distinguish the two.",
-
-    // ===== RESPIRATORY — Auscultation =====
-    "Vesicular breath sounds": "Normal breath sounds — reassuring at the area auscultated.",
-    "Bronchial breathing": "Suggests consolidation (pneumonia) — sound is transmitted more directly through solid lung tissue, giving a harsher, louder quality.",
-    "Reduced air entry": "Non-specific but important — consider pneumonia, effusion, pneumothorax, foreign body, or severe asthma depending on associated findings (dull vs hyperresonant, symmetric vs asymmetric).",
-    "Absent air entry": "Serious finding — consider complete lung collapse, large pneumothorax, massive effusion, or complete foreign body obstruction. Needs urgent imaging and senior review.",
-    "Fine crackles": "Suggests alveolar fluid/inflammation — pneumonia or early pulmonary oedema (cardiac failure).",
-    "Coarse crackles": "Suggests larger airway secretions — bronchiectasis, aspiration, or resolving pneumonia with retained secretions.",
-    "Wheeze (expiratory)": "Suggests lower airway narrowing — asthma, bronchiolitis, or viral-induced wheeze. Assess severity and response to bronchodilator trial.",
-    "Stridor (inspiratory)": "Suggests upper airway obstruction — croup, foreign body, epiglottitis (if with fever/drooling), or anaphylaxis. Do not examine the throat if epiglottitis is suspected; urgent airway assessment needed.",
-    "Pleural rub": "Suggests pleural inflammation — often accompanies pneumonia extending to the pleura; correlate with pleuritic chest pain and consider effusion developing.",
-
-        // ===== CARDIOVASCULAR — Inspection =====
-    "Normal precordium": "Reassuring — no visible cardiac enlargement or abnormal pulsation.",
-    "Visible pulsations": "Suggests cardiac enlargement or a hyperdynamic circulation (severe anaemia, large left-to-right shunt, thyrotoxicosis) — correlate with apex beat position and murmurs.",
-    "Precordial bulge": "Suggests chronic cardiac enlargement from early childhood (congenital heart disease with long-standing volume/pressure overload) — the chest wall has remodelled around an enlarged heart.",
-    "Scars (sternotomy)": "Indicates prior cardiac surgery — establishes a known structural heart disease history; ask about the underlying lesion and current cardiac status/medications.",
-    "Peripheral oedema": "Suggests cardiac failure (right-sided) causing venous congestion — correlate with hepatomegaly, raised JVP-equivalent signs, and breathlessness.",
-    "Clubbing": "Suggests chronic cyanotic congenital heart disease, chronic lung disease (e.g. bronchiectasis), or chronic hypoxaemia — check for cyanosis and correlate with respiratory findings.",
-    "Cyanosis (central)": "Suggests cyanotic congenital heart disease (e.g. Tetralogy of Fallot) or severe intrapulmonary shunting — check SpO2 in room air and consider a hyperoxia test.",
-    "Cyanosis (peripheral)": "Usually reflects poor peripheral perfusion (cold extremities, shock, cold environment) rather than true cardiopulmonary disease — check core temperature and capillary refill.",
-
-    // ===== CARDIOVASCULAR — Palpation =====
-    "Apex beat normal position": "Reassuring against significant cardiomegaly or mediastinal shift.",
-    "Apex beat displaced": "Suggests cardiomegaly (volume/pressure overload) or mediastinal shift from a large pleural effusion/pneumothorax — correlate with percussion and respiratory exam.",
-    "Heave": "Suggests right ventricular hypertrophy — seen in conditions causing chronic pressure overload of the right heart (e.g. pulmonary hypertension, some congenital lesions).",
-    "Thrill": "Palpable murmur — suggests a significant structural lesion (e.g. VSD, PDA, valve stenosis). Correlate with the auscultated murmur's timing and location.",
-    "Weak pulses": "Suggests shock, severe dehydration, or critical left heart obstruction (e.g. coarctation, hypoplastic left heart in a neonate) — check all four limbs and blood pressure urgently.",
-    "Bounding pulses": "Suggests a large left-to-right shunt (e.g. PDA), severe anaemia, or sepsis with a hyperdynamic circulation — correlate with pulse pressure and murmurs.",
-    "Capillary refill <2s": "Normal perfusion — reassuring against shock at the time of examination.",
-    "Capillary refill >2s": "Suggests poor peripheral perfusion — early or established shock (septic, hypovolaemic, or cardiogenic). Recheck centrally and assess for other shock signs urgently.",
-
-    // ===== CARDIOVASCULAR — Auscultation =====
-    "Normal S1 S2": "Reassuring — no obvious structural abnormality on basic auscultation, though this does not fully exclude congenital heart disease.",
-    "S3 (gallop)": "Suggests volume overload / heart failure — a third heart sound from rapid ventricular filling; correlate with hepatomegaly, tachypnoea, and poor feeding.",
-    "S4": "Suggests a stiff, non-compliant ventricle — less common in children but seen in significant ventricular hypertrophy or cardiomyopathy.",
-    "Murmur present": "Needs characterisation (timing, location, radiation, intensity, effect of position) to distinguish an innocent flow murmur from a pathological one (VSD, PDA, ASD, valve disease) — correlate with growth, cyanosis, and feeding history.",
-    "Pericardial rub": "Suggests pericarditis — consider infective (viral, TB, bacterial), rheumatic, or post-viral causes; check for chest pain worse on lying flat and a pericardial effusion on echo.",
-    "Systolic ejection murmur": "Often benign in children (flow murmur) but can indicate aortic or pulmonary stenosis. Note the location (upper left sternal edge vs. right upper), radiation (carotids), and intensity. Associate with thrill, pulses, and cyanosis.",
-"Pansystolic murmur": "Suggests a ventricular septal defect (VSD) or mitral regurgitation. Localise to the lower left sternal edge (VSD) or apex (MR). Assess for thrill, ejection click, and signs of heart failure.",
-"Diastolic murmur": "Rare in children – suggests aortic/pulmonary regurgitation or mitral stenosis. Always significant; urgently refer for echocardiogram.",
-"Continuous murmur": "Classic for patent ductus arteriosus (PDA) – heard throughout systole and diastole, often at the left upper sternal edge. Associated with bounding pulses and wide pulse pressure.",
-"Innocent murmur": "No structural heart disease. Typically soft, systolic, low intensity, changes with position, no thrill, normal S1/S2, and asymptomatic. Reassurance is sufficient.",
-"Murmur - unspecified": "Document the timing, location, radiation, intensity, and effect of manoeuvres. Correlate with symptoms (poor feeding, cyanosis, sweating, failure to thrive)."
-
-        // ===== ABDOMEN — Inspection =====
-    "Flat": "Reassuring — normal abdominal contour, argues against significant distension, obstruction, or organomegaly.",
-    "Distended": "Suggests obstruction, ascites, organomegaly, or gaseous distension from gastroenteritis/malabsorption — correlate with bowel sounds, percussion note, and vomiting pattern (bilious vs non-bilious).",
-    "Scaphoid": "Sunken abdomen — in a neonate with respiratory distress this raises concern for diaphragmatic hernia (abdominal contents in the chest); otherwise may reflect severe wasting/malnutrition.",
-    "Visible peristalsis": "Suggests bowel obstruction — in an infant 2-8 weeks with projectile vomiting this is classic for pyloric stenosis; in an older child consider mechanical obstruction.",
-    "Dilated veins": "Suggests portal hypertension (caput medusae pattern) or IVC obstruction — correlate with hepatosplenomegaly, ascites, and liver disease history.",
-    "Umbilical hernia": "Common and usually benign in infants, typically resolving by age 2-4; note size and whether easily reducible — rarely incarcerates.",
-    "Surgical scars": "Indicates prior abdominal surgery — establishes relevant past surgical history; ask about the indication, as adhesions can later cause obstruction.",
-    "Striae": "Suggests rapid weight change (nephrotic syndrome with oedema, steroid use, or rapid growth) — correlate with oedema, growth pattern, and medication history.",
-
-    // ===== ABDOMEN — Auscultation (first) =====
-    "Bowel sounds normal": "Reassuring against ileus or complete obstruction at the time of examination.",
-    "Bowel sounds absent": "Suggests paralytic ileus (post-op, sepsis, severe electrolyte disturbance) or advanced/late bowel obstruction — a concerning finding needing urgent assessment.",
-    "Bowel sounds increased (tinkling)": "Classic for mechanical bowel obstruction — high-pitched, tinkling sounds as the bowel tries to overcome an obstruction; correlate with distension and vomiting pattern.",
-    "Bruit": "Suggests a vascular abnormality (renal artery stenosis causing hypertension, or an AV malformation) — correlate with blood pressure and any abdominal mass.",
-
-    // ===== ABDOMEN — Palpation =====
-    "Soft": "Reassuring — argues against peritonitis or an acute surgical abdomen at the time of examination.",
-    "Rigid/Guarding": "Suggests peritonitis (perforation, appendicitis, advanced peritoneal infection) — a surgical emergency; get urgent surgical review and imaging.",
-    "Tenderness (generalised)": "Suggests a diffuse process — peritonitis, gastroenteritis, or early appendicitis before localisation; reassess serially as localisation may develop.",
-    "Tenderness (localised)": "Helps localise the pathology — RIF tenderness suggests appendicitis, RUQ suggests hepatobiliary disease, suprapubic suggests UTI/bladder — correlate location with the likely diagnosis.",
-    "Hepatomegaly": "Consider malaria, viral hepatitis, heart failure (congestive), haemolysis, or malignancy (e.g. leukaemia, neuroblastoma) — note size, consistency, and tenderness.",
-    "Splenomegaly": "Consider malaria (acute or hyperreactive malarial splenomegaly), sickle cell disease (in infants, before autosplenectomy), haemolytic anaemia, or malignancy — correlate with pallor and fever history.",
-    "Hepatosplenomegaly": "Suggests a systemic process affecting both organs — malaria, typhoid, leukaemia/lymphoma, or severe haemolysis; broaden investigation beyond a single-organ cause.",
-    "Renal mass": "Suggests Wilms tumour (painless, often found incidentally) especially in a child aged 1-5 years, or hydronephrosis — needs urgent ultrasound; avoid vigorous repeated palpation.",
-    "Other mass": "Needs characterisation by site, consistency, and mobility — consider Burkitt's lymphoma (rapidly growing, often abdominal in Uganda), faecal mass (constipation), or other intra-abdominal tumour.",
-
-    // ===== ABDOMEN — Percussion =====
-    "Tympanic": "Suggests gas-filled bowel — normal, or excessive gas from obstruction/aerophagia if accompanied by distension.",
-    "Dull (solid organ)": "Expected over the liver/spleen — if the area of dullness is enlarged, correlates with organomegaly found on palpation.",
-    "Dull (fluid — ascites)": "Suggests free fluid — consider nephrotic syndrome, kwashiorkor, liver disease, or heart failure; check for shifting dullness to confirm.",
-    "Liver dullness normal": "Reassuring — liver span within expected range for age.",
-    "Spleen dullness": "Suggests splenic enlargement even before it becomes palpable — correlate with malaria, haemolysis, or infection history.",
-    "Shifting dullness": "Confirms ascites — dullness shifts with position change as fluid moves; correlate with nutritional status, liver disease, or nephrotic syndrome.",
-
-        // ===== NEUROLOGICAL — Inspection =====
-    "Alert and oriented": "Reassuring — normal level of consciousness, argues against significant CNS pathology at the time of examination.",
-    "Drowsy": "Reduced level of consciousness — consider cerebral malaria, meningitis, hypoglycaemia, post-ictal state, or raised ICP. Check glucose urgently and reassess GCS/AVPU frequently.",
-    "Confused": "Altered mental status — consider CNS infection, metabolic disturbance (hypoglycaemia, electrolyte derangement), or post-ictal state; urgent glucose check and close monitoring needed.",
-    "Unresponsive": "Serious finding — protect the airway immediately, check glucose, and urgently investigate for meningitis, cerebral malaria, severe head injury, or poisoning.",
-    "Abnormal posture": "Decorticate (flexed arms) or decerebrate (extended, rigid) posturing suggests significant brain injury or raised intracranial pressure — a critical emergency sign requiring urgent senior review and neuroimaging.",
-    "Involuntary movements": "Consider seizure activity (may be subtle — eye deviation, lip smacking), movement disorder, or drug/toxin effect — describe the pattern carefully and correlate with consciousness level.",
-    "Bulging fontanelle": "Suggests raised intracranial pressure — meningitis, hydrocephalus, or encephalitis; avoid lumbar puncture without prior imaging if this is present with reduced consciousness.",
-    "Sunken fontanelle": "Suggests dehydration — correlate with skin turgor, urine output, and other dehydration signs to grade severity.",
-    "Microcephaly": "Suggests congenital infection, genetic syndrome, or perinatal brain injury — correlate with developmental milestones and consider early neuroimaging.",
-    "Macrocephaly": "Suggests hydrocephalus or raised ICP — check for developmental regression, sunsetting eyes, or rapid head growth on the growth chart.",
-
-    // ===== NEUROLOGICAL — Palpation =====
-    "Fontanelle tense": "Suggests raised intracranial pressure — meningitis, encephalitis, or hydrocephalus; correlate with irritability, vomiting, and consciousness level.",
-    "Fontanelle flat": "Normal finding — reassuring against raised ICP or dehydration at the time of examination.",
-    "Fontanelle sunken": "Suggests dehydration — correlate with skin turgor and other fluid-status signs.",
-    "Neck stiffness": "Suggests meningeal irritation — meningitis (bacterial, TB, viral) or cerebral malaria; correlate with fever, photophobia, and consciousness level to guide urgency of LP/antibiotics.",
-    "Kernig's sign positive": "Suggests meningeal irritation — supports a diagnosis of meningitis, though it can be falsely negative in young infants; correlate with other meningeal signs.",
-    "Brudzinski's sign positive": "Suggests meningeal irritation — supports meningitis; combine with neck stiffness and Kernig's sign to strengthen clinical suspicion pending LP.",
-
-    // ===== NEUROLOGICAL — Motor/Reflexes =====
-    "Tone normal": "Reassuring — no evidence of upper or lower motor neurone dysfunction at the time of examination.",
-    "Hypotonia": "Suggests a lower motor neurone problem, spinal cord issue, or acute encephalopathy (e.g. sepsis, hypoglycaemia) — in infants also consider genetic/metabolic causes (e.g. Down syndrome, spinal muscular atrophy).",
-    "Hypertonia": "Suggests an upper motor neurone lesion — consider cerebral palsy (chronic), or an acute process like meningitis/encephalitis/raised ICP if new onset.",
-    "Power normal": "Reassuring — no focal or generalised weakness detected.",
-    "Weakness": "Suggests a focal neurological lesion (stroke, mass, abscess), Guillain-Barré syndrome (if ascending and symmetric), or a post-ictal (Todd's) paresis — localise the pattern (focal vs symmetric, proximal vs distal).",
-    "Reflexes normal": "Reassuring — no evidence of upper or lower motor neurone pathology.",
-    "Hyperreflexia": "Suggests an upper motor neurone lesion — consider cerebral palsy, spinal cord compression above the level, or an acute CNS insult.",
-    "Hyporeflexia": "Suggests a lower motor neurone or peripheral nerve problem — consider Guillain-Barré syndrome, or it may be a normal finding in a very young infant.",
-    "Babinski positive": "Upgoing plantar response — normal in infants <12 months, but suggests an upper motor neurone lesion in older children (cerebral palsy, spinal cord pathology, acute CNS insult).",
-    "Clonus": "Suggests an upper motor neurone lesion — correlate with hyperreflexia and hypertonia to build a picture of spasticity from a CNS process.",
-
-    // ===== NEUROLOGICAL — Cranial nerves =====
-    "Pupils equal reactive": "Reassuring — argues against raised ICP causing unilateral third nerve compression, or significant brainstem pathology.",
-    "Pupils unequal": "Suggests raised intracranial pressure with uncal herniation (fixed dilated pupil), or a focal brainstem/third nerve lesion — an emergency sign requiring urgent neuroimaging and senior review.",
-    "Facial asymmetry": "Suggests a facial nerve palsy (peripheral — e.g. Bell's palsy, otitis media complication) or a central lesion (stroke, mass) — check if forehead sparing (central) or not (peripheral).",
-    "Gaze deviation": "May indicate an active or recent seizure focus, or a structural brain lesion — correlate with consciousness level and any convulsive activity.",
-
-        // ===== SKIN — Inspection =====
-    "Normal skin": "Reassuring — no cutaneous signs of systemic illness or nutritional deficiency.",
-    "Pallor": "Suggests anaemia — correlate with conjunctival/palmar pallor, Hb, and possible causes (malaria, iron deficiency, haemolysis, bleeding).",
-    "Jaundice": "Suggests haemolysis, hepatitis, or biliary obstruction — correlate with onset timing, stool/urine colour, and hepatosplenomegaly.",
-    "Cyanosis": "Suggests hypoxaemia from respiratory or cyanotic cardiac disease — check SpO2 and correlate with respiratory/cardiac exam.",
-    "Rash (maculopapular)": "Consider measles (if with fever/cough/coryza/conjunctivitis), viral exanthem, or drug reaction — note distribution and spread pattern (face-to-trunk suggests measles).",
-    "Rash (vesicular)": "Consider chickenpox (crops of lesions at different stages) or herpes infection — check for mucosal involvement and systemic symptoms.",
-    "Petechiae": "Non-blanching pinpoint spots — urgent concern for meningococcaemia if febrile and unwell, or platelet/coagulation disorder if afebrile and well; do the glass test.",
-    "Purpura": "Suggests a bleeding disorder (ITP, coagulopathy) or severe sepsis (meningococcaemia, DIC) — assess for other bleeding sites and overall clinical stability urgently.",
-    "Bruising": "Unexplained or excessive bruising suggests a platelet/clotting disorder or, rarely, non-accidental injury — pattern and distribution matter; correlate with FBC.",
-    "Flaky paint dermatosis": "Classic for kwashiorkor — combine with oedema and hair changes to confirm oedematous severe acute malnutrition.",
-    "Wasting (loose skin)": "Suggests marasmus (non-oedematous SAM) — correlate with MUAC and weight-for-height Z-score.",
-    "Oedema (pitting)": "Suggests kwashiorkor, nephrotic syndrome, or cardiac failure — check distribution and correlate with urine and cardiac findings.",
-    "Oedema (non-pitting)": "Suggests lymphoedema (e.g. filariasis) rather than a fluid/protein/cardiac cause — less urgent but note chronicity.",
-    "Wounds/ulcers": "Consider infected wounds, sickle cell leg ulcers, or pressure injury in an immobile/malnourished child — assess for signs of secondary infection.",
-    "Scabies": "Intensely itchy, worse at night, classically in finger webs and flexures — treat the whole household to prevent reinfection.",
-    "Tinea": "Fungal skin infection — usually benign but check for extensive or recurrent presentation which may suggest underlying immunosuppression (e.g. HIV).",
-
-    // ===== SKIN — Palpation =====
-    "Skin turgor normal": "Reassuring against significant dehydration.",
-    "Skin turgor reduced": "Suggests at least moderate dehydration — combine with sunken eyes and thirst to grade severity.",
-    "Lymphadenopathy (cervical)": "Consider reactive infection (throat, ear, scalp), TB, or malignancy — note size, tenderness, and whether unilateral or bilateral.",
-    "Lymphadenopathy (axillary)": "Consider local infection (arm, hand) or, less commonly, malignancy — correlate with any regional skin lesion or infection.",
-    "Lymphadenopathy (inguinal)": "Consider local infection (leg, foot, perineal) or reactive lymphadenopathy — check for a source below the node.",
-    "Generalised lymphadenopathy": "Suggests a systemic process — consider HIV, TB, EBV, or lymphoproliferative disease; broaden the work-up beyond a single local cause.",
-
-    // ===== ENT — Inspection =====
-    "Normal tympanic membranes": "Reassuring against acute or chronic otitis media.",
-    "Perforated TM": "Suggests acute otitis media with perforation or chronic suppurative otitis media (if long-standing) — note discharge character and duration.",
-    "Congested TM": "Suggests early/acute otitis media — correlate with ear pain, fever, and irritability.",
-    "Ear discharge (purulent)": "Suggests acute otitis media with perforation, or CSOM if present >2 weeks — treat accordingly and check for mastoid tenderness.",
-    "Ear discharge (clear)": "Consider otitis externa or, after head trauma, a CSF leak — correlate with trauma history urgently if the latter is possible.",
-    "Mastoid tenderness": "Red flag for mastoiditis — a complication of otitis media needing urgent IV antibiotics and ENT referral.",
-    "Normal oropharynx": "Reassuring against tonsillitis, pharyngitis, or oral pathology.",
-    "Inflamed throat": "Suggests viral or bacterial pharyngitis — correlate with fever, tonsillar exudate, and cervical lymphadenopathy.",
-    "Tonsillar enlargement": "Consider tonsillitis (viral or bacterial) — correlate with exudate, fever, and difficulty swallowing.",
-    "Tonsillar exudate": "Suggests bacterial (e.g. streptococcal) tonsillitis — consider antibiotics if clinical criteria support bacterial cause; also consider EBV if with generalised lymphadenopathy/hepatosplenomegaly.",
-    "Oral thrush": "Suggests candidiasis — common in infants, but recurrent or extensive thrush in an older child should raise suspicion for HIV or other immunosuppression.",
-    "Koplik's spots": "Pathognomonic for measles — appear before the skin rash; confirm the diagnosis and ensure vitamin A is given.",
-    "Dry mucous membranes": "Suggests dehydration — correlate with skin turgor, sunken eyes, and thirst to grade severity.",
-
-    // ===== ENT — Palpation =====
-    "Cervical lymphadenopathy": "Consider reactive infection (throat, ear, scalp), TB, or malignancy depending on chronicity, tenderness, and size.",
-    "Submandibular lymphadenopathy": "Usually reactive to dental or oral infection — check for dental caries or oral lesions as the source.",
-    "Parotid enlargement": "Consider mumps (if with fever and bilateral swelling), recurrent parotitis, or HIV-associated parotid enlargement in a chronically unwell child."
-
-        }; 
-
-        
-      function getExamFindingClue(examKey, stepName, finding) {
-    const systemName = examSystems[examKey]?.name || 'this system';
-    if (examFindingClues[finding]) return examFindingClues[finding];
-    return `In ${systemName}, this ${stepName || 'finding'} should be described by site, side, severity, duration, and whether it supports or rules against the main complaint.`;
-}
 
         function showExamFindingClue(btn) {
-    const examKey = btn.dataset.exam;
-    const stepName = btn.dataset.step;
-    const finding = btn.dataset.finding;
-    const clue = getExamFindingClue(examKey, stepName, finding);
-    const wrap = btn.closest('.pe-findings-wrap');
-    if (!wrap) return;
-    // Remove any existing clue panel inside this wrap
-    let panel = wrap.querySelector('.exam-clue-panel');
-    if (panel) panel.remove();
-    // Create and insert the new clue panel
-    panel = document.createElement('div');
-    panel.className = 'exam-clue-panel';
-    panel.innerHTML = `<strong>💡 Clue:</strong> ${clue}`;
-    wrap.appendChild(panel);
-}
+            const wrap = btn.closest('.pe-findings-wrap');
+            if (!wrap) return;
+            let panel = wrap.querySelector('.exam-clue-panel');
+            if (!panel) {
+                panel = document.createElement('div');
+                panel.className = 'exam-clue-panel';
+                wrap.appendChild(panel);
+            }
+            const finding = btn.dataset.finding || btn.textContent.replace(' âœ“', '');
+            panel.innerHTML = `<strong>${finding} clue:</strong> ${getExamFindingClue(btn.dataset.exam, btn.dataset.step, finding)}`;
+        }
+
         function updatePediatricGCS() {
             const eye = parseInt(document.getElementById('pGcsEye')?.value || '0', 10);
             const verbal = parseInt(document.getElementById('pGcsVerbal')?.value || '0', 10);
