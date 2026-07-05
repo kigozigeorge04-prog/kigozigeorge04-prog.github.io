@@ -4549,6 +4549,22 @@ const examFindingClues = {
     return `In ${systemName}, this ${stepName || 'finding'} should be described by site, side, severity, duration, and whether it supports or rules against the main complaint.`;
 }
 
+        function showExamFindingClue(btn) {
+    const examKey = btn.dataset.exam;
+    const stepName = btn.dataset.step;
+    const finding = btn.dataset.finding;
+    const clue = getExamFindingClue(examKey, stepName, finding);
+    const wrap = btn.closest('.pe-findings-wrap');
+    if (!wrap) return;
+    // Remove any existing clue panel inside this wrap
+    let panel = wrap.querySelector('.exam-clue-panel');
+    if (panel) panel.remove();
+    // Create and insert the new clue panel
+    panel = document.createElement('div');
+    panel.className = 'exam-clue-panel';
+    panel.innerHTML = `<strong>💡 Clue:</strong> ${clue}`;
+    wrap.appendChild(panel);
+}
         function updatePediatricGCS() {
             const eye = parseInt(document.getElementById('pGcsEye')?.value || '0', 10);
             const verbal = parseInt(document.getElementById('pGcsVerbal')?.value || '0', 10);
