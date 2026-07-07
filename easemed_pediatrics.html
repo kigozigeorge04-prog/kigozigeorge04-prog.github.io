@@ -5625,102 +5625,7 @@
         // ============================================================
         // EXPANDED SYMPTOM, ROS, AND EXAM GUIDES
         // ============================================================
-        const expandedSymptomGuideData = {
-            'fever': { title: 'Fever', focus: ['malaria or sepsis', 'meningitis', 'pneumonia or UTI'], exam: ['Temperature, perfusion, hydration', 'Neck stiffness, rash, respiratory signs'] },
-            'cough': { title: 'Cough', focus: ['pneumonia', 'asthma or bronchiolitis', 'TB or foreign body'], exam: ['Respiratory rate, indrawing, SpO2', 'Auscultate for crackles, wheeze, reduced air entry'] },
-            'diarrhea': { title: 'Diarrhoea / Vomiting', focus: ['dehydration', 'dysentery', 'intestinal obstruction'], exam: ['Hydration status and capillary refill', 'Abdominal tenderness, distension, bowel sounds'] },
-            'poor feeding': { title: 'Poor Feeding', focus: ['sepsis', 'oral lesions', 'cardiac or respiratory fatigue'], exam: ['Hydration, weight, oral cavity', 'Respiratory distress and heart failure signs'] },
-            'convulsions': { title: 'Convulsions', focus: ['febrile seizure', 'meningitis or cerebral malaria', 'hypoglycaemia or epilepsy'], exam: ['Glucose, temperature, GCS/AVPU', 'Meningism, focal neurology, injury'] },
-            'rash': { title: 'Skin Rash', focus: ['measles or varicella', 'meningococcaemia', 'allergy or eczema'], exam: ['Blanching, distribution, mucosa', 'Fever, toxicity, lymph nodes'] },
-            'jaundice': { title: 'Jaundice', focus: ['haemolysis', 'hepatitis', 'biliary obstruction'], exam: ['Pallor, hepatosplenomegaly', 'Stool/urine colour, hydration, neurologic state'] },
-            'pain': { title: 'Pain', focus: ['site and severity', 'surgical abdomen', 'urinary, bone, or chest source'], exam: ['Localise tenderness and guarding', 'Check vitals, mobility, organ-specific signs'] },
-            'difficulty breathing': { title: 'Difficulty Breathing', focus: ['pneumonia', 'asthma or bronchiolitis', 'upper-airway obstruction'], exam: ['RR, SpO2, indrawing, grunting', 'Wheeze, stridor, crackles, air entry'] },
-            'swelling': { title: 'Swelling', focus: ['infection or abscess', 'renal or cardiac oedema', 'mass or lymph node'], exam: ['Site, warmth, tenderness, fluctuation', 'Pitting, lymph nodes, organomegaly'] },
-            'lethargy': { title: 'Lethargy / Irritability', focus: ['sepsis', 'hypoglycaemia', 'CNS infection'], exam: ['AVPU/GCS and glucose', 'Perfusion, hydration, meningism'] },
-            'pallor': { title: 'Pallor', focus: ['anaemia', 'malaria', 'bleeding or malignancy'], exam: ['Conjunctiva, palms, tachycardia', 'Jaundice, spleen, lymph nodes'] },
-            'neck stiffness': { title: 'Neck Stiffness', focus: ['meningitis', 'cerebral malaria', 'subarachnoid bleed or trauma'], exam: ['Kernig/Brudzinski, fontanelle', 'GCS, rash, focal neurology'] },
-            'ear discharge': { title: 'Ear Discharge', focus: ['otitis media', 'mastoiditis', 'cholesteatoma or trauma'], exam: ['Otoscopic appearance', 'Mastoid tenderness, hearing, fever'] },
-            'oedema': { title: 'Oedema', focus: ['nephrotic syndrome', 'kwashiorkor', 'heart failure'], exam: ['Pitting, distribution, BP', 'Ascites, hepatomegaly, nutrition signs'] },
-            'abdominal distension': { title: 'Abdominal Distension', focus: ['obstruction', 'ascites', 'organomegaly or mass'], exam: ['Bowel sounds, percussion note', 'Tenderness, liver, spleen, shifting dullness'] },
-            'failure to thrive': { title: 'Failure to Thrive', focus: ['inadequate intake', 'malabsorption', 'chronic infection'], exam: ['Growth chart, MUAC, wasting', 'Development, mouth, chest, abdomen'] },
-            'limping / bone pain': { title: 'Limping / Bone Pain', focus: ['septic arthritis', 'trauma', 'sickle crisis or malignancy'], exam: ['Joint warmth/swelling/range', 'Gait, focal bone tenderness, fever'] },
-            'haematuria': { title: 'Haematuria', focus: ['UTI', 'glomerulonephritis', 'stones or schistosomiasis'], exam: ['BP, oedema, loin tenderness', 'Abdominal mass, hydration'] },
-            'dysuria / frequency': { title: 'Dysuria / Frequency', focus: ['UTI', 'pyelonephritis', 'obstruction or irritation'], exam: ['Fever, loin tenderness', 'Bladder distension, genital exam where appropriate'] },
-            'delayed speech': { title: 'Developmental Delay', focus: ['hearing impairment', 'global delay', 'regression'], exam: ['Hearing response, neuro exam', 'Growth, dysmorphism, milestone screen'] },
-            'eye problems': { title: 'Eye Problems', focus: ['conjunctivitis', 'corneal disease', 'measles or trauma'], exam: ['Redness, discharge, photophobia', 'Visual behaviour, pupils, eyelids'] },
-            'bleeding / bruising': { title: 'Bleeding / Bruising', focus: ['platelet disorder', 'coagulopathy', 'sepsis or malignancy'], exam: ['Petechiae/purpura distribution', 'Pallor, liver/spleen, joints'] },
-            'unconsciousness': { title: 'Unconsciousness', focus: ['hypoglycaemia', 'sepsis/meningitis/malaria', 'poisoning or trauma'], exam: ['ABC, glucose, GCS', 'Pupils, meningism, injury, perfusion'] },
-            'malnutrition': { title: 'Malnutrition', focus: ['SAM/MAM', 'HIV/TB', 'feeding insecurity'], exam: ['MUAC, oedema, wasting', 'Skin/hair changes, hypothermia, infection'] },
-            'neonatal problems': { title: 'Neonatal Problems', focus: ['sepsis', 'jaundice', 'respiratory distress'], exam: ['Temperature, feeding, tone', 'Jaundice level, breathing, abdomen, cord'] },
-            'other': { title: 'Other Complaint', focus: ['danger signs', 'duration and progression', 'system review'], exam: ['Vitals and general appearance', 'Focused exam guided by the complaint'] }
-        };
-
-        const baseSymptomQuestions = [
-            'What exactly is the parent or child describing?',
-            'When did it start and how long has it been present?',
-            'Has it become worse, improved, or fluctuated?',
-            'How severe is it and how is daily activity affected?',
-            'What triggers it or makes it better?',
-            'Any fever, reduced feeding, vomiting, diarrhoea, cough, rash, urinary change, or pain elsewhere?',
-            'Any danger signs: unable to drink, convulsions, lethargy, cyanosis, severe respiratory distress, or persistent vomiting?',
-            'Any previous similar episode, chronic illness, admission, surgery, or known allergy?',
-            'Any treatment already given and did it help?',
-            'Any sick contact, TB contact, travel, animal exposure, new food/drug, or missed immunisation?'
-        ];
-
-        function makeQuestion(text, index, guide) {
-            const focus = guide.focus[index % guide.focus.length];
-            return {
-                q: text,
-                hint: 'Clue: ' + focus,
-                clues: [
-                    { label: 'Present', color: '#c0392b' },
-                    { label: 'Absent', color: '#27ae60' },
-                    { label: 'Unclear', color: '#8e44ad' }
-                ]
-            };
-        }
-
-        function applyExpandedSymptomGuides() {
-            Object.entries(expandedSymptomGuideData).forEach(([key, guide]) => {
-                const questions = baseSymptomQuestions.map((q, idx) => makeQuestion(q, idx, guide));
-                symptomGuides[key] = {
-                    title: guide.title,
-                    chapter: 'Focused pediatric guide',
-                    questions,
-                    redFlags: [
-                        'Any danger sign needs urgent senior review.',
-                        'Abnormal vitals or poor perfusion should be acted on immediately.',
-                        'Very young infants can look deceptively well early in serious illness.'
-                    ],
-                    tips: guide.focus.concat(guide.exam)
-                };
-
-                const panel = document.getElementById('hint-' + key);
-                if (panel) {
-                    panel.innerHTML = `
-                        <div class="hint-panel-title">${guide.title} - Clinical Guide</div>
-                        <div class="symptom-guide">
-                            <div class="symptom-guide-title">Key Questions</div>
-                            <ul>${questions.map(item => `<li><strong>${item.q}</strong> ${item.hint}</li>`).join('')}</ul>
-                        </div>
-                        <div class="symptom-guide">
-                            <div class="symptom-guide-title">ROS Clues</div>
-                            <ul>${guide.focus.map(item => `<li>${item}</li>`).join('')}</ul>
-                        </div>
-                        <div class="symptom-guide">
-                            <div class="symptom-guide-title">Physical Examination Guide</div>
-                            <ul>${guide.exam.map(item => `<li>${item}</li>`).join('')}</ul>
-                        </div>
-                        <div class="red-flags">
-                            <div class="red-flags-title">Red Flags</div>
-                            <ul><li>Danger signs, abnormal vitals, altered consciousness, severe dehydration, cyanosis, or shock.</li></ul>
-                        </div>`;
-                }
-            });
-        }
-
-        const rosSystemGuides = {
+            const rosSystemGuides = {
             cardiovascular: ['Feeding fatigue, sweating, cyanosis, syncope, oedema.', 'Look for murmur, pulses, perfusion, hepatomegaly.'],
             respiratory: ['Cough, fast breathing, wheeze, stridor, TB contact.', 'Count RR, check SpO2, indrawing, air entry, crackles/wheeze.'],
             gastrointestinal: ['Vomiting, stool character, jaundice, abdominal pain, appetite.', 'Assess hydration, abdomen, liver, spleen, bowel sounds.'],
@@ -8585,7 +8490,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             buildTogglePills();
             buildImmunizationGrid();
-            applyExpandedSymptomGuides();
             buildROS();
             buildExamCards();
             renderGallery();
