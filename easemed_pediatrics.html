@@ -987,7 +987,85 @@
             accent-color: var(--primary);
             margin: 0;
         }
+.pe-finding-tag {
+    position: relative; /* Required for tooltip positioning */
+}
 
+.pe-clue-tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%) translateY(4px);
+    width: max-content;
+    max-width: 240px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #102a43;
+    color: #fff;
+    font-size: 0.65rem;
+    line-height: 1.3;
+    font-weight: 500;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 30;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    white-space: normal;
+}
+
+.pe-finding-tag .pe-clue-tooltip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    border-width: 5px 5px 0 5px;
+    border-style: solid;
+    border-color: #102a43 transparent transparent transparent;
+}
+
+.pe-finding-tag.show-clue .pe-clue-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Left‑aligned tooltip */
+.pe-finding-tag.clue-align-left .pe-clue-tooltip {
+    left: 0;
+    transform: translateX(0) translateY(0);
+}
+.pe-finding-tag.clue-align-left .pe-clue-tooltip::after {
+    left: 14px;
+    transform: translateX(0);
+}
+
+/* Right‑aligned tooltip */
+.pe-finding-tag.clue-align-right .pe-clue-tooltip {
+    left: auto;
+    right: 0;
+    transform: translateX(0) translateY(0);
+}
+.pe-finding-tag.clue-align-right .pe-clue-tooltip::after {
+    left: auto;
+    right: 14px;
+    transform: translateX(0);
+}
+
+.pe-abnormal-alert {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.7rem;
+    color: #c53030;
+    margin-top: 6px;
+}
+.pe-abnormal-alert.show {
+    display: flex;
+}
         /* --- MUAC Feedback --- */
         .muac-feedback {
             padding: 6px 12px;
@@ -3646,8 +3724,7 @@
                                     <div class="pe-findings-wrap" data-exam="${key}" data-step="${step.name}">
                             `;
                      step.items.forEach(item => {
-                         bodyHtml +=
-                            `<button class="pe-finding-tag" data-exam="${key}" data-step="${step.name}" data-finding="${item}" onclick="togglePEFinding(this)">${item}</button>`;
+                       bodyHtml += `<button class="pe-finding-tag" data-exam="${key}" data-step="${step.name}" data-finding="${item}" onclick="togglePEFinding(this)">${item}</button>`;
                      });
                     bodyHtml += `
                                     </div>
@@ -3719,14 +3796,13 @@
                              `;
                 }
 
-                bodyHtml += `
-                            <button class="pe-normal-btn" onclick="markPENormal('${key}')">✅ All Normal</button>
-                            <div class="pe-other">
-                                <label style="font-size:0.7rem; color:var(--muted);">Additional notes:</label>
-                                <textarea id="exam-${key}-notes" placeholder="Additional findings..." rows="2"></textarea>
-                            </div>
-                        </div>
-                    `;
+               bodyHtml += `
+    <button class="pe-normal-btn" onclick="markPENormal('${key}')">✅ All Normal</button>
+    <div class="pe-other">
+        <label style="font-size:0.7rem; color:var(--muted);">Additional notes:</label>
+        <textarea id="exam-${key}-notes" placeholder="Additional findings..." rows="2"></textarea>
+    </div>
+`;
 
                 card.innerHTML = headerHtml + bodyHtml;
                 container.appendChild(card);
@@ -3739,7 +3815,207 @@
 
             checkVitals();
         }
+const PEDS_PE_CLUES = {
+    // General & Vitals
+    "Pallor": "Think anaemia, chronic disease, or blood loss.",
+    "Jaundiced": "Consider hepatitis, obstruction, or haemolysis.",
+    "Cyanosed": "Hypoxaemia or poor perfusion. Check SpO₂, respiratory effort, pulses.",
+    "Oedematous": "Heart failure, renal disease, liver disease, or malnutrition.",
+    "Dehydrated": "Reduced intake, losses (diarrhoea, vomiting), or third‑space losses.",
+    "Malnourished": "Chronic undernutrition, infection, or malabsorption.",
+    "Dysmorphic features": "Consider genetic or congenital syndromes.",
+    "Lymphadenopathy present": "Infection, TB, HIV, lymphoma, or malignancy.",
+    "Reduced skin turgor": "Dehydration – assess intake, losses, and urine output.",
+    // Respiratory
+    "Barrel chest": "Chronic hyperinflation – asthma, COPD, cystic fibrosis.",
+    "Chest asymmetry": "Pneumothorax, effusion, or collapse.",
+    "Harrison's sulcus": "Chronic respiratory distress, rickets.",
+    "Chest indrawing (subcostal)": "Lower airway obstruction – pneumonia, bronchiolitis.",
+    "Intercostal recession": "Increased work of breathing – asthma, bronchiolitis.",
+    "Nasal flaring": "Respiratory distress – pneumonia, bronchiolitis.",
+    "Tracheal tug": "Severe respiratory distress – croup, epiglottitis.",
+    "Head nodding": "Severe respiratory distress – metabolic acidosis (e.g., DKA).",
+    "Grunting": "Severe pneumonia, pulmonary oedema – urgent.",
+    "Use of accessory muscles": "Respiratory distress – asthma, pneumonia, COPD.",
+    "Trachea deviated": "Tension pneumothorax, large effusion, or mass.",
+    "Reduced chest expansion": "Pleural effusion, fibrosis, or collapse.",
+    "Tactile fremitus increased": "Consolidation – pneumonia, tumour.",
+    "Tactile fremitus reduced": "Effusion, pneumothorax, or fibrosis.",
+    "Dull": "Consolidation or effusion.",
+    "Stony dull": "Pleural effusion – urgent drainage.",
+    "Hyperresonant": "Pneumothorax or hyperinflation.",
+    "Bronchial breathing": "Consolidation above a patent airway.",
+    "Reduced air entry": "Effusion, collapse, or pneumothorax.",
+    "Absent air entry": "Massive effusion or pneumothorax.",
+    "Fine crackles": "Fibrosis, early oedema, interstitial disease.",
+    "Coarse crackles": "Secretions, bronchiectasis, pulmonary oedema.",
+    "Wheeze (expiratory)": "Asthma, bronchiolitis, lower airway narrowing.",
+    "Stridor (inspiratory)": "Upper airway obstruction – croup, epiglottitis, foreign body.",
+    "Pleural rub": "Pleurisy, pulmonary infarction.",
+    // Cardiovascular
+    "Precordial bulge": "Cardiomegaly – congenital heart disease, pericardial effusion.",
+    "Scars (sternotomy)": "Previous cardiac surgery.",
+    "Peripheral oedema": "Heart failure, renal disease, venous insufficiency.",
+    "Clubbing": "Cyanotic heart disease, lung disease, IBD.",
+    "Cyanosis (central)": "Hypoxaemia – congenital heart disease, pulmonary disease.",
+    "Cyanosis (peripheral)": "Poor perfusion – shock, cold, or heart failure.",
+    "Apex beat displaced": "Cardiomegaly – LV enlargement.",
+    "Heave": "Ventricular hypertrophy – pressure overload.",
+    "Thrill": "Palpable murmur – stenosis or shunt.",
+    "Weak pulses": "Low cardiac output – shock, coarctation, severe AS.",
+    "Bounding pulses": "High output state – PDA, aortic regurgitation, sepsis.",
+    "Capillary refill >2s": "Shock, dehydration, or vasoconstriction.",
+    "S3 (gallop)": "Heart failure or volume overload.",
+    "S4": "Stiff ventricle – hypertension, aortic stenosis.",
+    "Murmur present": "Valve lesion, shunt, or flow murmur – classify by timing, site, radiation.",
+    "Pericardial rub": "Pericarditis – pain, fever, muffled sounds.",
+    // Abdomen
+    "Distended": "Gas, ascites, obstruction, or mass.",
+    "Scaphoid": "Malnutrition or dehydration.",
+    "Visible peristalsis": "Intestinal obstruction – urgent.",
+    "Dilated veins": "Portal hypertension – liver disease.",
+    "Umbilical hernia": "Common in African children; often resolves, but rule out obstruction.",
+    "Surgical scars": "Previous surgery – inquire about indication.",
+    "Striae": "Recent weight gain, Cushing's syndrome, or stretching.",
+    "Bowel sounds absent": "Ileus or peritonitis – urgent.",
+    "Bowel sounds increased (tinkling)": "Early obstruction – urgent.",
+    "Bruit": "Vascular stenosis or aneurysm.",
+    "Rigid/Guarding": "Peritonitis – surgical emergency.",
+    "Tenderness (generalised)": "Diffuse peritoneal irritation.",
+    "Tenderness (localised)": "Appendicitis, cholecystitis, abscess, etc.",
+    "Hepatomegaly": "Heart failure, malaria, hepatitis, storage disease.",
+    "Splenomegaly": "Malaria, portal hypertension, haematological disease.",
+    "Hepatosplenomegaly": "Malaria, lymphoma, storage disease, HIV.",
+    "Renal mass": "Wilms tumour, hydronephrosis, polycystic kidney.",
+    "Other mass": "Tumour, abscess, or cyst – urgent imaging.",
+    "Tympanic": "Normal gas pattern.",
+    "Dull (solid organ)": "Enlarged liver, spleen, or mass.",
+    "Dull (fluid — ascites)": "Ascites – liver, cardiac, renal, or malignant.",
+    "Liver dullness normal": "Reassuring.",
+    "Spleen dullness": "Splenomegaly.",
+    "Shifting dullness": "Ascites – confirm with fluid thrill.",
+    // Neurological
+    "Drowsy": "Metabolic, CNS infection, raised ICP, or toxic.",
+    "Confused": "Delirium, metabolic, encephalopathy.",
+    "Unresponsive": "Coma – ABC, glucose, consider meningitis, malaria, trauma.",
+    "Abnormal posture": "Decorticate (flexion) or decerebrate (extension) – raised ICP.",
+    "Involuntary movements": "Seizures, chorea, dystonia – neurological condition.",
+    "Bulging fontanelle": "Raised ICP – meningitis, hydrocephalus, mass.",
+    "Sunken fontanelle": "Dehydration – urgent rehydration.",
+    "Microcephaly": "Congenital infection, genetic, or prenatal insult.",
+    "Macrocephaly": "Hydrocephalus, storage disease, genetic.",
+    "Fontanelle tense": "Raised ICP – urgent assessment.",
+    "Fontanelle flat": "Normal for age.",
+    "Fontanelle sunken": "Dehydration.",
+    "Neck stiffness": "Meningitis or SAH – urgent antibiotics and LP.",
+    "Kernig's sign positive": "Meningeal irritation – meningitis.",
+    "Brudzinski's sign positive": "Meningeal irritation – meningitis.",
+    "Hypotonia": "LMN lesion, myopathy, or acute illness.",
+    "Hypertonia": "UMN lesion – cerebral palsy, stroke, or metabolic.",
+    "Weakness": "UMN or LMN lesion – localise.",
+    "Hyperreflexia": "UMN lesion.",
+    "Hyporeflexia": "LMN lesion.",
+    "Babinski positive": "UMN lesion – corticospinal tract.",
+    "Clonus": "UMN lesion – upper motor neuron.",
+    "Pupils unequal": "CN III palsy, raised ICP, or local trauma.",
+    "Facial asymmetry": "Facial nerve palsy, stroke, or congenital.",
+    "Gaze deviation": "Brainstem lesion, stroke, or seizures.",
+    // Skin
+    "Rash (maculopapular)": "Measles, rubella, viral exanthem, drug reaction.",
+    "Rash (vesicular)": "Chickenpox, herpes, hand‑foot‑mouth.",
+    "Petechiae": "ITP, meningococcaemia, leukaemia – urgent if fever.",
+    "Purpura": "Vasculitis, DIC, meningococcaemia – urgent.",
+    "Bruising": "ITP, coagulation disorder, trauma, or non‑accidental injury.",
+    "Flaky paint dermatosis": "Kwashiorkor – protein malnutrition.",
+    "Wasting (loose skin)": "Marasmus – severe malnutrition.",
+    "Oedema (pitting)": "Nephrotic, cardiac, or kwashiorkor.",
+    "Oedema (non-pitting)": "Lymphoedema, myxoedema.",
+    "Wounds/ulcers": "Infection, vascular insufficiency, or pressure.",
+    "Scabies": "Intense itch, worse at night – treat whole family.",
+    "Tinea": "Fungal infection – topical antifungals.",
+    "Lymphadenopathy (cervical)": "Infection, TB, lymphoma.",
+    "Lymphadenopathy (axillary)": "Infection, lymphoma, breast pathology.",
+    "Lymphadenopathy (inguinal)": "Infection, lymphoma, lower limb malignancy.",
+    "Generalised lymphadenopathy": "HIV, TB, lymphoma, leukaemia.",
+    // ENT
+    "Perforated TM": "AOM with perforation, trauma, or CSOM.",
+    "Congested TM": "Acute otitis media – pain, fever.",
+    "Ear discharge (purulent)": "Acute or chronic suppurative otitis media.",
+    "Ear discharge (clear)": "CSF leak or allergy.",
+    "Mastoid tenderness": "Mastoiditis – IV antibiotics.",
+    "Inflamed throat": "Pharyngitis, tonsillitis – viral or bacterial.",
+    "Tonsillar enlargement": "Infection, EBV, or obstruction.",
+    "Tonsillar exudate": "Strep throat, tonsillitis.",
+    "Oral thrush": "Candidiasis – HIV, immunosuppression, antibiotic use.",
+    "Koplik's spots": "Measles – pathognomonic.",
+    "Dry mucous membranes": "Dehydration – assess hydration status.",
+    "Submandibular lymphadenopathy": "Oral or tonsillar infection.",
+    "Parotid enlargement": "Mumps, parotitis, or tumour."
+};
 
+// Function to get clue for a finding
+function getPedsPEClue(finding) {
+    return PEDS_PE_CLUES[finding] || `Correlate this finding with the clinical history and other examination signs.`;
+}  
+function showPEFindingClue(btn) {
+    // Remove any existing tooltip on this button
+    const oldTooltip = btn.querySelector('.pe-clue-tooltip');
+    if (oldTooltip) oldTooltip.remove();
+
+    // Clear other active tooltips
+    document.querySelectorAll('.pe-finding-tag.show-clue').forEach(t => {
+        if (t !== btn) {
+            t.classList.remove('show-clue', 'clue-align-left', 'clue-align-right');
+            const tip = t.querySelector('.pe-clue-tooltip');
+            if (tip) tip.remove();
+        }
+    });
+
+    const finding = btn.dataset.finding || btn.textContent.replace(' ✓', '');
+    const clue = getPedsPEClue(finding);
+
+    // Create tooltip element
+    const tooltip = document.createElement('span');
+    tooltip.className = 'pe-clue-tooltip';
+    tooltip.textContent = clue;
+    btn.appendChild(tooltip);
+
+    // Position it after a short delay to allow layout
+    requestAnimationFrame(() => {
+        btn.classList.add('show-clue');
+        // Smart positioning: align left/right if tooltip overflows
+        const rect = tooltip.getBoundingClientRect();
+        const margin = 10;
+        if (rect.left < margin) {
+            btn.classList.add('clue-align-left');
+        } else if (rect.right > window.innerWidth - margin) {
+            btn.classList.add('clue-align-right');
+        }
+    });
+
+    // Auto‑hide after 2.5 seconds
+    clearTimeout(btn._clueTimer);
+    btn._clueTimer = setTimeout(() => {
+        btn.classList.remove('show-clue', 'clue-align-left', 'clue-align-right');
+        const tip = btn.querySelector('.pe-clue-tooltip');
+        if (tip) tip.remove();
+    }, 2500);
+}
+
+function updateAbnormalAlerts() {
+    document.querySelectorAll('.pe-system').forEach(system => {
+        const key = system.dataset.exam;
+        const body = document.getElementById(`pe-body-${key}`);
+        if (!body) return;
+        const abnormal = body.querySelectorAll('.pe-finding-tag.active-present').length > 0;
+        const alertDiv = document.getElementById(`pe-alert-${key}`);
+        if (alertDiv) {
+            alertDiv.style.display = abnormal ? 'flex' : 'none';
+        }
+    });
+}
+
+        
         function toggleExam(key) {
             const body = document.getElementById(`pe-body-${key}`);
             const toggle = document.getElementById(`pe-toggle-${key}`);
@@ -3807,21 +4083,23 @@
             updateProgress();
         }
 
-       function togglePEFinding(btn) {
-            if (btn.classList.contains('active-present')) {
-                btn.classList.remove('active-present');
-                btn.textContent = btn.textContent.replace(' ✓', '');
-                const wrap = btn.closest('.pe-findings-wrap');
-                const panel = wrap ? wrap.querySelector('.exam-clue-panel') : null;
-                if (panel) panel.remove();
-            } else {
-                btn.classList.add('active-present');
-                btn.textContent = btn.textContent + ' ✓';
-                showExamFindingClue(btn);
-            }
-            updateProgress();
-        }
-
+     function togglePEFinding(btn) {
+    if (btn.classList.contains('active-present')) {
+        btn.classList.remove('active-present');
+        btn.textContent = btn.textContent.replace(' ✓', '');
+        // Remove tooltip if present
+        const tooltip = btn.querySelector('.pe-clue-tooltip');
+        if (tooltip) tooltip.remove();
+        btn.classList.remove('show-clue', 'clue-align-left', 'clue-align-right');
+    } else {
+        btn.classList.add('active-present');
+        btn.textContent = btn.textContent + ' ✓';
+        showPEFindingClue(btn);
+    }
+    updateProgress();
+    // Also update the abnormal alert status
+    updateAbnormalAlerts();
+}
         function markPENormal(key) {
             const body = document.getElementById(`pe-body-${key}`);
             if (!body) return;
