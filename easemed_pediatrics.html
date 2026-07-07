@@ -7762,7 +7762,16 @@
                 .split(/[,;.]+/)
                 .map(s => s.trim())
                 .filter(Boolean);
-
+ // Add structured answers from the Guided Symptom Prompts (clue pills)
+const pcAnswers = symptomDetails || {};
+for (const [symptom, answers] of Object.entries(pcAnswers)) {
+    for (const [qKey, value] of Object.entries(answers)) {
+        // Skip placeholder values like "Present", "Absent", "Unclear" – they are not diagnostic clues
+        if (value && typeof value === 'string' && !['Present', 'Absent', 'Unclear'].includes(value)) {
+            associatedSymptoms.push(value.toLowerCase());
+        }
+    }
+}
             // ROS data
             const rosData = {};
             for (const key of Object.keys(pedsROS)) {
