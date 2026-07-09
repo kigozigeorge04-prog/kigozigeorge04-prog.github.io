@@ -512,6 +512,24 @@
     <div style="font-size:0.75rem; opacity:0.4;" id="sdkStatus">Loading...</div>
 </div>
 
+<!-- ── ULTIMATE OVERLAY KILLER (will always hide after 5 seconds) ── -->
+<script>
+(function() {
+    // This script runs immediately after the overlay is added to the DOM.
+    // It will remove the overlay after 5 seconds, regardless of any other logic.
+    setTimeout(function() {
+        var ov = document.getElementById('sdkOverlay');
+        if (ov && ov.parentNode) {
+            ov.style.opacity = '0';
+            setTimeout(function() {
+                if (ov.parentNode) ov.remove();
+                console.log('[EaseMed] Overlay killed by ultimate killer.');
+            }, 350);
+        }
+    }, 5000);
+})();
+</script>
+
 <div class="medical-bg">
     <div class="particles" id="particles"></div>
     <div class="cross" style="top:10%;left:5%;">✚</div>
@@ -733,9 +751,7 @@
 
 <script>
 // ================================================================
-//  EASEMED — SUPABASE AUTH (with T&C / Privacy agreement)
-//
-//  FIXED: Overlay now hides unconditionally after 8 seconds.
+//  EASEMED — SUPABASE AUTH
 // ================================================================
 
 const DASHBOARD_URL = 'modules.html';
@@ -838,6 +854,11 @@ const tokenType = hashParams.get('type');
 if (tokenType === 'recovery') {
     inPasswordRecovery = true;
 }
+// Remove hash from URL to prevent it from persisting
+if (window.location.hash) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+
 (async function boot() {
     setOverlayStatus('Loading SDK...');
 
@@ -860,7 +881,7 @@ if (tokenType === 'recovery') {
         return;
     }
 
-// ── Auth state listener (single, clean) ──────────────────
+// ── Auth state listener ──────────────────────────────────────
 let redirecting = false;
 
 sb.auth.onAuthStateChange(async (event, session) => {
@@ -952,20 +973,17 @@ sb.auth.onAuthStateChange(async (event, session) => {
         try { await sb.auth.signOut(); } catch (_) {}
     }
 
-    // ── Standard overlay hide (guarded) ──────────────────────
+    // ── Hide overlay (if not already hidden) ────────────────
     if (!inPasswordRecovery) {
         hideOverlay();
     }
 
-    // ── Force hide overlay after 5 seconds (guarded) ─────────
+    // ── Extra fallback: hide after 6 seconds (ignores flags) ──
     setTimeout(() => {
-        if (!redirecting && !inPasswordRecovery) {
-            hideOverlay();
-        }
-    }, 5000);
+        hideOverlay();
+    }, 6000);
 
-    // ── Fallback: manual continue button ─────────────────────
-    // 🔥 FIX: Ignore inPasswordRecovery — if there's a stored user, they likely want to continue.
+    // ── Fallback "Continue" button ─────────────────────────
     setTimeout(() => {
         const storedUser = localStorage.getItem('easemed_user');
         if (storedUser && !redirecting) {
@@ -1001,24 +1019,11 @@ sb.auth.onAuthStateChange(async (event, session) => {
                 loginForm.appendChild(btn);
             }
         }
-    }, 3000);
-
-    // ── 🔥 ULTIMATE FALLBACK: remove overlay after 8 seconds, NO MATTER WHAT ──
-    // This guarantees the login form is never permanently hidden.
-    setTimeout(() => {
-        const ov = document.getElementById('sdkOverlay');
-        if (ov && ov.parentNode) {
-            ov.style.opacity = '0';
-            setTimeout(() => {
-                if (ov.parentNode) ov.remove();
-            }, 300);
-            console.log('[EaseMed] Overlay forcibly removed by ultimate fallback.');
-        }
-    }, 8000);
+    }, 3500);
 
     createParticles();
 
-    // ── Setup checkbox to enable/disable signup button ──────
+    // ── Setup signup checkbox ──────────────────────────────
     const agreeCheckbox = document.getElementById('agreeCheckbox');
     const signupBtn = document.getElementById('signupBtn');
     if (agreeCheckbox && signupBtn) {
@@ -1114,7 +1119,7 @@ async function upsertProfile(user, extra) {
     }
 }
 
-// ── EMAIL / PASSWORD LOGIN (unchanged) ─────────────────────
+// ── EMAIL / PASSWORD LOGIN ─────────────────────────────────
 async function handleLogin() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
@@ -1182,7 +1187,7 @@ async function handleLogin() {
     setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
 }
 
-// ── EMAIL / PASSWORD SIGNUP (core logic) ──────────────────
+// ── EMAIL / PASSWORD SIGNUP ────────────────────────────────
 async function handleSignup() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
