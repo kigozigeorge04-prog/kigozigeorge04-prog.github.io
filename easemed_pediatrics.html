@@ -3641,21 +3641,28 @@ function updateAbnormalAlerts() {
             updateProgress();
         }
 
-     function togglePEFinding(btn) {
+function togglePEFinding(btn) {
+    // Always get the original finding from the data attribute
+    const originalFinding = btn.dataset.finding;
+    if (!originalFinding) return; // safety fallback
+
     if (btn.classList.contains('active-present')) {
+        // Turn OFF: reset to original text, remove checkmark and tooltip
         btn.classList.remove('active-present');
-        btn.textContent = btn.textContent.replace(' ✓', '');
+        btn.textContent = originalFinding;
+
         // Remove tooltip if present
         const tooltip = btn.querySelector('.pe-clue-tooltip');
         if (tooltip) tooltip.remove();
         btn.classList.remove('show-clue', 'clue-align-left', 'clue-align-right');
     } else {
+        // Turn ON: add checkmark and show tooltip
         btn.classList.add('active-present');
-        btn.textContent = btn.textContent + ' ✓';
+        btn.textContent = originalFinding + ' ✓';
         showPEFindingClue(btn);
     }
+
     updateProgress();
-    // Also update the abnormal alert status
     updateAbnormalAlerts();
 }
         function markPENormal(key) {
