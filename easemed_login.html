@@ -861,47 +861,77 @@ if (tokenType === 'recovery') {
     }
 
 // ── Auth state listener (single, clean) ──────────────────
-    let redirecting = false; // prevents double-redirects from multiple events firing close together
+// ── Auth state listener (replace the existing one with this) ──
+let redirecting = false;
 
-    sb.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-            inPasswordRecovery = true;
-            hideOverlay();
-            showResetForm();
-            return;
+sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+        inPasswordRecovery = true;
+        hideOverlay();
+        showResetForm();
+        return;
+    }
+
+    if (event === 'SIGNED_IN' && session && !inPasswordRecovery && !redirecting) {
+        redirecting = true;
+        const user = session.user;
+        const email = user.email || user.user_metadata?.email;
+        const name = user.user_metadata?.full_name ||
+                     user.user_metadata?.name ||
+                     email || 'Unknown';
+
+        localStorage.setItem('easemed_user', email);
+        localStorage.setItem('easemed_user_name', name);
+
+        // ── CHECK IF PROFILE IS COMPLETE ──────────────────
+        const { data: profile, error: profileError } = await sb
+            .from('profiles')
+            .select('university, year_of_study, phone')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        // If profile exists but is missing required fields → complete-profile
+        if (profile && !profileError) {
+            const missingFields = [];
+            if (!profile.university || profile.university === '') missingFields.push('university');
+            if (!profile.year_of_study || profile.year_of_study === null) missingFields.push('year_of_study');
+            if (!profile.phone || profile.phone === '') missingFields.push('phone');
+
+            if (missingFields.length > 0) {
+                // Save user data for the profile completion page
+                localStorage.setItem('easemed_pending_user_id', user.id);
+                localStorage.setItem('easemed_pending_email', email);
+                localStorage.setItem('easemed_pending_name', name);
+                // Redirect to complete profile
+                window.location.href = 'complete-profile.html';
+                return;
+            }
         }
 
-        if (event === 'SIGNED_IN' && session && !inPasswordRecovery && !redirecting) {
-            redirecting = true;
-            const user = session.user;
-            const email = user.email || user.user_metadata?.email;
-            const name = user.user_metadata?.full_name ||
-                         user.user_metadata?.name ||
-                         email || 'Unknown';
+        // Profile is complete → upsert and go to dashboard
+        await upsertProfile(user, { name, email });
+        window.location.href = DASHBOARD_URL;
+        return;
+    }
 
-            localStorage.setItem('easemed_user', email);
-            localStorage.setItem('easemed_user_name', name);
+    if (event === 'SIGNED_OUT') {
+        localStorage.removeItem('easemed_user');
+        localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_pending_user_id');
+        localStorage.removeItem('easemed_pending_email');
+        localStorage.removeItem('easemed_pending_name');
+    }
 
-            await upsertProfile(user, { name, email });
-
-            window.location.href = DASHBOARD_URL;
-            return;
-        }
-
-        if (event === 'SIGNED_OUT') {
-            localStorage.removeItem('easemed_user');
-            localStorage.removeItem('easemed_user_name');
-        }
-
-        if (event === 'TOKEN_REFRESH_FAILED') {
-            // Refresh token is dead — force a clean sign-out so the user
-            // gets a real login screen instead of a stuck "connection error"
-            console.warn('[EaseMed] Token refresh failed, clearing session.');
-            localStorage.removeItem('easemed_user');
-            localStorage.removeItem('easemed_user_name');
-            await sb.auth.signOut();
-        }
-    });
+    if (event === 'TOKEN_REFRESH_FAILED') {
+        console.warn('[EaseMed] Token refresh failed, clearing session.');
+        localStorage.removeItem('easemed_user');
+        localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_pending_user_id');
+        localStorage.removeItem('easemed_pending_email');
+        localStorage.removeItem('easemed_pending_name');
+        await sb.auth.signOut();
+    }
+});
 
     // ── Check existing session ──────────────────────────────
     setOverlayStatus('Checking session...');
