@@ -735,8 +735,7 @@
 // ================================================================
 //  EASEMED — SUPABASE AUTH (with T&C / Privacy agreement)
 //
-//  Updated: Single "Create Account" button that is disabled until
-//  the agreement checkbox is checked.
+//  FIXED: Overlay now hides unconditionally after 8 seconds.
 // ================================================================
 
 const DASHBOARD_URL = 'modules.html';
@@ -772,7 +771,6 @@ function switchTab(tab) {
     if (tab === 'login') {
         lf.classList.add('active');    sf.classList.remove('active');
         tabs[0].classList.add('active'); tabs[1].classList.remove('active');
-        // Reset agreement error state
         document.getElementById('agreeError').classList.remove('show');
     } else {
         lf.classList.remove('active'); sf.classList.add('active');
@@ -792,7 +790,6 @@ function hideOverlay() {
     const ov = document.getElementById('sdkOverlay');
     if (!ov) return;
     ov.style.opacity = '0';
-    // Force removal after transition, even if transition fails
     setTimeout(() => {
         if (ov.parentNode) ov.remove();
     }, 350);
@@ -864,7 +861,6 @@ if (tokenType === 'recovery') {
     }
 
 // ── Auth state listener (single, clean) ──────────────────
-// ── Auth state listener (replace the existing one with this) ──
 let redirecting = false;
 
 sb.auth.onAuthStateChange(async (event, session) => {
@@ -893,7 +889,6 @@ sb.auth.onAuthStateChange(async (event, session) => {
             .eq('id', user.id)
             .maybeSingle();
 
-        // If profile exists but is missing required fields → complete-profile
         if (profile && !profileError) {
             const missingFields = [];
             if (!profile.university || profile.university === '') missingFields.push('university');
@@ -901,17 +896,14 @@ sb.auth.onAuthStateChange(async (event, session) => {
             if (!profile.phone || profile.phone === '') missingFields.push('phone');
 
             if (missingFields.length > 0) {
-                // Save user data for the profile completion page
                 localStorage.setItem('easemed_pending_user_id', user.id);
                 localStorage.setItem('easemed_pending_email', email);
                 localStorage.setItem('easemed_pending_name', name);
-                // Redirect to complete profile
                 window.location.href = 'complete-profile.html';
                 return;
             }
         }
 
-        // Profile is complete → upsert and go to dashboard
         await upsertProfile(user, { name, email });
         window.location.href = DASHBOARD_URL;
         return;
@@ -944,7 +936,6 @@ sb.auth.onAuthStateChange(async (event, session) => {
         );
 
         if (sessionError) {
-            // Stale/corrupted session — clear it instead of showing a raw error
             console.warn('[EaseMed] Session check returned error, clearing:', sessionError.message);
             localStorage.removeItem('easemed_user');
             localStorage.removeItem('easemed_user_name');
@@ -955,62 +946,76 @@ sb.auth.onAuthStateChange(async (event, session) => {
             return;
         }
     } catch (e) {
-        // Timed out or threw — same treatment: clear the bad local state
         console.warn('[EaseMed] Session check failed, clearing local session:', e.message);
         localStorage.removeItem('easemed_user');
         localStorage.removeItem('easemed_user_name');
         try { await sb.auth.signOut(); } catch (_) {}
     }
 
+    // ── Standard overlay hide (guarded) ──────────────────────
     if (!inPasswordRecovery) {
         hideOverlay();
-    } 
-    // ── Force hide overlay after 5 seconds if we're still on the page ──
-setTimeout(() => {
-    if (!redirecting && !inPasswordRecovery) {
-        hideOverlay();
     }
-}, 5000);
-// ── Fallback: manual continue button if session exists but redirect failed ──
-setTimeout(() => {
-    const storedUser = localStorage.getItem('easemed_user');
-    if (storedUser && !redirecting && !inPasswordRecovery) {
-        const loginForm = document.getElementById('loginForm');
-        if (loginForm) {
-            // Avoid duplicate buttons
-            const existingBtn = document.getElementById('fallbackContinueBtn');
-            if (existingBtn) existingBtn.remove();
 
-            const btn = document.createElement('button');
-            btn.id = 'fallbackContinueBtn';
-            btn.textContent = '🚀 Continue to App';
-            btn.style.cssText = `
-                display: block;
-                margin: 20px auto 0;
-                padding: 14px 30px;
-                background: linear-gradient(135deg, #2c5282, #1e3a5f);
-                color: white;
-                border: none;
-                border-radius: 14px;
-                font-size: 1rem;
-                font-weight: 700;
-                cursor: pointer;
-                box-shadow: 0 6px 16px rgba(44,82,130,0.3);
-                transition: all 0.3s;
-                width: 100%;
-                max-width: 300px;
-            `;
-            btn.onmouseover = () => btn.style.transform = 'scale(1.02)';
-            btn.onmouseout  = () => btn.style.transform = 'scale(1)';
-            btn.onclick = () => {
-                window.location.href = DASHBOARD_URL;
-            };
-            // Insert after the login form content
-            loginForm.appendChild(btn);
+    // ── Force hide overlay after 5 seconds (guarded) ─────────
+    setTimeout(() => {
+        if (!redirecting && !inPasswordRecovery) {
+            hideOverlay();
         }
-    }
-}, 3000);
-    
+    }, 5000);
+
+    // ── Fallback: manual continue button ─────────────────────
+    // 🔥 FIX: Ignore inPasswordRecovery — if there's a stored user, they likely want to continue.
+    setTimeout(() => {
+        const storedUser = localStorage.getItem('easemed_user');
+        if (storedUser && !redirecting) {
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                const existingBtn = document.getElementById('fallbackContinueBtn');
+                if (existingBtn) existingBtn.remove();
+
+                const btn = document.createElement('button');
+                btn.id = 'fallbackContinueBtn';
+                btn.textContent = '🚀 Continue to App';
+                btn.style.cssText = `
+                    display: block;
+                    margin: 20px auto 0;
+                    padding: 14px 30px;
+                    background: linear-gradient(135deg, #2c5282, #1e3a5f);
+                    color: white;
+                    border: none;
+                    border-radius: 14px;
+                    font-size: 1rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    box-shadow: 0 6px 16px rgba(44,82,130,0.3);
+                    transition: all 0.3s;
+                    width: 100%;
+                    max-width: 300px;
+                `;
+                btn.onmouseover = () => btn.style.transform = 'scale(1.02)';
+                btn.onmouseout  = () => btn.style.transform = 'scale(1)';
+                btn.onclick = () => {
+                    window.location.href = DASHBOARD_URL;
+                };
+                loginForm.appendChild(btn);
+            }
+        }
+    }, 3000);
+
+    // ── 🔥 ULTIMATE FALLBACK: remove overlay after 8 seconds, NO MATTER WHAT ──
+    // This guarantees the login form is never permanently hidden.
+    setTimeout(() => {
+        const ov = document.getElementById('sdkOverlay');
+        if (ov && ov.parentNode) {
+            ov.style.opacity = '0';
+            setTimeout(() => {
+                if (ov.parentNode) ov.remove();
+            }, 300);
+            console.log('[EaseMed] Overlay forcibly removed by ultimate fallback.');
+        }
+    }, 8000);
+
     createParticles();
 
     // ── Setup checkbox to enable/disable signup button ──────
@@ -1023,13 +1028,11 @@ setTimeout(() => {
                 document.getElementById('agreeError').classList.remove('show');
             }
         });
-        // Also enable button if checkbox is checked initially (in case of form reload)
         if (agreeCheckbox.checked) {
             signupBtn.disabled = false;
         }
     }
 
-    // ── Click handler for signup button ──────────────────────
     if (signupBtn) {
         signupBtn.addEventListener('click', handleSignup);
     }
@@ -1064,8 +1067,6 @@ async function upsertProfile(user, extra) {
                      email.split('@')[0] ||
                      'Unknown';
 
-    // Extract just the number from "Year 3" / "Postgraduate Year 1" etc.
-    // Falls back to null if no digit found (e.g. "Graduated / Professional")
     let yearOfStudyInt = null;
     if (extra?.yearOfStudy) {
         const match = extra.yearOfStudy.match(/\d+/);
@@ -1073,7 +1074,6 @@ async function upsertProfile(user, extra) {
     }
 
     try {
-        // Build base payload with fields that always exist
         const profileData = {
             id: user.id,
             email: email,
@@ -1087,9 +1087,6 @@ async function upsertProfile(user, extra) {
             updated_at: new Date().toISOString(),
         };
 
-        // Check if a row already exists — only set these defaults on INSERT,
-        // never overwrite them on an existing user (e.g. don't reset their
-        // subscription_status back to 'inactive' every time they log in)
         const { data: existing } = await sb
             .from('profiles')
             .select('id')
@@ -1115,7 +1112,9 @@ async function upsertProfile(user, extra) {
     } catch (e) {
         console.warn('[EaseMed] Profile upsert exception:', e.message);
     }
-}    // ── EMAIL / PASSWORD LOGIN (unchanged) ─────────────────────
+}
+
+// ── EMAIL / PASSWORD LOGIN (unchanged) ─────────────────────
 async function handleLogin() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
@@ -1187,7 +1186,6 @@ async function handleLogin() {
 async function handleSignup() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
-    // Double-check agreement checkbox (though button is disabled if unchecked)
     const agreeCheckbox = document.getElementById('agreeCheckbox');
     if (!agreeCheckbox.checked) {
         document.getElementById('agreeError').classList.add('show');
@@ -1208,7 +1206,6 @@ async function handleSignup() {
     const license         = document.getElementById('signupLicense').value.trim();
     const location        = document.getElementById('signupLocation').value.trim();
 
-    // Basic validation
     if (!name || !email || !password || !role || !university || !yearOfStudy) {
         showAlert('Please fill in all required fields.'); return;
     }
@@ -1219,7 +1216,6 @@ async function handleSignup() {
         showAlert('Password must be at least 6 characters.'); return;
     }
 
-    // Disable button and show spinner
     const signupBtn = document.getElementById('signupBtn');
     signupBtn.disabled = true;
     document.getElementById('signupSpinner').style.display = 'block';
@@ -1230,18 +1226,18 @@ async function handleSignup() {
             sb.auth.signUp({
                 email,
                 password,
-               options: {
-    data: {
-        full_name: name,
-        role,
-        university,
-        year_of_study: yearOfStudy.match(/\d+/) ? yearOfStudy.match(/\d+/)[0] : null,
-        phone,
-        license_number: license,
-        hospital: location
-    },
-    emailRedirectTo: window.location.origin + '/' + DASHBOARD_URL,
-}
+                options: {
+                    data: {
+                        full_name: name,
+                        role,
+                        university,
+                        year_of_study: yearOfStudy.match(/\d+/) ? yearOfStudy.match(/\d+/)[0] : null,
+                        phone,
+                        license_number: license,
+                        hospital: location
+                    },
+                    emailRedirectTo: window.location.origin + '/' + DASHBOARD_URL,
+                }
             }),
             10000, 'Signup'
         ));
@@ -1329,9 +1325,9 @@ async function handleForgotPassword() {
         showAlert('Enter your email address first, then click "Forgot password".', 'info');
         return;
     }
-   const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://easemedapp.site/easemed_login.html',
-});
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://easemedapp.site/easemed_login.html',
+    });
     if (error) {
         showAlert('❌ ' + error.message);
     } else {
