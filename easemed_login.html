@@ -792,7 +792,10 @@ function hideOverlay() {
     const ov = document.getElementById('sdkOverlay');
     if (!ov) return;
     ov.style.opacity = '0';
-    setTimeout(() => ov.remove(), 320);
+    // Force removal after transition, even if transition fails
+    setTimeout(() => {
+        if (ov.parentNode) ov.remove();
+    }, 350);
 }
 
 function setOverlayStatus(msg) {
@@ -961,7 +964,53 @@ sb.auth.onAuthStateChange(async (event, session) => {
 
     if (!inPasswordRecovery) {
         hideOverlay();
+    } 
+    // ── Force hide overlay after 5 seconds if we're still on the page ──
+setTimeout(() => {
+    if (!redirecting && !inPasswordRecovery) {
+        hideOverlay();
     }
+}, 5000);
+// ── Fallback: manual continue button if session exists but redirect failed ──
+setTimeout(() => {
+    const storedUser = localStorage.getItem('easemed_user');
+    if (storedUser && !redirecting && !inPasswordRecovery) {
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            // Avoid duplicate buttons
+            const existingBtn = document.getElementById('fallbackContinueBtn');
+            if (existingBtn) existingBtn.remove();
+
+            const btn = document.createElement('button');
+            btn.id = 'fallbackContinueBtn';
+            btn.textContent = '🚀 Continue to App';
+            btn.style.cssText = `
+                display: block;
+                margin: 20px auto 0;
+                padding: 14px 30px;
+                background: linear-gradient(135deg, #2c5282, #1e3a5f);
+                color: white;
+                border: none;
+                border-radius: 14px;
+                font-size: 1rem;
+                font-weight: 700;
+                cursor: pointer;
+                box-shadow: 0 6px 16px rgba(44,82,130,0.3);
+                transition: all 0.3s;
+                width: 100%;
+                max-width: 300px;
+            `;
+            btn.onmouseover = () => btn.style.transform = 'scale(1.02)';
+            btn.onmouseout  = () => btn.style.transform = 'scale(1)';
+            btn.onclick = () => {
+                window.location.href = DASHBOARD_URL;
+            };
+            // Insert after the login form content
+            loginForm.appendChild(btn);
+        }
+    }
+}, 3000);
+    
     createParticles();
 
     // ── Setup checkbox to enable/disable signup button ──────
