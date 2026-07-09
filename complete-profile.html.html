@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile - EaseMed</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3c72">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="EaseMed">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0c4a6e 0%, #1e3a5f 25%, #2d3748 50%, #1a3a4f 75%, #0f2c44 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .medical-bg {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0; overflow: hidden;
+        }
+
+        .medical-bg::before {
+            content: '🫀';
+            position: absolute; font-size: 300px; opacity: 0.03;
+            bottom: -50px; right: -50px;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .medical-bg::after {
+            content: '🩺';
+            position: absolute; font-size: 250px; opacity: 0.03;
+            top: -50px; left: -50px;
+            animation: float 15s infinite ease-in-out reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0,0) rotate(0deg); }
+            50%       { transform: translate(-30px,-30px) rotate(10deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            padding: 50px;
+            width: 600px;
+            max-width: 100%;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2);
+            animation: slideUp 0.6s cubic-bezier(0.68,-0.55,0.265,1.55);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .container::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 5px;
+            background: linear-gradient(90deg, #2ecc71, #3498db, #e74c3c, #f39c12, #2ecc71);
+            background-size: 200% 100%;
+            animation: gradientMove 3s linear infinite;
+            border-radius: 40px 40px 0 0;
+        }
+
+        @keyframes gradientMove {
+            0%   { background-position: 0% 0%; }
+            100% { background-position: 200% 0%; }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            font-size: 60px;
+            animation: heartbeat 1.5s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.1); }
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #1e3a5f, #2c5282);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-top: 8px;
+        }
+
+        .logo p {
+            color: #718096;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, #ebf8ff, #e6f7ff);
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 28px;
+            border: 1px solid #bee3f8;
+            text-align: center;
+        }
+
+        .welcome-banner h2 {
+            color: #2c5282;
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .welcome-banner p {
+            color: #4a6a8a;
+            font-size: 0.9rem;
+        }
+
+        .welcome-banner .highlight {
+            font-weight: 700;
+            color: #1a365d;
+        }
+
+        .info-box {
+            background: #f7fafc;
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .info-box p {
+            color: #4a5568;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-box .emoji {
+            font-size: 1.2rem;
+        }
+
+        .info-box .required-note {
+            color: #e53e3e;
+            font-weight: 700;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group label .required {
+            color: #e53e3e;
+            margin-left: 4px;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #2c5282;
+            box-shadow: 0 0 0 3px rgba(44,82,130,0.1);
+            transform: translateY(-2px);
+        }
+
+        .input-group input.field-error,
+        .input-group select.field-error {
+            border-color: #e53e3e !important;
+            box-shadow: 0 0 0 3px rgba(229,62,62,0.12) !important;
+            animation: fieldShake 0.4s ease;
+        }
+
+        @keyframes fieldShake {
+            0%,100% { transform: translateX(0); }
+            25%      { transform: translateX(-5px); }
+            75%      { transform: translateX(5px); }
+        }
+
+        .field-error-msg {
+            color: #e53e3e;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            animation: fadeInDown 0.2s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-continue {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #2c5282, #1e3a5f);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-continue:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(44,82,130,0.4);
+        }
+
+        .btn-continue:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.88rem;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #c53030;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #276749;
+            border-left: 4px solid #38a169;
+        }
+
+        .alert-info {
+            background: #ebf8ff;
+            color: #2c5282;
+            border-left: 4px solid #3498db;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.7rem;
+            color: #a0aec0;
+        }
+
+        .required-badge {
+            display: inline-block;
+            background: #e53e3e;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-left: 6px;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 550px) {
+            .container { padding: 30px 20px; }
+            .input-row { grid-template-columns: 1fr; gap: 0; }
+            .logo h1 { font-size: 1.4rem; }
+            .welcome-banner { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="medical-bg">
+    <div class="cross" style="top:10%;left:5%;">✚</div>
+    <div class="cross" style="bottom:15%;right:8%;">✚</div>
+    <div class="cross" style="top:50%;left:85%;">✚</div>
+</div>
+
+<div class="container">
+    <div class="logo">
+        <div class="logo-icon">🏥</div>
+        <h1>Complete Your Profile</h1>
+        <p>EaseMed Clinical Clerk System</p>
+    </div>
+
+    <div id="alertMsg" class="alert"></div>
+
+    <div class="welcome-banner">
+        <h2>👋 Welcome, <span id="userNameDisplay">User</span>!</h2>
+        <p>Please complete your professional profile to continue using EaseMed.</p>
+    </div>
+
+    <div class="info-box">
+        <p>
+            <span class="emoji">⚠️</span>
+            <span>
+                <strong>All fields are required.</strong> This information helps us tailor clinical cases 
+                to your professional level and practice setting. You can update these later from your profile settings.
+                <span class="required-note">* Required fields</span>
+            </span>
+        </p>
+    </div>
+
+    <form id="profileForm" onsubmit="event.preventDefault(); submitProfile();">
+        <div class="input-row">
+            <div class="input-group">
+                <label>🏥 Institution / Workplace <span class="required">*</span></label>
+                <input type="text" id="university" placeholder="e.g., Mulago Hospital, Makerere University" required>
+            </div>
+            <div class="input-group">
+                <label>📚 Professional Level <span class="required">*</span></label>
+                <select id="yearOfStudy" required>
+                    <option value="">Select Your Level</option>
+                    <option value="1">Medical Student - Year 1</option>
+                    <option value="2">Medical Student - Year 2</option>
+                    <option value="3">Medical Student - Year 3</option>
+                    <option value="4">Medical Student - Year 4</option>
+                    <option value="5">Medical Student - Year 5</option>
+                    <option value="6">Medical Student - Year 6</option>
+                    <option value="7">Intern Doctor</option>
+                    <option value="8">Resident Doctor</option>
+                    <option value="9">Consultant / Specialist</option>
+                    <option value="10">Clinical Officer</option>
+                    <option value="11">Nurse / Nursing Officer</option>
+                    <option value="12">Medical Educator</option>
+                    <option value="13">Postgraduate - Year 1</option>
+                    <option value="14">Postgraduate - Year 2</option>
+                    <option value="15">Postgraduate - Year 3</option>
+                    <option value="16">Other Healthcare Professional</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>📞 Phone Number <span class="required">*</span></label>
+            <input type="tel" id="phone" placeholder="e.g., +256 700 123 456" required>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-continue">
+            <span id="submitBtnText">Complete Profile & Continue</span>
+            <div class="spinner" id="submitSpinner"></div>
+        </button>
+    </form>
+
+    <div style="margin-top: 16px; text-align: center; font-size: 0.8rem; color: #a0aec0;">
+        <p>🔒 Your information is securely stored and only used for educational purposes.</p>
+    </div>
+
+    <div class="footer">
+        <p>Secure Medical Platform | Powered by Supabase</p>
+        <p>© 2026 EaseMed - Clinical Clerk System</p>
+    </div>
+</div>
+
+<script>
+// ================================================================
+//  COMPLETE PROFILE — MANDATORY for Google users
+//  No skip option — users must complete all fields
+// ================================================================
+
+const DASHBOARD_URL = 'modules.html';
+let sb;
+
+// ── Show alert ──────────────────────────────────────────────
+function showAlert(msg, type = 'error') {
+    const el = document.getElementById('alertMsg');
+    el.textContent = msg;
+    el.className = `alert alert-${type}`;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+// ── Set loading state ──────────────────────────────────────
+function setLoading(loading, label) {
+    const btn = document.getElementById('submitBtn');
+    const spin = document.getElementById('submitSpinner');
+    const txt = document.getElementById('submitBtnText');
+    btn.disabled = loading;
+    spin.style.display = loading ? 'block' : 'none';
+    txt.textContent = loading ? 'Saving...' : label;
+}
+
+// ── Wait for Supabase SDK ──────────────────────────────────
+function waitForSDK(maxWaitMs = 8000) {
+    return new Promise((resolve, reject) => {
+        if (typeof supabase !== 'undefined' && supabase.createClient) {
+            resolve();
+            return;
+        }
+        const start = Date.now();
+        const interval = setInterval(() => {
+            if (typeof supabase !== 'undefined' && supabase.createClient) {
+                clearInterval(interval);
+                resolve();
+            } else if (Date.now() - start > maxWaitMs) {
+                clearInterval(interval);
+                reject(new Error('Supabase SDK failed to load'));
+            }
+        }, 100);
+    });
+}
+
+// ── Init ─────────────────────────────────────────────────────
+(async function init() {
+    try {
+        await waitForSDK(8000);
+    } catch (e) {
+        document.getElementById('userNameDisplay').textContent = 'Guest';
+        showAlert('❌ Failed to load authentication. Please refresh.', 'error');
+        return;
+    }
+
+    const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFr a2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+    try {
+        sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    } catch (e) {
+        document.getElementById('userNameDisplay').textContent = 'Guest';
+        showAlert('❌ Failed to initialize Supabase.', 'error');
+        return;
+    }
+
+    // ── Get user data from localStorage ────────────────────
+    const userId = localStorage.getItem('easemed_pending_user_id');
+    const email = localStorage.getItem('easemed_pending_email');
+    const name = localStorage.getItem('easemed_pending_name') || 'User';
+
+    document.getElementById('userNameDisplay').textContent = name;
+
+    // If no user ID, try to get current session
+    if (!userId) {
+        try {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session?.user) {
+                localStorage.setItem('easemed_pending_user_id', session.user.id);
+                localStorage.setItem('easemed_pending_email', session.user.email);
+                localStorage.setItem('easemed_pending_name', 
+                    session.user.user_metadata?.full_name || 
+                    session.user.user_metadata?.name || 
+                    session.user.email || 'User'
+                );
+                document.getElementById('userNameDisplay').textContent = 
+                    localStorage.getItem('easemed_pending_name');
+            } else {
+                showAlert('⚠️ No active session found. Please log in again.', 'error');
+                setTimeout(() => { window.location.href = 'easemed_login.html'; }, 3000);
+            }
+        } catch (e) {
+            showAlert('⚠️ Session error. Please log in again.', 'error');
+            setTimeout(() => { window.location.href = 'easemed_login.html'; }, 3000);
+        }
+    }
+})();
+
+// ── Submit profile ──────────────────────────────────────────
+async function submitProfile() {
+    if (!sb) {
+        showAlert('❌ Still connecting to server. Please wait.', 'error');
+        return;
+    }
+
+    const university = document.getElementById('university').value.trim();
+    const yearOfStudy = document.getElementById('yearOfStudy').value;
+    const phone = document.getElementById('phone').value.trim();
+
+    // ── Validate ────────────────────────────────────────────
+    let valid = true;
+    clearErrors();
+
+    const uniEl = document.getElementById('university');
+    const yearEl = document.getElementById('yearOfStudy');
+    const phoneEl = document.getElementById('phone');
+
+    if (!university) {
+        markFieldError(uniEl, 'Institution or workplace is required');
+        valid = false;
+    }
+
+    if (!yearOfStudy) {
+        markFieldError(yearEl, 'Please select your professional level');
+        valid = false;
+    }
+
+    if (!phone) {
+        markFieldError(phoneEl, 'Phone number is required');
+        valid = false;
+    } else if (!/^[\+\d\s\-\(\)]{7,20}$/.test(phone)) {
+        markFieldError(phoneEl, 'Enter a valid phone number (e.g., +256 700 123 456)');
+        valid = false;
+    }
+
+    if (!valid) {
+        document.querySelector('.field-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    // ── Get user ID ──────────────────────────────────────────
+    const userId = localStorage.getItem('easemed_pending_user_id');
+    if (!userId) {
+        showAlert('❌ No user ID found. Please log in again.', 'error');
+        setTimeout(() => { window.location.href = 'easemed_login.html'; }, 2000);
+        return;
+    }
+
+    setLoading(true, 'Saving...');
+
+    try {
+        // Update the profile with the missing fields
+        const { error } = await sb
+            .from('profiles')
+            .update({
+                university: university,
+                year_of_study: parseInt(yearOfStudy, 10),
+                phone: phone,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', userId);
+
+        if (error) {
+            setLoading(false, 'Complete Profile & Continue');
+            showAlert('❌ Failed to save: ' + error.message, 'error');
+            return;
+        }
+
+        // ── Clean up pending flags ──────────────────────────
+        localStorage.removeItem('easemed_pending_user_id');
+        localStorage.removeItem('easemed_pending_email');
+        localStorage.removeItem('easemed_pending_name');
+
+        // ── Also update the main user storage ──────────────
+        const email = localStorage.getItem('easemed_pending_email');
+        const name = localStorage.getItem('easemed_pending_name');
+        if (email) localStorage.setItem('easemed_user', email);
+        if (name) localStorage.setItem('easemed_user_name', name);
+
+        // ── Redirect ────────────────────────────────────────
+        showAlert('✅ Profile updated successfully! Redirecting to dashboard...', 'success');
+        setLoading(false, 'Complete Profile & Continue');
+        setTimeout(() => {
+            window.location.href = DASHBOARD_URL;
+        }, 1200);
+
+    } catch (e) {
+        setLoading(false, 'Complete Profile & Continue');
+        showAlert('❌ An error occurred: ' + e.message, 'error');
+    }
+}
+
+// ── Field error helpers ────────────────────────────────────
+function markFieldError(el, message) {
+    el.classList.add('field-error');
+    const existing = el.parentElement.querySelector('.field-error-msg');
+    if (existing) existing.remove();
+    const msg = document.createElement('div');
+    msg.className = 'field-error-msg';
+    msg.textContent = '⚠️ ' + message;
+    el.parentElement.appendChild(msg);
+    el.addEventListener('input', function clearErr() {
+        el.classList.remove('field-error');
+        msg.remove();
+        el.removeEventListener('input', clearErr);
+    }, { once: true });
+}
+
+function clearErrors() {
+    document.querySelectorAll('.field-error').forEach(el => {
+        el.classList.remove('field-error');
+    });
+    document.querySelectorAll('.field-error-msg').forEach(el => {
+        el.remove();
+    });
+}
+
+// ── Enter key support ──────────────────────────────────────
+document.getElementById('phone').addEventListener('keypress', e => {
+    if (e.key === 'Enter') submitProfile();
+});
+document.getElementById('university').addEventListener('keypress', e => {
+    if (e.key === 'Enter') document.getElementById('yearOfStudy').focus();
+});
+document.getElementById('yearOfStudy').addEventListener('keypress', e => {
+    if (e.key === 'Enter') document.getElementById('phone').focus();
+});
+
+// ── Supabase SDK ─────────────────────────────────────────────
+// Note: This script assumes supabase is loaded globally
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+
+</body>
+</html>
