@@ -902,8 +902,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
 
         localStorage.setItem('easemed_user', email);
         localStorage.setItem('easemed_user_name', name);
-
-        // ── CHECK IF PROFILE IS COMPLETE ──────────────────
+        
      // ── CHECK IF PROFILE IS COMPLETE ──────────────────
 // A brand-new Google sign-in has NO profiles row yet, so `profile`
 // comes back null with no error. Treat "no row" the same as "row
@@ -938,6 +937,7 @@ if (!profileError) {
 await upsertProfile(user, { name, email });
 window.location.href = DASHBOARD_URL;
 return;
+    }
 
     if (event === 'SIGNED_OUT') {
         localStorage.removeItem('easemed_user');
