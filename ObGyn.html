@@ -3963,45 +3963,24 @@ function getPatientData() {
  *   - totalWeight is computed automatically
  */
 function buildKnowledgeBase() {
-    // Helper to check if any of a list of ROS symptoms are present in a given system
     function hasRos(patient, system, symptoms) {
         const present = patient.rosPresent[system] || [];
         return symptoms.some(s => present.includes(s));
     }
-
     function hasPe(patient, systemPrefix, findings) {
         const present = patient.pePresent[systemPrefix] || [];
         return findings.some(f => present.includes(f));
     }
-
-    // Helper: check if complaint category includes a keyword
     function complaintIncludes(patient, keywords) {
         return keywords.some(kw => patient.complaintCat.includes(kw));
     }
-
-    // Helper: check if age is in range
     function ageIn(patient, min, max) {
         return patient.age >= min && patient.age <= max;
     }
-
-    // Helper: check if chronic condition contains a keyword
     function hasChronic(patient, keywords) {
         return patient.chronic.some(c => keywords.some(kw => c.toLowerCase().includes(kw)));
     }
 
-    // Helper: check if parity has term deliveries >0
-    function hasTermPregnancy(patient) {
-        const p = patient.parity;
-        if (!p) return false;
-        const parts = p.split('+');
-        if (parts.length > 0) {
-            const term = parseInt(parts[0]);
-            return !isNaN(term) && term > 0;
-        }
-        return false;
-    }
-
-    // Define conditions
     const conditions = [];
 
     // ---- ECTOPIC PREGNANCY ----
@@ -4009,14 +3988,18 @@ function buildKnowledgeBase() {
         id: 'ectopic',
         name: 'Ectopic Pregnancy',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 18 – Ectopic Pregnancy',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['gyn-pelvic-pain', 'gyn-pv-bleed']), weight: 3 },
-            { check: p => hasRos(p, 'urinogenital', ['Vaginal discharge']), weight: 1 },
-            { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2 },
-            { check: p => hasPe(p, 'vaginal', ['Cervical motion tenderness', 'Adnexal tenderness', 'Adnexal mass']), weight: 4 },
-            { check: p => p.prevAbortions > 0 || p.gynConditions.some(c => c.toLowerCase().includes('pid')), weight: 2 },
-            { check: p => p.contra.some(c => c.includes('IUD')), weight: 2 },
-            { check: p => ageIn(p, 15, 45), weight: 1 },
+            { check: p => complaintIncludes(p, ['gyn-pelvic-pain', 'gyn-pv-bleed']), weight: 3, matchText: 'Complaint of pelvic pain or vaginal bleeding' },
+            { check: p => hasRos(p, 'urinogenital', ['Vaginal discharge']), weight: 1, matchText: 'Vaginal discharge on ROS' },
+            { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2, matchText: 'Dizziness or fainting (possible haemorrhage)' },
+            { check: p => hasPe(p, 'vaginal', ['Cervical motion tenderness', 'Adnexal tenderness', 'Adnexal mass']), weight: 4, matchText: 'Pelvic exam: cervical motion tenderness or adnexal mass/tenderness' },
+            { check: p => p.prevAbortions > 0 || p.gynConditions.some(c => c.toLowerCase().includes('pid')), weight: 2, matchText: 'History of abortion or PID' },
+            { check: p => p.contra.some(c => c.includes('IUD')), weight: 2, matchText: 'Current IUD use' },
+            { check: p => ageIn(p, 15, 45), weight: 1, matchText: 'Age 15–45 (reproductive age)' },
         ]
     });
 
@@ -4025,13 +4008,17 @@ function buildKnowledgeBase() {
         id: 'abruption',
         name: 'Placental Abruption',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 20 – Abruptio Placentae',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 12'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-bleeding', 'obs-abdo-pain']), weight: 3 },
-            { check: p => hasRos(p, 'cardiovascular', ['Oedema']), weight: 1 },
-            { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Uterus irritable']), weight: 4 },
-            { check: p => hasRos(p, 'cns', ['Headache']), weight: 1 },
-            { check: p => hasChronic(p, ['hypertension']), weight: 2 },
-            { check: p => p.gravida > 2, weight: 1 },
+            { check: p => complaintIncludes(p, ['obs-bleeding', 'obs-abdo-pain']), weight: 3, matchText: 'Complaint of bleeding or abdominal pain in pregnancy' },
+            { check: p => hasRos(p, 'cardiovascular', ['Oedema']), weight: 1, matchText: 'Oedema on ROS' },
+            { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Uterus irritable']), weight: 4, matchText: 'Obstetric exam: tender or irritable uterus' },
+            { check: p => hasRos(p, 'cns', ['Headache']), weight: 1, matchText: 'Headache (possible pre-eclampsia association)' },
+            { check: p => hasChronic(p, ['hypertension']), weight: 2, matchText: 'Chronic hypertension' },
+            { check: p => p.gravida > 2, weight: 1, matchText: 'Grand multiparity (≥3 pregnancies)' },
         ]
     });
 
@@ -4040,11 +4027,15 @@ function buildKnowledgeBase() {
         id: 'previa',
         name: 'Placenta Previa',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 20 – Placenta Previa',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 12'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-bleeding']), weight: 3 },
-            { check: p => hasPe(p, 'obstetric', ['Placental position: Low-lying']), weight: 4 },
-            { check: p => p.prevCS > 0, weight: 2 },
-            { check: p => p.gravida > 2, weight: 1 },
+            { check: p => complaintIncludes(p, ['obs-bleeding']), weight: 3, matchText: 'Complaint of bleeding in pregnancy' },
+            { check: p => hasPe(p, 'obstetric', ['Placental position: Low-lying']), weight: 4, matchText: 'Obstetric exam: low-lying placenta' },
+            { check: p => p.prevCS > 0, weight: 2, matchText: 'Previous caesarean section' },
+            { check: p => p.gravida > 2, weight: 1, matchText: 'Grand multiparity (≥3 pregnancies)' },
         ]
     });
 
@@ -4053,13 +4044,17 @@ function buildKnowledgeBase() {
         id: 'preeclampsia',
         name: 'Preeclampsia',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 19 – Preeclampsia and Eclampsia',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 11'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-htn', 'obs-preeclampsia']), weight: 3 },
-            { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2 },
-            { check: p => hasRos(p, 'cns', ['Seizures']), weight: 1 }, // could be eclampsia
-            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting', 'Epigastric pain']), weight: 2 },
-            { check: p => hasChronic(p, ['hypertension']), weight: 2 },
-            { check: p => p.age > 35 || p.gravida > 2, weight: 1 },
+            { check: p => complaintIncludes(p, ['obs-htn', 'obs-preeclampsia']), weight: 3, matchText: 'Complaint of hypertension or pre-eclampsia features' },
+            { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2, matchText: 'Headache or visual changes on ROS' },
+            { check: p => hasRos(p, 'cns', ['Seizures']), weight: 1, matchText: 'Seizures (could indicate eclampsia)' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting', 'Epigastric pain']), weight: 2, matchText: 'Nausea, vomiting, or epigastric pain (HELLP warning)' },
+            { check: p => hasChronic(p, ['hypertension']), weight: 2, matchText: 'Chronic hypertension' },
+            { check: p => p.age > 35 || p.gravida > 2, weight: 1, matchText: 'Age >35 or grand multiparity' },
         ]
     });
 
@@ -4068,10 +4063,14 @@ function buildKnowledgeBase() {
         id: 'eclampsia',
         name: 'Eclampsia',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 19 – Eclampsia',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 11'
+        ],
         criteria: [
-            { check: p => hasRos(p, 'cns', ['Seizures']), weight: 5 },
-            { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2 },
-            { check: p => hasChronic(p, ['hypertension']), weight: 1 },
+            { check: p => hasRos(p, 'cns', ['Seizures']), weight: 5, matchText: 'Seizures (generalized convulsions)' },
+            { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2, matchText: 'Headache or visual changes' },
+            { check: p => hasChronic(p, ['hypertension']), weight: 1, matchText: 'Chronic hypertension' },
         ]
     });
 
@@ -4080,13 +4079,17 @@ function buildKnowledgeBase() {
         id: 'preterm_labor',
         name: 'Preterm Labor',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 23 – Preterm Birth',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 10'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-preterm']), weight: 3 },
-            { check: p => hasRos(p, 'urinogenital', ['Urinary frequency']), weight: 1 },
-            { check: p => hasPe(p, 'obstetric', ['Contractions: regular', 'Contractions: irregular']), weight: 3 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Diarrhoea']), weight: 1 },
-            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2 },
-            { check: p => p.gravida > 2, weight: 1 },
+            { check: p => complaintIncludes(p, ['obs-preterm']), weight: 3, matchText: 'Complaint of preterm labor signs' },
+            { check: p => hasRos(p, 'urinogenital', ['Urinary frequency']), weight: 1, matchText: 'Urinary frequency on ROS' },
+            { check: p => hasPe(p, 'obstetric', ['Contractions: regular', 'Contractions: irregular']), weight: 3, matchText: 'Obstetric exam: uterine contractions' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Diarrhoea']), weight: 1, matchText: 'Diarrhoea (possible infection trigger)' },
+            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2, matchText: 'Previous preterm birth' },
+            { check: p => p.gravida > 2, weight: 1, matchText: 'Grand multiparity' },
         ]
     });
 
@@ -4095,12 +4098,16 @@ function buildKnowledgeBase() {
         id: 'gdm',
         name: 'Gestational Diabetes',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 22 – Diabetes Mellitus',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 9'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-diabetes']), weight: 3 },
-            { check: p => hasRos(p, 'endocrine', ['Polyuria', 'Polydipsia']), weight: 2 },
-            { check: p => hasChronic(p, ['diabetes']), weight: 2 },
-            { check: p => p.age > 35, weight: 1 },
-            { check: p => p.gravida > 2, weight: 1 },
+            { check: p => complaintIncludes(p, ['obs-diabetes']), weight: 3, matchText: 'Complaint of gestational diabetes symptoms' },
+            { check: p => hasRos(p, 'endocrine', ['Polyuria', 'Polydipsia']), weight: 2, matchText: 'Polyuria or polydipsia on ROS' },
+            { check: p => hasChronic(p, ['diabetes']), weight: 2, matchText: 'Chronic diabetes' },
+            { check: p => p.age > 35, weight: 1, matchText: 'Age >35' },
+            { check: p => p.gravida > 2, weight: 1, matchText: 'Grand multiparity' },
         ]
     });
 
@@ -4109,11 +4116,15 @@ function buildKnowledgeBase() {
         id: 'hyperemesis',
         name: 'Hyperemesis Gravidarum',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 21 – Gastrointestinal Disorders in Pregnancy',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-vomiting']), weight: 3 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2 },
-            { check: p => p.gravida > 1, weight: 1 },
+            { check: p => complaintIncludes(p, ['obs-vomiting']), weight: 3, matchText: 'Complaint of vomiting in pregnancy' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2, matchText: 'Nausea or vomiting on ROS' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2, matchText: 'Weight loss on ROS' },
+            { check: p => p.gravida > 1, weight: 1, matchText: 'Multiparity' },
         ]
     });
 
@@ -4122,38 +4133,50 @@ function buildKnowledgeBase() {
         id: 'miscarriage',
         name: 'Miscarriage (Spontaneous Abortion)',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 17 – Abortion',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 7'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['gyn-pv-bleed']), weight: 3 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2 },
-            { check: p => hasPe(p, 'vaginal', ['Cervical os open']), weight: 3 },
-            { check: p => p.gravida > 0, weight: 1 },
+            { check: p => complaintIncludes(p, ['gyn-pv-bleed']), weight: 3, matchText: 'Complaint of vaginal bleeding' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
+            { check: p => hasPe(p, 'vaginal', ['Cervical os open']), weight: 3, matchText: 'Pelvic exam: open cervical os' },
+            { check: p => p.gravida > 0, weight: 1, matchText: 'Pregnant (gravida >0)' },
         ]
     });
 
-    // ---- OVARIAN CYST (with possible torsion) ----
+    // ---- OVARIAN CYST ----
     conditions.push({
         id: 'ovarian_cyst',
         name: 'Ovarian Cyst / Torsion',
         category: 'Gynecological',
+        references: [
+            'Williams Gynecology, 3rd Ed., Ch. 18 – Ovarian Masses',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 20'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['gyn-pelvic-pain']), weight: 3 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain', 'Nausea', 'Vomiting']), weight: 2 },
-            { check: p => hasPe(p, 'vaginal', ['Adnexal mass', 'Adnexal tenderness']), weight: 4 },
-            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('cyst')), weight: 2 },
+            { check: p => complaintIncludes(p, ['gyn-pelvic-pain']), weight: 3, matchText: 'Complaint of pelvic pain' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain', 'Nausea', 'Vomiting']), weight: 2, matchText: 'Abdominal pain, nausea, or vomiting on ROS' },
+            { check: p => hasPe(p, 'vaginal', ['Adnexal mass', 'Adnexal tenderness']), weight: 4, matchText: 'Pelvic exam: adnexal mass or tenderness' },
+            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('cyst')), weight: 2, matchText: 'Known ovarian cyst' },
         ]
     });
 
-    // ---- PELVIC INFLAMMATORY DISEASE (PID) ----
+    // ---- PID ----
     conditions.push({
         id: 'pid',
         name: 'Pelvic Inflammatory Disease',
         category: 'Gynecological',
+        references: [
+            'Williams Gynecology, 3rd Ed., Ch. 12 – Pelvic Inflammatory Disease',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 22'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['gyn-pelvic-pain', 'gyn-discharge']), weight: 3 },
-            { check: p => hasRos(p, 'urinogenital', ['Vaginal discharge', 'Dysuria']), weight: 2 },
-            { check: p => hasPe(p, 'vaginal', ['Cervical motion tenderness', 'Adnexal tenderness']), weight: 4 },
-            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2 },
-            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('pid')), weight: 2 },
+            { check: p => complaintIncludes(p, ['gyn-pelvic-pain', 'gyn-discharge']), weight: 3, matchText: 'Complaint of pelvic pain or vaginal discharge' },
+            { check: p => hasRos(p, 'urinogenital', ['Vaginal discharge', 'Dysuria']), weight: 2, matchText: 'Vaginal discharge or dysuria on ROS' },
+            { check: p => hasPe(p, 'vaginal', ['Cervical motion tenderness', 'Adnexal tenderness']), weight: 4, matchText: 'Pelvic exam: cervical motion or adnexal tenderness' },
+            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2, matchText: 'Fever on ROS' },
+            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('pid')), weight: 2, matchText: 'History of PID' },
         ]
     });
 
@@ -4162,11 +4185,15 @@ function buildKnowledgeBase() {
         id: 'endometrial_cancer',
         name: 'Endometrial Cancer',
         category: 'Gynecological',
+        references: [
+            'Williams Gynecology, 3rd Ed., Ch. 27 – Endometrial Cancer',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 27'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['gyn-pmb']), weight: 5 },
-            { check: p => p.menstrualStatus === 'Postmenopausal', weight: 3 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2 },
-            { check: p => hasChronic(p, ['obesity', 'hypertension', 'diabetes']), weight: 2 },
+            { check: p => complaintIncludes(p, ['gyn-pmb']), weight: 5, matchText: 'Complaint of post-menopausal bleeding' },
+            { check: p => p.menstrualStatus === 'Postmenopausal', weight: 3, matchText: 'Postmenopausal status' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2, matchText: 'Weight loss on ROS' },
+            { check: p => hasChronic(p, ['obesity', 'hypertension', 'diabetes']), weight: 2, matchText: 'Obesity, hypertension, or diabetes' },
         ]
     });
 
@@ -4175,12 +4202,15 @@ function buildKnowledgeBase() {
         id: 'cervical_cancer',
         name: 'Cervical Cancer',
         category: 'Gynecological',
+        references: [
+            'Williams Gynecology, 3rd Ed., Ch. 26 – Cervical Cancer',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 28'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['gyn-pcb', 'gyn-pmb']), weight: 4 },
-            { check: p => hasRos(p, 'urinogenital', ['Vaginal discharge']), weight: 2 },
-            { check: p => hasPe(p, 'vaginal', ['Cervix abnormal']), weight: 3 }, // not a specific tag, but we can check narrative? For now, skip.
-            { check: p => p.hivStatus === 'positive', weight: 2 },
-            { check: p => p.age > 30, weight: 1 },
+            { check: p => complaintIncludes(p, ['gyn-pcb', 'gyn-pmb']), weight: 4, matchText: 'Complaint of post-coital or post-menopausal bleeding' },
+            { check: p => hasRos(p, 'urinogenital', ['Vaginal discharge']), weight: 2, matchText: 'Vaginal discharge on ROS' },
+            { check: p => p.hivStatus === 'positive', weight: 2, matchText: 'HIV positive' },
+            { check: p => p.age > 30, weight: 1, matchText: 'Age >30' },
         ]
     });
 
@@ -4189,12 +4219,16 @@ function buildKnowledgeBase() {
         id: 'fibroids',
         name: 'Uterine Fibroids',
         category: 'Gynecological',
+        references: [
+            'Williams Gynecology, 3rd Ed., Ch. 14 – Uterine Leiomyomas',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 19'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['gyn-pv-bleed', 'gyn-mass']), weight: 3 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain', 'Bloating']), weight: 2 },
-            { check: p => hasPe(p, 'vaginal', ['Uterus enlarged']), weight: 4 },
-            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('fibroid')), weight: 2 },
-            { check: p => p.age > 30, weight: 1 },
+            { check: p => complaintIncludes(p, ['gyn-pv-bleed', 'gyn-mass']), weight: 3, matchText: 'Complaint of vaginal bleeding or pelvic mass' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain', 'Bloating']), weight: 2, matchText: 'Abdominal pain or bloating on ROS' },
+            { check: p => hasPe(p, 'vaginal', ['Uterus enlarged']), weight: 4, matchText: 'Pelvic exam: enlarged uterus' },
+            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('fibroid')), weight: 2, matchText: 'Known uterine fibroids' },
+            { check: p => p.age > 30, weight: 1, matchText: 'Age >30' },
         ]
     });
 
@@ -4203,74 +4237,97 @@ function buildKnowledgeBase() {
         id: 'endometriosis',
         name: 'Endometriosis',
         category: 'Gynecological',
+        references: [
+            'Williams Gynecology, 3rd Ed., Ch. 13 – Endometriosis',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 21'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['gyn-pelvic-pain']), weight: 3 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2 },
-            { check: p => hasRos(p, 'urinogenital', ['Dyspareunia']), weight: 2 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Dysmenorrhoea']), weight: 2 }, // not in ROS? But we have dysmenorrhoea in menstrual history.
-            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('endometriosis')), weight: 2 },
-            { check: p => p.age < 40, weight: 1 },
+            { check: p => complaintIncludes(p, ['gyn-pelvic-pain']), weight: 3, matchText: 'Complaint of pelvic pain' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
+            { check: p => hasRos(p, 'urinogenital', ['Dyspareunia']), weight: 2, matchText: 'Dyspareunia on ROS' },
+            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('endometriosis')), weight: 2, matchText: 'Known endometriosis' },
+            { check: p => p.age < 40, weight: 1, matchText: 'Age <40' },
         ]
     });
 
-    // ---- URINARY TRACT INFECTION ----
+    // ---- UTI ----
     conditions.push({
         id: 'uti',
         name: 'Urinary Tract Infection',
         category: 'Gynecological/Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 21 – Urinary Tract Infections',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['gyn-urinary', 'obs-dysuria']), weight: 3 },
-            { check: p => hasRos(p, 'urinogenital', ['Dysuria', 'Frequency', 'Urgency']), weight: 3 },
-            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2 },
+            { check: p => complaintIncludes(p, ['gyn-urinary', 'obs-dysuria']), weight: 3, matchText: 'Complaint of urinary symptoms' },
+            { check: p => hasRos(p, 'urinogenital', ['Dysuria', 'Frequency', 'Urgency']), weight: 3, matchText: 'Dysuria, frequency, or urgency on ROS' },
+            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2, matchText: 'Fever on ROS' },
         ]
     });
 
-    // ---- PELVIC ORGAN PROLAPSE ----
+    // ---- PROLAPSE ----
     conditions.push({
         id: 'prolapse',
         name: 'Pelvic Organ Prolapse',
         category: 'Gynecological',
+        references: [
+            'Williams Gynecology, 3rd Ed., Ch. 22 – Pelvic Organ Prolapse',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 24'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['gyn-prolapse']), weight: 4 },
-            { check: p => hasRos(p, 'urinogenital', ['Stress incontinence', 'Urge incontinence']), weight: 2 },
-            { check: p => p.gravida > 2, weight: 2 },
-            { check: p => p.age > 40, weight: 1 },
+            { check: p => complaintIncludes(p, ['gyn-prolapse']), weight: 4, matchText: 'Complaint of prolapse' },
+            { check: p => hasRos(p, 'urinogenital', ['Stress incontinence', 'Urge incontinence']), weight: 2, matchText: 'Stress or urge incontinence on ROS' },
+            { check: p => p.gravida > 2, weight: 2, matchText: 'Grand multiparity' },
+            { check: p => p.age > 40, weight: 1, matchText: 'Age >40' },
         ]
     });
 
-    // ---- VESICOVAGINAL FISTULA ----
+    // ---- FISTULA ----
     conditions.push({
         id: 'fistula',
         name: 'Vesicovaginal Fistula',
         category: 'Gynecological',
+        references: [
+            'Williams Gynecology, 3rd Ed., Ch. 23 – Genitourinary Fistula',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 24'
+        ],
         criteria: [
-            { check: p => hasRos(p, 'urinogenital', ['Continuous incontinence']), weight: 5 },
-            { check: p => complaintIncludes(p, ['gyn-urinary']), weight: 2 },
-            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('fistula')), weight: 2 },
+            { check: p => hasRos(p, 'urinogenital', ['Continuous incontinence']), weight: 5, matchText: 'Continuous incontinence on ROS' },
+            { check: p => complaintIncludes(p, ['gyn-urinary']), weight: 2, matchText: 'Complaint of urinary symptoms' },
+            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('fistula')), weight: 2, matchText: 'History of obstetric fistula' },
         ]
     });
 
-    // ---- REDUCED FETAL MOVEMENT (non-specific, but we can include) ----
+    // ---- RFM ----
     conditions.push({
         id: 'rfm',
         name: 'Reduced Fetal Movement (requires investigation)',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 16 – Fetal Assessment',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 13'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-rfm']), weight: 5 },
-            { check: p => p.gravida > 0, weight: 1 },
+            { check: p => complaintIncludes(p, ['obs-rfm']), weight: 5, matchText: 'Complaint of reduced fetal movement' },
+            { check: p => p.gravida > 0, weight: 1, matchText: 'Pregnant' },
         ]
     });
 
-    // ---- PRETERM RUPTURE OF MEMBRANES ----
+    // ---- PPROM ----
     conditions.push({
         id: 'pprom',
         name: 'Preterm Premature Rupture of Membranes (PPROM)',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 23 – Preterm Rupture of Membranes',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 12'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-rom']), weight: 4 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 1 },
-            { check: p => hasPe(p, 'obstetric', ['Liquor: clear', 'Liquor: meconium-stained']), weight: 2 },
-            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2 },
+            { check: p => complaintIncludes(p, ['obs-rom']), weight: 4, matchText: 'Complaint of rupture of membranes' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 1, matchText: 'Abdominal pain on ROS' },
+            { check: p => hasPe(p, 'obstetric', ['Liquor: clear', 'Liquor: meconium-stained']), weight: 2, matchText: 'Obstetric exam: liquor status noted' },
+            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2, matchText: 'Previous preterm delivery' },
         ]
     });
 
@@ -4279,24 +4336,31 @@ function buildKnowledgeBase() {
         id: 'chorio',
         name: 'Chorioamnionitis',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 30 – Chorioamnionitis',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 14'
+        ],
         criteria: [
-            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 3 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2 },
-            { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Liquor: offensive']), weight: 4 },
-            { check: p => complaintIncludes(p, ['obs-rom']), weight: 2 },
+            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 3, matchText: 'Fever on ROS' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
+            { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Liquor: offensive']), weight: 4, matchText: 'Obstetric exam: tender uterus or offensive liquor' },
+            { check: p => complaintIncludes(p, ['obs-rom']), weight: 2, matchText: 'Complaint of ruptured membranes' },
         ]
     });
 
-    // ---- POSTPARTUM HAEMORRHAGE ----
+    // ---- PPH ----
     conditions.push({
         id: 'pph',
         name: 'Postpartum Haemorrhage (PPH)',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 28 – Postpartum Hemorrhage',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 16'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-pph']), weight: 5 },
-            { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2 },
-            { check: p => hasPe(p, 'obstetric', ['Uterus: atonic?']), weight: 1 }, // we don't have a tag, but we can check narrative? skip.
-            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('pph')), weight: 2 },
+            { check: p => complaintIncludes(p, ['obs-pph']), weight: 5, matchText: 'Complaint of postpartum haemorrhage' },
+            { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2, matchText: 'Dizziness or fainting on ROS' },
+            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('pph')), weight: 2, matchText: 'History of PPH' },
         ]
     });
 
@@ -4305,34 +4369,46 @@ function buildKnowledgeBase() {
         id: 'molar',
         name: 'Molar Pregnancy (Hydatidiform Mole)',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 17 – Gestational Trophoblastic Disease',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 7'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-molar']), weight: 4 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2 },
-            { check: p => hasRos(p, 'cns', ['Headache']), weight: 1 },
-            { check: p => p.gravida > 0, weight: 1 },
+            { check: p => complaintIncludes(p, ['obs-molar']), weight: 4, matchText: 'Complaint of molar pregnancy signs' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2, matchText: 'Nausea or vomiting on ROS' },
+            { check: p => hasRos(p, 'cns', ['Headache']), weight: 1, matchText: 'Headache on ROS' },
+            { check: p => p.gravida > 0, weight: 1, matchText: 'Pregnant' },
         ]
     });
 
-    // ---- OBSTETRIC CHOLESTASIS ----
+    // ---- CHOLESTASIS ----
     conditions.push({
         id: 'cholestasis',
         name: 'Obstetric Cholestasis',
         category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 21 – Intrahepatic Cholestasis of Pregnancy',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-cholestasis']), weight: 4 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Pruritus']), weight: 3 },
-            { check: p => hasRos(p, 'gastrointestinal', ['Jaundice']), weight: 2 },
+            { check: p => complaintIncludes(p, ['obs-cholestasis']), weight: 4, matchText: 'Complaint of obstetric cholestasis' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Pruritus']), weight: 3, matchText: 'Pruritus (itching) on ROS' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Jaundice']), weight: 2, matchText: 'Jaundice on ROS' },
         ]
     });
 
-    // ---- PERINATAL DEPRESSION / ANXIETY (mental health) ----
+    // ---- PERINATAL DEPRESSION ----
     conditions.push({
         id: 'perinatal_depression',
         name: 'Perinatal Depression / Anxiety',
         category: 'Psychiatric',
+        references: [
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 29 – Psychiatric Disorders',
+            'DSM-5 – Perinatal Mood and Anxiety Disorders'
+        ],
         criteria: [
-            { check: p => complaintIncludes(p, ['obs-psych']), weight: 4 },
-            { check: p => hasRos(p, 'cns', ['Mood changes', 'Sleep disturbance']), weight: 3 },
+            { check: p => complaintIncludes(p, ['obs-psych']), weight: 4, matchText: 'Complaint of perinatal mental health concern' },
+            { check: p => hasRos(p, 'cns', ['Mood changes', 'Sleep disturbance']), weight: 3, matchText: 'Mood changes or sleep disturbance on ROS' },
         ]
     });
 
@@ -4344,42 +4420,34 @@ function buildKnowledgeBase() {
  * Called by the DDX button.
  */
 function generateDDX() {
-    // Gather patient data
     const patient = getPatientData();
-
-    // Get knowledge base
     const conditions = buildKnowledgeBase();
 
-    // Compute scores
     const results = conditions.map(cond => {
         let totalWeight = 0;
         let score = 0;
+        const matchedTexts = [];
         cond.criteria.forEach(criterion => {
             totalWeight += criterion.weight;
             if (criterion.check(patient)) {
                 score += criterion.weight;
+                matchedTexts.push(criterion.matchText);
             }
         });
-        // If no criteria, avoid division by zero
         if (totalWeight === 0) return null;
         const confidence = Math.round((score / totalWeight) * 100);
-        // Optionally, we can add a confidence boost if complaint category exactly matches
-        // For now, we keep it simple.
         return {
             ...cond,
             score,
             totalWeight,
-            confidence: Math.min(confidence, 100) // cap at 100%
+            confidence: Math.min(confidence, 100),
+            matchedTexts
         };
     }).filter(r => r !== null);
 
-    // Sort by confidence descending, then by score
     results.sort((a, b) => b.confidence - a.confidence || b.score - a.score);
-
-    // Keep only top 10
     const top = results.slice(0, 10);
 
-    // Build HTML to display
     let html = `
         <div style="margin-bottom:1rem; font-size:0.85rem; color:var(--muted);">
             Based on history and physical exam findings, the following differential diagnoses are ranked by confidence.
@@ -4398,14 +4466,22 @@ function generateDDX() {
     if (top.length === 0) {
         html += `<tr><td colspan="3" style="padding:1rem; text-align:center; color:var(--muted);">No differentials could be generated. Please complete more history and examination fields.</td></tr>`;
     } else {
-        top.forEach((result, idx) => {
-            // Collect matched criteria to show evidence
-            const matched = result.criteria.filter(c => c.check(patient)).map(c => c.weight);
-            const evidence = matched.length ? `${matched.length} key features match` : 'No matching features';
-            // Color confidence
+        top.forEach(result => {
             let barColor = '#e74c3c';
             if (result.confidence >= 70) barColor = '#2ecc71';
             else if (result.confidence >= 40) barColor = '#f1c40f';
+
+            // Build bullet list of matched texts
+            let evidenceHtml = '';
+            if (result.matchedTexts.length) {
+                evidenceHtml = '<ul style="margin:0; padding-left:1.2rem;">';
+                result.matchedTexts.forEach(text => {
+                    evidenceHtml += `<li style="font-size:0.8rem;">${text}</li>`;
+                });
+                evidenceHtml += '</ul>';
+            } else {
+                evidenceHtml = 'No matching features';
+            }
 
             html += `
                 <tr style="border-bottom:1px solid var(--border);">
@@ -4419,9 +4495,11 @@ function generateDDX() {
                         </div>
                         ${result.confidence}%
                     </td>
-                    <td style="padding:0.5rem 0.75rem; font-size:0.8rem; color:var(--text);">
-                        ${evidence}
-                    </td>
+                   <td style="padding:0.5rem 0.75rem;">
+    <strong>${result.name}</strong>
+    <div style="font-size:0.7rem; color:var(--muted);">${result.category}</div>
+    ${result.references ? `<div style="font-size:0.65rem; color:var(--muted); margin-top:0.2rem;">📖 ${result.references.join('; ')}</div>` : ''}
+</td>
                 </tr>
             `;
         });
@@ -4435,7 +4513,6 @@ function generateDDX() {
         </div>
     `;
 
-    // Insert into modal
     document.getElementById('ddxContent').innerHTML = html;
     document.getElementById('ddxModal').classList.add('open');
 }
