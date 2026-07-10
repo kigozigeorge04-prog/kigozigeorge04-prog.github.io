@@ -904,31 +904,40 @@ sb.auth.onAuthStateChange(async (event, session) => {
         localStorage.setItem('easemed_user_name', name);
 
         // ── CHECK IF PROFILE IS COMPLETE ──────────────────
-        const { data: profile, error: profileError } = await sb
-            .from('profiles')
-            .select('university, year_of_study, phone')
-            .eq('id', user.id)
-            .maybeSingle();
+     // ── CHECK IF PROFILE IS COMPLETE ──────────────────
+// A brand-new Google sign-in has NO profiles row yet, so `profile`
+// comes back null with no error. Treat "no row" the same as "row
+// with blank fields" — both mean incomplete. Otherwise first-time
+// Google users skip this gate entirely and land on the dashboard
+// with blank university/year/phone (the bug you just saw).
+const { data: profile, error: profileError } = await sb
+    .from('profiles')
+    .select('university, year_of_study, phone')
+    .eq('id', user.id)
+    .maybeSingle();
 
-        if (profile && !profileError) {
-            const missingFields = [];
-            if (!profile.university || profile.university === '') missingFields.push('university');
-            if (!profile.year_of_study || profile.year_of_study === null) missingFields.push('year_of_study');
-            if (!profile.phone || profile.phone === '') missingFields.push('phone');
+if (!profileError) {
+    const missingFields = [];
+    if (!profile?.university) missingFields.push('university');
+    if (!profile?.year_of_study) missingFields.push('year_of_study');
+    if (!profile?.phone) missingFields.push('phone');
 
-            if (missingFields.length > 0) {
-                localStorage.setItem('easemed_pending_user_id', user.id);
-                localStorage.setItem('easemed_pending_email', email);
-                localStorage.setItem('easemed_pending_name', name);
-                window.location.href = 'complete-profile.html';
-                return;
-            }
-        }
-
+    if (missingFields.length > 0) {
+        // complete-profile.html does an UPDATE, not an upsert, so make
+        // sure a row actually exists before sending a first-timer there.
         await upsertProfile(user, { name, email });
-        window.location.href = DASHBOARD_URL;
+
+        localStorage.setItem('easemed_pending_user_id', user.id);
+        localStorage.setItem('easemed_pending_email', email);
+        localStorage.setItem('easemed_pending_name', name);
+        window.location.href = 'complete-profile.html';
         return;
     }
+}
+
+await upsertProfile(user, { name, email });
+window.location.href = DASHBOARD_URL;
+return;
 
     if (event === 'SIGNED_OUT') {
         localStorage.removeItem('easemed_user');
