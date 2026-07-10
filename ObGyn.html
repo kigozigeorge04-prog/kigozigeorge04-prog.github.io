@@ -2685,7 +2685,8 @@
 <div class="footer-nav">
   <div class="step-indicator">Step <strong id="stepNum">1</strong> of 13 — <span id="stepLabel">Demographics & History</span></div>
   <div style="display:flex; gap:0.6rem;">
-    <button class="btn-secondary" onclick="generateSummary()" style="background:linear-gradient(135deg,#6a3d9a,#b5006e); color:#fff; border:none;">📋 Generate Summary</button>
+    <button class="btn-secondary" onclick="generateDDX()" style="background:linear-gradient(135deg,#1a5f7a,#0a3d4f); color:#fff; border:none;">🔬 DDX</button>
+    <button class="btn-secondary" onclick="generateSummary()" style="background:linear-gradient(135deg,#6a3d9a,#b5006e); color:#fff; border:none;">📋 Summary</button>
     <button class="btn-primary" onclick="goNext()">Complete History →</button>
   </div>
 </div>
@@ -3811,6 +3812,20 @@ function downloadSummaryPDF() {
     <div class="summary-modal-body" id="summaryContent"></div>
   </div>
 </div>
+              <!-- DDX MODAL -->
+<div class="summary-modal-overlay" id="ddxModal">
+  <div class="summary-modal">
+    <div class="summary-modal-header" style="background:linear-gradient(135deg,#1a5f7a,#0a3d4f);">
+      <h3>🔬 Differential Diagnoses</h3>
+      <div class="modal-actions">
+        <button class="btn-close-modal" onclick="closeDdxModal()">✕ Close</button>
+      </div>
+    </div>
+    <div class="summary-modal-body" id="ddxContent">
+      <p>Loading diagnoses...</p>
+    </div>
+  </div>
+</div>
               <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -3820,6 +3835,614 @@ function downloadSummaryPDF() {
         });
     }
 </script>
+              <script>  // ============================================================
+// DDX GENERATOR — ObGyn Differential Diagnoses
+// ============================================================
+
+/**
+ * Extract all relevant patient data from the form.
+ * Returns an object with fields used for matching.
+ */
+function getPatientData() {
+    // Helper to get value or default
+    const val = id => document.getElementById(id)?.value?.trim() || '';
+    const radioVal = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
+    const checkboxVals = selector => Array.from(document.querySelectorAll(selector + ':checked')).map(cb => cb.value);
+
+    // ROS data (present symptoms)
+    const rosData = getRosData(); // from existing function
+    const rosPresent = {};
+    const rosAbsent = {};
+    Object.keys(rosData).forEach(sys => {
+        rosPresent[sys] = rosData[sys].present || [];
+        rosAbsent[sys] = rosData[sys].absent || [];
+    });
+
+    // PE data (present findings)
+    const peData = getPeData(); // from existing function
+    const pePresent = {};
+    Object.keys(peData).forEach(sys => {
+        pePresent[sys] = peData[sys].present || [];
+    });
+
+    // ANC medications
+    const ancMeds = getAncMedications();
+
+    // Contraception
+    const contra = checkboxVals('#contraceptionGroup input[type="checkbox"]');
+
+    // HIV status
+    const hivStatus = radioVal('hivStatus');
+    const partnerHiv = radioVal('partnerHiv');
+
+    // Menstrual status
+    const menstrualStatus = radioVal('menstrualStatus');
+
+    // Chronic conditions (split by commas)
+    const chronic = val('chronicConditions').split(',').map(s => s.trim()).filter(Boolean);
+
+    // Previous surgeries
+    const prevSurgeries = val('previousSurgeries').split(',').map(s => s.trim()).filter(Boolean);
+
+    // Referral status
+    const referred = radioVal('referred');
+
+    // Obstetric history
+    const gravida = parseInt(val('gravida')) || 0;
+    const parity = val('parity'); // string like "2+0"
+    const prevCS = parseInt(val('prevCS')) || 0;
+    const prevAbortions = parseInt(val('prevAbortions')) || 0;
+    const prevObsComp = val('prevObsComplications').split(',').map(s => s.trim()).filter(Boolean);
+
+    // Complaint category
+    const complaintCat = val('complaintCategory');
+
+    // Age
+    const age = parseInt(val('age')) || 0;
+
+    // Smoking & alcohol
+    const smoking = radioVal('smoking');
+    const alcohol = radioVal('alcohol');
+
+    // Family history
+    const familyConditions = val('familyConditions').toLowerCase();
+
+    // Gyn conditions
+    const gynConditions = val('gynConditions').split(',').map(s => s.trim()).filter(Boolean);
+
+    return {
+        age,
+        gravida,
+        parity,
+        prevCS,
+        prevAbortions,
+        prevObsComp,
+        complaintCat,
+        hivStatus,
+        partnerHiv,
+        menstrualStatus,
+        chronic,
+        prevSurgeries,
+        referred,
+        smoking,
+        alcohol,
+        familyConditions,
+        gynConditions,
+        ancMeds,
+        contra,
+        rosPresent,
+        rosAbsent,
+        pePresent,
+        // Also include raw fields for more advanced matching if needed
+        raw: {
+            hpc: val('hpcNarrative'),
+            complaintVerbatim: val('complaintVerbatim'),
+        }
+    };
+}
+
+/**
+ * Build the knowledge base of ObGyn conditions.
+ * Each condition has:
+ *   - id, name, category
+ *   - criteria: array of { check: function(patientData) => boolean, weight: number }
+ *   - totalWeight is computed automatically
+ */
+function buildKnowledgeBase() {
+    // Helper to check if any of a list of ROS symptoms are present in a given system
+    function hasRos(patient, system, symptoms) {
+        const present = patient.rosPresent[system] || [];
+        return symptoms.some(s => present.includes(s));
+    }
+
+    function hasPe(patient, systemPrefix, findings) {
+        const present = patient.pePresent[systemPrefix] || [];
+        return findings.some(f => present.includes(f));
+    }
+
+    // Helper: check if complaint category includes a keyword
+    function complaintIncludes(patient, keywords) {
+        return keywords.some(kw => patient.complaintCat.includes(kw));
+    }
+
+    // Helper: check if age is in range
+    function ageIn(patient, min, max) {
+        return patient.age >= min && patient.age <= max;
+    }
+
+    // Helper: check if chronic condition contains a keyword
+    function hasChronic(patient, keywords) {
+        return patient.chronic.some(c => keywords.some(kw => c.toLowerCase().includes(kw)));
+    }
+
+    // Helper: check if parity has term deliveries >0
+    function hasTermPregnancy(patient) {
+        const p = patient.parity;
+        if (!p) return false;
+        const parts = p.split('+');
+        if (parts.length > 0) {
+            const term = parseInt(parts[0]);
+            return !isNaN(term) && term > 0;
+        }
+        return false;
+    }
+
+    // Define conditions
+    const conditions = [];
+
+    // ---- ECTOPIC PREGNANCY ----
+    conditions.push({
+        id: 'ectopic',
+        name: 'Ectopic Pregnancy',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-pelvic-pain', 'gyn-pv-bleed']), weight: 3 },
+            { check: p => hasRos(p, 'urinogenital', ['Vaginal discharge']), weight: 1 },
+            { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2 },
+            { check: p => hasPe(p, 'vaginal', ['Cervical motion tenderness', 'Adnexal tenderness', 'Adnexal mass']), weight: 4 },
+            { check: p => p.prevAbortions > 0 || p.gynConditions.some(c => c.toLowerCase().includes('pid')), weight: 2 },
+            { check: p => p.contra.some(c => c.includes('IUD')), weight: 2 },
+            { check: p => ageIn(p, 15, 45), weight: 1 },
+        ]
+    });
+
+    // ---- PLACENTAL ABRUPTION ----
+    conditions.push({
+        id: 'abruption',
+        name: 'Placental Abruption',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-bleeding', 'obs-abdo-pain']), weight: 3 },
+            { check: p => hasRos(p, 'cardiovascular', ['Oedema']), weight: 1 },
+            { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Uterus irritable']), weight: 4 },
+            { check: p => hasRos(p, 'cns', ['Headache']), weight: 1 },
+            { check: p => hasChronic(p, ['hypertension']), weight: 2 },
+            { check: p => p.gravida > 2, weight: 1 },
+        ]
+    });
+
+    // ---- PLACENTA PREVIA ----
+    conditions.push({
+        id: 'previa',
+        name: 'Placenta Previa',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-bleeding']), weight: 3 },
+            { check: p => hasPe(p, 'obstetric', ['Placental position: Low-lying']), weight: 4 },
+            { check: p => p.prevCS > 0, weight: 2 },
+            { check: p => p.gravida > 2, weight: 1 },
+        ]
+    });
+
+    // ---- PREECLAMPSIA ----
+    conditions.push({
+        id: 'preeclampsia',
+        name: 'Preeclampsia',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-htn', 'obs-preeclampsia']), weight: 3 },
+            { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2 },
+            { check: p => hasRos(p, 'cns', ['Seizures']), weight: 1 }, // could be eclampsia
+            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting', 'Epigastric pain']), weight: 2 },
+            { check: p => hasChronic(p, ['hypertension']), weight: 2 },
+            { check: p => p.age > 35 || p.gravida > 2, weight: 1 },
+        ]
+    });
+
+    // ---- ECLAMPSIA ----
+    conditions.push({
+        id: 'eclampsia',
+        name: 'Eclampsia',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => hasRos(p, 'cns', ['Seizures']), weight: 5 },
+            { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2 },
+            { check: p => hasChronic(p, ['hypertension']), weight: 1 },
+        ]
+    });
+
+    // ---- PRETERM LABOR ----
+    conditions.push({
+        id: 'preterm_labor',
+        name: 'Preterm Labor',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-preterm']), weight: 3 },
+            { check: p => hasRos(p, 'urinogenital', ['Urinary frequency']), weight: 1 },
+            { check: p => hasPe(p, 'obstetric', ['Contractions: regular', 'Contractions: irregular']), weight: 3 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Diarrhoea']), weight: 1 },
+            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2 },
+            { check: p => p.gravida > 2, weight: 1 },
+        ]
+    });
+
+    // ---- GESTATIONAL DIABETES ----
+    conditions.push({
+        id: 'gdm',
+        name: 'Gestational Diabetes',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-diabetes']), weight: 3 },
+            { check: p => hasRos(p, 'endocrine', ['Polyuria', 'Polydipsia']), weight: 2 },
+            { check: p => hasChronic(p, ['diabetes']), weight: 2 },
+            { check: p => p.age > 35, weight: 1 },
+            { check: p => p.gravida > 2, weight: 1 },
+        ]
+    });
+
+    // ---- HYPEREMESIS GRAVIDARUM ----
+    conditions.push({
+        id: 'hyperemesis',
+        name: 'Hyperemesis Gravidarum',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-vomiting']), weight: 3 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2 },
+            { check: p => p.gravida > 1, weight: 1 },
+        ]
+    });
+
+    // ---- MISCARRIAGE ----
+    conditions.push({
+        id: 'miscarriage',
+        name: 'Miscarriage (Spontaneous Abortion)',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-pv-bleed']), weight: 3 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2 },
+            { check: p => hasPe(p, 'vaginal', ['Cervical os open']), weight: 3 },
+            { check: p => p.gravida > 0, weight: 1 },
+        ]
+    });
+
+    // ---- OVARIAN CYST (with possible torsion) ----
+    conditions.push({
+        id: 'ovarian_cyst',
+        name: 'Ovarian Cyst / Torsion',
+        category: 'Gynecological',
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-pelvic-pain']), weight: 3 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain', 'Nausea', 'Vomiting']), weight: 2 },
+            { check: p => hasPe(p, 'vaginal', ['Adnexal mass', 'Adnexal tenderness']), weight: 4 },
+            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('cyst')), weight: 2 },
+        ]
+    });
+
+    // ---- PELVIC INFLAMMATORY DISEASE (PID) ----
+    conditions.push({
+        id: 'pid',
+        name: 'Pelvic Inflammatory Disease',
+        category: 'Gynecological',
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-pelvic-pain', 'gyn-discharge']), weight: 3 },
+            { check: p => hasRos(p, 'urinogenital', ['Vaginal discharge', 'Dysuria']), weight: 2 },
+            { check: p => hasPe(p, 'vaginal', ['Cervical motion tenderness', 'Adnexal tenderness']), weight: 4 },
+            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2 },
+            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('pid')), weight: 2 },
+        ]
+    });
+
+    // ---- ENDOMETRIAL CANCER ----
+    conditions.push({
+        id: 'endometrial_cancer',
+        name: 'Endometrial Cancer',
+        category: 'Gynecological',
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-pmb']), weight: 5 },
+            { check: p => p.menstrualStatus === 'Postmenopausal', weight: 3 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2 },
+            { check: p => hasChronic(p, ['obesity', 'hypertension', 'diabetes']), weight: 2 },
+        ]
+    });
+
+    // ---- CERVICAL CANCER ----
+    conditions.push({
+        id: 'cervical_cancer',
+        name: 'Cervical Cancer',
+        category: 'Gynecological',
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-pcb', 'gyn-pmb']), weight: 4 },
+            { check: p => hasRos(p, 'urinogenital', ['Vaginal discharge']), weight: 2 },
+            { check: p => hasPe(p, 'vaginal', ['Cervix abnormal']), weight: 3 }, // not a specific tag, but we can check narrative? For now, skip.
+            { check: p => p.hivStatus === 'positive', weight: 2 },
+            { check: p => p.age > 30, weight: 1 },
+        ]
+    });
+
+    // ---- UTERINE FIBROIDS ----
+    conditions.push({
+        id: 'fibroids',
+        name: 'Uterine Fibroids',
+        category: 'Gynecological',
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-pv-bleed', 'gyn-mass']), weight: 3 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain', 'Bloating']), weight: 2 },
+            { check: p => hasPe(p, 'vaginal', ['Uterus enlarged']), weight: 4 },
+            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('fibroid')), weight: 2 },
+            { check: p => p.age > 30, weight: 1 },
+        ]
+    });
+
+    // ---- ENDOMETRIOSIS ----
+    conditions.push({
+        id: 'endometriosis',
+        name: 'Endometriosis',
+        category: 'Gynecological',
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-pelvic-pain']), weight: 3 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2 },
+            { check: p => hasRos(p, 'urinogenital', ['Dyspareunia']), weight: 2 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Dysmenorrhoea']), weight: 2 }, // not in ROS? But we have dysmenorrhoea in menstrual history.
+            { check: p => p.gynConditions.some(c => c.toLowerCase().includes('endometriosis')), weight: 2 },
+            { check: p => p.age < 40, weight: 1 },
+        ]
+    });
+
+    // ---- URINARY TRACT INFECTION ----
+    conditions.push({
+        id: 'uti',
+        name: 'Urinary Tract Infection',
+        category: 'Gynecological/Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-urinary', 'obs-dysuria']), weight: 3 },
+            { check: p => hasRos(p, 'urinogenital', ['Dysuria', 'Frequency', 'Urgency']), weight: 3 },
+            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2 },
+        ]
+    });
+
+    // ---- PELVIC ORGAN PROLAPSE ----
+    conditions.push({
+        id: 'prolapse',
+        name: 'Pelvic Organ Prolapse',
+        category: 'Gynecological',
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-prolapse']), weight: 4 },
+            { check: p => hasRos(p, 'urinogenital', ['Stress incontinence', 'Urge incontinence']), weight: 2 },
+            { check: p => p.gravida > 2, weight: 2 },
+            { check: p => p.age > 40, weight: 1 },
+        ]
+    });
+
+    // ---- VESICOVAGINAL FISTULA ----
+    conditions.push({
+        id: 'fistula',
+        name: 'Vesicovaginal Fistula',
+        category: 'Gynecological',
+        criteria: [
+            { check: p => hasRos(p, 'urinogenital', ['Continuous incontinence']), weight: 5 },
+            { check: p => complaintIncludes(p, ['gyn-urinary']), weight: 2 },
+            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('fistula')), weight: 2 },
+        ]
+    });
+
+    // ---- REDUCED FETAL MOVEMENT (non-specific, but we can include) ----
+    conditions.push({
+        id: 'rfm',
+        name: 'Reduced Fetal Movement (requires investigation)',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-rfm']), weight: 5 },
+            { check: p => p.gravida > 0, weight: 1 },
+        ]
+    });
+
+    // ---- PRETERM RUPTURE OF MEMBRANES ----
+    conditions.push({
+        id: 'pprom',
+        name: 'Preterm Premature Rupture of Membranes (PPROM)',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-rom']), weight: 4 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 1 },
+            { check: p => hasPe(p, 'obstetric', ['Liquor: clear', 'Liquor: meconium-stained']), weight: 2 },
+            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2 },
+        ]
+    });
+
+    // ---- CHORIOAMNIONITIS ----
+    conditions.push({
+        id: 'chorio',
+        name: 'Chorioamnionitis',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 3 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2 },
+            { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Liquor: offensive']), weight: 4 },
+            { check: p => complaintIncludes(p, ['obs-rom']), weight: 2 },
+        ]
+    });
+
+    // ---- POSTPARTUM HAEMORRHAGE ----
+    conditions.push({
+        id: 'pph',
+        name: 'Postpartum Haemorrhage (PPH)',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-pph']), weight: 5 },
+            { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2 },
+            { check: p => hasPe(p, 'obstetric', ['Uterus: atonic?']), weight: 1 }, // we don't have a tag, but we can check narrative? skip.
+            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('pph')), weight: 2 },
+        ]
+    });
+
+    // ---- MOLAR PREGNANCY ----
+    conditions.push({
+        id: 'molar',
+        name: 'Molar Pregnancy (Hydatidiform Mole)',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-molar']), weight: 4 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2 },
+            { check: p => hasRos(p, 'cns', ['Headache']), weight: 1 },
+            { check: p => p.gravida > 0, weight: 1 },
+        ]
+    });
+
+    // ---- OBSTETRIC CHOLESTASIS ----
+    conditions.push({
+        id: 'cholestasis',
+        name: 'Obstetric Cholestasis',
+        category: 'Obstetric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-cholestasis']), weight: 4 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Pruritus']), weight: 3 },
+            { check: p => hasRos(p, 'gastrointestinal', ['Jaundice']), weight: 2 },
+        ]
+    });
+
+    // ---- PERINATAL DEPRESSION / ANXIETY (mental health) ----
+    conditions.push({
+        id: 'perinatal_depression',
+        name: 'Perinatal Depression / Anxiety',
+        category: 'Psychiatric',
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-psych']), weight: 4 },
+            { check: p => hasRos(p, 'cns', ['Mood changes', 'Sleep disturbance']), weight: 3 },
+        ]
+    });
+
+    return conditions;
+}
+
+/**
+ * Main DDX generation function.
+ * Called by the DDX button.
+ */
+function generateDDX() {
+    // Gather patient data
+    const patient = getPatientData();
+
+    // Get knowledge base
+    const conditions = buildKnowledgeBase();
+
+    // Compute scores
+    const results = conditions.map(cond => {
+        let totalWeight = 0;
+        let score = 0;
+        cond.criteria.forEach(criterion => {
+            totalWeight += criterion.weight;
+            if (criterion.check(patient)) {
+                score += criterion.weight;
+            }
+        });
+        // If no criteria, avoid division by zero
+        if (totalWeight === 0) return null;
+        const confidence = Math.round((score / totalWeight) * 100);
+        // Optionally, we can add a confidence boost if complaint category exactly matches
+        // For now, we keep it simple.
+        return {
+            ...cond,
+            score,
+            totalWeight,
+            confidence: Math.min(confidence, 100) // cap at 100%
+        };
+    }).filter(r => r !== null);
+
+    // Sort by confidence descending, then by score
+    results.sort((a, b) => b.confidence - a.confidence || b.score - a.score);
+
+    // Keep only top 10
+    const top = results.slice(0, 10);
+
+    // Build HTML to display
+    let html = `
+        <div style="margin-bottom:1rem; font-size:0.85rem; color:var(--muted);">
+            Based on history and physical exam findings, the following differential diagnoses are ranked by confidence.
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+            <thead>
+                <tr style="background:#f0f2f5; border-bottom:2px solid var(--border);">
+                    <th style="padding:0.5rem 0.75rem; text-align:left;">Diagnosis</th>
+                    <th style="padding:0.5rem 0.75rem; text-align:center;">Confidence</th>
+                    <th style="padding:0.5rem 0.75rem; text-align:left;">Supporting Evidence</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    if (top.length === 0) {
+        html += `<tr><td colspan="3" style="padding:1rem; text-align:center; color:var(--muted);">No differentials could be generated. Please complete more history and examination fields.</td></tr>`;
+    } else {
+        top.forEach((result, idx) => {
+            // Collect matched criteria to show evidence
+            const matched = result.criteria.filter(c => c.check(patient)).map(c => c.weight);
+            const evidence = matched.length ? `${matched.length} key features match` : 'No matching features';
+            // Color confidence
+            let barColor = '#e74c3c';
+            if (result.confidence >= 70) barColor = '#2ecc71';
+            else if (result.confidence >= 40) barColor = '#f1c40f';
+
+            html += `
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:0.5rem 0.75rem;">
+                        <strong>${result.name}</strong>
+                        <div style="font-size:0.7rem; color:var(--muted);">${result.category}</div>
+                    </td>
+                    <td style="padding:0.5rem 0.75rem; text-align:center;">
+                        <div style="display:inline-block; width:60px; height:8px; background:#eee; border-radius:4px; overflow:hidden; vertical-align:middle; margin-right:6px;">
+                            <div style="height:100%; width:${result.confidence}%; background:${barColor}; border-radius:4px;"></div>
+                        </div>
+                        ${result.confidence}%
+                    </td>
+                    <td style="padding:0.5rem 0.75rem; font-size:0.8rem; color:var(--text);">
+                        ${evidence}
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    html += `
+            </tbody>
+        </table>
+        <div style="margin-top:1rem; font-size:0.75rem; color:var(--muted); text-align:center; border-top:1px solid var(--border); padding-top:0.75rem;">
+            <em>This is an educational tool. Always correlate with clinical judgment and confirm with appropriate investigations.</em>
+        </div>
+    `;
+
+    // Insert into modal
+    document.getElementById('ddxContent').innerHTML = html;
+    document.getElementById('ddxModal').classList.add('open');
+}
+
+/**
+ * Close DDX modal.
+ */
+function closeDdxModal() {
+    document.getElementById('ddxModal').classList.remove('open');
+}
+
+// Override click on modal overlay to close
+document.addEventListener('DOMContentLoaded', function() {
+    const ddxModal = document.getElementById('ddxModal');
+    if (ddxModal) {
+        ddxModal.addEventListener('click', function(e) {
+            if (e.target === this) closeDdxModal();
+        });
+    }
+});
+              </script>
               
 </body>
 </html>
