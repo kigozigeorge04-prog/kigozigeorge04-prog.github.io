@@ -3640,6 +3640,16 @@
     savePatient();
     showToast('✅ Complete', 'All history sections complete! Record saved.', 'success');
   }
+  // Placeholder functions – replace if you have a patient list table
+function renderTable() {
+    // If you have a table of saved patients, implement it here.
+    // For now, do nothing.
+}
+
+function updateStats() {
+    // Update stats like total patients etc.
+    // For now, do nothing.
+}
 
   // ============================================================
   // 26. INIT
@@ -3669,8 +3679,6 @@
     // Render image gallery
     renderGallery();
     updateImageCount();
-    renderTable();
-    updateStats();
   });
 
   // Clean up camera on page unload
@@ -3937,6 +3945,7 @@ function downloadSummaryPDF() {
  * Returns an object with fields used for matching.
  */
 function getPatientData() {
+  console.log('getPatientData called');
     // Helper to get value or default
     const val = id => document.getElementById(id)?.value?.trim() || '';
     const radioVal = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
@@ -4139,7 +4148,7 @@ function buildKnowledgeBase() {
         return patient.chronic.some(c => keywords.some(kw => c.toLowerCase().includes(kw)));
     }
 
-    // WOA helpers – keep only these, delete any duplicates later
+    // WOA helpers
     function isPregnant(p) { return p.woa && p.woa.isPregnant; }
     function isPreterm(p) { return p.woa && p.woa.isPreterm; }
     function isPretermActive(p) { return p.woa && p.woa.isPretermActive; }
@@ -4152,51 +4161,50 @@ function buildKnowledgeBase() {
     function woaDays(p) { return p.woa ? p.woa.days : 0; }
 
     const conditions = [];
-    // ... rest of your conditions ...
 
-  // ---- ECTOPIC PREGNANCY ----
-conditions.push({
-    id: 'ectopic',
-    name: 'Ectopic Pregnancy',
-    category: 'Obstetric',
-    references: [
-        'Williams Obstetrics, 25th Ed., Ch. 18 – Ectopic Pregnancy',
-        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
-    ],
-    criteria: [
-        { check: p => complaintIncludes(p, ['gyn-pelvic-pain', 'gyn-pv-bleed']), weight: 3, matchText: 'Complaint of pelvic pain or vaginal bleeding' },
-        { check: p => hasRos(p, 'urinogenital', ['Vaginal discharge']), weight: 1, matchText: 'Vaginal discharge on ROS' },
-        { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2, matchText: 'Dizziness or fainting (possible haemorrhage)' },
-        { check: p => hasPe(p, 'vaginal', ['Cervical motion tenderness', 'Adnexal tenderness', 'Adnexal mass']), weight: 4, matchText: 'Pelvic exam: cervical motion tenderness or adnexal mass/tenderness' },
-        { check: p => p.prevAbortions > 0 || p.gynConditions.some(c => c.toLowerCase().includes('pid')), weight: 2, matchText: 'History of abortion or PID' },
-        { check: p => p.contra.some(c => c.includes('IUD')), weight: 2, matchText: 'Current IUD use' },
-        { check: p => ageIn(p, 15, 45), weight: 1, matchText: 'Age 15–45 (reproductive age)' },
-        // NEW: WOA criteria
-        { check: p => isPregnant(p) && woaWeeks(p) < 12, weight: 4, matchText: `Early pregnancy (${woaWeeks(p)} weeks) – classic ectopic presentation 6-10 weeks` },
-        { check: p => isPregnant(p) && woaWeeks(p) >= 12, weight: -1, matchText: `Pregnancy ≥12 weeks (${woaWeeks(p)} weeks) – less likely ectopic` },
-    ]
-});
-   // ---- PLACENTAL ABRUPTION ----
-conditions.push({
-    id: 'abruption',
-    name: 'Placental Abruption',
-    category: 'Obstetric',
-    references: [
-        'Williams Obstetrics, 25th Ed., Ch. 20 – Abruptio Placentae',
-        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 12'
-    ],
-    criteria: [
-        { check: p => complaintIncludes(p, ['obs-bleeding', 'obs-abdo-pain']), weight: 3, matchText: 'Complaint of bleeding or abdominal pain in pregnancy' },
-        { check: p => hasRos(p, 'cardiovascular', ['Oedema']), weight: 1, matchText: 'Oedema on ROS' },
-        { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Uterus irritable']), weight: 4, matchText: 'Obstetric exam: tender or irritable uterus' },
-        { check: p => hasRos(p, 'cns', ['Headache']), weight: 1, matchText: 'Headache (possible pre-eclampsia association)' },
-        { check: p => hasChronic(p, ['hypertension']), weight: 2, matchText: 'Chronic hypertension' },
-        { check: p => p.gravida > 2, weight: 1, matchText: 'Grand multiparity (≥3 pregnancies)' },
-        // NEW: WOA criteria
-        { check: p => isViable(p), weight: 3, matchText: `Viable pregnancy (${woaWeeks(p)} weeks) – typical presentation after 26 weeks` },
-        { check: p => isViable(p) && woaWeeks(p) >= 28, weight: 2, matchText: `Third trimester pregnancy (${woaWeeks(p)} weeks) – increased risk of abruption` },
-    ]
-});
+    // ---- ECTOPIC PREGNANCY ----
+    conditions.push({
+        id: 'ectopic',
+        name: 'Ectopic Pregnancy',
+        category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 18 – Ectopic Pregnancy',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
+        ],
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-pelvic-pain', 'gyn-pv-bleed']), weight: 3, matchText: 'Complaint of pelvic pain or vaginal bleeding' },
+            { check: p => hasRos(p, 'urinogenital', ['Vaginal discharge']), weight: 1, matchText: 'Vaginal discharge on ROS' },
+            { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2, matchText: 'Dizziness or fainting (possible haemorrhage)' },
+            { check: p => hasPe(p, 'vaginal', ['Cervical motion tenderness', 'Adnexal tenderness', 'Adnexal mass']), weight: 4, matchText: 'Pelvic exam: cervical motion tenderness or adnexal mass/tenderness' },
+            { check: p => p.prevAbortions > 0 || p.gynConditions.some(c => c.toLowerCase().includes('pid')), weight: 2, matchText: 'History of abortion or PID' },
+            { check: p => p.contra.some(c => c.includes('IUD')), weight: 2, matchText: 'Current IUD use' },
+            { check: p => ageIn(p, 15, 45), weight: 1, matchText: 'Age 15–45 (reproductive age)' },
+            { check: p => isPregnant(p) && woaWeeks(p) < 12, weight: 4, matchText: `Early pregnancy (${woaWeeks(p)} weeks) – classic ectopic presentation 6-10 weeks` },
+            { check: p => isPregnant(p) && woaWeeks(p) >= 12, weight: -1, matchText: `Pregnancy ≥12 weeks (${woaWeeks(p)} weeks) – less likely ectopic` },
+        ]
+    });
+
+    // ---- PLACENTAL ABRUPTION ----
+    conditions.push({
+        id: 'abruption',
+        name: 'Placental Abruption',
+        category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 20 – Abruptio Placentae',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 12'
+        ],
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-bleeding', 'obs-abdo-pain']), weight: 3, matchText: 'Complaint of bleeding or abdominal pain in pregnancy' },
+            { check: p => hasRos(p, 'cardiovascular', ['Oedema']), weight: 1, matchText: 'Oedema on ROS' },
+            { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Uterus irritable']), weight: 4, matchText: 'Obstetric exam: tender or irritable uterus' },
+            { check: p => hasRos(p, 'cns', ['Headache']), weight: 1, matchText: 'Headache (possible pre-eclampsia association)' },
+            { check: p => hasChronic(p, ['hypertension']), weight: 2, matchText: 'Chronic hypertension' },
+            { check: p => p.gravida > 2, weight: 1, matchText: 'Grand multiparity (≥3 pregnancies)' },
+            { check: p => isViable(p), weight: 3, matchText: `Viable pregnancy (${woaWeeks(p)} weeks) – typical presentation after 26 weeks` },
+            { check: p => isViable(p) && woaWeeks(p) >= 28, weight: 2, matchText: `Third trimester pregnancy (${woaWeeks(p)} weeks) – increased risk of abruption` },
+        ]
+    });
+
     // ---- PLACENTA PREVIA ----
     conditions.push({
         id: 'previa',
@@ -4214,67 +4222,68 @@ conditions.push({
         ]
     });
 
- // ---- PREECLAMPSIA ----
-conditions.push({
-    id: 'preeclampsia',
-    name: 'Preeclampsia',
-    category: 'Obstetric',
-    references: [
-        'Williams Obstetrics, 25th Ed., Ch. 19 – Preeclampsia and Eclampsia',
-        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 11'
-    ],
-    criteria: [
-        { check: p => complaintIncludes(p, ['obs-htn', 'obs-preeclampsia']), weight: 3, matchText: 'Complaint of hypertension or pre-eclampsia features' },
-        { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2, matchText: 'Headache or visual changes on ROS' },
-        { check: p => hasRos(p, 'cns', ['Seizures']), weight: 1, matchText: 'Seizures (could indicate eclampsia)' },
-        { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting', 'Epigastric pain']), weight: 2, matchText: 'Nausea, vomiting, or epigastric pain (HELLP warning)' },
-        { check: p => hasChronic(p, ['hypertension']), weight: 2, matchText: 'Chronic hypertension' },
-        { check: p => p.age > 35 || p.gravida > 2, weight: 1, matchText: 'Age >35 or grand multiparity' },
-        // NEW: WOA criteria
-        { check: p => isViable(p) && woaWeeks(p) >= 20, weight: 4, matchText: `Pregnancy ≥20 weeks (${woaWeeks(p)} weeks) – pre-eclampsia typically presents after 20 weeks` },
-        { check: p => isViable(p) && woaWeeks(p) < 20, weight: -2, matchText: `Pregnancy <20 weeks (${woaWeeks(p)} weeks) – pre-eclampsia is extremely rare; consider molar pregnancy or renal disease` },
-    ]
-});
-   // ---- ECLAMPSIA ----
-conditions.push({
-    id: 'eclampsia',
-    name: 'Eclampsia',
-    category: 'Obstetric',
-    references: [
-        'Williams Obstetrics, 25th Ed., Ch. 19 – Eclampsia',
-        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 11'
-    ],
-    criteria: [
-        { check: p => hasRos(p, 'cns', ['Seizures']), weight: 5, matchText: 'Seizures (generalized convulsions)' },
-        { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2, matchText: 'Headache or visual changes' },
-        { check: p => hasChronic(p, ['hypertension']), weight: 1, matchText: 'Chronic hypertension' },
-        // BP ≥160/110 is severe pre-eclampsia
-        { check: p => p.vitals.systolic >= 160 || p.vitals.diastolic >= 110, weight: 3, matchText: 'BP ≥160/110 mmHg (severe hypertension)' },
-    ]
-});
-// ---- PRETERM LABOR (Ugandan guidelines: 26–36+6 weeks) ----
-conditions.push({
-    id: 'preterm_labor',
-    name: 'Preterm Labor',
-    category: 'Obstetric',
-    references: [
-        'Uganda Clinical Guidelines 2023 – Preterm Labour',
-        'WHO Recommendations on Preterm Birth',
-        'Williams Obstetrics, 25th Ed., Ch. 23 – Preterm Birth',
-        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 10'
-    ],
-    criteria: [
-        { check: p => complaintIncludes(p, ['obs-preterm']), weight: 3, matchText: 'Complaint of preterm labor signs' },
-        { check: p => isPretermActive(p), weight: 5, matchText: `Gestational age ${p.woa.weeks} weeks (26–36+6) – active preterm labour` },
-        { check: p => hasPe(p, 'obstetric', ['Contractions: regular', 'Contractions: irregular']), weight: 3, matchText: 'Obstetric exam: uterine contractions' },
-        { check: p => hasRos(p, 'urinogenital', ['Urinary frequency']), weight: 1, matchText: 'Urinary frequency on ROS' },
-        { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2, matchText: 'Previous preterm birth' },
-        { check: p => p.gravida > 2, weight: 1, matchText: 'Grand multiparity' },
-        { check: p => hasRos(p, 'gastrointestinal', ['Diarrhoea']), weight: 1, matchText: 'Diarrhoea (possible infection trigger)' },
-        { check: p => hasPe(p, 'vaginal', ['Cervical os open']), weight: 3, matchText: 'Pelvic exam: open cervical os' },
-        { check: p => isViable(p), weight: 1, matchText: 'Viable pregnancy (≥26 weeks) – active management indicated' },
-    ]
-});
+    // ---- PREECLAMPSIA ----
+    conditions.push({
+        id: 'preeclampsia',
+        name: 'Preeclampsia',
+        category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 19 – Preeclampsia and Eclampsia',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 11'
+        ],
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-htn', 'obs-preeclampsia']), weight: 3, matchText: 'Complaint of hypertension or pre-eclampsia features' },
+            { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2, matchText: 'Headache or visual changes on ROS' },
+            { check: p => hasRos(p, 'cns', ['Seizures']), weight: 1, matchText: 'Seizures (could indicate eclampsia)' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting', 'Epigastric pain']), weight: 2, matchText: 'Nausea, vomiting, or epigastric pain (HELLP warning)' },
+            { check: p => hasChronic(p, ['hypertension']), weight: 2, matchText: 'Chronic hypertension' },
+            { check: p => p.age > 35 || p.gravida > 2, weight: 1, matchText: 'Age >35 or grand multiparity' },
+            { check: p => isViable(p) && woaWeeks(p) >= 20, weight: 4, matchText: `Pregnancy ≥20 weeks (${woaWeeks(p)} weeks) – pre-eclampsia typically presents after 20 weeks` },
+            { check: p => isViable(p) && woaWeeks(p) < 20, weight: -2, matchText: `Pregnancy <20 weeks (${woaWeeks(p)} weeks) – pre-eclampsia is extremely rare; consider molar pregnancy or renal disease` },
+        ]
+    });
+
+    // ---- ECLAMPSIA ----
+    conditions.push({
+        id: 'eclampsia',
+        name: 'Eclampsia',
+        category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 19 – Eclampsia',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 11'
+        ],
+        criteria: [
+            { check: p => hasRos(p, 'cns', ['Seizures']), weight: 5, matchText: 'Seizures (generalized convulsions)' },
+            { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2, matchText: 'Headache or visual changes' },
+            { check: p => hasChronic(p, ['hypertension']), weight: 1, matchText: 'Chronic hypertension' },
+            { check: p => p.vitals.systolic >= 160 || p.vitals.diastolic >= 110, weight: 3, matchText: 'BP ≥160/110 mmHg (severe hypertension)' },
+        ]
+    });
+
+    // ---- PRETERM LABOR (Ugandan guidelines: 26–36+6) ----
+    conditions.push({
+        id: 'preterm_labor',
+        name: 'Preterm Labor',
+        category: 'Obstetric',
+        references: [
+            'Uganda Clinical Guidelines 2023 – Preterm Labour',
+            'WHO Recommendations on Preterm Birth',
+            'Williams Obstetrics, 25th Ed., Ch. 23 – Preterm Birth',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 10'
+        ],
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-preterm']), weight: 3, matchText: 'Complaint of preterm labor signs' },
+            { check: p => isPretermActive(p), weight: 5, matchText: `Gestational age ${p.woa.weeks} weeks (26–36+6) – active preterm labour` },
+            { check: p => hasPe(p, 'obstetric', ['Contractions: regular', 'Contractions: irregular']), weight: 3, matchText: 'Obstetric exam: uterine contractions' },
+            { check: p => hasRos(p, 'urinogenital', ['Urinary frequency']), weight: 1, matchText: 'Urinary frequency on ROS' },
+            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2, matchText: 'Previous preterm birth' },
+            { check: p => p.gravida > 2, weight: 1, matchText: 'Grand multiparity' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Diarrhoea']), weight: 1, matchText: 'Diarrhoea (possible infection trigger)' },
+            { check: p => hasPe(p, 'vaginal', ['Cervical os open']), weight: 3, matchText: 'Pelvic exam: open cervical os' },
+            { check: p => isViable(p), weight: 1, matchText: 'Viable pregnancy (≥26 weeks) – active management indicated' },
+        ]
+    });
+
     // ---- GESTATIONAL DIABETES ----
     conditions.push({
         id: 'gdm',
@@ -4293,44 +4302,43 @@ conditions.push({
         ]
     });
 
-  // ---- HYPEREMESIS GRAVIDARUM ----
-conditions.push({
-    id: 'hyperemesis',
-    name: 'Hyperemesis Gravidarum',
-    category: 'Obstetric',
-    references: [
-        'Williams Obstetrics, 25th Ed., Ch. 21 – Gastrointestinal Disorders in Pregnancy',
-        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
-    ],
-    criteria: [
-        { check: p => complaintIncludes(p, ['obs-vomiting']), weight: 3, matchText: 'Complaint of vomiting in pregnancy' },
-        { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2, matchText: 'Nausea or vomiting on ROS' },
-        { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2, matchText: 'Weight loss on ROS' },
-        { check: p => p.gravida > 1, weight: 1, matchText: 'Multiparity' },
-        // Vitals: tachycardia may indicate dehydration
-        { check: p => p.vitals.hr > 100, weight: 1, matchText: 'Tachycardia (possible dehydration)' },
-    ]
-});
-  
-   // ---- MISCARRIAGE ----
-conditions.push({
-    id: 'miscarriage',
-    name: 'Miscarriage (Spontaneous Abortion)',
-    category: 'Obstetric',
-    references: [
-        'Williams Obstetrics, 25th Ed., Ch. 17 – Abortion',
-        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 7'
-    ],
-    criteria: [
-        { check: p => complaintIncludes(p, ['gyn-pv-bleed']), weight: 3, matchText: 'Complaint of vaginal bleeding' },
-        { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
-        { check: p => hasPe(p, 'vaginal', ['Cervical os open']), weight: 3, matchText: 'Pelvic exam: open cervical os' },
-        { check: p => p.gravida > 0, weight: 1, matchText: 'Pregnant (gravida >0)' },
-        // NEW: WOA criteria
-        { check: p => isPregnant(p) && woaWeeks(p) < 20, weight: 4, matchText: `Pregnancy <20 weeks (${woaWeeks(p)} weeks) – defines miscarriage` },
-        { check: p => isPregnant(p) && woaWeeks(p) >= 20, weight: -2, matchText: `Pregnancy ≥20 weeks (${woaWeeks(p)} weeks) – consider preterm labour/abruption instead` },
-    ]
-});
+    // ---- HYPEREMESIS GRAVIDARUM ----
+    conditions.push({
+        id: 'hyperemesis',
+        name: 'Hyperemesis Gravidarum',
+        category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 21 – Gastrointestinal Disorders in Pregnancy',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
+        ],
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-vomiting']), weight: 3, matchText: 'Complaint of vomiting in pregnancy' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2, matchText: 'Nausea or vomiting on ROS' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2, matchText: 'Weight loss on ROS' },
+            { check: p => p.gravida > 1, weight: 1, matchText: 'Multiparity' },
+            { check: p => p.vitals.hr > 100, weight: 1, matchText: 'Tachycardia (possible dehydration)' },
+        ]
+    });
+
+    // ---- MISCARRIAGE ----
+    conditions.push({
+        id: 'miscarriage',
+        name: 'Miscarriage (Spontaneous Abortion)',
+        category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 17 – Abortion',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 7'
+        ],
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-pv-bleed']), weight: 3, matchText: 'Complaint of vaginal bleeding' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
+            { check: p => hasPe(p, 'vaginal', ['Cervical os open']), weight: 3, matchText: 'Pelvic exam: open cervical os' },
+            { check: p => p.gravida > 0, weight: 1, matchText: 'Pregnant (gravida >0)' },
+            { check: p => isPregnant(p) && woaWeeks(p) < 20, weight: 4, matchText: `Pregnancy <20 weeks (${woaWeeks(p)} weeks) – defines miscarriage` },
+            { check: p => isPregnant(p) && woaWeeks(p) >= 20, weight: -2, matchText: `Pregnancy ≥20 weeks (${woaWeeks(p)} weeks) – consider preterm labour/abruption instead` },
+        ]
+    });
+
     // ---- OVARIAN CYST ----
     conditions.push({
         id: 'ovarian_cyst',
@@ -4436,23 +4444,23 @@ conditions.push({
         ]
     });
 
-   // ---- UTI ----
-conditions.push({
-    id: 'uti',
-    name: 'Urinary Tract Infection',
-    category: 'Gynecological/Obstetric',
-    references: [
-        'Williams Obstetrics, 25th Ed., Ch. 21 – Urinary Tract Infections',
-        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
-    ],
-    criteria: [
-        { check: p => complaintIncludes(p, ['gyn-urinary', 'obs-dysuria']), weight: 3, matchText: 'Complaint of urinary symptoms' },
-        { check: p => hasRos(p, 'urinogenital', ['Dysuria', 'Frequency', 'Urgency']), weight: 3, matchText: 'Dysuria, frequency, or urgency on ROS' },
-        { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2, matchText: 'Fever on ROS' },
-        // Vitals: fever
-        { check: p => p.vitals.temp > 38, weight: 2, matchText: 'Fever >38°C' },
-    ]
-});
+    // ---- UTI ----
+    conditions.push({
+        id: 'uti',
+        name: 'Urinary Tract Infection',
+        category: 'Gynecological/Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 21 – Urinary Tract Infections',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
+        ],
+        criteria: [
+            { check: p => complaintIncludes(p, ['gyn-urinary', 'obs-dysuria']), weight: 3, matchText: 'Complaint of urinary symptoms' },
+            { check: p => hasRos(p, 'urinogenital', ['Dysuria', 'Frequency', 'Urgency']), weight: 3, matchText: 'Dysuria, frequency, or urgency on ROS' },
+            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2, matchText: 'Fever on ROS' },
+            { check: p => p.vitals.temp > 38, weight: 2, matchText: 'Fever >38°C' },
+        ]
+    });
+
     // ---- PROLAPSE ----
     conditions.push({
         id: 'prolapse',
@@ -4501,64 +4509,65 @@ conditions.push({
         ]
     });
 
-  // ---- PPROM (Preterm Premature Rupture of Membranes) ----
-conditions.push({
-    id: 'pprom',
-    name: 'Preterm Premature Rupture of Membranes (PPROM)',
-    category: 'Obstetric',
-    references: [
-        'Uganda Clinical Guidelines 2023 – PPROM',
-        'Williams Obstetrics, 25th Ed., Ch. 23 – Preterm Rupture of Membranes',
-        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 12'
-    ],
-    criteria: [
-        { check: p => complaintIncludes(p, ['obs-rom']), weight: 4, matchText: 'Complaint of rupture of membranes' },
-        { check: p => isPretermActive(p), weight: 5, matchText: `Gestational age ${p.woa.weeks} weeks (26–36+6) – PPROM` },
-        { check: p => hasPe(p, 'obstetric', ['Liquor: clear', 'Liquor: meconium-stained']), weight: 2, matchText: 'Obstetric exam: liquor status noted' },
-        { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2, matchText: 'Previous preterm delivery' },
-        { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2, matchText: 'Fever – consider chorioamnionitis' },
-        { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 1, matchText: 'Abdominal pain – possible infection' },
-        { check: p => isViable(p), weight: 1, matchText: 'Viable pregnancy – active management (steroids/antibiotics)' },
-    ]
-});
-   // ---- CHORIOAMNIONITIS ----
-conditions.push({
-    id: 'chorio',
-    name: 'Chorioamnionitis',
-    category: 'Obstetric',
-    references: [
-        'Williams Obstetrics, 25th Ed., Ch. 30 – Chorioamnionitis',
-        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 14'
-    ],
-    criteria: [
-        { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 3, matchText: 'Fever on ROS' },
-        { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
-        { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Liquor: offensive']), weight: 4, matchText: 'Obstetric exam: tender uterus or offensive liquor' },
-        { check: p => complaintIncludes(p, ['obs-rom']), weight: 2, matchText: 'Complaint of ruptured membranes' },
-        // Vitals: fever and tachycardia
-        { check: p => p.vitals.temp > 38, weight: 2, matchText: 'Fever >38°C' },
-        { check: p => p.vitals.hr > 100, weight: 1, matchText: 'Tachycardia (HR >100)' },
-    ]
-});
-   // ---- PPH ----
-conditions.push({
-    id: 'pph',
-    name: 'Postpartum Haemorrhage (PPH)',
-    category: 'Obstetric',
-    references: [
-        'Williams Obstetrics, 25th Ed., Ch. 28 – Postpartum Hemorrhage',
-        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 16'
-    ],
-    criteria: [
-        { check: p => complaintIncludes(p, ['obs-pph']), weight: 5, matchText: 'Complaint of postpartum haemorrhage' },
-        { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2, matchText: 'Dizziness or fainting on ROS' },
-        { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('pph')), weight: 2, matchText: 'History of PPH' },
-        // Vitals: tachycardia and hypotension (shock)
-        { check: p => p.vitals.hr > 100, weight: 2, matchText: 'Tachycardia (HR >100) – possible haemorrhage' },
-        { check: p => p.vitals.systolic < 90, weight: 3, matchText: 'Hypotension (SBP <90) – haemorrhagic shock' },
-    ]
-});
-  // ---- MOLAR PREGNANCY ----
+    // ---- PPROM ----
+    conditions.push({
+        id: 'pprom',
+        name: 'Preterm Premature Rupture of Membranes (PPROM)',
+        category: 'Obstetric',
+        references: [
+            'Uganda Clinical Guidelines 2023 – PPROM',
+            'Williams Obstetrics, 25th Ed., Ch. 23 – Preterm Rupture of Membranes',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 12'
+        ],
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-rom']), weight: 4, matchText: 'Complaint of rupture of membranes' },
+            { check: p => isPretermActive(p), weight: 5, matchText: `Gestational age ${p.woa.weeks} weeks (26–36+6) – PPROM` },
+            { check: p => hasPe(p, 'obstetric', ['Liquor: clear', 'Liquor: meconium-stained']), weight: 2, matchText: 'Obstetric exam: liquor status noted' },
+            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2, matchText: 'Previous preterm delivery' },
+            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2, matchText: 'Fever – consider chorioamnionitis' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 1, matchText: 'Abdominal pain – possible infection' },
+            { check: p => isViable(p), weight: 1, matchText: 'Viable pregnancy – active management (steroids/antibiotics)' },
+        ]
+    });
+
+    // ---- CHORIOAMNIONITIS ----
+    conditions.push({
+        id: 'chorio',
+        name: 'Chorioamnionitis',
+        category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 30 – Chorioamnionitis',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 14'
+        ],
+        criteria: [
+            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 3, matchText: 'Fever on ROS' },
+            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
+            { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Liquor: offensive']), weight: 4, matchText: 'Obstetric exam: tender uterus or offensive liquor' },
+            { check: p => complaintIncludes(p, ['obs-rom']), weight: 2, matchText: 'Complaint of ruptured membranes' },
+            { check: p => p.vitals.temp > 38, weight: 2, matchText: 'Fever >38°C' },
+            { check: p => p.vitals.hr > 100, weight: 1, matchText: 'Tachycardia (HR >100)' },
+        ]
+    });
+
+    // ---- PPH ----
+    conditions.push({
+        id: 'pph',
+        name: 'Postpartum Haemorrhage (PPH)',
+        category: 'Obstetric',
+        references: [
+            'Williams Obstetrics, 25th Ed., Ch. 28 – Postpartum Hemorrhage',
+            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 16'
+        ],
+        criteria: [
+            { check: p => complaintIncludes(p, ['obs-pph']), weight: 5, matchText: 'Complaint of postpartum haemorrhage' },
+            { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2, matchText: 'Dizziness or fainting on ROS' },
+            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('pph')), weight: 2, matchText: 'History of PPH' },
+            { check: p => p.vitals.hr > 100, weight: 2, matchText: 'Tachycardia (HR >100) – possible haemorrhage' },
+            { check: p => p.vitals.systolic < 90, weight: 3, matchText: 'Hypotension (SBP <90) – haemorrhagic shock' },
+        ]
+    });
+
+    // ---- MOLAR PREGNANCY ----
     conditions.push({
         id: 'molar',
         name: 'Molar Pregnancy (Hydatidiform Mole)',
