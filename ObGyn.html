@@ -213,6 +213,63 @@
     .step-badge.palpation { background: #e67e22; }
     .step-badge.percussion { background: #9b59b6; }
     .step-badge.auscultation { background: #2ecc71; }
+    /* PE Tooltip styles */
+.pe-finding-tag {
+    position: relative;  /* needed for tooltip positioning */
+}
+.pe-finding-tag .pe-tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%) translateY(4px);
+    background: #102a43;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    line-height: 1.3;
+    white-space: normal;
+    max-width: 220px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    z-index: 30;
+    text-align: left;
+}
+.pe-finding-tag .pe-tooltip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    border-width: 5px 5px 0 5px;
+    border-style: solid;
+    border-color: #102a43 transparent transparent transparent;
+}
+.pe-finding-tag.show-clue .pe-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.pe-finding-tag.show-clue.clue-align-left .pe-tooltip {
+    left: 0;
+    transform: translateX(0) translateY(0);
+}
+.pe-finding-tag.show-clue.clue-align-left .pe-tooltip::after {
+    left: 14px;
+    transform: translateX(0);
+}
+.pe-finding-tag.show-clue.clue-align-right .pe-tooltip {
+    left: auto;
+    right: 0;
+    transform: translateX(0) translateY(0);
+}
+.pe-finding-tag.show-clue.clue-align-right .pe-tooltip::after {
+    left: auto;
+    right: 14px;
+    transform: translateX(0);
+}
 
     /* Image Capture */
     .image-capture-section { border: 2px dashed var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1rem; transition: border-color 0.3s; background: var(--bg); }
@@ -3955,6 +4012,8 @@ function getPatientData() {
     };
 }
 
+
+                
 /**
  * Build the knowledge base of ObGyn conditions.
  * Each condition has:
@@ -4537,6 +4596,303 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+// ============================================================
+// OBGYN PE TOOLTIP CLUE SYSTEM
+// ============================================================
+
+// Mapping of ObGyn PE findings → clinical clues.
+// Derived from Williams, Oxford Handbook, and Hutchison's.
+const OBGYN_PE_DIFF = {
+    // ---- General ----
+    "Well-nourished": "Normal nutritional status. No immediate concern.",
+    "Malnourished": "Consider nutritional deficiency, chronic disease, or malabsorption.",
+    "Pallor": "Think anaemia (iron deficiency, haemorrhage, chronic disease).",
+    "Jaundice": "Consider hepatitis, obstruction, or haemolysis.",
+    "Cyanosis": "Hypoxaemia – cardiac or respiratory origin.",
+    "Clubbing": "Chronic lung disease, cyanotic heart disease, or IBD.",
+    "Lymphadenopathy": "Infection, HIV, TB, lymphoma, or malignancy.",
+    "Oedema": "Heart failure, renal disease, liver disease, or venous insufficiency.",
+    "Dehydration": "Reduced fluid intake, vomiting, diarrhoea, or excessive losses.",
+    "Skin turgor normal": "Adequate hydration.",
+    "Reduced skin turgor": "Dehydration – correlate with history.",
+    "Lymph nodes non-tender": "May be reactive or chronic; if persistent, consider biopsy.",
+    "Lymph nodes tender": "Infection (e.g., bacterial, viral) – correlate with fever.",
+    // ---- CNS ----
+    "Alert and oriented": "Normal neurological status.",
+    "Disoriented": "Delirium, dementia, metabolic, or structural brain disorder.",
+    "GCS 15/15": "Fully conscious.",
+    "GCS <15": "Reduced consciousness – metabolic, neurological, toxic, or septic.",
+    "Speech normal": "No dysarthria or aphasia.",
+    "Dysarthria": "Motor speech disorder – stroke, cerebellar, or neuromuscular.",
+    "Facial asymmetry": "Facial nerve palsy, stroke, or Bell's palsy.",
+    "Gait normal": "Normal ambulation.",
+    "Gait abnormal": "Hemiplegic (stroke), ataxic (cerebellar), Parkinsonian, or high-stepping.",
+    "Tone normal": "Normal muscle tone.",
+    "Spasticity": "Upper motor neuron lesion (stroke, MS).",
+    "Rigidity": "Extrapyramidal (Parkinson's).",
+    "Power 5/5": "Normal strength.",
+    "Reduced power": "Proximal (myopathy), distal (neuropathy), or focal (stroke).",
+    "Reflexes present": "Normal.",
+    "Brisk reflexes": "Upper motor neuron lesion.",
+    "Absent reflexes": "Lower motor neuron or peripheral neuropathy.",
+    "Plantars downgoing": "Normal.",
+    "Babinski +": "Upper motor neuron lesion.",
+    // ---- Cardiovascular ----
+    "JVP normal": "Normal right heart pressure.",
+    "Elevated JVP": "Right heart failure, fluid overload, or tamponade.",
+    "Chest shape normal": "Normal thoracic configuration.",
+    "Pectus excavatum": "Congenital deformity – usually benign.",
+    "Apex beat 5th ICS MCL": "Normal position.",
+    "Displaced apex beat": "Cardiomegaly or LV enlargement.",
+    "LV heave": "Left ventricular hypertrophy.",
+    "RV heave": "Right ventricular hypertrophy.",
+    "Thrill palpable": "Palpable murmur – valve stenosis/regurgitation.",
+    "Peripheral pulses present": "Normal perfusion.",
+    "Peripheral pulses absent": "Vascular occlusion or hypoperfusion.",
+    "Cardiac dullness normal": "Normal heart size.",
+    "Cardiac dullness enlarged": "Cardiomegaly – valve disease, hypertension, cardiomyopathy.",
+    "S1 + S2 heard": "Normal heart sounds.",
+    "S3 gallop": "Heart failure or volume overload.",
+    "S4": "Stiff ventricle – hypertension, aortic stenosis.",
+    "Systolic murmur": "Valve stenosis/regurgitation or flow murmur.",
+    "Diastolic murmur": "Pathological – AR or MS.",
+    "Pericardial rub": "Pericarditis.",
+    "Regular rhythm": "Normal sinus rhythm.",
+    "Irregular rhythm": "Atrial fibrillation or ectopic rhythm.",
+    // ---- Respiratory ----
+    "Chest symmetrical": "Normal.",
+    "Chest asymmetry": "Pneumothorax, effusion, or collapse.",
+    "Trachea central": "Normal.",
+    "Tracheal deviation": "Pneumothorax, effusion, mass.",
+    "Equal expansion": "Normal.",
+    "Reduced expansion (R)": "Right lung pathology – effusion, collapse.",
+    "Reduced expansion (L)": "Left lung pathology – effusion, collapse.",
+    "Accessory muscle use": "Respiratory distress – COPD, asthma, pneumonia.",
+    "Tactile fremitus normal": "Normal lung transmission.",
+    "Tactile fremitus reduced": "Effusion, pneumothorax, fibrosis.",
+    "Tactile fremitus increased": "Consolidation.",
+    "Resonant percussion": "Normal lung.",
+    "Dull to percussion": "Consolidation or effusion.",
+    "Stony dull (effusion)": "Pleural effusion.",
+    "Hyperresonant (pneumothorax)": "Pneumothorax or emphysema.",
+    "Vesicular breath sounds": "Normal.",
+    "Bronchial breathing": "Consolidation – consider pneumonia.",
+    "Reduced breath sounds": "Effusion, pneumothorax, or consolidation.",
+    "Coarse crackles": "Secretions, bronchiectasis, pulmonary oedema.",
+    "Fine crackles": "Fibrosis, early oedema, interstitial disease.",
+    "Expiratory wheeze": "Asthma, COPD, lower airway narrowing.",
+    "Inspiratory wheeze": "Upper airway obstruction or asthma.",
+    "Pleural rub": "Pleurisy, pulmonary infarction.",
+    // ---- Breast ----
+    "Breasts symmetrical": "Normal.",
+    "Breast asymmetry": "May be normal; if new, consider malignancy.",
+    "Skin normal": "Normal.",
+    "Peau d'orange": "Breast cancer (inflammatory) – urgent referral.",
+    "Erythema": "Infection or inflammatory breast cancer.",
+    "Ulceration": "Malignancy – urgent assessment.",
+    "Nipple normal": "Normal.",
+    "Nipple retraction": "Malignancy – urgent referral.",
+    "Nipple discharge": "May be benign (galactorrhoea) or malignant (bloody).",
+    "No palpable lumps": "Normal.",
+    "Palpable lump (R)": "Fibroadenoma, cyst, or malignancy – investigate.",
+    "Palpable lump (L)": "Fibroadenoma, cyst, or malignancy – investigate.",
+    "Lump: mobile": "Benign (fibroadenoma, cyst).",
+    "Lump: fixed": "Malignancy – urgent referral.",
+    "Lump: tender": "Inflammation, infection, or hormonal.",
+    "Lump: non-tender": "More concerning for malignancy.",
+    "Axillary nodes palpable": "Infection or lymphatic spread – correlate with breast exam.",
+    "Axillary nodes not palpable": "Normal.",
+    // ---- Thyroid ----
+    "Thyroid not visible": "Normal.",
+    "Thyroid visible on swallowing": "Enlarged – goitre.",
+    "Goitre visible": "Thyroid enlargement – hyperthyroidism, hypothyroidism, nodules.",
+    "Asymmetrical swelling": "Nodular goitre or malignancy – ultrasound.",
+    "Trachea central": "Normal.",
+    "Tracheal deviation": "Mass effect – urgent evaluation.",
+    "Thyroid not palpable": "Normal.",
+    "Thyroid palpable": "Enlarged – evaluate for goitre/nodules.",
+    "Diffuse enlargement": "Graves' disease or Hashimoto's.",
+    "Thyroid nodule": "Benign or malignant – ultrasound and FNA.",
+    "Thyroid: firm": "Nodular goitre or malignancy.",
+    "Thyroid: hard": "Malignancy – urgent FNA.",
+    "Thyroid: tender": "Subacute thyroiditis.",
+    "Cervical lymphadenopathy": "Infection or malignancy – consider TB, lymphoma, metastases.",
+    "No thyroid bruit": "Normal.",
+    "Thyroid bruit present": "Hyperthyroidism (Graves').",
+    // ---- Vaginal & Pelvic ----
+    "Vulva normal": "Normal.",
+    "Vulval lesions": "Infection (HSV), ulcer, or neoplasm – biopsy if suspicious.",
+    "Vulval ulcers": "HSV, syphilis, chancroid, or cancer.",
+    "Vulval erythema": "Inflammation, infection (candidiasis, bacterial vaginosis).",
+    "Vulval oedema": "Inflammation, pre-eclampsia, or infection.",
+    "Varicosities": "Pelvic congestion, pregnancy – usually benign.",
+    "Scarring/episiotomy scar": "Previous delivery or surgery.",
+    "Vaginal mucosa normal": "Normal.",
+    "Vaginal atrophy": "Menopause – oestrogen deficiency.",
+    "Vaginal discharge": "Infection (candidiasis, BV, trichomoniasis) or cervical pathology.",
+    "Cervix normal": "Normal.",
+    "Cervical erosion": "Ectropion – benign, often in young women.",
+    "Cervical polyp": "Benign – often asymptomatic, but can bleed.",
+    "Cervical os closed": "Normal non‑pregnant or closed cervix.",
+    "Cervical os open": "Miscarriage, cervical incompetence, or preterm labour.",
+    "Cervical motion tenderness": "PID, ectopic pregnancy, or tubo‑ovarian abscess.",
+    "Uterus normal size": "Normal.",
+    "Uterus enlarged": "Fibroids, pregnancy, adenomyosis, or malignancy.",
+    "Uterus: anteverted": "Normal position.",
+    "Uterus: retroverted": "Normal variant – may be associated with endometriosis.",
+    "Uterus: mobile": "Normal.",
+    "Uterus: fixed": "Endometriosis, adhesions, or malignancy.",
+    "Uterus: tender": "Infection (endometritis), abruption, or fibroid degeneration.",
+    "Uterus: non-tender": "Normal.",
+    "Adnexa normal": "Normal.",
+    "Adnexal mass (R)": "Ovarian cyst, ectopic, or malignancy.",
+    "Adnexal mass (L)": "Ovarian cyst, ectopic, or malignancy.",
+    "Adnexal tenderness": "Ectopic, PID, ovarian torsion.",
+    "Pouch of Douglas clear": "Normal.",
+    "Pouch of Douglas full/tender": "Ascites, haemorrhage (ectopic), or infection.",
+    "Rectovaginal septum normal": "Normal.",
+    "Rectovaginal mass": "Endometriosis, malignancy, or abscess.",
+    "Tone normal": "Normal pelvic floor.",
+    "Reduced tone": "Pelvic floor weakness – prolapse or incontinence.",
+    // ---- Obstetric ----
+    "Abdomen normal shape": "Normal.",
+    "Abdomen distended": "Ascites, multiple pregnancy, polyhydramnios, or obstruction.",
+    "Fetal movements visible": "Normal – indicates fetal activity.",
+    "Linea nigra present": "Normal pregnancy finding.",
+    "Striae gravidarum": "Stretch marks – normal in pregnancy.",
+    "Scar (CS scar)": "Previous caesarean section – risk of uterine rupture in labour.",
+    "Uterine shape: ovoid": "Normal longitudinal lie.",
+    "Uterine shape: broad": "Multiple pregnancy, polyhydramnios, or fibroids.",
+    "Fundal height (cm): ___": "Measure and compare to gestational age – if > dates, consider GDM, polyhydramnios, multiple; if < dates, consider IUGR.",
+    "Fundal height matches dates": "Normal growth.",
+    "Fundal height > dates": "Large for dates – GDM, multiple, polyhydramnios.",
+    "Fundal height < dates": "Small for dates – IUGR, oligohydramnios.",
+    "Lie: Longitudinal": "Normal fetal lie.",
+    "Lie: Transverse": "Malpresentation – risk of cord prolapse.",
+    "Lie: Oblique": "Unstable lie – risk of cord prolapse.",
+    "Presentation: Cephalic": "Vertex – normal.",
+    "Presentation: Breech": "Breech – consider ECV or caesarean.",
+    "Presentation: Shoulder": "Transverse lie – emergency.",
+    "Presentation: Engaged": "Head engaged – favourable.",
+    "Presentation: Non-engaged": "May be due to CPD, malpresentation.",
+    "Uterus non-tender": "Normal.",
+    "Uterus tender": "Abruption, infection (chorioamnionitis), or fibroid degeneration.",
+    "Uterus irritable": "Preterm labour or abruption.",
+    "No contractions": "Quiescent uterus.",
+    "Contractions: irregular": "Braxton Hicks or early labour.",
+    "Contractions: regular": "Established labour – monitor frequency and strength.",
+    "FHR normal (110-160 bpm)": "Normal fetal heart rate.",
+    "FHR bradycardia": "Fetal distress – urgent evaluation.",
+    "FHR tachycardia": "Fetal distress, maternal fever, or drugs.",
+    "FHR audible": "Fetal heart present.",
+    "FHR regular": "Normal rhythm.",
+    "FHR irregular": "Arrhythmia – refer for fetal echo.",
+    "Liquor: clear": "Normal.",
+    "Liquor: meconium-stained": "Fetal distress – meconium aspiration risk.",
+    "Liquor: blood-stained": "Abruption, vasa praevia – urgent.",
+    "Liquor: offensive": "Chorioamnionitis – infection.",
+    "Placental position: Anterior": "Normal – may make auscultation less clear.",
+    "Placental position: Posterior": "Normal.",
+    "Placental position: Fundal": "Normal.",
+    "Placental position: Low-lying": "Placenta previa – risk of APH.",
+    // ---- Additional from General/Other (if used) ----
+    "Not applicable": "No specific clue – review other signs.",
+    // fallback
+};
+
+/**
+ * Get the clue for a PE finding.
+ * @param {string} finding - The text of the finding.
+ * @returns {string} Clue or fallback message.
+ */
+function getPeClue(finding) {
+    return OBGYN_PE_DIFF[finding] || `Correlate this sign with clinical context.`;
+}
+
+/**
+ * Show a tooltip with the clue for a PE tag.
+ * @param {HTMLElement} btn - The .pe-finding-tag element.
+ */
+function showPeTooltip(btn) {
+    // If tag is not active, hide any tooltip and return
+    if (!btn.classList.contains('active-present')) {
+        btn.classList.remove('show-clue', 'clue-align-left', 'clue-align-right');
+        return;
+    }
+
+    // Ensure tooltip element exists
+    let tooltip = btn.querySelector('.pe-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('span');
+        tooltip.className = 'pe-tooltip';
+        btn.appendChild(tooltip);
+    }
+    // Set content from clue
+    const finding = btn.dataset.finding || btn.textContent.trim();
+    tooltip.textContent = getPeClue(finding);
+
+    // Remove any existing show classes
+    document.querySelectorAll('.pe-finding-tag.show-clue').forEach(t => {
+        if (t !== btn) {
+            t.classList.remove('show-clue', 'clue-align-left', 'clue-align-right');
+        }
+    });
+
+    // Show tooltip
+    btn.classList.add('show-clue');
+    // Edge alignment
+    requestAnimationFrame(() => {
+        const rect = tooltip.getBoundingClientRect();
+        const margin = 8;
+        btn.classList.remove('clue-align-left', 'clue-align-right');
+        if (rect.left < margin) {
+            btn.classList.add('clue-align-left');
+        } else if (rect.right > window.innerWidth - margin) {
+            btn.classList.add('clue-align-right');
+        }
+    });
+
+    // Auto-hide after 2.5s
+    clearTimeout(btn._clueTimer);
+    btn._clueTimer = setTimeout(() => {
+        btn.classList.remove('show-clue', 'clue-align-left', 'clue-align-right');
+    }, 2500);
+}
+
+// Modify the existing togglePEFinding function to show tooltip when active
+// (We'll override it or wrap it)
+const originalTogglePEFinding = window.togglePEFinding || function(btn) {
+    // fallback
+};
+window.togglePEFinding = function(btn) {
+    // Toggle the active-present class (original behavior)
+    if (btn.classList.contains('active-present')) {
+        btn.classList.remove('active-present');
+        btn.innerHTML = btn.innerHTML.replace(' ✓', '');
+    } else {
+        btn.classList.add('active-present');
+        btn.innerHTML = btn.innerHTML + ' ✓';
+    }
+    // Show tooltip if now active
+    showPeTooltip(btn);
+    // Also trigger any other updates (like DDX)
+    if (typeof updateProgress === 'function') updateProgress();
+};
+
+// Also, ensure that clicking on the tag doesn't interfere with other events.
+// Optionally, we can also show tooltip on hover for already active tags.
+// But we'll stick with on-click toggling + tooltip.
+
+// Initialize: Add tooltip elements to existing tags (they will be created on first click)
+// We can also pre-add them but not necessary.
+
+// If there are any existing tags that are already active, we could show tooltips? Not needed.
+
+// Also, we need to handle the case where the PE tags are created dynamically?
+// In this file, PE tags are static HTML, so we're fine.
+
+// Add a small function to manually trigger clue for any active tag on page load? Not necessary.
+                
               </script>
               
 </body>
