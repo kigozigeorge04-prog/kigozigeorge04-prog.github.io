@@ -2183,60 +2183,79 @@
     </div>
 
     <!-- PE SYSTEM 1: GENERAL -->
-    <div class="pe-system">
-      <div class="pe-header" onclick="togglePE('pe-general')">
-        <h3><span class="pe-icon">🌡️</span> General Examination</h3>
-        <span class="pe-toggle" id="pe-general-toggle">▼</span>
-      </div>
-      <div class="pe-body" id="pe-general">
-        <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, 25th Ed. Ch. 8; Hutchison's Clinical Methods, Ch. 3 &amp; 10</div>
-        
-        <div class="pe-step">
-          <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
-          <div class="pe-findings-wrap" data-system="general-inspection">
-            <button class="pe-finding-tag" data-finding="Well-nourished" onclick="togglePEFinding(this)">Well-nourished</button>
-            <button class="pe-finding-tag" data-finding="Malnourished" onclick="togglePEFinding(this)">Malnourished</button>
-            <button class="pe-finding-tag" data-finding="Pallor" onclick="togglePEFinding(this)">Pallor</button>
-            <button class="pe-finding-tag" data-finding="Jaundice" onclick="togglePEFinding(this)">Jaundice</button>
-            <button class="pe-finding-tag" data-finding="Cyanosis" onclick="togglePEFinding(this)">Cyanosis</button>
-            <button class="pe-finding-tag" data-finding="Clubbing" onclick="togglePEFinding(this)">Clubbing</button>
-            <button class="pe-finding-tag" data-finding="Lymphadenopathy" onclick="togglePEFinding(this)">Lymphadenopathy</button>
-            <button class="pe-finding-tag" data-finding="Oedema" onclick="togglePEFinding(this)">Oedema</button>
-            <button class="pe-finding-tag" data-finding="Dehydration" onclick="togglePEFinding(this)">Dehydration</button>
-          </div>
-        </div>
+<div class="pe-body" id="pe-general">
+  <div class="pe-reference"><strong>📖 Reference:</strong> Williams Obstetrics, 25th Ed. Ch. 8; Hutchison's Clinical Methods, Ch. 3 &amp; 10</div>
 
-        <div class="pe-step">
-          <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
-          <div class="pe-findings-wrap" data-system="general-palpation">
-            <button class="pe-finding-tag" data-finding="Skin turgor normal" onclick="togglePEFinding(this)">Skin turgor normal</button>
-            <button class="pe-finding-tag" data-finding="Reduced skin turgor" onclick="togglePEFinding(this)">Reduced skin turgor</button>
-            <button class="pe-finding-tag" data-finding="Lymph nodes non-tender" onclick="togglePEFinding(this)">Lymph nodes non-tender</button>
-            <button class="pe-finding-tag" data-finding="Lymph nodes tender" onclick="togglePEFinding(this)">Lymph nodes tender</button>
-          </div>
-        </div>
-
-        <div class="pe-step">
-          <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
-          <div class="pe-findings-wrap" data-system="general-percussion">
-            <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
-          </div>
-        </div>
-
-        <div class="pe-step">
-          <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
-          <div class="pe-findings-wrap" data-system="general-auscultation">
-            <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
-          </div>
-        </div>
-
-        <button class="pe-normal-btn" onclick="markPENormal('general')">✅ All Normal</button>
-        <div class="pe-other">
-          <label>General Examination Narrative:</label>
-          <textarea id="peGeneralNarrative" rows="3" placeholder="e.g. Patient appears well, alert and oriented. No pallor, jaundice, cyanosis or clubbing..." style="min-height:60px;"></textarea>
-        </div>
-      </div>
+  <!-- ========= VITAL SIGNS ========= -->
+  <div style="background:#f0f7ff; border-radius:10px; padding:12px 14px; margin-bottom:14px; border:1px solid #d0e3f0;">
+    <div style="font-weight:700; font-size:0.85rem; color:#1a5f7a; margin-bottom:8px;">📊 Vital Signs</div>
+    <div class="inline-row" style="gap:0.5rem; margin-bottom:8px;">
+      <div><label style="font-size:0.7rem;">HR (bpm)</label><input type="number" id="pe_hr" placeholder="72" style="padding:4px 8px; font-size:0.8rem;" onchange="onVitalChange('hr')" /></div>
+      <div><label style="font-size:0.7rem;">BP (mmHg)</label><input type="text" id="pe_bp" placeholder="120/80" style="padding:4px 8px; font-size:0.8rem;" onchange="onVitalChange('bp')" /></div>
+      <div><label style="font-size:0.7rem;">RR (/min)</label><input type="number" id="pe_rr" placeholder="16" style="padding:4px 8px; font-size:0.8rem;" onchange="onVitalChange('rr')" /></div>
+      <div><label style="font-size:0.7rem;">SpO₂ (%)</label><input type="number" id="pe_spo2" placeholder="98" style="padding:4px 8px; font-size:0.8rem;" onchange="onVitalChange('spo2')" /></div>
+      <div><label style="font-size:0.7rem;">Temp (°C)</label><input type="number" step="0.1" id="pe_temp" placeholder="37.0" style="padding:4px 8px; font-size:0.8rem;" onchange="onVitalChange('temp')" /></div>
     </div>
+    <div style="font-size:0.7rem; color:#64748b; font-style:italic;">Enter values – abnormal vitals will be automatically flagged. Click any abnormal tag below to see its clinical clue.</div>
+    <div class="pe-findings-wrap" style="margin-top:8px;">
+      <button class="pe-finding-tag" data-finding="Tachycardia" onclick="togglePEFinding(this)">Tachycardia</button>
+      <button class="pe-finding-tag" data-finding="Bradycardia" onclick="togglePEFinding(this)">Bradycardia</button>
+      <button class="pe-finding-tag" data-finding="Hypertension" onclick="togglePEFinding(this)">Hypertension</button>
+      <button class="pe-finding-tag" data-finding="Hypotension" onclick="togglePEFinding(this)">Hypotension</button>
+      <button class="pe-finding-tag" data-finding="Tachypnoea" onclick="togglePEFinding(this)">Tachypnoea</button>
+      <button class="pe-finding-tag" data-finding="Bradypnoea" onclick="togglePEFinding(this)">Bradypnoea</button>
+      <button class="pe-finding-tag" data-finding="Fever" onclick="togglePEFinding(this)">Fever</button>
+      <button class="pe-finding-tag" data-finding="Hypothermia" onclick="togglePEFinding(this)">Hypothermia</button>
+      <button class="pe-finding-tag" data-finding="SpO₂ <95%" onclick="togglePEFinding(this)">SpO₂ <95%</button>
+    </div>
+  </div>
+
+  <!-- ========= EXISTING STEPS (unchanged) ========= -->
+  <div class="pe-step">
+    <div class="pe-step-title"><span class="step-badge inspection">1</span> Inspection</div>
+    <div class="pe-findings-wrap" data-system="general-inspection">
+      <button class="pe-finding-tag" data-finding="Well-nourished" onclick="togglePEFinding(this)">Well-nourished</button>
+      <button class="pe-finding-tag" data-finding="Malnourished" onclick="togglePEFinding(this)">Malnourished</button>
+      <button class="pe-finding-tag" data-finding="Pallor" onclick="togglePEFinding(this)">Pallor</button>
+      <button class="pe-finding-tag" data-finding="Jaundice" onclick="togglePEFinding(this)">Jaundice</button>
+      <button class="pe-finding-tag" data-finding="Cyanosis" onclick="togglePEFinding(this)">Cyanosis</button>
+      <button class="pe-finding-tag" data-finding="Clubbing" onclick="togglePEFinding(this)">Clubbing</button>
+      <button class="pe-finding-tag" data-finding="Lymphadenopathy" onclick="togglePEFinding(this)">Lymphadenopathy</button>
+      <button class="pe-finding-tag" data-finding="Oedema" onclick="togglePEFinding(this)">Oedema</button>
+      <button class="pe-finding-tag" data-finding="Dehydration" onclick="togglePEFinding(this)">Dehydration</button>
+    </div>
+  </div>
+
+  <div class="pe-step">
+    <div class="pe-step-title"><span class="step-badge palpation">2</span> Palpation</div>
+    <div class="pe-findings-wrap" data-system="general-palpation">
+      <button class="pe-finding-tag" data-finding="Skin turgor normal" onclick="togglePEFinding(this)">Skin turgor normal</button>
+      <button class="pe-finding-tag" data-finding="Reduced skin turgor" onclick="togglePEFinding(this)">Reduced skin turgor</button>
+      <button class="pe-finding-tag" data-finding="Lymph nodes non-tender" onclick="togglePEFinding(this)">Lymph nodes non-tender</button>
+      <button class="pe-finding-tag" data-finding="Lymph nodes tender" onclick="togglePEFinding(this)">Lymph nodes tender</button>
+    </div>
+  </div>
+
+  <div class="pe-step">
+    <div class="pe-step-title"><span class="step-badge percussion">3</span> Percussion</div>
+    <div class="pe-findings-wrap" data-system="general-percussion">
+      <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
+    </div>
+  </div>
+
+  <div class="pe-step">
+    <div class="pe-step-title"><span class="step-badge auscultation">4</span> Auscultation</div>
+    <div class="pe-findings-wrap" data-system="general-auscultation">
+      <button class="pe-finding-tag" data-finding="Not applicable" onclick="togglePEFinding(this)">Not applicable</button>
+    </div>
+  </div>
+
+  <button class="pe-normal-btn" onclick="markPENormal('general')">✅ All Normal</button>
+  <div class="pe-other">
+    <label>General Examination Narrative:</label>
+    <textarea id="peGeneralNarrative" rows="3" placeholder="e.g. Patient appears well, alert and oriented. No pallor, jaundice, cyanosis or clubbing..." style="min-height:60px;"></textarea>
+  </div>
+</div>
 
     <!-- PE SYSTEM 2: CNS -->
     <div class="pe-system">
@@ -4603,203 +4622,222 @@ document.addEventListener('DOMContentLoaded', function() {
 // Mapping of ObGyn PE findings → clinical clues.
 // Derived from Williams, Oxford Handbook, and Hutchison's.
 const OBGYN_PE_DIFF = {
-    // ---- General ----
-    "Well-nourished": "Normal nutritional status. No immediate concern.",
-    "Malnourished": "Consider nutritional deficiency, chronic disease, or malabsorption.",
-    "Pallor": "Think anaemia (iron deficiency, haemorrhage, chronic disease).",
-    "Jaundice": "Consider hepatitis, obstruction, or haemolysis.",
-    "Cyanosis": "Hypoxaemia – cardiac or respiratory origin.",
-    "Clubbing": "Chronic lung disease, cyanotic heart disease, or IBD.",
-    "Lymphadenopathy": "Infection, HIV, TB, lymphoma, or malignancy.",
-    "Oedema": "Heart failure, renal disease, liver disease, or venous insufficiency.",
-    "Dehydration": "Reduced fluid intake, vomiting, diarrhoea, or excessive losses.",
-    "Skin turgor normal": "Adequate hydration.",
-    "Reduced skin turgor": "Dehydration – correlate with history.",
-    "Lymph nodes non-tender": "May be reactive or chronic; if persistent, consider biopsy.",
-    "Lymph nodes tender": "Infection (e.g., bacterial, viral) – correlate with fever.",
-    // ---- CNS ----
-    "Alert and oriented": "Normal neurological status.",
-    "Disoriented": "Delirium, dementia, metabolic, or structural brain disorder.",
-    "GCS 15/15": "Fully conscious.",
-    "GCS <15": "Reduced consciousness – metabolic, neurological, toxic, or septic.",
-    "Speech normal": "No dysarthria or aphasia.",
-    "Dysarthria": "Motor speech disorder – stroke, cerebellar, or neuromuscular.",
-    "Facial asymmetry": "Facial nerve palsy, stroke, or Bell's palsy.",
-    "Gait normal": "Normal ambulation.",
-    "Gait abnormal": "Hemiplegic (stroke), ataxic (cerebellar), Parkinsonian, or high-stepping.",
-    "Tone normal": "Normal muscle tone.",
-    "Spasticity": "Upper motor neuron lesion (stroke, MS).",
-    "Rigidity": "Extrapyramidal (Parkinson's).",
-    "Power 5/5": "Normal strength.",
-    "Reduced power": "Proximal (myopathy), distal (neuropathy), or focal (stroke).",
-    "Reflexes present": "Normal.",
-    "Brisk reflexes": "Upper motor neuron lesion.",
-    "Absent reflexes": "Lower motor neuron or peripheral neuropathy.",
-    "Plantars downgoing": "Normal.",
-    "Babinski +": "Upper motor neuron lesion.",
-    // ---- Cardiovascular ----
-    "JVP normal": "Normal right heart pressure.",
-    "Elevated JVP": "Right heart failure, fluid overload, or tamponade.",
-    "Chest shape normal": "Normal thoracic configuration.",
-    "Pectus excavatum": "Congenital deformity – usually benign.",
-    "Apex beat 5th ICS MCL": "Normal position.",
-    "Displaced apex beat": "Cardiomegaly or LV enlargement.",
-    "LV heave": "Left ventricular hypertrophy.",
-    "RV heave": "Right ventricular hypertrophy.",
-    "Thrill palpable": "Palpable murmur – valve stenosis/regurgitation.",
-    "Peripheral pulses present": "Normal perfusion.",
-    "Peripheral pulses absent": "Vascular occlusion or hypoperfusion.",
-    "Cardiac dullness normal": "Normal heart size.",
-    "Cardiac dullness enlarged": "Cardiomegaly – valve disease, hypertension, cardiomyopathy.",
-    "S1 + S2 heard": "Normal heart sounds.",
-    "S3 gallop": "Heart failure or volume overload.",
-    "S4": "Stiff ventricle – hypertension, aortic stenosis.",
-    "Systolic murmur": "Valve stenosis/regurgitation or flow murmur.",
-    "Diastolic murmur": "Pathological – AR or MS.",
-    "Pericardial rub": "Pericarditis.",
-    "Regular rhythm": "Normal sinus rhythm.",
-    "Irregular rhythm": "Atrial fibrillation or ectopic rhythm.",
-    // ---- Respiratory ----
-    "Chest symmetrical": "Normal.",
-    "Chest asymmetry": "Pneumothorax, effusion, or collapse.",
-    "Trachea central": "Normal.",
-    "Tracheal deviation": "Pneumothorax, effusion, mass.",
-    "Equal expansion": "Normal.",
-    "Reduced expansion (R)": "Right lung pathology – effusion, collapse.",
-    "Reduced expansion (L)": "Left lung pathology – effusion, collapse.",
-    "Accessory muscle use": "Respiratory distress – COPD, asthma, pneumonia.",
-    "Tactile fremitus normal": "Normal lung transmission.",
-    "Tactile fremitus reduced": "Effusion, pneumothorax, fibrosis.",
-    "Tactile fremitus increased": "Consolidation.",
-    "Resonant percussion": "Normal lung.",
-    "Dull to percussion": "Consolidation or effusion.",
-    "Stony dull (effusion)": "Pleural effusion.",
-    "Hyperresonant (pneumothorax)": "Pneumothorax or emphysema.",
-    "Vesicular breath sounds": "Normal.",
-    "Bronchial breathing": "Consolidation – consider pneumonia.",
-    "Reduced breath sounds": "Effusion, pneumothorax, or consolidation.",
-    "Coarse crackles": "Secretions, bronchiectasis, pulmonary oedema.",
-    "Fine crackles": "Fibrosis, early oedema, interstitial disease.",
-    "Expiratory wheeze": "Asthma, COPD, lower airway narrowing.",
-    "Inspiratory wheeze": "Upper airway obstruction or asthma.",
-    "Pleural rub": "Pleurisy, pulmonary infarction.",
-    // ---- Breast ----
-    "Breasts symmetrical": "Normal.",
-    "Breast asymmetry": "May be normal; if new, consider malignancy.",
-    "Skin normal": "Normal.",
-    "Peau d'orange": "Breast cancer (inflammatory) – urgent referral.",
-    "Erythema": "Infection or inflammatory breast cancer.",
-    "Ulceration": "Malignancy – urgent assessment.",
-    "Nipple normal": "Normal.",
-    "Nipple retraction": "Malignancy – urgent referral.",
-    "Nipple discharge": "May be benign (galactorrhoea) or malignant (bloody).",
-    "No palpable lumps": "Normal.",
-    "Palpable lump (R)": "Fibroadenoma, cyst, or malignancy – investigate.",
-    "Palpable lump (L)": "Fibroadenoma, cyst, or malignancy – investigate.",
-    "Lump: mobile": "Benign (fibroadenoma, cyst).",
-    "Lump: fixed": "Malignancy – urgent referral.",
-    "Lump: tender": "Inflammation, infection, or hormonal.",
-    "Lump: non-tender": "More concerning for malignancy.",
-    "Axillary nodes palpable": "Infection or lymphatic spread – correlate with breast exam.",
-    "Axillary nodes not palpable": "Normal.",
-    // ---- Thyroid ----
-    "Thyroid not visible": "Normal.",
-    "Thyroid visible on swallowing": "Enlarged – goitre.",
-    "Goitre visible": "Thyroid enlargement – hyperthyroidism, hypothyroidism, nodules.",
-    "Asymmetrical swelling": "Nodular goitre or malignancy – ultrasound.",
-    "Trachea central": "Normal.",
-    "Tracheal deviation": "Mass effect – urgent evaluation.",
-    "Thyroid not palpable": "Normal.",
-    "Thyroid palpable": "Enlarged – evaluate for goitre/nodules.",
-    "Diffuse enlargement": "Graves' disease or Hashimoto's.",
-    "Thyroid nodule": "Benign or malignant – ultrasound and FNA.",
-    "Thyroid: firm": "Nodular goitre or malignancy.",
-    "Thyroid: hard": "Malignancy – urgent FNA.",
-    "Thyroid: tender": "Subacute thyroiditis.",
-    "Cervical lymphadenopathy": "Infection or malignancy – consider TB, lymphoma, metastases.",
-    "No thyroid bruit": "Normal.",
-    "Thyroid bruit present": "Hyperthyroidism (Graves').",
-    // ---- Vaginal & Pelvic ----
-    "Vulva normal": "Normal.",
-    "Vulval lesions": "Infection (HSV), ulcer, or neoplasm – biopsy if suspicious.",
-    "Vulval ulcers": "HSV, syphilis, chancroid, or cancer.",
-    "Vulval erythema": "Inflammation, infection (candidiasis, bacterial vaginosis).",
-    "Vulval oedema": "Inflammation, pre-eclampsia, or infection.",
-    "Varicosities": "Pelvic congestion, pregnancy – usually benign.",
-    "Scarring/episiotomy scar": "Previous delivery or surgery.",
-    "Vaginal mucosa normal": "Normal.",
-    "Vaginal atrophy": "Menopause – oestrogen deficiency.",
-    "Vaginal discharge": "Infection (candidiasis, BV, trichomoniasis) or cervical pathology.",
-    "Cervix normal": "Normal.",
-    "Cervical erosion": "Ectropion – benign, often in young women.",
-    "Cervical polyp": "Benign – often asymptomatic, but can bleed.",
-    "Cervical os closed": "Normal non‑pregnant or closed cervix.",
-    "Cervical os open": "Miscarriage, cervical incompetence, or preterm labour.",
-    "Cervical motion tenderness": "PID, ectopic pregnancy, or tubo‑ovarian abscess.",
-    "Uterus normal size": "Normal.",
-    "Uterus enlarged": "Fibroids, pregnancy, adenomyosis, or malignancy.",
-    "Uterus: anteverted": "Normal position.",
-    "Uterus: retroverted": "Normal variant – may be associated with endometriosis.",
-    "Uterus: mobile": "Normal.",
-    "Uterus: fixed": "Endometriosis, adhesions, or malignancy.",
-    "Uterus: tender": "Infection (endometritis), abruption, or fibroid degeneration.",
-    "Uterus: non-tender": "Normal.",
-    "Adnexa normal": "Normal.",
-    "Adnexal mass (R)": "Ovarian cyst, ectopic, or malignancy.",
-    "Adnexal mass (L)": "Ovarian cyst, ectopic, or malignancy.",
-    "Adnexal tenderness": "Ectopic, PID, ovarian torsion.",
-    "Pouch of Douglas clear": "Normal.",
-    "Pouch of Douglas full/tender": "Ascites, haemorrhage (ectopic), or infection.",
-    "Rectovaginal septum normal": "Normal.",
-    "Rectovaginal mass": "Endometriosis, malignancy, or abscess.",
-    "Tone normal": "Normal pelvic floor.",
-    "Reduced tone": "Pelvic floor weakness – prolapse or incontinence.",
-    // ---- Obstetric ----
-    "Abdomen normal shape": "Normal.",
-    "Abdomen distended": "Ascites, multiple pregnancy, polyhydramnios, or obstruction.",
-    "Fetal movements visible": "Normal – indicates fetal activity.",
-    "Linea nigra present": "Normal pregnancy finding.",
-    "Striae gravidarum": "Stretch marks – normal in pregnancy.",
-    "Scar (CS scar)": "Previous caesarean section – risk of uterine rupture in labour.",
-    "Uterine shape: ovoid": "Normal longitudinal lie.",
-    "Uterine shape: broad": "Multiple pregnancy, polyhydramnios, or fibroids.",
-    "Fundal height (cm): ___": "Measure and compare to gestational age – if > dates, consider GDM, polyhydramnios, multiple; if < dates, consider IUGR.",
-    "Fundal height matches dates": "Normal growth.",
-    "Fundal height > dates": "Large for dates – GDM, multiple, polyhydramnios.",
-    "Fundal height < dates": "Small for dates – IUGR, oligohydramnios.",
-    "Lie: Longitudinal": "Normal fetal lie.",
-    "Lie: Transverse": "Malpresentation – risk of cord prolapse.",
-    "Lie: Oblique": "Unstable lie – risk of cord prolapse.",
-    "Presentation: Cephalic": "Vertex – normal.",
-    "Presentation: Breech": "Breech – consider ECV or caesarean.",
-    "Presentation: Shoulder": "Transverse lie – emergency.",
-    "Presentation: Engaged": "Head engaged – favourable.",
-    "Presentation: Non-engaged": "May be due to CPD, malpresentation.",
-    "Uterus non-tender": "Normal.",
-    "Uterus tender": "Abruption, infection (chorioamnionitis), or fibroid degeneration.",
-    "Uterus irritable": "Preterm labour or abruption.",
-    "No contractions": "Quiescent uterus.",
-    "Contractions: irregular": "Braxton Hicks or early labour.",
-    "Contractions: regular": "Established labour – monitor frequency and strength.",
-    "FHR normal (110-160 bpm)": "Normal fetal heart rate.",
-    "FHR bradycardia": "Fetal distress – urgent evaluation.",
-    "FHR tachycardia": "Fetal distress, maternal fever, or drugs.",
-    "FHR audible": "Fetal heart present.",
-    "FHR regular": "Normal rhythm.",
-    "FHR irregular": "Arrhythmia – refer for fetal echo.",
-    "Liquor: clear": "Normal.",
-    "Liquor: meconium-stained": "Fetal distress – meconium aspiration risk.",
-    "Liquor: blood-stained": "Abruption, vasa praevia – urgent.",
-    "Liquor: offensive": "Chorioamnionitis – infection.",
-    "Placental position: Anterior": "Normal – may make auscultation less clear.",
-    "Placental position: Posterior": "Normal.",
-    "Placental position: Fundal": "Normal.",
-    "Placental position: Low-lying": "Placenta previa – risk of APH.",
-    // ---- Additional from General/Other (if used) ----
-    "Not applicable": "No specific clue – review other signs.",
-    // fallback
-};
+    // ---- General (Hutchison's Ch. 3 & 10; Williams Ch. 8) ----
+    "Well-nourished": "Normal nutritional status. (Williams, Ch. 8; Hutchison's, Ch. 3)",
+    "Malnourished": "Consider nutritional deficiency, chronic disease, or malabsorption. (Williams, Ch. 8; Hutchison's, Ch. 3)",
+    "Pallor": "Think anaemia (iron deficiency, haemorrhage, chronic disease). (Williams, Ch. 8; Hutchison's, Ch. 3)",
+    "Jaundice": "Consider hepatitis, obstruction, or haemolysis. (Williams, Ch. 8; Hutchison's, Ch. 10)",
+    "Cyanosis": "Hypoxaemia – cardiac or respiratory origin. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+   // ---- Clubbing (Hutchison's Ch. 13) ----
+    "Clubbing": "Schamroth's test: loss of diamond window between nail beds. Grades: 1 (fluctuation of nail bed), 2 (loss of Lovibond angle), 3 (bulbous/drumstick), 4 (hypertrophic pulmonary osteoarthropathy). Causes: lung cancer, bronchiectasis, CF, cyanotic heart disease, IBD, cirrhosis. (Hutchison's, Ch. 13)",
+    "Lymphadenopathy": "Infection, HIV, TB, lymphoma, or malignancy. (Hutchison's, Ch. 3)",
+   // ---- Oedema (Williams Ch. 8; Hutchison's Ch. 13) ----
+    "Oedema": "Assess: pitting vs non-pitting. Grading: 1+ (2mm pit, disappears quickly), 2+ (4mm, 10-15s), 3+ (6mm, >1min), 4+ (8mm, >2min). Causes: cardiac (CCF), renal (nephrotic), hepatic (cirrhosis), venous insufficiency, lymphatic (non-pitting). (Williams, Ch. 8; Hutchison's, Ch. 13)",    "Dehydration": "Reduced fluid intake, vomiting, diarrhoea, or excessive losses. (Hutchison's, Ch. 3)",
+    "Skin turgor normal": "Adequate hydration. (Hutchison's, Ch. 3)",
+    "Reduced skin turgor": "Dehydration – correlate with history. (Hutchison's, Ch. 3)",
+    "Lymph nodes non-tender": "May be reactive or chronic; if persistent, consider biopsy. (Hutchison's, Ch. 3)",
+    "Lymph nodes tender": "Infection (e.g., bacterial, viral) – correlate with fever. (Hutchison's, Ch. 3)",
 
+    // ---- CNS (Hutchison's Ch. 19; Williams Ch. 8) ----
+    "Alert and oriented": "Normal neurological status. (Hutchison's, Ch. 19)",
+    "Disoriented": "Delirium, dementia, metabolic, or structural brain disorder. (Hutchison's, Ch. 19)",
+   // ---- GCS (Hutchison's Ch. 19) ----
+    "GCS 15/15": "Fully conscious. Assessment: Eye opening (E): 4 spontaneous, 3 to speech, 2 to pain, 1 none. Verbal (V): 5 oriented, 4 confused, 3 inappropriate words, 2 incomprehensible, 1 none. Motor (M): 6 obeys, 5 localises, 4 withdraws, 3 flexion, 2 extension, 1 none. Total 15 = fully alert. (Hutchison's, Ch. 19)",
+    "GCS <15": "Reduced consciousness – assess and document each component (E, V, M). Causes: metabolic (e.g., hypoglycaemia, uraemia), structural (stroke, trauma), toxic (alcohol, drugs), septic (meningitis, encephalitis). Repeat GCS every 15–30 mins if deteriorating. (Hutchison's, Ch. 19)",
+    "Speech normal": "No dysarthria or aphasia. (Hutchison's, Ch. 19)",
+    "Dysarthria": "Motor speech disorder – stroke, cerebellar, or neuromuscular. (Hutchison's, Ch. 19)",
+    "Facial asymmetry": "Facial nerve palsy, stroke, or Bell's palsy. (Hutchison's, Ch. 19)",
+    "Gait normal": "Normal ambulation. (Hutchison's, Ch. 19)",
+    "Gait abnormal": "Hemiplegic (stroke), ataxic (cerebellar), Parkinsonian, or high-stepping. (Hutchison's, Ch. 19)",
+    "Tone normal": "Normal muscle tone. (Hutchison's, Ch. 19)",
+    "Spasticity": "Upper motor neuron lesion (stroke, MS). (Hutchison's, Ch. 19)",
+    "Rigidity": "Extrapyramidal (Parkinson's). (Hutchison's, Ch. 19)",
+    "Power 5/5": "Normal strength. (Hutchison's, Ch. 19)",
+    "Reduced power": "Proximal (myopathy), distal (neuropathy), or focal (stroke). (Hutchison's, Ch. 19)",
+    "Reflexes present": "Normal. (Hutchison's, Ch. 19)",
+    "Brisk reflexes": "Upper motor neuron lesion. (Hutchison's, Ch. 19)",
+    "Absent reflexes": "Lower motor neuron or peripheral neuropathy. (Hutchison's, Ch. 19)",
+    "Plantars downgoing": "Normal. (Hutchison's, Ch. 19)",
+    "Babinski +": "Upper motor neuron lesion. (Hutchison's, Ch. 19)",
+
+    // ---- Cardiovascular (Williams Ch. 8; Hutchison's Ch. 13) ----
+    // ---- JVP (Williams Ch. 8; Hutchison's Ch. 13) ----
+    "JVP normal": "JVP measured from sternal angle (normal <3 cm H₂O). Identify the highest pulsation in internal jugular vein. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+    "Elevated JVP": "JVP >3 cm above sternal angle. Indicates right heart failure, fluid overload, tamponade, or superior vena cava obstruction. (Williams, Ch. 8; Hutchison's, Ch. 13)",    "Chest shape normal": "Normal thoracic configuration. (Hutchison's, Ch. 13)",
+    "Pectus excavatum": "Congenital deformity – usually benign. (Hutchison's, Ch. 13)",
+    "Apex beat 5th ICS MCL": "Normal position. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+    "Displaced apex beat": "Cardiomegaly or LV enlargement. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+    "LV heave": "Left ventricular hypertrophy. (Hutchison's, Ch. 13)",
+    "RV heave": "Right ventricular hypertrophy. (Hutchison's, Ch. 13)",
+    "Thrill palpable": "Palpable murmur – valve stenosis/regurgitation. (Hutchison's, Ch. 13)",
+    "Peripheral pulses present": "Normal perfusion. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+    "Peripheral pulses absent": "Vascular occlusion or hypoperfusion. (Hutchison's, Ch. 13)",
+    "Cardiac dullness normal": "Normal heart size. (Hutchison's, Ch. 13)",
+    "Cardiac dullness enlarged": "Cardiomegaly – valve disease, hypertension, cardiomyopathy. (Hutchison's, Ch. 13)",
+  // ---- Cardiovascular murmurs (Williams Ch. 8; Hutchison's Ch. 13) ----
+    "S1 + S2 heard": "Normal heart sounds. S1 = mitral/tricuspid closure (loudest at apex); S2 = aortic/pulmonary closure (loudest at base). (Williams, Ch. 8; Hutchison's, Ch. 13)",
+    "S3 gallop": "Ventricular filling sound – heard in early diastole. Suggests volume overload (e.g., heart failure, mitral regurgitation). (Williams, Ch. 8; Hutchison's, Ch. 13)",
+    "S4": "Atrial contraction sound – heard in late diastole. Suggests stiff ventricle (hypertension, aortic stenosis). (Williams, Ch. 8; Hutchison's, Ch. 13)",
+    "Systolic murmur": "Assess: timing (early, mid, late, pan-systolic), location (apex, left sternal edge, aortic area), radiation (axilla, carotids), intensity (Levine I–VI: I barely audible, VI audible without stethoscope). Causes: aortic stenosis (ejection systolic, radiates to carotids), mitral regurgitation (pan-systolic, radiates to axilla), VSD. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+    "Diastolic murmur": "Always pathological. Timing: early (AR), mid (MS), late. Location: left sternal edge (AR), apex (MS). Intensity grading less relevant. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+    "Pericardial rub": "Triphasic (atrial systole, ventricular systole, rapid filling) – scratchy, leathery sound. Suggests pericarditis (infectious, uraemic, post-MI). (Hutchison's, Ch. 13)",
+    "Regular rhythm": "Normal sinus rhythm. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+    "Irregular rhythm": "Atrial fibrillation or ectopic rhythm. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+
+    // ---- Respiratory (Williams Ch. 8; Hutchison's Ch. 12) ----
+    "Chest symmetrical": "Normal. (Hutchison's, Ch. 12)",
+    "Chest asymmetry": "Pneumothorax, effusion, or collapse. (Hutchison's, Ch. 12)",
+    "Trachea central": "Normal. (Hutchison's, Ch. 12)",
+    "Tracheal deviation": "Pneumothorax, effusion, mass. (Hutchison's, Ch. 12)",
+    "Equal expansion": "Normal. (Hutchison's, Ch. 12)",
+    "Reduced expansion (R)": "Right lung pathology – effusion, collapse. (Hutchison's, Ch. 12)",
+    "Reduced expansion (L)": "Left lung pathology – effusion, collapse. (Hutchison's, Ch. 12)",
+    "Accessory muscle use": "Respiratory distress – COPD, asthma, pneumonia. (Hutchison's, Ch. 12)",
+    "Tactile fremitus normal": "Normal lung transmission. (Hutchison's, Ch. 12)",
+    "Tactile fremitus reduced": "Effusion, pneumothorax, fibrosis. (Hutchison's, Ch. 12)",
+    "Tactile fremitus increased": "Consolidation. (Hutchison's, Ch. 12)",
+    "Resonant percussion": "Normal lung. (Hutchison's, Ch. 12)",
+    "Dull to percussion": "Consolidation or effusion. (Hutchison's, Ch. 12)",
+    "Stony dull (effusion)": "Pleural effusion. (Hutchison's, Ch. 12)",
+    "Hyperresonant (pneumothorax)": "Pneumothorax or emphysema. (Hutchison's, Ch. 12)",
+    "Vesicular breath sounds": "Normal. (Hutchison's, Ch. 12)",
+    "Bronchial breathing": "Consolidation – consider pneumonia. (Hutchison's, Ch. 12)",
+    "Reduced breath sounds": "Effusion, pneumothorax, or consolidation. (Hutchison's, Ch. 12)",
+    "Coarse crackles": "Secretions, bronchiectasis, pulmonary oedema. (Hutchison's, Ch. 12)",
+    "Fine crackles": "Fibrosis, early oedema, interstitial disease. (Hutchison's, Ch. 12)",
+    "Expiratory wheeze": "Asthma, COPD, lower airway narrowing. (Hutchison's, Ch. 12)",
+    "Inspiratory wheeze": "Upper airway obstruction or asthma. (Hutchison's, Ch. 12)",
+    "Pleural rub": "Pleurisy, pulmonary infarction. (Hutchison's, Ch. 12)",
+
+    // ---- Breast (Williams Obstetrics Ch. 8; Gabbe's Obstetrics Ch. 7) ----
+    "Breasts symmetrical": "Normal. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Breast asymmetry": "May be normal; if new, consider malignancy. (Gabbe's, Ch. 7)",
+    "Skin normal": "Normal. (Gabbe's, Ch. 7)",
+    "Peau d'orange": "Breast cancer (inflammatory) – urgent referral. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Erythema": "Infection or inflammatory breast cancer. (Gabbe's, Ch. 7)",
+    "Ulceration": "Malignancy – urgent assessment. (Gabbe's, Ch. 7)",
+    "Nipple normal": "Normal. (Gabbe's, Ch. 7)",
+    "Nipple retraction": "Malignancy – urgent referral. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Nipple discharge": "May be benign (galactorrhoea) or malignant (bloody). (Gabbe's, Ch. 7)",
+    "No palpable lumps": "Normal. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Palpable lump (R)": "Fibroadenoma, cyst, or malignancy – investigate. (Gabbe's, Ch. 7)",
+    "Palpable lump (L)": "Fibroadenoma, cyst, or malignancy – investigate. (Gabbe's, Ch. 7)",
+    "Lump: mobile": "Benign (fibroadenoma, cyst). (Gabbe's, Ch. 7)",
+    "Lump: fixed": "Malignancy – urgent referral. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Lump: tender": "Inflammation, infection, or hormonal. (Gabbe's, Ch. 7)",
+    "Lump: non-tender": "More concerning for malignancy. (Gabbe's, Ch. 7)",
+    "Axillary nodes palpable": "Infection or lymphatic spread – correlate with breast exam. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Axillary nodes not palpable": "Normal. (Gabbe's, Ch. 7)",
+
+    // ---- Thyroid (Williams Ch. 8; Hutchison's Ch. 22) ----
+    "Thyroid not visible": "Normal. (Hutchison's, Ch. 22)",
+    "Thyroid visible on swallowing": "Enlarged – goitre. (Hutchison's, Ch. 22)",
+    "Goitre visible": "Thyroid enlargement – hyperthyroidism, hypothyroidism, nodules. (Williams, Ch. 8; Hutchison's, Ch. 22)",
+    "Asymmetrical swelling": "Nodular goitre or malignancy – ultrasound. (Hutchison's, Ch. 22)",
+    "Trachea central": "Normal. (Hutchison's, Ch. 22)",
+    "Tracheal deviation": "Mass effect – urgent evaluation. (Hutchison's, Ch. 22)",
+    "Thyroid not palpable": "Normal. (Hutchison's, Ch. 22)",
+    "Thyroid palpable": "Enlarged – evaluate for goitre/nodules. (Hutchison's, Ch. 22)",
+    "Diffuse enlargement": "Graves' disease or Hashimoto's. (Hutchison's, Ch. 22)",
+    "Thyroid nodule": "Benign or malignant – ultrasound and FNA. (Williams, Ch. 8; Hutchison's, Ch. 22)",
+    "Thyroid: firm": "Nodular goitre or malignancy. (Hutchison's, Ch. 22)",
+    "Thyroid: hard": "Malignancy – urgent FNA. (Hutchison's, Ch. 22)",
+    "Thyroid: tender": "Subacute thyroiditis. (Hutchison's, Ch. 22)",
+    "Cervical lymphadenopathy": "Infection or malignancy – consider TB, lymphoma, metastases. (Hutchison's, Ch. 22)",
+    "No thyroid bruit": "Normal. (Hutchison's, Ch. 22)",
+    "Thyroid bruit present": "Hyperthyroidism (Graves'). (Hutchison's, Ch. 22)",
+
+    // ---- Vaginal & Pelvic (Williams Obstetrics 25th Ed. Ch. 8 & 18; Gabbe's Ch. 7) ----
+    "Vulva normal": "Normal. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Vulval lesions": "Infection (HSV), ulcer, or neoplasm – biopsy if suspicious. (Williams, Ch. 18; Gabbe's, Ch. 7)",
+    "Vulval ulcers": "HSV, syphilis, chancroid, or cancer. (Williams, Ch. 18; Gabbe's, Ch. 7)",
+    "Vulval erythema": "Inflammation, infection (candidiasis, bacterial vaginosis). (Gabbe's, Ch. 7)",
+    "Vulval oedema": "Inflammation, pre-eclampsia, or infection. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Varicosities": "Pelvic congestion, pregnancy – usually benign. (Williams, Ch. 8)",
+    "Scarring/episiotomy scar": "Previous delivery or surgery. (Gabbe's, Ch. 7)",
+    "Vaginal mucosa normal": "Normal. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Vaginal atrophy": "Menopause – oestrogen deficiency. (Williams, Ch. 18; Gabbe's, Ch. 7)",
+    "Vaginal discharge": "Infection (candidiasis, BV, trichomoniasis) or cervical pathology. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Cervix normal": "Normal. (Williams, Ch. 18; Gabbe's, Ch. 7)",
+    "Cervical erosion": "Ectropion – benign, often in young women. (Williams, Ch. 18)",
+    "Cervical polyp": "Benign – often asymptomatic, but can bleed. (Williams, Ch. 18)",
+    "Cervical os closed": "Normal non‑pregnant or closed cervix. (Williams, Ch. 18)",
+    "Cervical os open": "Miscarriage, cervical incompetence, or preterm labour. (Williams, Ch. 17 & 23; Oxford, Ch. 7)",
+    "Cervical motion tenderness": "PID, ectopic pregnancy, or tubo‑ovarian abscess. (Williams, Ch. 18; Oxford, Ch. 22)",
+    "Uterus normal size": "Normal. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Uterus enlarged": "Fibroids, pregnancy, adenomyosis, or malignancy. (Williams, Ch. 8 & 18; Gabbe's, Ch. 7)",
+    "Uterus: anteverted": "Normal position. (Williams, Ch. 8)",
+    "Uterus: retroverted": "Normal variant – may be associated with endometriosis. (Williams, Ch. 8)",
+    "Uterus: mobile": "Normal. (Williams, Ch. 8)",
+    "Uterus: fixed": "Endometriosis, adhesions, or malignancy. (Williams, Ch. 18; Gabbe's, Ch. 7)",
+    "Uterus: tender": "Infection (endometritis), abruption, or fibroid degeneration. (Williams, Ch. 20 & 28; Oxford, Ch. 14)",
+    "Uterus: non-tender": "Normal. (Williams, Ch. 8)",
+    "Adnexa normal": "Normal. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Adnexal mass (R)": "Ovarian cyst, ectopic, or malignancy. (Williams, Ch. 18; Oxford, Ch. 20)",
+    "Adnexal mass (L)": "Ovarian cyst, ectopic, or malignancy. (Williams, Ch. 18; Oxford, Ch. 20)",
+    "Adnexal tenderness": "Ectopic, PID, ovarian torsion. (Williams, Ch. 18; Oxford, Ch. 8)",
+    "Pouch of Douglas clear": "Normal. (Williams, Ch. 18)",
+    "Pouch of Douglas full/tender": "Ascites, haemorrhage (ectopic), or infection. (Williams, Ch. 18)",
+    "Rectovaginal septum normal": "Normal. (Williams, Ch. 18)",
+    "Rectovaginal mass": "Endometriosis, malignancy, or abscess. (Williams, Ch. 18; Gabbe's, Ch. 7)",
+    "Tone normal": "Normal pelvic floor. (Williams, Ch. 8)",
+    "Reduced tone": "Pelvic floor weakness – prolapse or incontinence. (Williams, Ch. 24; Oxford, Ch. 24)",
+
+    // ---- Obstetric (Williams Obstetrics 25th Ed. Ch. 8 & 18; Gabbe's Ch. 7) ----
+    "Abdomen normal shape": "Normal. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Abdomen distended": "Ascites, multiple pregnancy, polyhydramnios, or obstruction. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Fetal movements visible": "Normal – indicates fetal activity. (Williams, Ch. 8)",
+    "Linea nigra present": "Normal pregnancy finding. (Williams, Ch. 8)",
+    "Striae gravidarum": "Stretch marks – normal in pregnancy. (Williams, Ch. 8)",
+    "Scar (CS scar)": "Previous caesarean section – risk of uterine rupture in labour. (Williams, Ch. 23; Oxford, Ch. 10)",
+    "Uterine shape: ovoid": "Normal longitudinal lie. (Williams, Ch. 8)",
+    "Uterine shape: broad": "Multiple pregnancy, polyhydramnios, or fibroids. (Williams, Ch. 8)",
+    "Fundal height (cm): ___": "Measure and compare to gestational age. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Fundal height matches dates": "Normal growth. (Williams, Ch. 8)",
+    "Fundal height > dates": "Large for dates – GDM, multiple, polyhydramnios. (Williams, Ch. 8 & 22; Oxford, Ch. 9)",
+    "Fundal height < dates": "Small for dates – IUGR, oligohydramnios. (Williams, Ch. 8; Oxford, Ch. 13)",
+    "Lie: Longitudinal": "Normal fetal lie. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Lie: Transverse": "Malpresentation – risk of cord prolapse. (Williams, Ch. 8; Oxford, Ch. 10)",
+    "Lie: Oblique": "Unstable lie – risk of cord prolapse. (Williams, Ch. 8; Oxford, Ch. 10)",
+    "Presentation: Cephalic": "Vertex – normal. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Presentation: Breech": "Breech – consider ECV or caesarean. (Williams, Ch. 8; Oxford, Ch. 10)",
+    "Presentation: Shoulder": "Transverse lie – emergency. (Williams, Ch. 8; Oxford, Ch. 10)",
+    "Presentation: Engaged": "Head engaged – favourable. (Williams, Ch. 8; Oxford, Ch. 10)",
+    "Presentation: Non-engaged": "May be due to CPD, malpresentation. (Williams, Ch. 8; Oxford, Ch. 10)",
+    "Uterus non-tender": "Normal. (Williams, Ch. 8; Gabbe's, Ch. 7)",
+    "Uterus tender": "Abruption, infection (chorioamnionitis), or fibroid degeneration. (Williams, Ch. 20 & 30; Oxford, Ch. 12 & 14)",
+    "Uterus irritable": "Preterm labour or abruption. (Williams, Ch. 23; Oxford, Ch. 10)",
+    "No contractions": "Quiescent uterus. (Williams, Ch. 8)",
+    "Contractions: irregular": "Braxton Hicks or early labour. (Williams, Ch. 8; Oxford, Ch. 10)",
+    "Contractions: regular": "Established labour – monitor frequency and strength. (Williams, Ch. 8; Oxford, Ch. 10)",
+    "FHR normal (110-160 bpm)": "Normal fetal heart rate. (Williams, Ch. 16; Oxford, Ch. 13)",
+    "FHR bradycardia": "Fetal distress – urgent evaluation. (Williams, Ch. 16; Oxford, Ch. 13)",
+    "FHR tachycardia": "Fetal distress, maternal fever, or drugs. (Williams, Ch. 16; Oxford, Ch. 13)",
+    "FHR audible": "Fetal heart present. (Williams, Ch. 8)",
+    "FHR regular": "Normal rhythm. (Williams, Ch. 16)",
+    "FHR irregular": "Arrhythmia – refer for fetal echo. (Williams, Ch. 16)",
+    "Liquor: clear": "Normal. (Williams, Ch. 8; Oxford, Ch. 12)",
+    "Liquor: meconium-stained": "Fetal distress – meconium aspiration risk. (Williams, Ch. 16; Oxford, Ch. 13)",
+    "Liquor: blood-stained": "Abruption, vasa praevia – urgent. (Williams, Ch. 20; Oxford, Ch. 12)",
+    "Liquor: offensive": "Chorioamnionitis – infection. (Williams, Ch. 30; Oxford, Ch. 14)",
+    "Placental position: Anterior": "Normal – may make auscultation less clear. (Williams, Ch. 8)",
+    "Placental position: Posterior": "Normal. (Williams, Ch. 8)",
+    "Placental position: Fundal": "Normal. (Williams, Ch. 8)",
+    "Placental position: Low-lying": "Placenta previa – risk of APH. (Williams, Ch. 20; Oxford, Ch. 12)",
+// ---- VITAL SIGNS (Williams Ch. 8; Hutchison's) ----
+"Tachycardia": "HR >100 bpm. Causes: pain, fever, anaemia, shock, hyperthyroidism, arrhythmias, PE, hypovolaemia. In pregnancy: consider infection, anaemia, or thyrotoxicosis. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+"Bradycardia": "HR <60 bpm. Causes: athletes, β-blockers, hypothyroidism, heart block, increased ICP, sick sinus syndrome. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+"Hypertension": "BP ≥140/90 mmHg. Causes: essential (common), pre-eclampsia (proteinuria), renal disease, endocrine (Cushing's, phaeochromocytoma). In pregnancy: rule out pre-eclampsia if >140/90 after 20 weeks. (Williams, Ch. 19; Oxford, Ch. 11)",
+"Hypotension": "BP <90/60 mmHg. Causes: shock (haemorrhagic, septic, cardiogenic), dehydration, anaesthesia, autonomic neuropathy. (Williams, Ch. 8; Hutchison's, Ch. 13)",
+"Tachypnoea": "RR >20/min. Causes: pain, fever, anxiety, PE, pneumonia, metabolic acidosis, hypoxaemia. (Hutchison's, Ch. 12)",
+"Bradypnoea": "RR <12/min. Causes: sedative drugs (opioids, benzodiazepines), increased ICP, hypothermia, metabolic alkalosis. (Hutchison's, Ch. 12)",
+"Fever": "Temp >37.5°C (or >38°C for significant fever). Causes: infection (malaria, UTI, pneumonia, chorioamnionitis, endometritis), inflammatory, malignancy, drug reaction. (Williams, Ch. 8; Hutchison's, Ch. 10)",
+"Hypothermia": "Temp <36°C. Causes: exposure, sepsis, hypoglycaemia, hypothyroidism, CNS pathology. (Hutchison's, Ch. 10)",
+"SpO₂ <95%": "Hypoxia – consider respiratory (pneumonia, PE, asthma, COPD) or cardiac (CCF, cyanotic heart disease) cause. Urgent assessment. (Williams, Ch. 8; Hutchison's, Ch. 12)",
+  
+  // ---- Fallback ----
+    "Not applicable": "No specific clue – review other signs.",
+};
 /**
  * Get the clue for a PE finding.
  * @param {string} finding - The text of the finding.
@@ -4892,7 +4930,68 @@ window.togglePEFinding = function(btn) {
 // In this file, PE tags are static HTML, so we're fine.
 
 // Add a small function to manually trigger clue for any active tag on page load? Not necessary.
-                
+
+                // ============================================================
+// VITAL SIGNS AUTO-FLAG
+// ============================================================
+
+function onVitalChange(type) {
+  // Get values
+  const hr = parseInt(document.getElementById('pe_hr')?.value) || 0;
+  const bpStr = document.getElementById('pe_bp')?.value || '';
+  const rr = parseInt(document.getElementById('pe_rr')?.value) || 0;
+  const spo2 = parseInt(document.getElementById('pe_spo2')?.value) || 0;
+  const temp = parseFloat(document.getElementById('pe_temp')?.value) || 0;
+
+  // Helper to toggle a tag
+  function setTagActive(finding, active) {
+    const tags = document.querySelectorAll(`#pe-general .pe-finding-tag[data-finding="${finding}"]`);
+    tags.forEach(btn => {
+      const isActive = btn.classList.contains('active-present');
+      if (active && !isActive) {
+        btn.classList.add('active-present');
+        btn.innerHTML = btn.textContent.trim() + ' ✓';
+        // Optionally show tooltip
+        if (typeof showPeTooltip === 'function') showPeTooltip(btn);
+      } else if (!active && isActive) {
+        btn.classList.remove('active-present');
+        btn.innerHTML = btn.textContent.trim().replace(' ✓', '');
+      }
+    });
+  }
+
+  // Tachycardia: HR >100
+  setTagActive('Tachycardia', hr > 100);
+  // Bradycardia: HR <60
+  setTagActive('Bradycardia', hr < 60 && hr > 0);
+
+  // Hypertension: BP ≥140/90 (parse)
+  let sys = 0, dia = 0;
+  if (bpStr.includes('/')) {
+    const parts = bpStr.split('/');
+    sys = parseInt(parts[0]) || 0;
+    dia = parseInt(parts[1]) || 0;
+  }
+  setTagActive('Hypertension', sys >= 140 || dia >= 90);
+  setTagActive('Hypotension', sys < 90 || dia < 60);
+
+  // Tachypnoea: RR >20
+  setTagActive('Tachypnoea', rr > 20);
+  // Bradypnoea: RR <12
+  setTagActive('Bradypnoea', rr < 12 && rr > 0);
+
+  // Fever: Temp >37.5°C (or >38°C for significant)
+  setTagActive('Fever', temp > 37.5);
+  // Hypothermia: Temp <36°C
+  setTagActive('Hypothermia', temp < 36 && temp > 0);
+
+  // SpO₂ <95%
+  setTagActive('SpO₂ <95%', spo2 < 95 && spo2 > 0);
+
+  // Update progress and PE data
+  if (typeof updateProgress === 'function') updateProgress();
+  if (typeof xpSave === 'function') xpSave('general');
+}
               </script>
               
 </body>
