@@ -4471,7 +4471,7 @@ function generateDDX() {
             if (result.confidence >= 70) barColor = '#2ecc71';
             else if (result.confidence >= 40) barColor = '#f1c40f';
 
-            // Build bullet list of matched texts
+            // Build bullet list of matched texts (supporting evidence)
             let evidenceHtml = '';
             if (result.matchedTexts.length) {
                 evidenceHtml = '<ul style="margin:0; padding-left:1.2rem;">';
@@ -4483,11 +4483,18 @@ function generateDDX() {
                 evidenceHtml = 'No matching features';
             }
 
+            // Build references string
+            let refsHtml = '';
+            if (result.references && result.references.length) {
+                refsHtml = `<div style="font-size:0.65rem; color:var(--muted); margin-top:0.2rem;">📖 ${result.references.join('; ')}</div>`;
+            }
+
             html += `
                 <tr style="border-bottom:1px solid var(--border);">
                     <td style="padding:0.5rem 0.75rem;">
                         <strong>${result.name}</strong>
                         <div style="font-size:0.7rem; color:var(--muted);">${result.category}</div>
+                        ${refsHtml}
                     </td>
                     <td style="padding:0.5rem 0.75rem; text-align:center;">
                         <div style="display:inline-block; width:60px; height:8px; background:#eee; border-radius:4px; overflow:hidden; vertical-align:middle; margin-right:6px;">
@@ -4495,11 +4502,9 @@ function generateDDX() {
                         </div>
                         ${result.confidence}%
                     </td>
-                   <td style="padding:0.5rem 0.75rem;">
-    <strong>${result.name}</strong>
-    <div style="font-size:0.7rem; color:var(--muted);">${result.category}</div>
-    ${result.references ? `<div style="font-size:0.65rem; color:var(--muted); margin-top:0.2rem;">📖 ${result.references.join('; ')}</div>` : ''}
-</td>
+                    <td style="padding:0.5rem 0.75rem; font-size:0.8rem; color:var(--text);">
+                        ${evidenceHtml}
+                    </td>
                 </tr>
             `;
         });
@@ -4516,7 +4521,6 @@ function generateDDX() {
     document.getElementById('ddxContent').innerHTML = html;
     document.getElementById('ddxModal').classList.add('open');
 }
-
 /**
  * Close DDX modal.
  */
