@@ -4003,6 +4003,19 @@ function getPatientData() {
     // Gyn conditions
     const gynConditions = val('gynConditions').split(',').map(s => s.trim()).filter(Boolean);
 
+    // ========= VITALS (new) =========
+    const hr = parseInt(document.getElementById('pe_hr')?.value) || 0;
+    const bpStr = document.getElementById('pe_bp')?.value || '';
+    let systolic = 0, diastolic = 0;
+    if (bpStr.includes('/')) {
+        const parts = bpStr.split('/');
+        systolic = parseInt(parts[0]) || 0;
+        diastolic = parseInt(parts[1]) || 0;
+    }
+    const rr = parseInt(document.getElementById('pe_rr')?.value) || 0;
+    const spo2 = parseInt(document.getElementById('pe_spo2')?.value) || 0;
+    const temp = parseFloat(document.getElementById('pe_temp')?.value) || 0;
+
     return {
         age,
         gravida,
@@ -4026,6 +4039,15 @@ function getPatientData() {
         rosPresent,
         rosAbsent,
         pePresent,
+        // New vitals object
+        vitals: {
+            hr,
+            systolic,
+            diastolic,
+            rr,
+            spo2,
+            temp
+        },
         // Also include raw fields for more advanced matching if needed
         raw: {
             hpc: val('hpcNarrative'),
@@ -4120,41 +4142,43 @@ function buildKnowledgeBase() {
         ]
     });
 
-    // ---- PREECLAMPSIA ----
-    conditions.push({
-        id: 'preeclampsia',
-        name: 'Preeclampsia',
-        category: 'Obstetric',
-        references: [
-            'Williams Obstetrics, 25th Ed., Ch. 19 – Preeclampsia and Eclampsia',
-            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 11'
-        ],
-        criteria: [
-            { check: p => complaintIncludes(p, ['obs-htn', 'obs-preeclampsia']), weight: 3, matchText: 'Complaint of hypertension or pre-eclampsia features' },
-            { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2, matchText: 'Headache or visual changes on ROS' },
-            { check: p => hasRos(p, 'cns', ['Seizures']), weight: 1, matchText: 'Seizures (could indicate eclampsia)' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting', 'Epigastric pain']), weight: 2, matchText: 'Nausea, vomiting, or epigastric pain (HELLP warning)' },
-            { check: p => hasChronic(p, ['hypertension']), weight: 2, matchText: 'Chronic hypertension' },
-            { check: p => p.age > 35 || p.gravida > 2, weight: 1, matchText: 'Age >35 or grand multiparity' },
-        ]
-    });
-
-    // ---- ECLAMPSIA ----
-    conditions.push({
-        id: 'eclampsia',
-        name: 'Eclampsia',
-        category: 'Obstetric',
-        references: [
-            'Williams Obstetrics, 25th Ed., Ch. 19 – Eclampsia',
-            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 11'
-        ],
-        criteria: [
-            { check: p => hasRos(p, 'cns', ['Seizures']), weight: 5, matchText: 'Seizures (generalized convulsions)' },
-            { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2, matchText: 'Headache or visual changes' },
-            { check: p => hasChronic(p, ['hypertension']), weight: 1, matchText: 'Chronic hypertension' },
-        ]
-    });
-
+  // ---- PREECLAMPSIA ----
+conditions.push({
+    id: 'preeclampsia',
+    name: 'Preeclampsia',
+    category: 'Obstetric',
+    references: [
+        'Williams Obstetrics, 25th Ed., Ch. 19 – Preeclampsia and Eclampsia',
+        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 11'
+    ],
+    criteria: [
+        { check: p => complaintIncludes(p, ['obs-htn', 'obs-preeclampsia']), weight: 3, matchText: 'Complaint of hypertension or pre-eclampsia features' },
+        { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2, matchText: 'Headache or visual changes on ROS' },
+        { check: p => hasRos(p, 'cns', ['Seizures']), weight: 1, matchText: 'Seizures (could indicate eclampsia)' },
+        { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting', 'Epigastric pain']), weight: 2, matchText: 'Nausea, vomiting, or epigastric pain (HELLP warning)' },
+        { check: p => hasChronic(p, ['hypertension']), weight: 2, matchText: 'Chronic hypertension' },
+        // New vitals criterion: BP ≥140/90
+        { check: p => p.vitals.systolic >= 140 || p.vitals.diastolic >= 90, weight: 3, matchText: 'BP ≥140/90 mmHg (hypertension)' },
+        { check: p => p.age > 35 || p.gravida > 2, weight: 1, matchText: 'Age >35 or grand multiparity' },
+    ]
+});
+   // ---- ECLAMPSIA ----
+conditions.push({
+    id: 'eclampsia',
+    name: 'Eclampsia',
+    category: 'Obstetric',
+    references: [
+        'Williams Obstetrics, 25th Ed., Ch. 19 – Eclampsia',
+        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 11'
+    ],
+    criteria: [
+        { check: p => hasRos(p, 'cns', ['Seizures']), weight: 5, matchText: 'Seizures (generalized convulsions)' },
+        { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2, matchText: 'Headache or visual changes' },
+        { check: p => hasChronic(p, ['hypertension']), weight: 1, matchText: 'Chronic hypertension' },
+        // BP ≥160/110 is severe pre-eclampsia
+        { check: p => p.vitals.systolic >= 160 || p.vitals.diastolic >= 110, weight: 3, matchText: 'BP ≥160/110 mmHg (severe hypertension)' },
+    ]
+});
     // ---- PRETERM LABOR ----
     conditions.push({
         id: 'preterm_labor',
@@ -4192,23 +4216,25 @@ function buildKnowledgeBase() {
         ]
     });
 
-    // ---- HYPEREMESIS GRAVIDARUM ----
-    conditions.push({
-        id: 'hyperemesis',
-        name: 'Hyperemesis Gravidarum',
-        category: 'Obstetric',
-        references: [
-            'Williams Obstetrics, 25th Ed., Ch. 21 – Gastrointestinal Disorders in Pregnancy',
-            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
-        ],
-        criteria: [
-            { check: p => complaintIncludes(p, ['obs-vomiting']), weight: 3, matchText: 'Complaint of vomiting in pregnancy' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2, matchText: 'Nausea or vomiting on ROS' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2, matchText: 'Weight loss on ROS' },
-            { check: p => p.gravida > 1, weight: 1, matchText: 'Multiparity' },
-        ]
-    });
-
+  // ---- HYPEREMESIS GRAVIDARUM ----
+conditions.push({
+    id: 'hyperemesis',
+    name: 'Hyperemesis Gravidarum',
+    category: 'Obstetric',
+    references: [
+        'Williams Obstetrics, 25th Ed., Ch. 21 – Gastrointestinal Disorders in Pregnancy',
+        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
+    ],
+    criteria: [
+        { check: p => complaintIncludes(p, ['obs-vomiting']), weight: 3, matchText: 'Complaint of vomiting in pregnancy' },
+        { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2, matchText: 'Nausea or vomiting on ROS' },
+        { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2, matchText: 'Weight loss on ROS' },
+        { check: p => p.gravida > 1, weight: 1, matchText: 'Multiparity' },
+        // Vitals: tachycardia may indicate dehydration
+        { check: p => p.vitals.hr > 100, weight: 1, matchText: 'Tachycardia (possible dehydration)' },
+    ]
+});
+  
     // ---- MISCARRIAGE ----
     conditions.push({
         id: 'miscarriage',
@@ -4331,22 +4357,23 @@ function buildKnowledgeBase() {
         ]
     });
 
-    // ---- UTI ----
-    conditions.push({
-        id: 'uti',
-        name: 'Urinary Tract Infection',
-        category: 'Gynecological/Obstetric',
-        references: [
-            'Williams Obstetrics, 25th Ed., Ch. 21 – Urinary Tract Infections',
-            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
-        ],
-        criteria: [
-            { check: p => complaintIncludes(p, ['gyn-urinary', 'obs-dysuria']), weight: 3, matchText: 'Complaint of urinary symptoms' },
-            { check: p => hasRos(p, 'urinogenital', ['Dysuria', 'Frequency', 'Urgency']), weight: 3, matchText: 'Dysuria, frequency, or urgency on ROS' },
-            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2, matchText: 'Fever on ROS' },
-        ]
-    });
-
+   // ---- UTI ----
+conditions.push({
+    id: 'uti',
+    name: 'Urinary Tract Infection',
+    category: 'Gynecological/Obstetric',
+    references: [
+        'Williams Obstetrics, 25th Ed., Ch. 21 – Urinary Tract Infections',
+        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 8'
+    ],
+    criteria: [
+        { check: p => complaintIncludes(p, ['gyn-urinary', 'obs-dysuria']), weight: 3, matchText: 'Complaint of urinary symptoms' },
+        { check: p => hasRos(p, 'urinogenital', ['Dysuria', 'Frequency', 'Urgency']), weight: 3, matchText: 'Dysuria, frequency, or urgency on ROS' },
+        { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2, matchText: 'Fever on ROS' },
+        // Vitals: fever
+        { check: p => p.vitals.temp > 38, weight: 2, matchText: 'Fever >38°C' },
+    ]
+});
     // ---- PROLAPSE ----
     conditions.push({
         id: 'prolapse',
@@ -4412,40 +4439,44 @@ function buildKnowledgeBase() {
         ]
     });
 
-    // ---- CHORIOAMNIONITIS ----
-    conditions.push({
-        id: 'chorio',
-        name: 'Chorioamnionitis',
-        category: 'Obstetric',
-        references: [
-            'Williams Obstetrics, 25th Ed., Ch. 30 – Chorioamnionitis',
-            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 14'
-        ],
-        criteria: [
-            { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 3, matchText: 'Fever on ROS' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
-            { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Liquor: offensive']), weight: 4, matchText: 'Obstetric exam: tender uterus or offensive liquor' },
-            { check: p => complaintIncludes(p, ['obs-rom']), weight: 2, matchText: 'Complaint of ruptured membranes' },
-        ]
-    });
-
-    // ---- PPH ----
-    conditions.push({
-        id: 'pph',
-        name: 'Postpartum Haemorrhage (PPH)',
-        category: 'Obstetric',
-        references: [
-            'Williams Obstetrics, 25th Ed., Ch. 28 – Postpartum Hemorrhage',
-            'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 16'
-        ],
-        criteria: [
-            { check: p => complaintIncludes(p, ['obs-pph']), weight: 5, matchText: 'Complaint of postpartum haemorrhage' },
-            { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2, matchText: 'Dizziness or fainting on ROS' },
-            { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('pph')), weight: 2, matchText: 'History of PPH' },
-        ]
-    });
-
-    // ---- MOLAR PREGNANCY ----
+   // ---- CHORIOAMNIONITIS ----
+conditions.push({
+    id: 'chorio',
+    name: 'Chorioamnionitis',
+    category: 'Obstetric',
+    references: [
+        'Williams Obstetrics, 25th Ed., Ch. 30 – Chorioamnionitis',
+        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 14'
+    ],
+    criteria: [
+        { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 3, matchText: 'Fever on ROS' },
+        { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
+        { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Liquor: offensive']), weight: 4, matchText: 'Obstetric exam: tender uterus or offensive liquor' },
+        { check: p => complaintIncludes(p, ['obs-rom']), weight: 2, matchText: 'Complaint of ruptured membranes' },
+        // Vitals: fever and tachycardia
+        { check: p => p.vitals.temp > 38, weight: 2, matchText: 'Fever >38°C' },
+        { check: p => p.vitals.hr > 100, weight: 1, matchText: 'Tachycardia (HR >100)' },
+    ]
+});
+   // ---- PPH ----
+conditions.push({
+    id: 'pph',
+    name: 'Postpartum Haemorrhage (PPH)',
+    category: 'Obstetric',
+    references: [
+        'Williams Obstetrics, 25th Ed., Ch. 28 – Postpartum Hemorrhage',
+        'Oxford Handbook of Obstetrics and Gynaecology, 4th Ed., Ch. 16'
+    ],
+    criteria: [
+        { check: p => complaintIncludes(p, ['obs-pph']), weight: 5, matchText: 'Complaint of postpartum haemorrhage' },
+        { check: p => hasRos(p, 'cns', ['Dizziness', 'Fainting']), weight: 2, matchText: 'Dizziness or fainting on ROS' },
+        { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('pph')), weight: 2, matchText: 'History of PPH' },
+        // Vitals: tachycardia and hypotension (shock)
+        { check: p => p.vitals.hr > 100, weight: 2, matchText: 'Tachycardia (HR >100) – possible haemorrhage' },
+        { check: p => p.vitals.systolic < 90, weight: 3, matchText: 'Hypotension (SBP <90) – haemorrhagic shock' },
+    ]
+});
+  // ---- MOLAR PREGNANCY ----
     conditions.push({
         id: 'molar',
         name: 'Molar Pregnancy (Hydatidiform Mole)',
