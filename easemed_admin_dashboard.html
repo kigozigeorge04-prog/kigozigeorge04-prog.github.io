@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EaseMed Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* (all your existing styles – keep unchanged) */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: "Segoe UI", Arial, sans-serif; color: #20313f; background: radial-gradient(circle at 12% 10%, rgba(42,157,143,0.22), transparent 28%), radial-gradient(circle at 86% 12%, rgba(244,211,94,0.18), transparent 25%), linear-gradient(135deg, #0f2027 0%, #203a43 48%, #2c5364 100%); padding: 22px; }
         .shell { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: 270px 1fr; gap: 22px; }
@@ -80,7 +80,6 @@
         .live-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #2ecc71; margin-right: 6px; animation: pulse-dot 2s infinite; }
         @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         
-        /* activation toggle + expiry input */
         .toggle-btn {
             border: none;
             border-radius: 8px;
@@ -110,7 +109,7 @@
             outline: none;
             width: 140px;
         }
-        #activationSection {
+        #activationSection, #analyticsSection {
             display: none;
         }
         .user-count-badge {
@@ -156,6 +155,7 @@
                 <button onclick="showSection(event, 'supervisors')">Supervisors</button>
                 <button onclick="showSection(event, 'settings')">Settings</button>
                 <button onclick="showSection(event, 'activation')">🔑 User Activation</button>
+                <button onclick="showSection(event, 'analytics')">📊 Engagement Analytics</button>
             </nav>
             <div class="sidebar-note">Monitor clerked patients, review completion quality, and identify students who need feedback before ward rounds.</div>
         </aside>
@@ -308,6 +308,86 @@
                     </div>
                 </div>
             </section>
+
+            <!-- ENGAGEMENT ANALYTICS SECTION -->
+            <section id="analyticsSection">
+                <div class="main-panel">
+                    <div class="hero">
+                        <div class="hero-top">
+                            <div>
+                                <h2>Engagement Analytics</h2>
+                                <p>See how long students spend in EaseMed and which modules get the most attention.</p>
+                            </div>
+                            <div class="admin-pill">Live from activity_logs</div>
+                        </div>
+                    </div>
+
+                    <div id="analyticsMessage" class="alert-info" style="display:none;"></div>
+
+                    <div class="metrics">
+                        <div class="card accent-teal">
+                            <div class="metric-label">Sessions Tracked</div>
+                            <div class="metric-value" id="totalSessionsValue">--</div>
+                            <div class="metric-sub">All-time module views</div>
+                        </div>
+                        <div class="card accent-blue">
+                            <div class="metric-label">Avg. Session Length</div>
+                            <div class="metric-value" id="avgSessionValue">--</div>
+                            <div class="metric-sub">Minutes per module view</div>
+                        </div>
+                        <div class="card accent-gold">
+                            <div class="metric-label">Total Engagement</div>
+                            <div class="metric-value" id="totalHoursValue">--</div>
+                            <div class="metric-sub">Hours across all students</div>
+                        </div>
+                        <div class="card accent-red">
+                            <div class="metric-label">Top Module</div>
+                            <div class="metric-value" id="topModuleValue" style="font-size:1.1rem;">--</div>
+                            <div class="metric-sub">Highest avg. time spent</div>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="content-grid" style="margin-top:8px;">
+                    <div class="table-panel">
+                        <div class="panel-title">
+                            <h3>⏱️ Avg. Time Spent per Module</h3>
+                            <button onclick="loadModuleEngagementChart()">Refresh</button>
+                        </div>
+                        <div style="padding:20px;">
+                            <canvas id="moduleEngagementChart" height="110"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="table-panel">
+                        <div class="panel-title">
+                            <h3>🏆 Most Engaged Students</h3>
+                            <button onclick="loadTopEngagedStudents()">Refresh</button>
+                        </div>
+                        <div class="table-scroll">
+                            <table>
+                                <thead><tr><th>Student</th><th>University</th><th>Sessions</th><th>Total Time</th></tr></thead>
+                                <tbody id="topStudentsBody"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="content-grid" style="margin-top:8px;">
+                    <div class="table-panel">
+                        <div class="panel-title">
+                            <h3>⚠️ Low-Engagement Modules</h3>
+                            <button onclick="loadLowEngagementModules()">Refresh</button>
+                        </div>
+                        <div class="table-scroll">
+                            <table>
+                                <thead><tr><th>Module</th><th>Avg. Time</th><th>Views</th><th>Signal</th></tr></thead>
+                                <tbody id="lowEngagementBody"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </section>
         </main>
     </div>
 
@@ -321,6 +401,7 @@
         let currentTable = 'pediatric';
         let refreshInterval = null;
         let allUsersCache = [];
+        let moduleChartInstance = null;
 
         // ==================== Initialize Supabase ====================
         function initSupabase() {
@@ -378,6 +459,12 @@
             if (section === 'activation') {
                 document.getElementById('activationSection').style.display = 'block';
                 loadAllUsers();
+            } else if (section === 'analytics') {
+                document.getElementById('analyticsSection').style.display = 'block';
+                loadEngagementOverview();
+                loadModuleEngagementChart();
+                loadTopEngagedStudents();
+                loadLowEngagementModules();
             } else {
                 document.getElementById('dashboardSection').style.display = 'block';
             }
@@ -703,7 +790,6 @@
             }
 
             try {
-                // Get all users from the profiles table with full_name
                 const { data: profiles, error: profilesError } = await supabaseClient
                     .from('profiles')
                     .select('id, is_active, expires_at, created_at, email, full_name')
@@ -713,7 +799,6 @@
 
                 let allUsers = [];
                 
-                // Add all profile users
                 if (profiles && profiles.length > 0) {
                     allUsers = profiles.map(p => ({
                         id: p.id,
@@ -727,7 +812,6 @@
                     }));
                 }
 
-                // Also check for users in sessions that might not have profiles
                 const { data: sessions, error: sessionsError } = await supabaseClient
                     .from('user_sessions')
                     .select('user_id, email')
@@ -741,11 +825,9 @@
                         }
                     });
                     
-                    // Check if any session users are not in profiles
                     const profileIds = new Set(allUsers.map(u => u.id));
                     for (let [userId, email] of sessionUsers) {
                         if (!profileIds.has(userId)) {
-                            // This is a user who has logged in but doesn't have a profile
                             allUsers.push({
                                 id: userId,
                                 email: email || 'Unknown email',
@@ -760,7 +842,6 @@
                     }
                 }
 
-                // Remove duplicates by id
                 const userMap = new Map();
                 allUsers.forEach(u => {
                     if (!userMap.has(u.id)) {
@@ -769,7 +850,6 @@
                 });
                 allUsers = Array.from(userMap.values());
 
-                // Sort by creation date (newest first)
                 allUsers.sort((a, b) => {
                     if (a.created_at && b.created_at) {
                         return new Date(b.created_at) - new Date(a.created_at);
@@ -816,17 +896,14 @@
 
                 const row = tbody.insertRow();
                 
-                // Show actions based on user type
                 let actionsHtml = '';
                 if (isPending) {
-                    // For pending users, offer to create a profile
                     actionsHtml = `
                         <button class="toggle-btn create" onclick="createUserProfile('${u.id}', '${u.email}')">
                             ✨ Create Profile
                         </button>
                     `;
                 } else {
-                    // For existing profile users, show activate/deactivate
                     const expiryInput = `
                         <input type="date" class="expire-input" id="exp-${u.id}"
                             value="${u.expires_at ? u.expires_at.split('T')[0] : getDefaultExpiry()}" />
@@ -957,6 +1034,224 @@
             });
             
             renderUsersTable(filtered);
+        }
+
+        // ==================== ENGAGEMENT ANALYTICS FUNCTIONS ====================
+        async function loadEngagementOverview() {
+            if (!supabaseClient) return;
+
+            const exists = await tableExists('activity_logs');
+            if (!exists) {
+                document.getElementById('analyticsMessage').style.display = 'block';
+                document.getElementById('analyticsMessage').className = 'alert-error';
+                document.getElementById('analyticsMessage').innerHTML = '⚠️ Table <strong>activity_logs</strong> not found.';
+                return;
+            }
+
+            try {
+                const { data: logs, error } = await supabaseClient
+                    .from('activity_logs')
+                    .select('module_name, duration_seconds')
+                    .eq('event_type', 'module_view')
+                    .not('duration_seconds', 'is', null);
+
+                if (error) throw error;
+
+                if (!logs || logs.length === 0) {
+                    document.getElementById('totalSessionsValue').innerText = '0';
+                    document.getElementById('avgSessionValue').innerText = '0 min';
+                    document.getElementById('totalHoursValue').innerText = '0 hrs';
+                    document.getElementById('topModuleValue').innerText = 'No data yet';
+                    return;
+                }
+
+                const totalSessions = logs.length;
+                const totalSeconds = logs.reduce((sum, l) => sum + (l.duration_seconds || 0), 0);
+                const avgMinutes = (totalSeconds / totalSessions / 60).toFixed(1);
+                const totalHours = (totalSeconds / 3600).toFixed(1);
+
+                const byModule = {};
+                logs.forEach(l => {
+                    const name = l.module_name || 'Unnamed';
+                    if (!byModule[name]) byModule[name] = { total: 0, count: 0 };
+                    byModule[name].total += l.duration_seconds;
+                    byModule[name].count += 1;
+                });
+                let topModule = '--';
+                let topAvg = 0;
+                Object.entries(byModule).forEach(([name, stats]) => {
+                    const avg = stats.total / stats.count;
+                    if (avg > topAvg) { topAvg = avg; topModule = name; }
+                });
+
+                document.getElementById('totalSessionsValue').innerText = totalSessions;
+                document.getElementById('avgSessionValue').innerText = `${avgMinutes} min`;
+                document.getElementById('totalHoursValue').innerText = `${totalHours} hrs`;
+                document.getElementById('topModuleValue').innerText = topModule;
+            } catch (err) {
+                console.error('loadEngagementOverview error:', err);
+            }
+        }
+
+        async function loadModuleEngagementChart() {
+            if (!supabaseClient) return;
+
+            try {
+                const { data: logs, error } = await supabaseClient
+                    .from('activity_logs')
+                    .select('module_name, duration_seconds')
+                    .eq('event_type', 'module_view')
+                    .not('duration_seconds', 'is', null);
+
+                if (error) throw error;
+                if (!logs || logs.length === 0) return;
+
+                const byModule = {};
+                logs.forEach(l => {
+                    const name = l.module_name || 'Unnamed';
+                    if (!byModule[name]) byModule[name] = { total: 0, count: 0 };
+                    byModule[name].total += l.duration_seconds;
+                    byModule[name].count += 1;
+                });
+
+                const labels = Object.keys(byModule);
+                const avgMinutes = labels.map(name => (byModule[name].total / byModule[name].count / 60).toFixed(1));
+
+                const ctx = document.getElementById('moduleEngagementChart');
+                if (moduleChartInstance) moduleChartInstance.destroy();
+
+                moduleChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Avg. minutes per view',
+                            data: avgMinutes,
+                            backgroundColor: '#2a9d8f',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Minutes' } } }
+                    }
+                });
+            } catch (err) {
+                console.error('loadModuleEngagementChart error:', err);
+            }
+        }
+
+        async function loadTopEngagedStudents() {
+            const tbody = document.getElementById('topStudentsBody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
+
+            if (!supabaseClient) return;
+
+            try {
+                const { data: logs, error } = await supabaseClient
+                    .from('activity_logs')
+                    .select('user_id, duration_seconds')
+                    .eq('event_type', 'module_view')
+                    .not('duration_seconds', 'is', null);
+
+                if (error) throw error;
+
+                if (!logs || logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No engagement data yet</td></tr>';
+                    return;
+                }
+
+                const byUser = {};
+                logs.forEach(l => {
+                    if (!byUser[l.user_id]) byUser[l.user_id] = { total: 0, count: 0 };
+                    byUser[l.user_id].total += l.duration_seconds;
+                    byUser[l.user_id].count += 1;
+                });
+
+                const userIds = Object.keys(byUser);
+                const { data: profiles } = await supabaseClient
+                    .from('profiles')
+                    .select('id, full_name, university')
+                    .in('id', userIds);
+
+                const profileMap = new Map();
+                if (profiles) profiles.forEach(p => profileMap.set(p.id, p));
+
+                const ranked = userIds
+                    .map(id => ({
+                        id,
+                        name: profileMap.get(id)?.full_name || 'Unknown',
+                        university: profileMap.get(id)?.university || '—',
+                        sessions: byUser[id].count,
+                        totalMinutes: (byUser[id].total / 60).toFixed(1)
+                    }))
+                    .sort((a, b) => b.totalMinutes - a.totalMinutes)
+                    .slice(0, 15);
+
+                tbody.innerHTML = '';
+                ranked.forEach(u => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).innerText = u.name;
+                    row.insertCell(1).innerText = u.university;
+                    row.insertCell(2).innerText = u.sessions;
+                    row.insertCell(3).innerText = `${u.totalMinutes} min`;
+                });
+            } catch (err) {
+                console.error('loadTopEngagedStudents error:', err);
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">❌ ${err.message}</td></tr>`;
+            }
+        }
+
+        async function loadLowEngagementModules() {
+            const tbody = document.getElementById('lowEngagementBody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
+
+            if (!supabaseClient) return;
+
+            try {
+                const { data: logs, error } = await supabaseClient
+                    .from('activity_logs')
+                    .select('module_name, duration_seconds')
+                    .eq('event_type', 'module_view')
+                    .not('duration_seconds', 'is', null);
+
+                if (error) throw error;
+                if (!logs || logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No data yet</td></tr>';
+                    return;
+                }
+
+                const byModule = {};
+                logs.forEach(l => {
+                    const name = l.module_name || 'Unnamed';
+                    if (!byModule[name]) byModule[name] = { total: 0, count: 0 };
+                    byModule[name].total += l.duration_seconds;
+                    byModule[name].count += 1;
+                });
+
+                const flagged = Object.entries(byModule)
+                    .map(([name, s]) => ({ name, avgSeconds: s.total / s.count, views: s.count }))
+                    .filter(m => m.avgSeconds < 30)
+                    .sort((a, b) => b.views - a.views);
+
+                if (flagged.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">✅ No modules flagged — all healthy engagement</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                flagged.forEach(m => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).innerText = m.name;
+                    row.insertCell(1).innerText = `${Math.round(m.avgSeconds)}s`;
+                    row.insertCell(2).innerText = m.views;
+                    row.insertCell(3).innerHTML = '<span class="status warn">⚠️ Possible bounce</span>';
+                });
+            } catch (err) {
+                console.error('loadLowEngagementModules error:', err);
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">❌ ${err.message}</td></tr>`;
+            }
         }
 
         // ==================== Admin Authentication ====================
