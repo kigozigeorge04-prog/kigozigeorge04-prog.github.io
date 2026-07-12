@@ -396,6 +396,88 @@
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
+  /* ============================================================
+   RECORDS SEARCH PANEL — matches Internal Medicine module style
+   ============================================================ */
+.records-panel-obgyn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-top: 1.5rem;
+}
+.records-header-obgyn {
+  background: linear-gradient(135deg, #1a5f7a, #b5006e);
+  color: white;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.records-header-obgyn h2 {
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.records-body-obgyn { padding: 16px 22px; }
+.records-search-obgyn {
+  width: 100%;
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+  outline: none;
+}
+.records-search-obgyn:focus { border-color: var(--primary); }
+.records-empty-obgyn {
+  text-align: center;
+  color: var(--muted);
+  padding: 20px;
+  font-size: 0.9rem;
+}
+.patient-card-obgyn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  transition: border-color 0.15s;
+}
+.patient-card-obgyn:hover { border-color: var(--gyn-color); }
+.patient-card-info-obgyn { flex: 1; min-width: 0; }
+.patient-card-name-obgyn {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.patient-card-meta-obgyn { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+.patient-card-btns-obgyn { display: flex; gap: 5px; }
+.btn-card-obgyn {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-card-obgyn:hover { opacity: 0.8; }
+.btn-load-obgyn { background: #ebf5fb; color: #2471a3; }
+.btn-delete-obgyn { background: #fdf2f2; color: #e53e3e; }
+.btn-view-obgyn { background: #f3eeff; color: var(--obs-color); }
 }
   </style>
 </head>
@@ -2783,6 +2865,21 @@
     <button class="btn-primary" onclick="goNext()">Complete History →</button>
   </div>
 </div>
+              <!-- ============================================================
+     SAVED RECORDS — SEARCHABLE PANEL
+============================================================ -->
+<div class="records-panel-obgyn">
+  <div class="records-header-obgyn">
+    <h2>🗂️ Saved ObGyn Records</h2>
+    <button onclick="loadMyRecords()" style="background:rgba(255,255,255,0.2); color:#fff; border:none; padding:6px 14px; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer;">🔄 Refresh</button>
+  </div>
+  <div class="records-body-obgyn">
+    <input class="records-search-obgyn" type="text" id="obgynRecordSearch" placeholder="🔍 Search by patient name..." oninput="filterMyRecords()">
+    <div id="myRecordsList">
+      <div class="records-empty-obgyn">Click Refresh to load your saved records.</div>
+    </div>
+  </div>
+</div>
 
 <!-- Save Toast -->
 <div class="save-toast" id="saveToast">✅ Patient record saved!</div>
@@ -3333,7 +3430,159 @@
     });
     return peData;
   }
+// ============================================================
+// SAVED RECORDS — SEARCH, VIEW, LOAD, DELETE (complete set)
+// ============================================================
 
+let myRecordsCache = [];
+
+async function loadMyRecords() {
+  const container = document.getElementById('myRecordsList');
+  container.innerHTML = '<div class="records-empty-obgyn">Loading...</div>';
+
+  try {
+    const sb = getSupabaseClient();
+    const { data: { session } } = await sb.auth.getSession();
+
+    if (!session) {
+      container.innerHTML = '<div class="records-empty-obgyn">Please log in to view your records.</div>';
+      return;
+    }
+
+    const { data: records, error } = await sb
+      .from('patient_records')
+      .select('id, full_name, age, current_symptom, complaint_verbatim, created_at, updated_at')
+      .eq('user_id', session.user.id)
+      .eq('module', 'obgyn')
+      .order('updated_at', { ascending: false });
+
+    if (error) throw error;
+
+    myRecordsCache = records || [];
+    renderMyRecords(myRecordsCache);
+
+  } catch (err) {
+    console.error('loadMyRecords error:', err);
+    container.innerHTML = `<div class="records-empty-obgyn" style="color:var(--danger);">Error loading records: ${err.message}</div>`;
+  }
+}
+
+function filterMyRecords() {
+  const query = document.getElementById('obgynRecordSearch').value.toLowerCase();
+  const filtered = myRecordsCache.filter(r =>
+    (r.full_name || '').toLowerCase().includes(query)
+  );
+  renderMyRecords(filtered);
+}
+
+function renderMyRecords(records) {
+  const container = document.getElementById('myRecordsList');
+
+  if (!records || records.length === 0) {
+    container.innerHTML = `<div class="records-empty-obgyn">${myRecordsCache.length ? '🔍 No match found' : '📭 No saved records yet'}</div>`;
+    return;
+  }
+
+  container.innerHTML = records.map(r => `
+    <div class="patient-card-obgyn">
+      <div class="patient-card-info-obgyn">
+        <div class="patient-card-name-obgyn">👤 ${r.full_name || 'Unnamed patient'}</div>
+        <div class="patient-card-meta-obgyn">
+          ${r.age ? r.age + ' yrs' : ''} • ${r.current_symptom || r.complaint_verbatim || 'No complaint documented'} • 📅 ${new Date(r.updated_at || r.created_at).toLocaleString()}
+        </div>
+      </div>
+      <div class="patient-card-btns-obgyn">
+        <button class="btn-card-obgyn btn-view-obgyn" onclick="viewSavedRecord('${r.id}')">👁️ View</button>
+        <button class="btn-card-obgyn btn-load-obgyn" onclick="loadSavedRecordIntoForm('${r.id}')">📋 Load</button>
+        <button class="btn-card-obgyn btn-delete-obgyn" onclick="deleteSavedRecord('${r.id}')">🗑️ Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deleteSavedRecord(id) {
+  if (!confirm('Delete this record permanently? This cannot be undone.')) return;
+  try {
+    const sb = getSupabaseClient();
+    const { error } = await sb.from('patient_records').delete().eq('id', id);
+    if (error) throw error;
+    myRecordsCache = myRecordsCache.filter(r => r.id !== id);
+    renderMyRecords(myRecordsCache);
+    showToast('🗑️ Deleted', 'Record removed.', 'success');
+  } catch (err) {
+    alert('Error deleting record: ' + err.message);
+  }
+}
+
+async function viewSavedRecord(id) {
+  try {
+    const sb = getSupabaseClient();
+    const { data: record, error } = await sb
+      .from('patient_records')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+
+    const html = `
+      <div class="summary-section">
+        <div class="summary-section-title">Patient</div>
+        <p><strong>Name:</strong> ${record.full_name || '—'}</p>
+        <p><strong>Age:</strong> ${record.age || '—'}</p>
+        <p><strong>Complaint:</strong> ${record.complaint_verbatim || '—'}</p>
+        <p><strong>Category:</strong> ${record.current_symptom || '—'}</p>
+        <p><strong>HPC:</strong> ${record.hpc || '—'}</p>
+        <p><strong>Gravida/Parity:</strong> ${record.gravida || '—'} / ${record.parity || '—'}</p>
+        <p><strong>LNMP / EDD:</strong> ${record.lnmp || '—'} / ${record.edd || '—'}</p>
+        <p><strong>Management plan:</strong> ${record.management_plan || 'Not yet documented'}</p>
+      </div>
+      <div style="margin-top:1rem; font-size:0.78rem; color:var(--muted); text-align:center;">
+        Last updated ${new Date(record.updated_at).toLocaleString()}
+      </div>
+    `;
+    document.getElementById('summaryContent').innerHTML = html;
+    document.getElementById('summaryModal').classList.add('open');
+  } catch (err) {
+    alert('Error loading record: ' + err.message);
+  }
+}
+
+async function loadSavedRecordIntoForm(id) {
+  if (!confirm('This will replace any unsaved changes in the current form. Continue?')) return;
+  try {
+    const sb = getSupabaseClient();
+    const { data: record, error } = await sb
+      .from('patient_records')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+
+    const setVal = (fid, val) => { const el = document.getElementById(fid); if (el && val !== null && val !== undefined) el.value = val; };
+    setVal('patientName', record.full_name);
+    setVal('age', record.age);
+    setVal('complaintVerbatim', record.complaint_verbatim);
+    setVal('hpcNarrative', record.hpc);
+    setVal('gravida', record.gravida);
+    setVal('parity', record.parity);
+    setVal('lnmp', record.lnmp);
+    setVal('edd', record.edd);
+    setVal('woa', record.woa);
+
+    currentPatientId = id;
+    updateProgress();
+    showToast('✅ Loaded', `${record.full_name}'s record loaded into the form.`, 'success');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (err) {
+    alert('Error loading record: ' + err.message);
+  }
+}
+
+window.loadMyRecords = loadMyRecords;
+window.filterMyRecords = filterMyRecords;
+window.deleteSavedRecord = deleteSavedRecord;
+window.viewSavedRecord = viewSavedRecord;
+window.loadSavedRecordIntoForm = loadSavedRecordIntoForm;
   // ============================================================
   // 18. CREATE SUPABASE CLIENT
   // ============================================================
