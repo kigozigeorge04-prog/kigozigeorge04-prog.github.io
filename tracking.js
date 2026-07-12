@@ -1,8 +1,15 @@
 // ================================================================
 //  EASEMED — PAGE/MODULE TIME TRACKING
-//  Include this after your Supabase client (`sb`) is initialized.
+//  Include this as an external <script src="tracking.js"></script>
+//  AFTER the auth script that sets window._sb (e.g. easemed's
+//  authCheck() IIFE, which does `window._sb = sb;`).
+//
 //  Set window.EASEMED_MODULE_NAME before this script loads, or it
-//  falls back to the page path.
+//  falls back to the page title / path.
+//
+//  IMPORTANT: do NOT also paste this code inline elsewhere on the
+//  page — include it only once, as this external file, or you will
+//  get duplicate activity_logs rows per page view.
 // ================================================================
 
 (function () {
@@ -12,13 +19,13 @@
 
     async function startTracking() {
         try {
-            const { data: { user } } = await sb.auth.getUser();
+            const { data: { user } } = await window._sb.auth.getUser();
             if (!user) return; // not logged in — skip tracking
 
             const moduleName = window.EASEMED_MODULE_NAME || document.title || location.pathname;
             startTime = Date.now();
 
-            const { data, error } = await sb.from('activity_logs').insert({
+            const { data, error } = await window._sb.from('activity_logs').insert({
                 user_id: user.id,
                 event_type: 'module_view',
                 module_name: moduleName,
@@ -28,6 +35,8 @@
 
             if (!error && data) {
                 currentLogId = data.id;
+            } else if (error) {
+                console.warn('[EaseMed Tracking] Insert failed:', error.message);
             }
         } catch (e) {
             console.warn('[EaseMed Tracking] Failed to start:', e.message);
@@ -44,14 +53,7 @@
         if (durationSeconds < 1) return;
 
         try {
-            // navigator.sendBeacon is more reliable than fetch on page unload —
-            // fetch calls can get cancelled mid-flight when the tab closes.
-            const payload = JSON.stringify({
-                duration_seconds: durationSeconds,
-                ended_at: new Date().toISOString(),
-            });
-
-            await sb.from('activity_logs')
+            await window._sb.from('activity_logs')
                 .update({
                     duration_seconds: durationSeconds,
                     ended_at: new Date().toISOString(),
@@ -62,18 +64,21 @@
         }
     }
 
-    // Start once the page loads and sb is ready
-    if (typeof sb !== 'undefined') {
+    // Start once window._sb is ready. authCheck() on the page sets
+    // window._sb asynchronously (after a Supabase getSession() round trip),
+    // so we poll for it rather than assuming it exists at script load time.
+    // Timeout is generous (10s) since this needs to tolerate slower
+    // connections, not just fast desktop wifi.
+    if (typeof window._sb !== 'undefined') {
         startTracking();
     } else {
-        // If sb initializes asynchronously elsewhere, poll briefly
         const waitInterval = setInterval(() => {
-            if (typeof sb !== 'undefined') {
+            if (typeof window._sb !== 'undefined') {
                 clearInterval(waitInterval);
                 startTracking();
             }
         }, 200);
-        setTimeout(() => clearInterval(waitInterval), 5000);
+        setTimeout(() => clearInterval(waitInterval), 10000);
     }
 
     // Multiple exit signals — mobile browsers are unreliable about which one fires,
