@@ -2892,9 +2892,9 @@
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 let currentPatientId = null;
   (async function checkAuth() {
-    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-    const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-
+   const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+window._sbClient = sb;   // <-- save it globally so savePatient() can reuse it
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
         window.location.replace('easemed_login.html');
@@ -3587,15 +3587,12 @@ window.loadSavedRecordIntoForm = loadSavedRecordIntoForm;
   // ============================================================
   // 18. CREATE SUPABASE CLIENT
   // ============================================================
-  function getSupabaseClient() {
-    if (typeof supabase !== 'undefined' && supabase.createClient) {
-      return supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-    }
-    if (window.supabase && window.supabase.createClient) {
-      return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-    }
-    throw new Error('Supabase client not available.');
+function getSupabaseClient() {
+  if (window._sbClient) {
+    return window._sbClient;
   }
+  throw new Error('Supabase client not initialized yet. Please wait for the page to finish loading.');
+}
 
   // ============================================================
   // 19. SAVE PATIENT (LOCAL + SUPABASE)
