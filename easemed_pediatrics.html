@@ -3163,18 +3163,157 @@
         function saveRecords(records) { localStorage.setItem(STORAGE_KEY, JSON.stringify(records, null, 2));
             renderRecords(); }
 
-        function renderRecords() {
-            const records = getRecords();
-            const query = (document.getElementById('recordSearch')?.value || '').toLowerCase();
-            const user = localStorage.getItem('easemed_user') || '';
-            const filtered = records.filter(r => r.user === user && (r.childName.toLowerCase().includes(query) || (r.age || '')
-                .includes(query)));
-            const container = document.getElementById('recordsList');
-            if (!filtered.length) { container.innerHTML = '<div class="records-empty">📭 No saved pediatric records</div>'; return; }
-            container.innerHTML = filtered.map(r =>
-                `<div class="patient-card"><div class="patient-card-info"><div class="patient-card-name">👶 ${escapeHtml(r.childName)}</div><div class="patient-card-meta">${r.age || '?'} | ${r.nextOfKin || r.guardian || ''} | ${new Date(r.savedAt).toLocaleString()}</div></div><div class="patient-card-btns"><button class="btn-card btn-load" onclick="loadPatient(${r.id})">📋 Load</button><button class="btn-card btn-delete" onclick="deletePatient(${r.id})">🗑️ Delete</button></div></div>`
-            ).join('');
-        }
+      // ============================================================
+// REPLACE the existing renderRecords() function with this version.
+// It now pulls live from Supabase instead of only localStorage.
+// Keeps all existing HTML/CSS (recordsList, recordSearch, patient-card classes).
+// ============================================================
+
+let cloudRecordsCache = [];
+
+async function renderRecords() {
+  const container = document.getElementById('recordsList');
+  const query = (document.getElementById('recordSearch')?.value || '').toLowerCase();
+
+  if (!window._sb || !window._currentUser) {
+    container.innerHTML = '<div class="records-empty">Please log in to view your records.</div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="records-empty">Loading...</div>';
+
+  try {
+    const { data: records, error } = await window._sb
+      .from('pediatric_encounters')
+      .select('id, child_name, child_age, next_of_kin, complaint_verbatim, created_at')
+      .eq('user_id', window._currentUser.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    cloudRecordsCache = records || [];
+    const filtered = cloudRecordsCache.filter(r =>
+      !query || (r.child_name || '').toLowerCase().includes(query)
+    );
+
+    if (!filtered.length) {
+      container.innerHTML = `<div class="records-empty">${cloudRecordsCache.length ? '🔍 No match' : '📭 No saved pediatric records'}</div>`;
+      return;
+    }
+
+    container.innerHTML = filtered.map(r => `
+      <div class="patient-card">
+        <div class="patient-card-info">
+          <div class="patient-card-name">👶 ${escapeHtml(r.child_name || 'Unnamed')}</div>
+          <div class="patient-card-meta">${r.child_age || '?'} | ${escapeHtml(r.complaint_verbatim || 'No complaint')} | ${new Date(r.created_at).toLocaleString()}</div>
+        </div>
+        <div class="patient-card-btns">
+          <button class="btn-card btn-load" onclick="loadCloudPatient('${r.id}')">📋 Load</button>
+          <button class="btn-card btn-delete" onclick="deleteCloudPatient('${r.id}')">🗑️ Delete</button>
+        </div>
+      </div>
+    `).join('');
+
+  } catch (err) {
+    console.error('renderRecords error:', err);
+    container.innerHTML = `<div class="records-empty" style="color:var(--danger);">Error loading records: ${err.message}</div>`;
+  }
+}
+
+async function loadCloudPatient(id) {
+  if (!confirm('Load this record? Unsaved changes will be lost.')) return;
+  try {
+    const { data: record, error } = await window._sb
+      .from('pediatric_encounters')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+
+    // Map Supabase columns back to form field IDs (snake_case -> camelCase mapping)
+    restoreFormData({
+      patientId: record.patient_id,
+      admissionDate: record.admission_date,
+      childName: record.child_name,
+      dob: record.dob,
+      childAge: record.child_age,
+      childSex: record.child_sex,
+      tribe: record.tribe,
+      religion: record.religion,
+      nextOfKin: record.next_of_kin,
+      guardianRelation: record.guardian_relation,
+      contact: record.contact,
+      village: record.village,
+      district: record.district,
+      nearestHc: record.nearest_hc,
+      distanceHc: record.distance_hc,
+      referralStatus: record.referral_status,
+      referralFrom: record.referral_from,
+      referralReason: record.referral_reason,
+      complaintVerbatim: record.complaint_verbatim,
+      durationValue: record.duration_value,
+      durationUnit: record.duration_unit,
+      complaintCategory: record.complaint_category,
+      otherComplaint: record.other_complaint,
+      onset: record.onset,
+      course: record.course,
+      associatedComplaints: record.associated_complaints,
+      hpcNarrative: record.hpc_narrative,
+      pmh: record.pmh,
+      pastAdmissions: record.past_admissions,
+      hospitalStayLength: record.hospital_stay_length,
+      pastSurgicalHistory: record.past_surgical_history,
+      recentAdmissionDate: record.recent_admission_date,
+      medications: record.medications,
+      allergies: record.allergies,
+      hivStatus: record.hiv_status,
+      placeOfBirth: record.place_of_birth,
+      antenatal: record.antenatal,
+      delivery: record.delivery,
+      birthWeight: record.birth_weight,
+      neonatalComp: record.neonatal_complications,
+      milestones: record.milestones,
+      milestoneNotes: record.milestone_notes,
+      immunizations: record.immunizations,
+      feedingHistory: record.feeding_history,
+      socialHistory: record.social_history,
+      caregiverOccupation: record.caregiver_occupation,
+      familyHistory: record.family_history,
+      managementPlan: record.management_plan,
+      rosData: record.ros_data,
+      examData: record.exam_data,
+      capturedImages: record.captured_images
+    });
+
+    generateSummary();
+    window.scrollTo(0, 0);
+    showToast(`Loaded ${record.child_name}`, '#2980b9');
+
+  } catch (err) {
+    alert('Error loading record: ' + err.message);
+  }
+}
+
+async function deleteCloudPatient(id) {
+  if (!confirm('Delete this record permanently? This cannot be undone.')) return;
+  try {
+    const { error } = await window._sb
+      .from('pediatric_encounters')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+
+    showToast('🗑️ Deleted', '#dc2626');
+    renderRecords();
+
+  } catch (err) {
+    alert('Error deleting record: ' + err.message);
+  }
+}
+
+window.renderRecords = renderRecords;
+window.loadCloudPatient = loadCloudPatient;
+window.deleteCloudPatient = deleteCloudPatient;
 
         function showToast(msg, color) { const toast = document.getElementById('saveToast');
             toast.textContent = msg;
