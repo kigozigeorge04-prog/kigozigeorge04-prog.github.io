@@ -214,8 +214,8 @@
         }
 
         @keyframes fadeInDown {
-            from { opacity:0; transform:translateY(-4px); }
-            to   { opacity:1; transform:translateY(0); }
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
         /* ── Password toggle wrapper ── */
@@ -903,40 +903,43 @@ sb.auth.onAuthStateChange(async (event, session) => {
         localStorage.setItem('easemed_user', email);
         localStorage.setItem('easemed_user_name', name);
         
-     // ── CHECK IF PROFILE IS COMPLETE ──────────────────
-// A brand-new Google sign-in has NO profiles row yet, so `profile`
-// comes back null with no error. Treat "no row" the same as "row
-// with blank fields" — both mean incomplete. Otherwise first-time
-// Google users skip this gate entirely and land on the dashboard
-// with blank university/year/phone (the bug you just saw).
-const { data: profile, error: profileError } = await sb
-    .from('profiles')
-    .select('university, year_of_study, phone')
-    .eq('id', user.id)
-    .maybeSingle();
+        // ── CLAIM SESSION (overwrites any previous device) ──
+        await claimSession(user);   // <-- NEW
 
-if (!profileError) {
-    const missingFields = [];
-    if (!profile?.university) missingFields.push('university');
-    if (!profile?.year_of_study) missingFields.push('year_of_study');
-    if (!profile?.phone) missingFields.push('phone');
+        // ── CHECK IF PROFILE IS COMPLETE ──────────────────
+        // A brand-new Google sign-in has NO profiles row yet, so `profile`
+        // comes back null with no error. Treat "no row" the same as "row
+        // with blank fields" — both mean incomplete. Otherwise first-time
+        // Google users skip this gate entirely and land on the dashboard
+        // with blank university/year/phone (the bug you just saw).
+        const { data: profile, error: profileError } = await sb
+            .from('profiles')
+            .select('university, year_of_study, phone')
+            .eq('id', user.id)
+            .maybeSingle();
 
-    if (missingFields.length > 0) {
-        // complete-profile.html does an UPDATE, not an upsert, so make
-        // sure a row actually exists before sending a first-timer there.
+        if (!profileError) {
+            const missingFields = [];
+            if (!profile?.university) missingFields.push('university');
+            if (!profile?.year_of_study) missingFields.push('year_of_study');
+            if (!profile?.phone) missingFields.push('phone');
+
+            if (missingFields.length > 0) {
+                // complete-profile.html does an UPDATE, not an upsert, so make
+                // sure a row actually exists before sending a first-timer there.
+                await upsertProfile(user, { name, email });
+
+                localStorage.setItem('easemed_pending_user_id', user.id);
+                localStorage.setItem('easemed_pending_email', email);
+                localStorage.setItem('easemed_pending_name', name);
+                window.location.href = 'complete-profile.html';
+                return;
+            }
+        }
+
         await upsertProfile(user, { name, email });
-
-        localStorage.setItem('easemed_pending_user_id', user.id);
-        localStorage.setItem('easemed_pending_email', email);
-        localStorage.setItem('easemed_pending_name', name);
-        window.location.href = 'complete-profile.html';
+        window.location.href = DASHBOARD_URL;
         return;
-    }
-}
-
-await upsertProfile(user, { name, email });
-window.location.href = DASHBOARD_URL;
-return;
     }
 
     if (event === 'SIGNED_OUT') {
@@ -945,6 +948,7 @@ return;
         localStorage.removeItem('easemed_pending_user_id');
         localStorage.removeItem('easemed_pending_email');
         localStorage.removeItem('easemed_pending_name');
+        localStorage.removeItem('easemed_session_token');   // <-- NEW
     }
 
     if (event === 'TOKEN_REFRESH_FAILED') {
@@ -954,6 +958,7 @@ return;
         localStorage.removeItem('easemed_pending_user_id');
         localStorage.removeItem('easemed_pending_email');
         localStorage.removeItem('easemed_pending_name');
+        localStorage.removeItem('easemed_session_token');   // <-- NEW
         await sb.auth.signOut();
     }
 });
@@ -969,6 +974,7 @@ return;
             console.warn('[EaseMed] Session check returned error, clearing:', sessionError.message);
             localStorage.removeItem('easemed_user');
             localStorage.removeItem('easemed_user_name');
+            localStorage.removeItem('easemed_session_token'); // <-- NEW
             await sb.auth.signOut();
         } else if (session && !inPasswordRecovery && !redirecting) {
             redirecting = true;
@@ -979,6 +985,7 @@ return;
         console.warn('[EaseMed] Session check failed, clearing local session:', e.message);
         localStorage.removeItem('easemed_user');
         localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_session_token'); // <-- NEW
         try { await sb.auth.signOut(); } catch (_) {}
     }
 
@@ -1125,6 +1132,31 @@ async function upsertProfile(user, extra) {
         }
     } catch (e) {
         console.warn('[EaseMed] Profile upsert exception:', e.message);
+    }
+}
+
+// ── SESSION CLAIM (single active session enforcement) ──────
+async function claimSession(user) {
+    if (!sb || !user) return;
+    const newToken = crypto.randomUUID();
+
+    try {
+        const { error } = await sb
+            .from('active_sessions')
+            .upsert({
+                user_id: user.id,
+                session_token: newToken,
+                device_label: navigator.userAgent.slice(0, 100),
+                last_seen: new Date().toISOString()
+            }, { onConflict: 'user_id' });
+
+        if (!error) {
+            localStorage.setItem('easemed_session_token', newToken);
+        } else {
+            console.warn('[EaseMed] claimSession failed:', error.message);
+        }
+    } catch (e) {
+        console.warn('[EaseMed] claimSession exception:', e.message);
     }
 }
 
