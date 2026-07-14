@@ -455,6 +455,42 @@
 
       window.location.href = url;
     }
+
+    async function checkSessionValid() {
+    const localToken = localStorage.getItem('easemed_session_token');
+    if (!localToken || !window._sbClient) return;
+
+    const { data: { user } } = await window._sbClient.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await window._sbClient
+        .from('active_sessions')
+        .select('session_token')
+        .eq('user_id', user.id)
+        .single();
+
+    if (error) return; // fail open on network errors
+
+    if (data.session_token !== localToken) {
+        await window._sbClient.auth.signOut();
+        localStorage.removeItem('easemed_session_token');
+        alert('This account was signed in on another device. Please log in again.');
+        window.location.href = 'easemed_login.html';
+    } else {
+        window._sbClient.from('active_sessions')
+            .update({ last_seen: new Date().toISOString() })
+            .eq('user_id', user.id)
+            .then(() => {});
+    }
+}
+
+// give the new device 30s grace period after login before checking
+setTimeout(() => {
+    setInterval(checkSessionValid, 2 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) checkSessionValid();
+    });
+}, 30000);
     // ================================================================
 //  EASEMED — PAGE/MODULE TIME TRACKING
 //  Include this after your Supabase client (`sb`) is initialized.
