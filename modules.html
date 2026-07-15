@@ -630,5 +630,27 @@ setTimeout(() => {
       });
     }
   </script>
+  <!-- Session validation -->
+<script src="session-check.js"></script>
+
+<!-- Your page's own script -->
+<script>
+    // ── PAGE INITIALIZATION ──
+    document.addEventListener('DOMContentLoaded', async function() {
+        // 1. Require authentication
+        const isAuthenticated = await requireAuth('easemed_login.html');
+        if (!isAuthenticated) return;
+
+        // 2. Your page code here...
+        console.log('[EaseMed] Protected page loaded successfully');
+        console.log('Welcome, ' + localStorage.getItem('easemed_user_name'));
+
+        // 3. Add logout button handler (optional)
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => logoutUser('easemed_login.html'));
+        }
+    });
+</script>
 </body>
 </html>
