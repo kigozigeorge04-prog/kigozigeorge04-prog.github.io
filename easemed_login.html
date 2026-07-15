@@ -1039,7 +1039,6 @@
 
     // ── SESSION MONITORING ─────────────────────────────────────
     function startSessionMonitoring() {
-      // Clear any existing interval
       if (sessionCheckInterval) {
         clearInterval(sessionCheckInterval);
         sessionCheckInterval = null;
@@ -1051,11 +1050,9 @@
           console.warn('[EaseMed] Session invalidated on another device');
           clearInterval(sessionCheckInterval);
           sessionCheckInterval = null;
-
-          // Show alert to user
           showSessionExpiredAlert();
         }
-      }, 30000); // Check every 30 seconds
+      }, 30000);
     }
 
     function stopSessionMonitoring() {
@@ -1066,7 +1063,6 @@
     }
 
     function showSessionExpiredAlert() {
-      // Create floating alert
       const alertDiv = document.createElement('div');
       alertDiv.style.cssText = `
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
@@ -1080,7 +1076,6 @@
       document.body.appendChild(alertDiv);
 
       setTimeout(() => {
-        // Clear all local data
         localStorage.removeItem('easemed_user');
         localStorage.removeItem('easemed_user_name');
         localStorage.removeItem('easemed_session_token');
@@ -1093,6 +1088,56 @@
         }
         window.location.href = 'easemed_login.html';
       }, 2500);
+    }
+
+    // ── CHECK IF ACCOUNT ALREADY HAS ACTIVE SESSION ──────────
+    async function checkActiveSession(email) {
+      if (!sb) return false;
+
+      try {
+        // First, get the user ID from the email
+        const { data: userData, error: userError } = await sb
+          .from('profiles')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (userError || !userData) {
+          console.log('[EaseMed] User not found:', userError?.message);
+          return false;
+        }
+
+        // Check if there's an active session for this user
+        const { data: sessionData, error: sessionError } = await sb
+          .from('active_sessions')
+          .select('session_token, device_label, last_seen')
+          .eq('user_id', userData.id)
+          .maybeSingle();
+
+        if (sessionError) {
+          console.log('[EaseMed] Session check error:', sessionError.message);
+          return false;
+        }
+
+        if (sessionData) {
+          // Check if session is still valid (not expired)
+          if (sessionData.last_seen) {
+            const lastSeen = new Date(sessionData.last_seen);
+            const now = new Date();
+            const minutesSinceLastSeen = (now - lastSeen) / 1000 / 60;
+            if (minutesSinceLastSeen > 30) {
+              // Session expired, allow login
+              return false;
+            }
+          }
+          return true; // Active session found
+        }
+
+        return false;
+      } catch (e) {
+        console.warn('[EaseMed] Active session check failed:', e.message);
+        return false;
+      }
     }
 
     // ── Boot ──────────────────────────────────────────────────────────
@@ -1211,7 +1256,6 @@
           localStorage.removeItem('easemed_session_token');
           await sb.auth.signOut();
         } else if (session && !inPasswordRecovery && !redirecting) {
-          // Validate session before redirecting
           const isValid = await validateSession();
           if (isValid) {
             redirecting = true;
@@ -1399,7 +1443,6 @@
           }, { onConflict: 'user_id' });
         if (!error) {
           localStorage.setItem('easemed_session_token', newToken);
-          // Start monitoring after successful claim
           startSessionMonitoring();
         } else {
           console.warn('[EaseMed] claimSession failed:', error.message);
@@ -1421,7 +1464,17 @@
         return;
       }
 
-      setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Login to EaseMed');
+      // ── CHECK IF ACCOUNT ALREADY HAS ACTIVE SESSION ──
+      setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Checking account...');
+
+      const hasActiveSession = await checkActiveSession(email);
+      if (hasActiveSession) {
+        setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Login to EaseMed');
+        showAlert('⚠️ This account is already logged in on another device. Please log out from the other device first.', 'error');
+        return;
+      }
+
+      setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Logging in...');
 
       let data, error;
       try {
@@ -1474,7 +1527,6 @@
       localStorage.setItem('easemed_user', user.email);
       localStorage.setItem('easemed_user_name', fullName);
 
-      // Claim session (this also starts monitoring)
       await claimSession(user);
 
       showAlert('✅ Welcome back! Redirecting to dashboard...', 'success');
@@ -1515,6 +1567,13 @@
       }
       if (password.length < 6) {
         showAlert('Password must be at least 6 characters.');
+        return;
+      }
+
+      // ── CHECK IF ACCOUNT ALREADY HAS ACTIVE SESSION ──
+      const hasActiveSession = await checkActiveSession(email);
+      if (hasActiveSession) {
+        showAlert('⚠️ This account is already logged in on another device. Please log out from the other device first.', 'error');
         return;
       }
 
@@ -1574,7 +1633,6 @@
       if (data.session) {
         localStorage.setItem('easemed_user', email);
         localStorage.setItem('easemed_user_name', name);
-        // Claim session for new user
         await claimSession(data.user);
         showAlert(`✅ Account created! Welcome, ${name}! Redirecting to dashboard...`, 'success');
         setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
