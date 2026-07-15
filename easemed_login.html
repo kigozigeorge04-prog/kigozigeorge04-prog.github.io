@@ -892,6 +892,7 @@
     const DASHBOARD_URL = 'modules.html';
     let inPasswordRecovery = false;
     let sb;
+    let sessionCheckInterval = null;
 
     // ── Helpers ──────────────────────────────────────────────────
     function showAlert(msg, type = 'error') {
@@ -979,6 +980,121 @@
       });
     }
 
+    // ── SESSION VALIDATION ──────────────────────────────────────
+    async function validateSession() {
+      if (!sb) return false;
+
+      const storedToken = localStorage.getItem('easemed_session_token');
+      if (!storedToken) {
+        console.log('[EaseMed] No session token found');
+        return false;
+      }
+
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) {
+        console.log('[EaseMed] No authenticated user');
+        return false;
+      }
+
+      try {
+        const { data, error } = await sb
+          .from('active_sessions')
+          .select('session_token, last_seen')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error || !data) {
+          console.warn('[EaseMed] No session in database:', error?.message);
+          return false;
+        }
+
+        if (data.session_token !== storedToken) {
+          console.warn('[EaseMed] Session token mismatch - logged in elsewhere');
+          return false;
+        }
+
+        // Check for session expiration (30 minutes inactivity)
+        if (data.last_seen) {
+          const lastSeen = new Date(data.last_seen);
+          const now = new Date();
+          const minutesSinceLastSeen = (now - lastSeen) / 1000 / 60;
+          if (minutesSinceLastSeen > 30) {
+            console.warn('[EaseMed] Session expired (inactive for 30+ minutes)');
+            return false;
+          }
+        }
+
+        // Update last_seen
+        await sb
+          .from('active_sessions')
+          .update({ last_seen: new Date().toISOString() })
+          .eq('user_id', user.id);
+
+        return true;
+      } catch (e) {
+        console.warn('[EaseMed] Session validation error:', e.message);
+        return false;
+      }
+    }
+
+    // ── SESSION MONITORING ─────────────────────────────────────
+    function startSessionMonitoring() {
+      // Clear any existing interval
+      if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+        sessionCheckInterval = null;
+      }
+
+      sessionCheckInterval = setInterval(async () => {
+        const isValid = await validateSession();
+        if (!isValid) {
+          console.warn('[EaseMed] Session invalidated on another device');
+          clearInterval(sessionCheckInterval);
+          sessionCheckInterval = null;
+
+          // Show alert to user
+          showSessionExpiredAlert();
+        }
+      }, 30000); // Check every 30 seconds
+    }
+
+    function stopSessionMonitoring() {
+      if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+        sessionCheckInterval = null;
+      }
+    }
+
+    function showSessionExpiredAlert() {
+      // Create floating alert
+      const alertDiv = document.createElement('div');
+      alertDiv.style.cssText = `
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: #e53e3e; color: white; padding: 16px 24px;
+            border-radius: 12px; font-weight: 600; z-index: 99999;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            text-align: center; max-width: 500px;
+            animation: slideUp2 0.4s ease;
+          `;
+      alertDiv.textContent = '⚠️ You have been logged out on another device. Redirecting...';
+      document.body.appendChild(alertDiv);
+
+      setTimeout(() => {
+        // Clear all local data
+        localStorage.removeItem('easemed_user');
+        localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_session_token');
+        localStorage.removeItem('easemed_pending_user_id');
+        localStorage.removeItem('easemed_pending_email');
+        localStorage.removeItem('easemed_pending_name');
+
+        if (sb) {
+          sb.auth.signOut().catch(() => {});
+        }
+        window.location.href = 'easemed_login.html';
+      }, 2500);
+    }
+
     // ── Boot ──────────────────────────────────────────────────────────
     const hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
     const tokenType = hashParams.get('type');
@@ -1061,6 +1177,7 @@
         }
 
         if (event === 'SIGNED_OUT') {
+          stopSessionMonitoring();
           localStorage.removeItem('easemed_user');
           localStorage.removeItem('easemed_user_name');
           localStorage.removeItem('easemed_pending_user_id');
@@ -1071,6 +1188,7 @@
 
         if (event === 'TOKEN_REFRESH_FAILED') {
           console.warn('[EaseMed] Token refresh failed, clearing session.');
+          stopSessionMonitoring();
           localStorage.removeItem('easemed_user');
           localStorage.removeItem('easemed_user_name');
           localStorage.removeItem('easemed_pending_user_id');
@@ -1093,9 +1211,19 @@
           localStorage.removeItem('easemed_session_token');
           await sb.auth.signOut();
         } else if (session && !inPasswordRecovery && !redirecting) {
-          redirecting = true;
-          window.location.href = DASHBOARD_URL;
-          return;
+          // Validate session before redirecting
+          const isValid = await validateSession();
+          if (isValid) {
+            redirecting = true;
+            window.location.href = DASHBOARD_URL;
+            return;
+          } else {
+            console.warn('[EaseMed] Session validation failed, clearing and redirecting to login');
+            localStorage.removeItem('easemed_user');
+            localStorage.removeItem('easemed_user_name');
+            localStorage.removeItem('easemed_session_token');
+            await sb.auth.signOut();
+          }
         }
       } catch (e) {
         console.warn('[EaseMed] Session check failed, clearing local session:', e.message);
@@ -1141,8 +1269,17 @@
                   `;
             btn.onmouseover = () => btn.style.transform = 'scale(1.02)';
             btn.onmouseout = () => btn.style.transform = 'scale(1)';
-            btn.onclick = () => {
-              window.location.href = DASHBOARD_URL;
+            btn.onclick = async () => {
+              const isValid = await validateSession();
+              if (isValid) {
+                window.location.href = DASHBOARD_URL;
+              } else {
+                showAlert('⚠️ Your session is no longer valid. Please login again.', 'error');
+                localStorage.removeItem('easemed_user');
+                localStorage.removeItem('easemed_user_name');
+                localStorage.removeItem('easemed_session_token');
+                btn.remove();
+              }
             };
             loginForm.appendChild(btn);
           }
@@ -1197,7 +1334,6 @@
         email.split('@')[0] ||
         'Unknown';
 
-      // ── Extract year as integer ──────────────────────────────────
       let metaYearInt = null;
       if (extra?.yearOfStudy) {
         const match = extra.yearOfStudy.match(/\d+/);
@@ -1205,14 +1341,12 @@
       }
 
       try {
-        // ── Fetch existing profile with all fields we care about ──
         const { data: existing } = await sb
           .from('profiles')
           .select('id, university, year_of_study, phone, license_number, hospital, role')
           .eq('id', user.id)
           .maybeSingle();
 
-        // ── Build profileData with fallback to existing values ──
         const profileData = {
           id: user.id,
           email: email,
@@ -1229,7 +1363,6 @@
           updated_at: new Date().toISOString(),
         };
 
-        // ── If no existing row, set creation fields ──────────────
         if (!existing) {
           profileData.status = 'active';
           profileData.plan = 'free';
@@ -1266,6 +1399,8 @@
           }, { onConflict: 'user_id' });
         if (!error) {
           localStorage.setItem('easemed_session_token', newToken);
+          // Start monitoring after successful claim
+          startSessionMonitoring();
         } else {
           console.warn('[EaseMed] claimSession failed:', error.message);
         }
@@ -1338,6 +1473,9 @@
 
       localStorage.setItem('easemed_user', user.email);
       localStorage.setItem('easemed_user_name', fullName);
+
+      // Claim session (this also starts monitoring)
+      await claimSession(user);
 
       showAlert('✅ Welcome back! Redirecting to dashboard...', 'success');
       setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
@@ -1436,6 +1574,8 @@
       if (data.session) {
         localStorage.setItem('easemed_user', email);
         localStorage.setItem('easemed_user_name', name);
+        // Claim session for new user
+        await claimSession(data.user);
         showAlert(`✅ Account created! Welcome, ${name}! Redirecting to dashboard...`, 'success');
         setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
       } else {
