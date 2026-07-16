@@ -512,11 +512,18 @@
     <div style="font-size:0.75rem; opacity:0.4;" id="sdkStatus">Loading...</div>
 </div>
 
-<!-- ── ULTIMATE OVERLAY KILLER (runs immediately, before any other script) ── -->
+<!-- ── ULTIMATE OVERLAY KILLER ── -->
 <script>
-// This script runs immediately after the overlay is added to the DOM.
-// It will force-hide the overlay after 5 seconds, no matter what.
-
+setTimeout(function() {
+    var ov = document.getElementById('sdkOverlay');
+    if (ov) {
+        ov.style.display = 'none';
+        setTimeout(function() {
+            if (ov.parentNode) ov.remove();
+            console.log('[EaseMed] Overlay killed by ultimate killer.');
+        }, 100);
+    }
+}, 5000);
 </script>
 
 <div class="medical-bg">
@@ -539,7 +546,7 @@
 
         <div class="tabs" id="mainTabs">
             <button class="tab active" onclick="switchTab('login')">Login</button>
-            <button class="tab"        onclick="switchTab('signup')">Sign Up</button>
+            <button class="tab" onclick="switchTab('signup')">Sign Up</button>
         </div>
 
         <!-- ── LOGIN FORM ───────────────────────────────────── -->
@@ -893,40 +900,33 @@ sb.auth.onAuthStateChange(async (event, session) => {
         localStorage.setItem('easemed_user', email);
         localStorage.setItem('easemed_user_name', name);
         
-     // ── CHECK IF PROFILE IS COMPLETE ──────────────────
-// A brand-new Google sign-in has NO profiles row yet, so `profile`
-// comes back null with no error. Treat "no row" the same as "row
-// with blank fields" — both mean incomplete. Otherwise first-time
-// Google users skip this gate entirely and land on the dashboard
-// with blank university/year/phone (the bug you just saw).
-const { data: profile, error: profileError } = await sb
-    .from('profiles')
-    .select('university, year_of_study, phone')
-    .eq('id', user.id)
-    .maybeSingle();
+        // ── CHECK IF PROFILE IS COMPLETE ──────────────────
+        const { data: profile, error: profileError } = await sb
+            .from('profiles')
+            .select('university, year_of_study, phone')
+            .eq('id', user.id)
+            .maybeSingle();
 
-if (!profileError) {
-    const missingFields = [];
-    if (!profile?.university) missingFields.push('university');
-    if (!profile?.year_of_study) missingFields.push('year_of_study');
-    if (!profile?.phone) missingFields.push('phone');
+        if (!profileError) {
+            const missingFields = [];
+            if (!profile?.university) missingFields.push('university');
+            if (!profile?.year_of_study) missingFields.push('year_of_study');
+            if (!profile?.phone) missingFields.push('phone');
 
-    if (missingFields.length > 0) {
-        // complete-profile.html does an UPDATE, not an upsert, so make
-        // sure a row actually exists before sending a first-timer there.
+            if (missingFields.length > 0) {
+                await upsertProfile(user, { name, email });
+
+                localStorage.setItem('easemed_pending_user_id', user.id);
+                localStorage.setItem('easemed_pending_email', email);
+                localStorage.setItem('easemed_pending_name', name);
+                window.location.href = 'complete-profile.html';
+                return;
+            }
+        }
+
         await upsertProfile(user, { name, email });
-
-        localStorage.setItem('easemed_pending_user_id', user.id);
-        localStorage.setItem('easemed_pending_email', email);
-        localStorage.setItem('easemed_pending_name', name);
-        window.location.href = 'complete-profile.html';
+        window.location.href = DASHBOARD_URL;
         return;
-    }
-}
-
-await upsertProfile(user, { name, email });
-window.location.href = DASHBOARD_URL;
-return;
     }
 
     if (event === 'SIGNED_OUT') {
@@ -948,71 +948,51 @@ return;
     }
 });
 
-    // ── Check existing session ──────────────────────────────
-// ── Check existing session ──
-setOverlayStatus('Checking session...');
+    // ── Check existing session ──
+    setOverlayStatus('Checking session...');
 
-// ── RETRY FUNCTION ──
-async function checkSessionWithRetry(maxRetries = 2, timeoutMs = 10000) {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            const { data: { session }, error } = await withTimeout(
-                sb.auth.getSession(), 
-                timeoutMs, 
-                `Session check attempt ${attempt}`
-            );
-            if (!error) {
-                return { session, error: null };
+    // ── RETRY FUNCTION ──
+    async function checkSessionWithRetry(maxRetries = 2, timeoutMs = 10000) {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const { data: { session }, error } = await withTimeout(
+                    sb.auth.getSession(), 
+                    timeoutMs, 
+                    `Session check attempt ${attempt}`
+                );
+                if (!error) {
+                    return { session, error: null };
+                }
+                console.warn(`[EaseMed] Session check attempt ${attempt} failed:`, error?.message);
+                if (attempt === maxRetries) {
+                    return { session: null, error };
+                }
+            } catch (e) {
+                console.warn(`[EaseMed] Session check attempt ${attempt} error:`, e.message);
+                if (attempt === maxRetries) {
+                    return { session: null, error: e };
+                }
             }
-            console.warn(`[EaseMed] Session check attempt ${attempt} failed:`, error?.message);
-            if (attempt === maxRetries) {
-                return { session: null, error };
-            }
-        } catch (e) {
-            console.warn(`[EaseMed] Session check attempt ${attempt} error:`, e.message);
-            if (attempt === maxRetries) {
-                return { session: null, error: e };
-            }
+            await new Promise(r => setTimeout(r, 2000));
         }
-        await new Promise(r => setTimeout(r, 2000));
+        return { session: null, error: new Error('All retries failed') };
     }
-    return { session: null, error: new Error('All retries failed') };
-}
 
-// ── EXECUTE CHECK ──
-try {
-    const { session, error: sessionError } = await checkSessionWithRetry(2, 10000);
-    
-    if (sessionError) {
-        console.warn('[EaseMed] Session check failed, allowing login:', sessionError.message);
-        // Don't clear session data - let user try to login
-    } else if (session && !inPasswordRecovery && !redirecting) {
-        try {
-            const isValid = await validateSession();
-            if (isValid) {
-                redirecting = true;
-                window.location.href = DASHBOARD_URL;
-                return;
-            } else {
-                console.warn('[EaseMed] Session validation failed, clearing');
-                localStorage.removeItem('easemed_user');
-                localStorage.removeItem('easemed_user_name');
-                localStorage.removeItem('easemed_session_token');
-                await sb.auth.signOut();
-            }
-        } catch (validError) {
-            console.warn('[EaseMed] Session validation error:', validError.message);
-            localStorage.removeItem('easemed_user');
-            localStorage.removeItem('easemed_user_name');
-            localStorage.removeItem('easemed_session_token');
-            await sb.auth.signOut();
+    // ── EXECUTE CHECK ──
+    try {
+        const { session, error: sessionError } = await checkSessionWithRetry(2, 10000);
+
+        if (sessionError) {
+            console.warn('[EaseMed] Session check failed, allowing login:', sessionError.message);
+        } else if (session && !inPasswordRecovery && !redirecting) {
+            redirecting = true;
+            window.location.href = DASHBOARD_URL;
+            return;
         }
+    } catch (e) {
+        console.warn('[EaseMed] Session check failed:', e.message);
     }
-} catch (e) {
-    console.warn('[EaseMed] Session check failed:', e.message);
-    // Don't clear anything - let user try to login
-}
-    
+
     // ── Fallback "Continue" button ─────────────────────────
     setTimeout(() => {
         const storedUser = localStorage.getItem('easemed_user');
@@ -1043,18 +1023,9 @@ try {
                 `;
                 btn.onmouseover = () => btn.style.transform = 'scale(1.02)';
                 btn.onmouseout  = () => btn.style.transform = 'scale(1)';
-               btn.onclick = async () => {
-    const isValid = await validateSession();
-    if (isValid) {
-        window.location.href = DASHBOARD_URL;
-    } else {
-        showAlert('⚠️ Your session is no longer valid. Please login again.', 'error');
-        localStorage.removeItem('easemed_user');
-        localStorage.removeItem('easemed_user_name');
-        localStorage.removeItem('easemed_session_token');
-        btn.remove();
-    }
-};
+                btn.onclick = () => {
+                    window.location.href = DASHBOARD_URL;
+                };
                 loginForm.appendChild(btn);
             }
         }
@@ -1082,7 +1053,6 @@ try {
     }
 })();
 
-// ── Upsert profile ──────────────────────────────────────────
 // ── UPSERT PROFILE (FIXED) ──────────────────────────────────────────
 async function upsertProfile(user, extra) {
     if (!sb) {
@@ -1119,14 +1089,12 @@ async function upsertProfile(user, extra) {
     }
 
     try {
-        // ── FETCH EXISTING PROFILE WITH ALL FIELDS ──
         const { data: existing } = await sb
             .from('profiles')
             .select('id, university, year_of_study, phone, license_number, hospital, role')
             .eq('id', user.id)
             .maybeSingle();
 
-        // ── BUILD PROFILE DATA WITH FALLBACKS ──
         const profileData = {
             id: user.id,
             email: email,
@@ -1143,7 +1111,6 @@ async function upsertProfile(user, extra) {
             updated_at: new Date().toISOString(),
         };
 
-        // ── IF NO EXISTING ROW, SET CREATION FIELDS ──
         if (!existing) {
             profileData.status = 'active';
             profileData.plan = 'free';
@@ -1164,7 +1131,7 @@ async function upsertProfile(user, extra) {
         console.warn('[EaseMed] Profile upsert exception:', e.message);
     }
 }
-// ── EMAIL / PASSWORD LOGIN ─────────────────────────────────
+
 // ── LOGIN ──────────────────────────────────────────────────────────
 async function handleLogin() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
@@ -1210,7 +1177,6 @@ async function handleLogin() {
         return;
     }
 
-    // ── Safety check ──
     if (!data || !data.user) {
         showAlert('❌ Login failed. Please try again.');
         return;
@@ -1238,13 +1204,11 @@ async function handleLogin() {
     localStorage.setItem('easemed_user', user.email);
     localStorage.setItem('easemed_user_name', fullName);
 
-    await claimSession(user);
-
     showAlert('✅ Welcome back! Redirecting to dashboard...', 'success');
     setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
 }
-    
-    // ── EMAIL / PASSWORD SIGNUP ────────────────────────────────
+
+// ── SIGNUP ─────────────────────────────────────────────────────────
 async function handleSignup() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
@@ -1346,7 +1310,7 @@ async function handleSignup() {
     }
 }
 
-// ── GOOGLE OAUTH ────────────────────────────────────────────
+// ── GOOGLE OAUTH ──────────────────────────────────────────────────
 async function socialLogin(provider) {
     if (provider !== 'google') return;
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
@@ -1379,7 +1343,7 @@ async function socialLogin(provider) {
     }
 }
 
-// ── FORGOT PASSWORD ─────────────────────────────────────────
+// ── FORGOT PASSWORD ──────────────────────────────────────────────
 async function handleForgotPassword() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
     const email = document.getElementById('loginEmail').value.trim();
@@ -1397,7 +1361,7 @@ async function handleForgotPassword() {
     }
 }
 
-// ── SET NEW PASSWORD ─────────────────────────────────────────
+// ── SET NEW PASSWORD ──────────────────────────────────────────────
 async function handleSetNewPassword() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
@@ -1459,7 +1423,7 @@ async function handleSetNewPassword() {
     setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
 }
 
-// ── PARTICLES ────────────────────────────────────────────────
+// ── PARTICLES ──────────────────────────────────────────────────────
 function createParticles() {
     const container = document.getElementById('particles');
     if (!container) return;
@@ -1515,7 +1479,7 @@ function checkPasswordStrength(value, barId = 'pwStrengthBar', labelId = 'pwStre
     label.style.color   = lvl.color;
 }
 
-// ── REAL-TIME PASSWORD MATCH (signup) ──────────────────────
+// ── PASSWORD MATCH ────────────────────────────────────────────
 function checkPasswordMatch() {
     const pw   = document.getElementById('signupPassword')?.value;
     const cpw  = document.getElementById('signupConfirmPassword')?.value;
@@ -1532,7 +1496,6 @@ function checkPasswordMatch() {
     }
 }
 
-// ── REAL-TIME PASSWORD MATCH (reset) ──────────────────────
 function checkResetPasswordMatch() {
     const pw   = document.getElementById('resetPassword')?.value;
     const cpw  = document.getElementById('resetConfirmPassword')?.value;
@@ -1624,7 +1587,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// ── PWA INSTALL PROMPT (unchanged) ──────────────────────────
+// ── PWA INSTALL PROMPT ──────────────────────────────────────────
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
