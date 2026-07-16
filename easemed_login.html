@@ -1090,56 +1090,6 @@
       }, 2500);
     }
 
-    // ── CHECK IF ACCOUNT ALREADY HAS ACTIVE SESSION ──────────
-    async function checkActiveSession(email) {
-      if (!sb) return false;
-
-      try {
-        // First, get the user ID from the email
-        const { data: userData, error: userError } = await sb
-          .from('profiles')
-          .select('id')
-          .eq('email', email)
-          .maybeSingle();
-
-        if (userError || !userData) {
-          console.log('[EaseMed] User not found:', userError?.message);
-          return false;
-        }
-
-        // Check if there's an active session for this user
-        const { data: sessionData, error: sessionError } = await sb
-          .from('active_sessions')
-          .select('session_token, device_label, last_seen')
-          .eq('user_id', userData.id)
-          .maybeSingle();
-
-        if (sessionError) {
-          console.log('[EaseMed] Session check error:', sessionError.message);
-          return false;
-        }
-
-        if (sessionData) {
-          // Check if session is still valid (not expired)
-          if (sessionData.last_seen) {
-            const lastSeen = new Date(sessionData.last_seen);
-            const now = new Date();
-            const minutesSinceLastSeen = (now - lastSeen) / 1000 / 60;
-            if (minutesSinceLastSeen > 30) {
-              // Session expired, allow login
-              return false;
-            }
-          }
-          return true; // Active session found
-        }
-
-        return false;
-      } catch (e) {
-        console.warn('[EaseMed] Active session check failed:', e.message);
-        return false;
-      }
-    }
-
     // ── Boot ──────────────────────────────────────────────────────────
     const hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
     const tokenType = hashParams.get('type');
@@ -1464,16 +1414,6 @@
         return;
       }
 
-      // ── CHECK IF ACCOUNT ALREADY HAS ACTIVE SESSION ──
-      setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Checking account...');
-
-      const hasActiveSession = await checkActiveSession(email);
-      if (hasActiveSession) {
-        setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Login to EaseMed');
-        showAlert('⚠️ This account is already logged in on another device. Please log out from the other device first.', 'error');
-        return;
-      }
-
       setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Logging in...');
 
       let data, error;
@@ -1567,13 +1507,6 @@
       }
       if (password.length < 6) {
         showAlert('Password must be at least 6 characters.');
-        return;
-      }
-
-      // ── CHECK IF ACCOUNT ALREADY HAS ACTIVE SESSION ──
-      const hasActiveSession = await checkActiveSession(email);
-      if (hasActiveSession) {
-        showAlert('⚠️ This account is already logged in on another device. Please log out from the other device first.', 'error');
         return;
       }
 
@@ -1957,8 +1890,7 @@
       document.getElementById('dismissBtn').onclick = () => banner.remove();
     });
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js">
-  </script><style>
+ <style>
 #easemedBanner {
     position: fixed; top: 0; left: 0; right: 0; z-index: 999999;
     padding: 12px 20px; text-align: center;
