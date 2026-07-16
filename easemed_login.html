@@ -959,38 +959,52 @@ return;
 });
 
     // ── Check existing session ──────────────────────────────
-    setOverlayStatus('Checking session...');
-    try {
-        const { data: { session }, error: sessionError } = await withTimeout(
-            sb.auth.getSession(), 8000, 'Session check'
-        );
-
-        if (sessionError) {
-            console.warn('[EaseMed] Session check returned error, clearing:', sessionError.message);
-            localStorage.removeItem('easemed_user');
-            localStorage.removeItem('easemed_user_name');
-            await sb.auth.signOut();
-        } else if (session && !inPasswordRecovery && !redirecting) {
-            redirecting = true;
-            window.location.href = DASHBOARD_URL;
-            return;
-        }
-    } catch (e) {
-        console.warn('[EaseMed] Session check failed, clearing local session:', e.message);
+// ── Check existing session ──
+setOverlayStatus('Checking session...');
+try {
+    // Try with 10s timeout
+    const { data: { session }, error: sessionError } = await withTimeout(
+        sb.auth.getSession(), 10000, 'Session check'
+    );
+    
+    if (sessionError) {
+        console.warn('[EaseMed] Session check returned error, clearing:', sessionError.message);
         localStorage.removeItem('easemed_user');
         localStorage.removeItem('easemed_user_name');
-        try { await sb.auth.signOut(); } catch (_) {}
+        localStorage.removeItem('easemed_session_token');
+        await sb.auth.signOut();
+    } else if (session && !inPasswordRecovery && !redirecting) {
+        // Validate session before redirecting
+        try {
+            const isValid = await validateSession();
+            if (isValid) {
+                redirecting = true;
+                window.location.href = DASHBOARD_URL;
+                return;
+            } else {
+                console.warn('[EaseMed] Session validation failed, clearing and redirecting to login');
+                localStorage.removeItem('easemed_user');
+                localStorage.removeItem('easemed_user_name');
+                localStorage.removeItem('easemed_session_token');
+                await sb.auth.signOut();
+            }
+        } catch (validError) {
+            // If validation fails, just redirect to login
+            console.warn('[EaseMed] Session validation error, redirecting to login:', validError.message);
+            localStorage.removeItem('easemed_user');
+            localStorage.removeItem('easemed_user_name');
+            localStorage.removeItem('easemed_session_token');
+            await sb.auth.signOut();
+        }
     }
-
-    // ── Hide overlay (if not already hidden) ────────────────
-    if (!inPasswordRecovery) {
-        hideOverlay();
-    }
-
-    // ── Extra fallback: hide after 4 seconds (ignores flags) ──
-    setTimeout(function() {
-        hideOverlay();
-    }, 4000);
+} catch (e) {
+    console.warn('[EaseMed] Session check failed, clearing local session:', e.message);
+    localStorage.removeItem('easemed_user');
+    localStorage.removeItem('easemed_user_name');
+    localStorage.removeItem('easemed_session_token');
+    try { await sb.auth.signOut(); } catch (_) {}
+    // Don't redirect - let the user try to login
+}
 
     // ── Fallback "Continue" button ─────────────────────────
     setTimeout(() => {
@@ -1022,9 +1036,18 @@ return;
                 `;
                 btn.onmouseover = () => btn.style.transform = 'scale(1.02)';
                 btn.onmouseout  = () => btn.style.transform = 'scale(1)';
-                btn.onclick = () => {
-                    window.location.href = DASHBOARD_URL;
-                };
+               btn.onclick = async () => {
+    const isValid = await validateSession();
+    if (isValid) {
+        window.location.href = DASHBOARD_URL;
+    } else {
+        showAlert('⚠️ Your session is no longer valid. Please login again.', 'error');
+        localStorage.removeItem('easemed_user');
+        localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_session_token');
+        btn.remove();
+    }
+};
                 loginForm.appendChild(btn);
             }
         }
@@ -1053,6 +1076,7 @@ return;
 })();
 
 // ── Upsert profile ──────────────────────────────────────────
+// ── UPSERT PROFILE (FIXED) ──────────────────────────────────────────
 async function upsertProfile(user, extra) {
     if (!sb) {
         console.warn('[EaseMed] Supabase client not initialized');
@@ -1081,32 +1105,38 @@ async function upsertProfile(user, extra) {
                      email.split('@')[0] ||
                      'Unknown';
 
-    let yearOfStudyInt = null;
+    let metaYearInt = null;
     if (extra?.yearOfStudy) {
         const match = extra.yearOfStudy.match(/\d+/);
-        if (match) yearOfStudyInt = parseInt(match[0], 10);
+        if (match) metaYearInt = parseInt(match[0], 10);
     }
 
     try {
+        // ── FETCH EXISTING PROFILE WITH ALL FIELDS ──
+        const { data: existing } = await sb
+            .from('profiles')
+            .select('id, university, year_of_study, phone, license_number, hospital, role')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        // ── BUILD PROFILE DATA WITH FALLBACKS ──
         const profileData = {
             id: user.id,
             email: email,
             full_name: fullName,
-            role: extra?.role || user.user_metadata?.role || 'Medical Student',
-            university: extra?.university || '',
-            year_of_study: yearOfStudyInt,
-            phone: extra?.phone || '',
-            license_number: extra?.license || '',
-            hospital: extra?.location || '',
+            role: extra?.role || user.user_metadata?.role || existing?.role || 'Medical Student',
+            university: extra?.university || user.user_metadata?.university || existing?.university || '',
+            year_of_study: (extra?.yearOfStudy ? parseInt(extra.yearOfStudy.match(/\d+/)?.[0] || '', 10) : null) ??
+                metaYearInt ??
+                existing?.year_of_study ??
+                null,
+            phone: extra?.phone || user.user_metadata?.phone || existing?.phone || '',
+            license_number: extra?.license || user.user_metadata?.license_number || existing?.license_number || '',
+            hospital: extra?.location || user.user_metadata?.hospital || existing?.hospital || '',
             updated_at: new Date().toISOString(),
         };
 
-        const { data: existing } = await sb
-            .from('profiles')
-            .select('id')
-            .eq('id', user.id)
-            .maybeSingle();
-
+        // ── IF NO EXISTING ROW, SET CREATION FIELDS ──
         if (!existing) {
             profileData.status = 'active';
             profileData.plan = 'free';
@@ -1127,7 +1157,6 @@ async function upsertProfile(user, extra) {
         console.warn('[EaseMed] Profile upsert exception:', e.message);
     }
 }
-
 // ── EMAIL / PASSWORD LOGIN ─────────────────────────────────
 // ── LOGIN ──────────────────────────────────────────────────────────
 async function handleLogin() {
