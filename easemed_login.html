@@ -860,103 +860,62 @@ if (tokenType === 'recovery') {
         return;
     }
 
-// ── Auth state listener (single, clean) ──────────────────
-// ── Auth state listener (replace the existing one with this) ──
-let redirecting = false;
+    // ── Auth state listener ──────────────────────────────────
 
-sb.auth.onAuthStateChange(async (event, session) => {
+       sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'PASSWORD_RECOVERY') {
         inPasswordRecovery = true;
         hideOverlay();
         showResetForm();
         return;
     }
-
-    if (event === 'SIGNED_IN' && session && !inPasswordRecovery && !redirecting) {
-        redirecting = true;
+    if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
+        // In the auth state listener, update this:
+sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
         const user = session.user;
         const email = user.email || user.user_metadata?.email;
-        const name = user.user_metadata?.full_name ||
-                     user.user_metadata?.name ||
-                     email || 'Unknown';
-
+        
+        // Pass email explicitly
+        await upsertProfile(user, {
+            name: user.user_metadata?.full_name || 
+                  user.user_metadata?.name || 
+                  email || 
+                  'Unknown',
+            email: email  // ← Pass email explicitly
+        });
+        
         localStorage.setItem('easemed_user', email);
-        localStorage.setItem('easemed_user_name', name);
-
-        // ── CHECK IF PROFILE IS COMPLETE ──────────────────
-        const { data: profile, error: profileError } = await sb
-            .from('profiles')
-            .select('university, year_of_study, phone')
-            .eq('id', user.id)
-            .maybeSingle();
-
-        // If profile exists but is missing required fields → complete-profile
-        if (profile && !profileError) {
-            const missingFields = [];
-            if (!profile.university || profile.university === '') missingFields.push('university');
-            if (!profile.year_of_study || profile.year_of_study === null) missingFields.push('year_of_study');
-            if (!profile.phone || profile.phone === '') missingFields.push('phone');
-
-            if (missingFields.length > 0) {
-                // Save user data for the profile completion page
-                localStorage.setItem('easemed_pending_user_id', user.id);
-                localStorage.setItem('easemed_pending_email', email);
-                localStorage.setItem('easemed_pending_name', name);
-                // Redirect to complete profile
-                window.location.href = 'complete-profile.html';
-                return;
-            }
-        }
-
-        // Profile is complete → upsert and go to dashboard
-        await upsertProfile(user, { name, email });
         window.location.href = DASHBOARD_URL;
-        return;
-    }
-
-    if (event === 'SIGNED_OUT') {
-        localStorage.removeItem('easemed_user');
-        localStorage.removeItem('easemed_user_name');
-        localStorage.removeItem('easemed_pending_user_id');
-        localStorage.removeItem('easemed_pending_email');
-        localStorage.removeItem('easemed_pending_name');
-    }
-
-    if (event === 'TOKEN_REFRESH_FAILED') {
-        console.warn('[EaseMed] Token refresh failed, clearing session.');
-        localStorage.removeItem('easemed_user');
-        localStorage.removeItem('easemed_user_name');
-        localStorage.removeItem('easemed_pending_user_id');
-        localStorage.removeItem('easemed_pending_email');
-        localStorage.removeItem('easemed_pending_name');
-        await sb.auth.signOut();
     }
 });
-
+        
+        // normal login flow
+        localStorage.setItem('easemed_user', session.user.email);
+        localStorage.setItem('easemed_user_name',
+            session.user.user_metadata?.full_name ||
+            session.user.user_metadata?.name ||
+            session.user.email);
+         await upsertProfile(session.user, {
+            name: session.user.user_metadata?.full_name ||
+                  session.user.user_metadata?.name ||
+                  session.user.email
+        });
+        window.location.href = DASHBOARD_URL;
+    }
+});
     // ── Check existing session ──────────────────────────────
     setOverlayStatus('Checking session...');
     try {
-        const { data: { session }, error: sessionError } = await withTimeout(
-            sb.auth.getSession(), 8000, 'Session check'
-        );
-
-        if (sessionError) {
-            // Stale/corrupted session — clear it instead of showing a raw error
-            console.warn('[EaseMed] Session check returned error, clearing:', sessionError.message);
-            localStorage.removeItem('easemed_user');
-            localStorage.removeItem('easemed_user_name');
-            await sb.auth.signOut();
-        } else if (session && !inPasswordRecovery && !redirecting) {
-            redirecting = true;
-            window.location.href = DASHBOARD_URL;
-            return;
+       const { data: { session } } = await withTimeout(
+    sb.auth.getSession(), 8000, 'Session check'
+);
+if (session && !inPasswordRecovery) {  // ← already there, just make sure it's checking the flag set above
+    window.location.href = DASHBOARD_URL;
+    return;
         }
     } catch (e) {
-        // Timed out or threw — same treatment: clear the bad local state
-        console.warn('[EaseMed] Session check failed, clearing local session:', e.message);
-        localStorage.removeItem('easemed_user');
-        localStorage.removeItem('easemed_user_name');
-        try { await sb.auth.signOut(); } catch (_) {}
+        console.warn('[EaseMed] Session check failed:', e.message);
     }
 
     if (!inPasswordRecovery) {
@@ -992,72 +951,49 @@ async function upsertProfile(user, extra) {
         console.warn('[EaseMed] Supabase client not initialized');
         return;
     }
-
+    
     if (!user || !user.id) {
         console.warn('[EaseMed] Invalid user object provided');
         return;
     }
-
-    const email = user.email ||
-                  extra?.email ||
-                  user.user_metadata?.email ||
-                  user.user_metadata?.email_address ||
+    
+    // Try multiple sources for email
+    const email = user.email || 
+                  extra?.email || 
+                  user.user_metadata?.email || 
+                  user.user_metadata?.email_address || 
                   null;
-
+    
     if (!email) {
         console.warn('[EaseMed] No email available for profile upsert');
         return;
     }
-
-    const fullName = extra?.name ||
-                     user.user_metadata?.full_name ||
-                     user.user_metadata?.name ||
-                     email.split('@')[0] ||
+    
+    const fullName = extra?.name || 
+                     user.user_metadata?.full_name || 
+                     user.user_metadata?.name || 
+                     email.split('@')[0] || 
                      'Unknown';
-
-    // Extract just the number from "Year 3" / "Postgraduate Year 1" etc.
-    // Falls back to null if no digit found (e.g. "Graduated / Professional")
-    let yearOfStudyInt = null;
-    if (extra?.yearOfStudy) {
-        const match = extra.yearOfStudy.match(/\d+/);
-        if (match) yearOfStudyInt = parseInt(match[0], 10);
-    }
-
+    
     try {
-        // Build base payload with fields that always exist
         const profileData = {
             id: user.id,
             email: email,
             full_name: fullName,
             role: extra?.role || user.user_metadata?.role || 'Medical Student',
             university: extra?.university || '',
-            year_of_study: yearOfStudyInt,
+            year_of_study: extra?.yearOfStudy || '',
             phone: extra?.phone || '',
-            license_number: extra?.license || '',
-            hospital: extra?.location || '',
+            license_no: extra?.license || '',
+            location: extra?.location || '',
+            provider: user.app_metadata?.provider || 'email',
             updated_at: new Date().toISOString(),
         };
-
-        // Check if a row already exists — only set these defaults on INSERT,
-        // never overwrite them on an existing user (e.g. don't reset their
-        // subscription_status back to 'inactive' every time they log in)
-        const { data: existing } = await sb
-            .from('profiles')
-            .select('id')
-            .eq('id', user.id)
-            .maybeSingle();
-
-        if (!existing) {
-            profileData.status = 'active';
-            profileData.plan = 'free';
-            profileData.subscription_status = 'inactive';
-            profileData.created_at = new Date().toISOString();
-        }
-
-        const { error } = await sb.from('profiles').upsert(profileData, {
-            onConflict: 'id'
+        
+        const { error } = await sb.from('profiles').upsert(profileData, { 
+            onConflict: 'id' 
         });
-
+        
         if (error) {
             console.warn('[EaseMed] Profile upsert failed:', error.message);
         } else {
@@ -1066,7 +1002,8 @@ async function upsertProfile(user, extra) {
     } catch (e) {
         console.warn('[EaseMed] Profile upsert exception:', e.message);
     }
-}    // ── EMAIL / PASSWORD LOGIN (unchanged) ─────────────────────
+}
+    // ── EMAIL / PASSWORD LOGIN (unchanged) ─────────────────────
 async function handleLogin() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
@@ -1181,18 +1118,10 @@ async function handleSignup() {
             sb.auth.signUp({
                 email,
                 password,
-               options: {
-    data: {
-        full_name: name,
-        role,
-        university,
-        year_of_study: yearOfStudy.match(/\d+/) ? yearOfStudy.match(/\d+/)[0] : null,
-        phone,
-        license_number: license,
-        hospital: location
-    },
-    emailRedirectTo: window.location.origin + '/' + DASHBOARD_URL,
-}
+                options: {
+                    data: { full_name: name, role, university, year_of_study: yearOfStudy },
+                    emailRedirectTo: window.location.origin + '/' + DASHBOARD_URL,
+                }
             }),
             10000, 'Signup'
         ));
