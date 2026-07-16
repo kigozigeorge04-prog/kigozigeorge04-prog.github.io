@@ -512,6 +512,13 @@
     <div style="font-size:0.75rem; opacity:0.4;" id="sdkStatus">Loading...</div>
 </div>
 
+<!-- ── ULTIMATE OVERLAY KILLER (runs immediately, before any other script) ── -->
+<script>
+// This script runs immediately after the overlay is added to the DOM.
+// It will force-hide the overlay after 5 seconds, no matter what.
+
+</script>
+
 <div class="medical-bg">
     <div class="particles" id="particles"></div>
     <div class="cross" style="top:10%;left:5%;">✚</div>
@@ -731,12 +738,10 @@
     </div>
 </div>
 
+<!-- ─── MAIN SCRIPT ─── -->
 <script>
 // ================================================================
-//  EASEMED — SUPABASE AUTH (with T&C / Privacy agreement)
-//
-//  Updated: Single "Create Account" button that is disabled until
-//  the agreement checkbox is checked.
+//  EASEMED — SUPABASE AUTH
 // ================================================================
 
 const DASHBOARD_URL = 'modules.html';
@@ -772,7 +777,6 @@ function switchTab(tab) {
     if (tab === 'login') {
         lf.classList.add('active');    sf.classList.remove('active');
         tabs[0].classList.add('active'); tabs[1].classList.remove('active');
-        // Reset agreement error state
         document.getElementById('agreeError').classList.remove('show');
     } else {
         lf.classList.remove('active'); sf.classList.add('active');
@@ -791,8 +795,10 @@ function showResetForm() {
 function hideOverlay() {
     const ov = document.getElementById('sdkOverlay');
     if (!ov) return;
-    ov.style.opacity = '0';
-    setTimeout(() => ov.remove(), 320);
+    ov.style.display = 'none';
+    setTimeout(() => {
+        if (ov.parentNode) ov.remove();
+    }, 100);
 }
 
 function setOverlayStatus(msg) {
@@ -838,6 +844,11 @@ const tokenType = hashParams.get('type');
 if (tokenType === 'recovery') {
     inPasswordRecovery = true;
 }
+// Remove hash from URL to prevent it from persisting
+if (window.location.hash) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+
 (async function boot() {
     setOverlayStatus('Loading SDK...');
 
@@ -860,7 +871,8 @@ if (tokenType === 'recovery') {
         return;
     }
 
-    // ── Auth state listener ──────────────────────────────────
+// ── Auth state listener ──────────────────────────────────────
+let redirecting = false;
 
 sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'PASSWORD_RECOVERY') {
@@ -869,43 +881,188 @@ sb.auth.onAuthStateChange(async (event, session) => {
         showResetForm();
         return;
     }
-    if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
+
+    if (event === 'SIGNED_IN' && session && !inPasswordRecovery && !redirecting) {
+        redirecting = true;
         const user = session.user;
         const email = user.email || user.user_metadata?.email;
-        const fullName = user.user_metadata?.full_name ||
-                          user.user_metadata?.name ||
-                          email;
+        const name = user.user_metadata?.full_name ||
+                     user.user_metadata?.name ||
+                     email || 'Unknown';
 
         localStorage.setItem('easemed_user', email);
-        localStorage.setItem('easemed_user_name', fullName);
+        localStorage.setItem('easemed_user_name', name);
+        
+     // ── CHECK IF PROFILE IS COMPLETE ──────────────────
+// A brand-new Google sign-in has NO profiles row yet, so `profile`
+// comes back null with no error. Treat "no row" the same as "row
+// with blank fields" — both mean incomplete. Otherwise first-time
+// Google users skip this gate entirely and land on the dashboard
+// with blank university/year/phone (the bug you just saw).
+const { data: profile, error: profileError } = await sb
+    .from('profiles')
+    .select('university, year_of_study, phone')
+    .eq('id', user.id)
+    .maybeSingle();
 
-        await upsertProfile(user, { name: fullName, email: email });
+if (!profileError) {
+    const missingFields = [];
+    if (!profile?.university) missingFields.push('university');
+    if (!profile?.year_of_study) missingFields.push('year_of_study');
+    if (!profile?.phone) missingFields.push('phone');
 
-        window.location.href = DASHBOARD_URL;
+    if (missingFields.length > 0) {
+        // complete-profile.html does an UPDATE, not an upsert, so make
+        // sure a row actually exists before sending a first-timer there.
+        await upsertProfile(user, { name, email });
+
+        localStorage.setItem('easemed_pending_user_id', user.id);
+        localStorage.setItem('easemed_pending_email', email);
+        localStorage.setItem('easemed_pending_name', name);
+        window.location.href = 'complete-profile.html';
+        return;
+    }
+}
+
+await upsertProfile(user, { name, email });
+window.location.href = DASHBOARD_URL;
+return;
+    }
+
+    if (event === 'SIGNED_OUT') {
+        localStorage.removeItem('easemed_user');
+        localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_pending_user_id');
+        localStorage.removeItem('easemed_pending_email');
+        localStorage.removeItem('easemed_pending_name');
+    }
+
+    if (event === 'TOKEN_REFRESH_FAILED') {
+        console.warn('[EaseMed] Token refresh failed, clearing session.');
+        localStorage.removeItem('easemed_user');
+        localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_pending_user_id');
+        localStorage.removeItem('easemed_pending_email');
+        localStorage.removeItem('easemed_pending_name');
+        await sb.auth.signOut();
     }
 });
-        
 
     // ── Check existing session ──────────────────────────────
-    setOverlayStatus('Checking session...');
-    try {
-       const { data: { session } } = await withTimeout(
-    sb.auth.getSession(), 8000, 'Session check'
-);
-if (session && !inPasswordRecovery) {  // ← already there, just make sure it's checking the flag set above
-    window.location.href = DASHBOARD_URL;
-    return;
-        }
-    } catch (e) {
-        console.warn('[EaseMed] Session check failed:', e.message);
-    }
+// ── Check existing session ──
+setOverlayStatus('Checking session...');
 
-    if (!inPasswordRecovery) {
-        hideOverlay();
+// ── RETRY FUNCTION ──
+async function checkSessionWithRetry(maxRetries = 2, timeoutMs = 10000) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const { data: { session }, error } = await withTimeout(
+                sb.auth.getSession(), 
+                timeoutMs, 
+                `Session check attempt ${attempt}`
+            );
+            if (!error) {
+                return { session, error: null };
+            }
+            console.warn(`[EaseMed] Session check attempt ${attempt} failed:`, error?.message);
+            if (attempt === maxRetries) {
+                return { session: null, error };
+            }
+        } catch (e) {
+            console.warn(`[EaseMed] Session check attempt ${attempt} error:`, e.message);
+            if (attempt === maxRetries) {
+                return { session: null, error: e };
+            }
+        }
+        await new Promise(r => setTimeout(r, 2000));
     }
+    return { session: null, error: new Error('All retries failed') };
+}
+
+// ── EXECUTE CHECK ──
+try {
+    const { session, error: sessionError } = await checkSessionWithRetry(2, 10000);
+    
+    if (sessionError) {
+        console.warn('[EaseMed] Session check failed, allowing login:', sessionError.message);
+        // Don't clear session data - let user try to login
+    } else if (session && !inPasswordRecovery && !redirecting) {
+        try {
+            const isValid = await validateSession();
+            if (isValid) {
+                redirecting = true;
+                window.location.href = DASHBOARD_URL;
+                return;
+            } else {
+                console.warn('[EaseMed] Session validation failed, clearing');
+                localStorage.removeItem('easemed_user');
+                localStorage.removeItem('easemed_user_name');
+                localStorage.removeItem('easemed_session_token');
+                await sb.auth.signOut();
+            }
+        } catch (validError) {
+            console.warn('[EaseMed] Session validation error:', validError.message);
+            localStorage.removeItem('easemed_user');
+            localStorage.removeItem('easemed_user_name');
+            localStorage.removeItem('easemed_session_token');
+            await sb.auth.signOut();
+        }
+    }
+} catch (e) {
+    console.warn('[EaseMed] Session check failed:', e.message);
+    // Don't clear anything - let user try to login
+}
+    
+    // ── Fallback "Continue" button ─────────────────────────
+    setTimeout(() => {
+        const storedUser = localStorage.getItem('easemed_user');
+        if (storedUser && !redirecting) {
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                const existingBtn = document.getElementById('fallbackContinueBtn');
+                if (existingBtn) existingBtn.remove();
+
+                const btn = document.createElement('button');
+                btn.id = 'fallbackContinueBtn';
+                btn.textContent = '🚀 Continue to App';
+                btn.style.cssText = `
+                    display: block;
+                    margin: 20px auto 0;
+                    padding: 14px 30px;
+                    background: linear-gradient(135deg, #2c5282, #1e3a5f);
+                    color: white;
+                    border: none;
+                    border-radius: 14px;
+                    font-size: 1rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    box-shadow: 0 6px 16px rgba(44,82,130,0.3);
+                    transition: all 0.3s;
+                    width: 100%;
+                    max-width: 300px;
+                `;
+                btn.onmouseover = () => btn.style.transform = 'scale(1.02)';
+                btn.onmouseout  = () => btn.style.transform = 'scale(1)';
+               btn.onclick = async () => {
+    const isValid = await validateSession();
+    if (isValid) {
+        window.location.href = DASHBOARD_URL;
+    } else {
+        showAlert('⚠️ Your session is no longer valid. Please login again.', 'error');
+        localStorage.removeItem('easemed_user');
+        localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_session_token');
+        btn.remove();
+    }
+};
+                loginForm.appendChild(btn);
+            }
+        }
+    }, 3500);
+
     createParticles();
 
-    // ── Setup checkbox to enable/disable signup button ──────
+    // ── Setup signup checkbox ──────────────────────────────
     const agreeCheckbox = document.getElementById('agreeCheckbox');
     const signupBtn = document.getElementById('signupBtn');
     if (agreeCheckbox && signupBtn) {
@@ -915,67 +1072,89 @@ if (session && !inPasswordRecovery) {  // ← already there, just make sure it's
                 document.getElementById('agreeError').classList.remove('show');
             }
         });
-        // Also enable button if checkbox is checked initially (in case of form reload)
         if (agreeCheckbox.checked) {
             signupBtn.disabled = false;
         }
     }
 
-    // ── Click handler for signup button ──────────────────────
     if (signupBtn) {
         signupBtn.addEventListener('click', handleSignup);
     }
 })();
 
 // ── Upsert profile ──────────────────────────────────────────
+// ── UPSERT PROFILE (FIXED) ──────────────────────────────────────────
 async function upsertProfile(user, extra) {
     if (!sb) {
         console.warn('[EaseMed] Supabase client not initialized');
         return;
     }
-    
+
     if (!user || !user.id) {
         console.warn('[EaseMed] Invalid user object provided');
         return;
     }
-    
-    // Try multiple sources for email
-    const email = user.email || 
-                  extra?.email || 
-                  user.user_metadata?.email || 
-                  user.user_metadata?.email_address || 
+
+    const email = user.email ||
+                  extra?.email ||
+                  user.user_metadata?.email ||
+                  user.user_metadata?.email_address ||
                   null;
-    
+
     if (!email) {
         console.warn('[EaseMed] No email available for profile upsert');
         return;
     }
-    
-    const fullName = extra?.name || 
-                     user.user_metadata?.full_name || 
-                     user.user_metadata?.name || 
-                     email.split('@')[0] || 
+
+    const fullName = extra?.name ||
+                     user.user_metadata?.full_name ||
+                     user.user_metadata?.name ||
+                     email.split('@')[0] ||
                      'Unknown';
-    
+
+    let metaYearInt = null;
+    if (extra?.yearOfStudy) {
+        const match = extra.yearOfStudy.match(/\d+/);
+        if (match) metaYearInt = parseInt(match[0], 10);
+    }
+
     try {
+        // ── FETCH EXISTING PROFILE WITH ALL FIELDS ──
+        const { data: existing } = await sb
+            .from('profiles')
+            .select('id, university, year_of_study, phone, license_number, hospital, role')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        // ── BUILD PROFILE DATA WITH FALLBACKS ──
         const profileData = {
             id: user.id,
             email: email,
             full_name: fullName,
-            role: extra?.role || user.user_metadata?.role || 'Medical Student',
-            university: extra?.university || '',
-            year_of_study: extra?.yearOfStudy || '',
-            phone: extra?.phone || '',
-            license_no: extra?.license || '',
-            location: extra?.location || '',
-            provider: user.app_metadata?.provider || 'email',
+            role: extra?.role || user.user_metadata?.role || existing?.role || 'Medical Student',
+            university: extra?.university || user.user_metadata?.university || existing?.university || '',
+            year_of_study: (extra?.yearOfStudy ? parseInt(extra.yearOfStudy.match(/\d+/)?.[0] || '', 10) : null) ??
+                metaYearInt ??
+                existing?.year_of_study ??
+                null,
+            phone: extra?.phone || user.user_metadata?.phone || existing?.phone || '',
+            license_number: extra?.license || user.user_metadata?.license_number || existing?.license_number || '',
+            hospital: extra?.location || user.user_metadata?.hospital || existing?.hospital || '',
             updated_at: new Date().toISOString(),
         };
-        
-        const { error } = await sb.from('profiles').upsert(profileData, { 
-            onConflict: 'id' 
+
+        // ── IF NO EXISTING ROW, SET CREATION FIELDS ──
+        if (!existing) {
+            profileData.status = 'active';
+            profileData.plan = 'free';
+            profileData.subscription_status = 'inactive';
+            profileData.created_at = new Date().toISOString();
+        }
+
+        const { error } = await sb.from('profiles').upsert(profileData, {
+            onConflict: 'id'
         });
-        
+
         if (error) {
             console.warn('[EaseMed] Profile upsert failed:', error.message);
         } else {
@@ -985,18 +1164,20 @@ async function upsertProfile(user, extra) {
         console.warn('[EaseMed] Profile upsert exception:', e.message);
     }
 }
-    // ── EMAIL / PASSWORD LOGIN (unchanged) ─────────────────────
+// ── EMAIL / PASSWORD LOGIN ─────────────────────────────────
+// ── LOGIN ──────────────────────────────────────────────────────────
 async function handleLogin() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
-    const email    = document.getElementById('loginEmail').value.trim();
+    const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
 
     if (!email || !password) {
-        showAlert('Please enter both email and password.'); return;
+        showAlert('Please enter both email and password.');
+        return;
     }
 
-    setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Login to EaseMed');
+    setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Logging in...');
 
     let data, error;
     try {
@@ -1004,23 +1185,11 @@ async function handleLogin() {
             sb.auth.signInWithPassword({ email, password }),
             10000, 'Login'
         ));
-        try {
-            const ipResponse = await fetch('https://api.ipify.org?format=json');
-            const ipData = await ipResponse.json();
-            const ip = ipData.ip || 'unknown';
-            await sb.from('user_sessions').insert({
-                user_id: data.user.id,
-                email: data.user.email,
-                ip_address: ip,
-                user_agent: navigator.userAgent || 'unknown',
-                session_active: true
-            });
-        } catch (e) { console.warn('Session record failed:', e); }
     } catch (e) {
         setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Login to EaseMed');
-        showAlert('❌ ' + (e.message.includes('timed out')
-            ? 'Connection timed out. Check your internet and try again.'
-            : 'Network error: ' + e.message));
+        showAlert('❌ ' + (e.message.includes('timed out') ?
+            'Connection timed out. Check your internet and try again.' :
+            'Network error: ' + e.message));
         return;
     }
 
@@ -1033,7 +1202,7 @@ async function handleLogin() {
         } else if (error.message.toLowerCase().includes('email not confirmed')) {
             showAlert('📧 Please check your email and confirm your account first.');
         } else if (error.message.toLowerCase().includes('failed to fetch') ||
-                   error.message.toLowerCase().includes('networkerror')) {
+            error.message.toLowerCase().includes('networkerror')) {
             showAlert('❌ Could not reach the server. Check your internet connection.');
         } else {
             showAlert('❌ ' + error.message);
@@ -1041,23 +1210,44 @@ async function handleLogin() {
         return;
     }
 
+    // ── Safety check ──
+    if (!data || !data.user) {
+        showAlert('❌ Login failed. Please try again.');
+        return;
+    }
+
+    // ── Record session (only after successful login) ──
+    try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        const ip = ipData.ip || 'unknown';
+        await sb.from('user_sessions').insert({
+            user_id: data.user.id,
+            email: data.user.email,
+            ip_address: ip,
+            user_agent: navigator.userAgent || 'unknown',
+            session_active: true
+        });
+    } catch (e) { console.warn('Session record failed:', e); }
+
     const user = data.user;
-    const fullName = user.user_metadata?.full_name || 
-                     user.user_metadata?.name || 
-                     user.email;
-    
+    const fullName = user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email;
+
     localStorage.setItem('easemed_user', user.email);
     localStorage.setItem('easemed_user_name', fullName);
+
+    await claimSession(user);
 
     showAlert('✅ Welcome back! Redirecting to dashboard...', 'success');
     setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
 }
-
-// ── EMAIL / PASSWORD SIGNUP (core logic) ──────────────────
+    
+    // ── EMAIL / PASSWORD SIGNUP ────────────────────────────────
 async function handleSignup() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
-    // Double-check agreement checkbox (though button is disabled if unchecked)
     const agreeCheckbox = document.getElementById('agreeCheckbox');
     if (!agreeCheckbox.checked) {
         document.getElementById('agreeError').classList.add('show');
@@ -1078,7 +1268,6 @@ async function handleSignup() {
     const license         = document.getElementById('signupLicense').value.trim();
     const location        = document.getElementById('signupLocation').value.trim();
 
-    // Basic validation
     if (!name || !email || !password || !role || !university || !yearOfStudy) {
         showAlert('Please fill in all required fields.'); return;
     }
@@ -1089,7 +1278,6 @@ async function handleSignup() {
         showAlert('Password must be at least 6 characters.'); return;
     }
 
-    // Disable button and show spinner
     const signupBtn = document.getElementById('signupBtn');
     signupBtn.disabled = true;
     document.getElementById('signupSpinner').style.display = 'block';
@@ -1101,7 +1289,15 @@ async function handleSignup() {
                 email,
                 password,
                 options: {
-                    data: { full_name: name, role, university, year_of_study: yearOfStudy },
+                    data: {
+                        full_name: name,
+                        role,
+                        university,
+                        year_of_study: yearOfStudy.match(/\d+/) ? yearOfStudy.match(/\d+/)[0] : null,
+                        phone,
+                        license_number: license,
+                        hospital: location
+                    },
                     emailRedirectTo: window.location.origin + '/' + DASHBOARD_URL,
                 }
             }),
@@ -1191,9 +1387,9 @@ async function handleForgotPassword() {
         showAlert('Enter your email address first, then click "Forgot password".', 'info');
         return;
     }
-   const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://easemedapp.site/easemed_login.html',
-});
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://easemedapp.site/easemed_login.html',
+    });
     if (error) {
         showAlert('❌ ' + error.message);
     } else {
