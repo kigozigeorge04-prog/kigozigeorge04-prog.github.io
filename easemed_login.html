@@ -952,56 +952,23 @@ return;
 // ── Check existing session ──
 setOverlayStatus('Checking session...');
 
-// ── RETRY FUNCTION ──
-async function checkSessionWithRetry(maxRetries = 2, timeoutMs = 10000) {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            const { data: { session }, error } = await withTimeout(
-                sb.auth.getSession(), 
-                timeoutMs, 
-                `Session check attempt ${attempt}`
-            );
-            if (!error) {
-                return { session, error: null };
-            }
-            console.warn(`[EaseMed] Session check attempt ${attempt} failed:`, error?.message);
-            if (attempt === maxRetries) {
-                return { session: null, error };
-            }
-        } catch (e) {
-            console.warn(`[EaseMed] Session check attempt ${attempt} error:`, e.message);
-            if (attempt === maxRetries) {
-                return { session: null, error: e };
-            }
-        }
-        await new Promise(r => setTimeout(r, 2000));
-    }
-    return { session: null, error: new Error('All retries failed') };
-}
-
-// ── EXECUTE CHECK ──
 try {
-    const { session, error: sessionError } = await checkSessionWithRetry(2, 10000);
+    // Try once with 15s timeout
+    const { data: { session }, error: sessionError } = await withTimeout(
+        sb.auth.getSession(), 15000, 'Session check'
+    );
     
     if (sessionError) {
         console.warn('[EaseMed] Session check failed, allowing login:', sessionError.message);
-        // Don't clear session data - let user try to login
+        // Continue to login page
     } else if (session && !inPasswordRecovery && !redirecting) {
-        try {
-            const isValid = await validateSession();
-            if (isValid) {
-                redirecting = true;
-                window.location.href = DASHBOARD_URL;
-                return;
-            } else {
-                console.warn('[EaseMed] Session validation failed, clearing');
-                localStorage.removeItem('easemed_user');
-                localStorage.removeItem('easemed_user_name');
-                localStorage.removeItem('easemed_session_token');
-                await sb.auth.signOut();
-            }
-        } catch (validError) {
-            console.warn('[EaseMed] Session validation error:', validError.message);
+        const isValid = await validateSession();
+        if (isValid) {
+            redirecting = true;
+            window.location.href = DASHBOARD_URL;
+            return;
+        } else {
+            console.warn('[EaseMed] Session validation failed, clearing');
             localStorage.removeItem('easemed_user');
             localStorage.removeItem('easemed_user_name');
             localStorage.removeItem('easemed_session_token');
@@ -1010,7 +977,7 @@ try {
     }
 } catch (e) {
     console.warn('[EaseMed] Session check failed:', e.message);
-    // Don't clear anything - let user try to login
+    // Continue to login page
 }
     
     // ── Fallback "Continue" button ─────────────────────────
