@@ -862,7 +862,7 @@ if (tokenType === 'recovery') {
 
     // ── Auth state listener ──────────────────────────────────
 
-       sb.auth.onAuthStateChange(async (event, session) => {
+sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'PASSWORD_RECOVERY') {
         inPasswordRecovery = true;
         hideOverlay();
@@ -870,40 +870,22 @@ if (tokenType === 'recovery') {
         return;
     }
     if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
-        // In the auth state listener, update this:
-sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session && !inPasswordRecovery) {
         const user = session.user;
         const email = user.email || user.user_metadata?.email;
-        
-        // Pass email explicitly
-        await upsertProfile(user, {
-            name: user.user_metadata?.full_name || 
-                  user.user_metadata?.name || 
-                  email || 
-                  'Unknown',
-            email: email  // ← Pass email explicitly
-        });
-        
+        const fullName = user.user_metadata?.full_name ||
+                          user.user_metadata?.name ||
+                          email;
+
         localStorage.setItem('easemed_user', email);
+        localStorage.setItem('easemed_user_name', fullName);
+
+        await upsertProfile(user, { name: fullName, email: email });
+
         window.location.href = DASHBOARD_URL;
     }
 });
         
-        // normal login flow
-        localStorage.setItem('easemed_user', session.user.email);
-        localStorage.setItem('easemed_user_name',
-            session.user.user_metadata?.full_name ||
-            session.user.user_metadata?.name ||
-            session.user.email);
-         await upsertProfile(session.user, {
-            name: session.user.user_metadata?.full_name ||
-                  session.user.user_metadata?.name ||
-                  session.user.email
-        });
-        window.location.href = DASHBOARD_URL;
-    }
-});
+
     // ── Check existing session ──────────────────────────────
     setOverlayStatus('Checking session...');
     try {
