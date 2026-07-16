@@ -1,1251 +1,1010 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <script src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js" crossorigin="anonymous"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EaseMed - Medical Professional Login & Signup</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1e3c72">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="EaseMed">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="description" content="EaseMed Clinical Clerk System — medical history taking guide based on Hutchison's Clinical Methods">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #0c4a6e 0%, #1e3a5f 25%, #2d3748 50%, #1a3a4f 75%, #0f2c44 100%);
-      position: relative;
-      overflow-x: hidden;
-    }
-    .medical-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      overflow: hidden;
-    }
-    .medical-bg::before {
-      content: '🫀';
-      position: absolute;
-      font-size: 300px;
-      opacity: 0.03;
-      bottom: -50px;
-      right: -50px;
-      animation: float 20s infinite ease-in-out;
-    }
-    .medical-bg::after {
-      content: '🩺';
-      position: absolute;
-      font-size: 250px;
-      opacity: 0.03;
-      top: -50px;
-      left: -50px;
-      animation: float 15s infinite ease-in-out reverse;
-    }
-    @keyframes float {
-      0%,
-      100% {
-        transform: translate(0, 0) rotate(0deg);
-      }
-      50% {
-        transform: translate(-30px, -30px) rotate(10deg);
-      }
-    }
-    .particles {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-    .particle {
-      position: absolute;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      animation: particleFloat linear infinite;
-    }
-    @keyframes particleFloat {
-      0% {
-        transform: translateY(100vh) rotate(0deg);
-        opacity: 0;
-      }
-      10% {
-        opacity: 0.5;
-      }
-      90% {
-        opacity: 0.5;
-      }
-      100% {
-        transform: translateY(-100vh) rotate(360deg);
-        opacity: 0;
-      }
-    }
-    .cross {
-      position: absolute;
-      font-size: 40px;
-      opacity: 0.05;
-      animation: crossRotate 30s linear infinite;
-    }
-    @keyframes crossRotate {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-      }
-    }
-    .login-wrapper {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 40px 20px;
-    }
-    .login-container {
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(10px);
-      border-radius: 40px;
-      padding: 50px;
-      width: 550px;
-      max-width: 100%;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2);
-      animation: slideUp 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-      position: relative;
-    }
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(50px) scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-    .login-container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 5px;
-      background: linear-gradient(90deg, #2ecc71, #3498db, #e74c3c, #f39c12, #2ecc71);
-      background-size: 200% 100%;
-      animation: gradientMove 3s linear infinite;
-      border-radius: 40px 40px 0 0;
-    }
-    @keyframes gradientMove {
-      0% {
-        background-position: 0% 0%;
-      }
-      100% {
-        background-position: 200% 0%;
-      }
-    }
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 30px;
-      background: #f1f5f9;
-      padding: 5px;
-      border-radius: 60px;
-    }
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 12px;
-      border: none;
-      background: transparent;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 50px;
-      transition: all 0.3s;
-      color: #64748b;
-    }
-    .tab.active {
-      background: linear-gradient(135deg, #2c5282, #1e3a5f);
-      color: white;
-      box-shadow: 0 5px 15px rgba(44, 82, 130, 0.3);
-    }
-    .logo {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .logo-icon {
-      font-size: 70px;
-      animation: heartbeat 1.5s ease-in-out infinite;
-      display: inline-block;
-    }
-    @keyframes heartbeat {
-      0%,
-      100% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.1);
-      }
-    }
-    .logo h1 {
-      font-size: 2rem;
-      background: linear-gradient(135deg, #1e3a5f, #2c5282);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      margin-top: 10px;
-    }
-    .logo p {
-      color: #718096;
-      font-size: 0.85rem;
-      margin-top: 5px;
-    }
-    .form {
-      display: none;
-    }
-    .form.active {
-      display: block;
-      animation: fadeIn 0.4s ease;
-    }
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .input-group {
-      margin-bottom: 18px;
-      position: relative;
-    }
-    .input-group label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
-      color: #2d3748;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .input-group input,
-    .input-group select {
-      width: 100%;
-      padding: 14px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 14px;
-      font-size: 14px;
-      transition: all 0.3s;
-      background: white;
-    }
-    .input-group input:focus,
-    .input-group select:focus {
-      outline: none;
-      border-color: #2c5282;
-      box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
-      transform: translateY(-2px);
-    }
-    .input-group input.field-error,
-    .input-group select.field-error {
-      border-color: #e53e3e !important;
-      box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.12) !important;
-      animation: fieldShake 0.4s ease;
-    }
-    @keyframes fieldShake {
-      0%,
-      100% {
-        transform: translateX(0);
-      }
-      25% {
-        transform: translateX(-5px);
-      }
-      75% {
-        transform: translateX(5px);
-      }
-    }
-    .field-error-msg {
-      color: #e53e3e;
-      font-size: 0.72rem;
-      font-weight: 600;
-      margin-top: 5px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      animation: fadeInDown 0.2s ease;
-    }
-    @keyframes fadeInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-4px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .pw-wrap {
-      position: relative;
-    }
-    .pw-wrap input {
-      padding-right: 48px !important;
-    }
-    .pw-toggle {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px;
-      color: #a0aec0;
-      font-size: 16px;
-      line-height: 1;
-      transition: color 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .pw-toggle:hover {
-      color: #2c5282;
-    }
-    .pw-strength {
-      height: 4px;
-      border-radius: 999px;
-      background: #e2e8f0;
-      margin-top: 6px;
-      overflow: hidden;
-    }
-    .pw-strength-bar {
-      height: 100%;
-      border-radius: 999px;
-      width: 0%;
-      transition: width 0.3s ease, background 0.3s ease;
-    }
-    .pw-strength-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      margin-top: 4px;
-      color: #a0aec0;
-    }
-    .input-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-    }
-    .login-btn,
-    .signup-btn {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #2c5282, #1e3a5f);
-      color: white;
-      border: none;
-      border-radius: 14px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      margin-top: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .login-btn:hover:not(:disabled),
-    .signup-btn:hover:not(:disabled) {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 25px rgba(44, 82, 130, 0.4);
-    }
-    .login-btn:disabled,
-    .signup-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .divider {
-      display: flex;
-      align-items: center;
-      text-align: center;
-      margin: 25px 0;
-    }
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .divider span {
-      padding: 0 15px;
-      color: #a0aec0;
-      font-size: 0.8rem;
-    }
-    .social-buttons {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-    .btn-google-full {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 13px 20px;
-      border-radius: 14px;
-      border: 2px solid #e2e8f0;
-      background: white;
-      font-size: 15px;
-      font-weight: 600;
-      color: #3c4043;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-      position: relative;
-      overflow: hidden;
-    }
-    .btn-google-full:hover {
-      border-color: #4285F4;
-      background: #f8fbff;
-      box-shadow: 0 4px 14px rgba(66, 133, 244, 0.2);
-      transform: translateY(-2px);
-      color: #1a73e8;
-    }
-    .btn-google-full:active {
-      transform: translateY(0);
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-    }
-    .btn-google-full img {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-    }
-    .btn-google-full .google-label {
-      font-size: 15px;
-      font-weight: 600;
-    }
-    .btn-google-full .google-sublabel {
-      font-size: 11px;
-      color: #80868b;
-      margin-left: 4px;
-      font-weight: 400;
-    }
-    .btn-google-full::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle, rgba(66, 133, 244, 0.12) 0%, transparent 70%);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .btn-google-full:hover::after {
-      opacity: 1;
-    }
-    .social-note {
-      text-align: center;
-      font-size: 0.72rem;
-      color: #a0aec0;
-      margin-top: -8px;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-    }
-    .social-note::before,
-    .social-note::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: #e2e8f0;
-      max-width: 60px;
-    }
-    .demo-card {
-      background: linear-gradient(135deg, #ebf8ff, #e6f7ff);
-      border-radius: 14px;
-      padding: 12px;
-      margin-top: 20px;
-      text-align: center;
-      border: 1px solid #bee3f8;
-    }
-    .demo-card p {
-      color: #2c5282;
-      font-size: 0.8rem;
-      margin-bottom: 8px;
-    }
-    .demo-cred {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
-    .demo-cred span {
-      background: white;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-family: monospace;
-      font-size: 11px;
-      color: #2c5282;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .demo-cred span:hover {
-      background: #2c5282;
-      color: white;
-    }
-    .alert {
-      padding: 12px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      display: none;
-      animation: shake 0.5s ease;
-      font-size: 0.88rem;
-    }
-    @keyframes shake {
-      0%,
-      100% {
-        transform: translateX(0);
-      }
-      25% {
-        transform: translateX(-5px);
-      }
-      75% {
-        transform: translateX(5px);
-      }
-    }
-    .alert-error {
-      background: #fed7d7;
-      color: #c53030;
-      border-left: 4px solid #e53e3e;
-    }
-    .alert-success {
-      background: #c6f6d5;
-      color: #276749;
-      border-left: 4px solid #38a169;
-    }
-    .alert-info {
-      background: #ebf8ff;
-      color: #2c5282;
-      border-left: 4px solid #3498db;
-    }
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: none;
-    }
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-    .forgot-link {
-      text-align: right;
-      margin-top: -10px;
-      margin-bottom: 14px;
-    }
-    .forgot-link a {
-      color: #2c5282;
-      font-size: 0.78rem;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    .forgot-link a:hover {
-      text-decoration: underline;
-    }
-    .footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 0.7rem;
-      color: #a0aec0;
-    }
-    .legal-agreement {
-      margin: 20px 0 16px 0;
-      padding: 14px 16px;
-      background: #f7fafc;
-      border-radius: 14px;
-      border: 1px solid #e2e8f0;
-    }
-    .legal-agreement label {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-size: 0.85rem;
-      color: #2d3748;
-      cursor: pointer;
-    }
-    .legal-agreement input[type="checkbox"] {
-      margin-top: 3px;
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
-      accent-color: #2c5282;
-      cursor: pointer;
-    }
-    .legal-agreement a {
-      color: #2c5282;
-      font-weight: 600;
-      text-decoration: none;
-    }
-    .legal-agreement a:hover {
-      text-decoration: underline;
-    }
-    .legal-agreement .error-text {
-      color: #e53e3e;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-top: 6px;
-      display: none;
-    }
-    .legal-agreement .error-text.show {
-      display: block;
-    }
-    #sdkOverlay {
-      position: fixed;
-      inset: 0;
-      z-index: 99999;
-      background: rgba(12, 74, 110, 0.97);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Segoe UI', sans-serif;
-      color: white;
-      transition: opacity 0.3s ease;
-    }
-    #sdkOverlay .ov-spinner {
-      width: 44px;
-      height: 44px;
-      border: 3px solid rgba(255, 255, 255, 0.15);
-      border-top-color: #90cdf4;
-      border-radius: 50%;
-      animation: spin 0.75s linear infinite;
-      margin-bottom: 18px;
-    }
-    @media (max-width: 550px) {
-      .login-container {
-        padding: 30px 25px;
-      }
-      .social-buttons {
-        flex-direction: column;
-      }
-      .input-row {
-        grid-template-columns: 1fr;
-        gap: 0;
-      }
-      .logo h1 {
-        font-size: 1.6rem;
-      }
-    }
-    @keyframes slideUp2 {
-      from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-    }
-  </style>
+<head> 
+    <meta charset="UTF-8">
+    <script
+  src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js"
+  crossorigin="anonymous"
+></script> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EaseMed - Medical Professional Login & Signup</title>
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3c72">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="EaseMed">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="EaseMed Clinical Clerk System — medical history taking guide based on Hutchison's Clinical Methods">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0c4a6e 0%, #1e3a5f 25%, #2d3748 50%, #1a3a4f 75%, #0f2c44 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .medical-bg {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0; overflow: hidden;
+        }
+
+        .medical-bg::before {
+            content: '🫀';
+            position: absolute; font-size: 300px; opacity: 0.03;
+            bottom: -50px; right: -50px;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .medical-bg::after {
+            content: '🩺';
+            position: absolute; font-size: 250px; opacity: 0.03;
+            top: -50px; left: -50px;
+            animation: float 15s infinite ease-in-out reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0,0) rotate(0deg); }
+            50%       { transform: translate(-30px,-30px) rotate(10deg); }
+        }
+
+        .particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        .particle {
+            position: absolute;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            animation: particleFloat linear infinite;
+        }
+
+        @keyframes particleFloat {
+            0%   { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10%  { opacity: 0.5; }
+            90%  { opacity: 0.5; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .cross {
+            position: absolute; font-size: 40px; opacity: 0.05;
+            animation: crossRotate 30s linear infinite;
+        }
+
+        @keyframes crossRotate {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        .login-wrapper {
+            position: relative; z-index: 1;
+            min-height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            padding: 40px 20px;
+        }
+
+        .login-container {
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 40px; padding: 50px;
+            width: 550px; max-width: 100%;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2);
+            animation: slideUp 0.6s cubic-bezier(0.68,-0.55,0.265,1.55);
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 5px;
+            background: linear-gradient(90deg, #2ecc71, #3498db, #e74c3c, #f39c12, #2ecc71);
+            background-size: 200% 100%;
+            animation: gradientMove 3s linear infinite;
+            border-radius: 40px 40px 0 0;
+        }
+
+        @keyframes gradientMove {
+            0%   { background-position: 0% 0%; }
+            100% { background-position: 200% 0%; }
+        }
+
+        .tabs {
+            display: flex; gap: 10px; margin-bottom: 30px;
+            background: #f1f5f9; padding: 5px; border-radius: 60px;
+        }
+
+        .tab {
+            flex: 1; text-align: center; padding: 12px;
+            border: none; background: transparent;
+            font-size: 16px; font-weight: 600;
+            cursor: pointer; border-radius: 50px;
+            transition: all 0.3s; color: #64748b;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #2c5282, #1e3a5f);
+            color: white;
+            box-shadow: 0 5px 15px rgba(44,82,130,0.3);
+        }
+
+        .logo { text-align: center; margin-bottom: 30px; }
+
+        .logo-icon {
+            font-size: 70px;
+            animation: heartbeat 1.5s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.1); }
+        }
+
+        .logo h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #1e3a5f, #2c5282);
+            -webkit-background-clip: text; background-clip: text;
+            color: transparent; margin-top: 10px;
+        }
+
+        .logo p { color: #718096; font-size: 0.85rem; margin-top: 5px; }
+
+        .form { display: none; }
+
+        .form.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group { margin-bottom: 18px; position: relative; }
+
+        .input-group label {
+            display: block; margin-bottom: 6px;
+            font-weight: 600; color: #2d3748;
+            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%; padding: 14px 16px;
+            border: 2px solid #e2e8f0; border-radius: 14px;
+            font-size: 14px; transition: all 0.3s; background: white;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none; border-color: #2c5282;
+            box-shadow: 0 0 0 3px rgba(44,82,130,0.1);
+            transform: translateY(-2px);
+        }
+
+        /* ── Field error state ── */
+        .input-group input.field-error,
+        .input-group select.field-error {
+            border-color: #e53e3e !important;
+            box-shadow: 0 0 0 3px rgba(229,62,62,0.12) !important;
+            animation: fieldShake 0.4s ease;
+        }
+
+        @keyframes fieldShake {
+            0%,100% { transform: translateX(0); }
+            25%      { transform: translateX(-5px); }
+            75%      { transform: translateX(5px); }
+        }
+
+        .field-error-msg {
+            color: #e53e3e;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            animation: fadeInDown 0.2s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity:0; transform:translateY(-4px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* ── Password toggle wrapper ── */
+        .pw-wrap {
+            position: relative;
+        }
+
+        .pw-wrap input {
+            padding-right: 48px !important;
+        }
+
+        .pw-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #a0aec0;
+            font-size: 16px;
+            line-height: 1;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pw-toggle:hover { color: #2c5282; }
+
+        /* ── Password strength bar (signup only) ── */
+        .pw-strength {
+            height: 4px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .pw-strength-bar {
+            height: 100%;
+            border-radius: 999px;
+            width: 0%;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+
+        .pw-strength-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            margin-top: 4px;
+            color: #a0aec0;
+        }
+
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .login-btn, .signup-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #2c5282, #1e3a5f);
+            color: white; border: none; border-radius: 14px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+            transition: all 0.3s; margin-top: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        .login-btn:hover:not(:disabled), .signup-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(44,82,130,0.4);
+        }
+
+        .login-btn:disabled, .signup-btn:disabled {
+            opacity: 0.6; cursor: not-allowed; transform: none;
+        }
+
+        .divider {
+            display: flex; align-items: center;
+            text-align: center; margin: 25px 0;
+        }
+
+        .divider::before, .divider::after {
+            content: ''; flex: 1; border-bottom: 1px solid #e2e8f0;
+        }
+
+        .divider span { padding: 0 15px; color: #a0aec0; font-size: 0.8rem; }
+
+        .social-buttons { display: flex; gap: 15px; margin-bottom: 20px; }
+
+        .btn-google-full {
+            width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            padding: 13px 20px;
+            border-radius: 14px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            font-size: 15px; font-weight: 600; color: #3c4043;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            position: relative; overflow: hidden;
+        }
+
+        .btn-google-full:hover {
+            border-color: #4285F4;
+            background: #f8fbff;
+            box-shadow: 0 4px 14px rgba(66,133,244,0.2);
+            transform: translateY(-2px);
+            color: #1a73e8;
+        }
+
+        .btn-google-full:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-google-full img {
+            width: 20px; height: 20px; flex-shrink: 0;
+        }
+
+        .btn-google-full .google-label {
+            font-size: 15px; font-weight: 600;
+        }
+
+        .btn-google-full .google-sublabel {
+            font-size: 11px; color: #80868b; margin-left: 4px; font-weight: 400;
+        }
+
+        .btn-google-full::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(circle, rgba(66,133,244,0.12) 0%, transparent 70%);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .btn-google-full:hover::after { opacity: 1; }
+
+        .social-note {
+            text-align: center; font-size: 0.72rem; color: #a0aec0;
+            margin-top: -8px; margin-bottom: 16px;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .social-note::before, .social-note::after {
+            content: ''; flex: 1; height: 1px; background: #e2e8f0; max-width: 60px;
+        }
+
+        .demo-card {
+            background: linear-gradient(135deg, #ebf8ff, #e6f7ff);
+            border-radius: 14px; padding: 12px;
+            margin-top: 20px; text-align: center;
+            border: 1px solid #bee3f8;
+        }
+
+        .demo-card p { color: #2c5282; font-size: 0.8rem; margin-bottom: 8px; }
+
+        .demo-cred { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+
+        .demo-cred span {
+            background: white; padding: 5px 12px;
+            border-radius: 20px; font-family: monospace;
+            font-size: 11px; color: #2c5282;
+            cursor: pointer; transition: all 0.3s;
+        }
+
+        .demo-cred span:hover { background: #2c5282; color: white; }
+
+        .alert {
+            padding: 12px; border-radius: 12px;
+            margin-bottom: 20px; display: none;
+            animation: shake 0.5s ease;
+            font-size: 0.88rem;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%       { transform: translateX(-5px); }
+            75%       { transform: translateX(5px); }
+        }
+
+        .alert-error   { background: #fed7d7; color: #c53030; border-left: 4px solid #e53e3e; }
+        .alert-success { background: #c6f6d5; color: #276749; border-left: 4px solid #38a169; }
+        .alert-info    { background: #ebf8ff; color: #2c5282; border-left: 4px solid #3498db; }
+
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .forgot-link {
+            text-align: right; margin-top: -10px; margin-bottom: 14px;
+        }
+
+        .forgot-link a {
+            color: #2c5282; font-size: 0.78rem;
+            text-decoration: none; font-weight: 600;
+        }
+
+        .forgot-link a:hover { text-decoration: underline; }
+
+        .footer {
+            text-align: center; margin-top: 20px;
+            font-size: 0.7rem; color: #a0aec0;
+        }
+
+        /* ── Legal agreement section ── */
+        .legal-agreement {
+            margin: 20px 0 16px 0;
+            padding: 14px 16px;
+            background: #f7fafc;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .legal-agreement label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: #2d3748;
+            cursor: pointer;
+        }
+
+        .legal-agreement input[type="checkbox"] {
+            margin-top: 3px;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            accent-color: #2c5282;
+            cursor: pointer;
+        }
+
+        .legal-agreement a {
+            color: #2c5282;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .legal-agreement a:hover {
+            text-decoration: underline;
+        }
+
+        .legal-agreement .error-text {
+            color: #e53e3e;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .legal-agreement .error-text.show {
+            display: block;
+        }
+
+        /* ── SDK loading overlay ─────────────────────────────── */
+        #sdkOverlay {
+            position: fixed; inset: 0; z-index: 99999;
+            background: rgba(12, 74, 110, 0.97);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-family: 'Segoe UI', sans-serif; color: white;
+            transition: opacity 0.3s ease;
+        }
+        #sdkOverlay .ov-spinner {
+            width: 44px; height: 44px;
+            border: 3px solid rgba(255,255,255,0.15);
+            border-top-color: #90cdf4; border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            margin-bottom: 18px;
+        }
+
+        @media (max-width: 550px) {
+            .login-container { padding: 30px 25px; }
+            .social-buttons  { flex-direction: column; }
+            .input-row       { grid-template-columns: 1fr; gap: 0; }
+            .logo h1         { font-size: 1.6rem; }
+        }
+
+        @keyframes slideUp2 {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+    </style>
 </head>
 <body>
 
-  <div id="sdkOverlay">
+<!-- ── SDK loading overlay ──────────────────── -->
+<div id="sdkOverlay">
     <div style="font-size:3rem; margin-bottom:12px; animation:heartbeat 1.5s ease-in-out infinite; display:inline-block;">🏥</div>
     <div style="font-size:1.2rem; font-weight:700; letter-spacing:1px; margin-bottom:4px;">EaseMed</div>
     <div style="font-size:0.78rem; opacity:0.5; margin-bottom:28px;">Clinical Clerk System</div>
     <div class="ov-spinner"></div>
     <div style="font-size:0.75rem; opacity:0.4;" id="sdkStatus">Loading...</div>
-  </div>
+</div>
 
-  <script>
-    setTimeout(function() {
-      var ov = document.getElementById('sdkOverlay');
-      if (ov) {
-        ov.style.display = 'none';
+<!-- ── ULTIMATE OVERLAY KILLER (runs immediately, before any other script) ── -->
+<script>
+// This script runs immediately after the overlay is added to the DOM.
+// It will force-hide the overlay after 5 seconds, no matter what.
+setTimeout(function() {
+    var ov = document.getElementById('sdkOverlay');
+    if (ov) {
+        ov.style.display = 'none'; // instantly hide
+        // Also remove after a short delay to clean up
         setTimeout(function() {
-          if (ov.parentNode) ov.remove();
-          console.log('[EaseMed] Overlay killed by ultimate killer.');
+            if (ov.parentNode) ov.remove();
+            console.log('[EaseMed] Overlay killed by ultimate killer.');
         }, 100);
-      }
-    }, 5000);
-  </script>
+    }
+}, 5000);
+</script>
 
-  <div class="medical-bg">
+<div class="medical-bg">
     <div class="particles" id="particles"></div>
     <div class="cross" style="top:10%;left:5%;">✚</div>
     <div class="cross" style="bottom:15%;right:8%;">✚</div>
     <div class="cross" style="top:50%;left:85%;">✚</div>
-  </div>
+</div>
 
-  <div class="login-wrapper">
+<div class="login-wrapper">
     <div class="login-container">
 
-      <div class="logo">
-        <div class="logo-icon">🏥</div>
-        <h1>EaseMed</h1>
-        <p>Clinical Clerk System | Hutchison's Clinical Methods</p>
-      </div>
+        <div class="logo">
+            <div class="logo-icon">🏥</div>
+            <h1>EaseMed</h1>
+            <p>Clinical Clerk System | Hutchison's Clinical Methods</p>
+        </div>
 
-      <div id="alertMsg" class="alert"></div>
+        <div id="alertMsg" class="alert"></div>
 
-      <div class="tabs" id="mainTabs">
-        <button class="tab active" onclick="switchTab('login')">Login</button>
-        <button class="tab" onclick="switchTab('signup')">Sign Up</button>
-      </div>
+        <div class="tabs" id="mainTabs">
+            <button class="tab active" onclick="switchTab('login')">Login</button>
+            <button class="tab"        onclick="switchTab('signup')">Sign Up</button>
+        </div>
 
-      <!-- LOGIN FORM -->
-      <div id="loginForm" class="form active">
-        <div class="input-group">
-          <label>📧 Email Address</label>
-          <input type="email" id="loginEmail" placeholder="doctor@easemed.com">
-        </div>
-        <div class="input-group">
-          <label>🔒 Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="loginPassword" placeholder="••••••••">
-            <button type="button" class="pw-toggle" onclick="togglePassword('loginPassword', this)" tabindex="-1" aria-label="Show/hide password">👁️</button>
-          </div>
-        </div>
-        <div class="forgot-link">
-          <a href="#" onclick="handleForgotPassword(); return false;">Forgot password?</a>
-        </div>
-        <button id="loginBtn" class="login-btn" onclick="handleLogin()">
-          <span id="loginBtnText">Login to EaseMed</span>
-          <div class="spinner" id="loginSpinner"></div>
-        </button>
-        <div class="divider"><span>OR CONTINUE WITH</span></div>
-        <div class="social-buttons">
-          <button class="btn-google-full" onclick="socialLogin('google')">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23DB4437' d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'/%3E%3Cpath fill='%234285F4' d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'/%3E%3Cpath fill='%23FBBC05' d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'/%3E%3Cpath fill='%2334A853' d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'/%3E%3C/svg%3E">
-            <span class="google-label">Continue with Google</span>
-            <span class="google-sublabel">— fast &amp; secure</span>
-          </button>
-        </div>
-        <p class="social-note">Your Google account keeps your data safe</p>
-      </div>
-
-      <!-- SIGNUP FORM -->
-      <div id="signupForm" class="form">
-        <div class="input-group">
-          <label>👤 Full Name</label>
-          <input type="text" id="signupName" placeholder="Dr. John Doe">
-        </div>
-        <div class="input-row">
-          <div class="input-group">
-            <label>📧 Email</label>
-            <input type="email" id="signupEmail" placeholder="john@example.com">
-          </div>
-          <div class="input-group">
-            <label>📞 Phone (Optional)</label>
-            <input type="tel" id="signupPhone" placeholder="+256...">
-          </div>
-        </div>
-        <div class="input-row">
-          <div class="input-group">
-            <label>🔒 Password</label>
-            <div class="pw-wrap">
-              <input type="password" id="signupPassword" placeholder="Min. 6 characters" oninput="checkPasswordStrength(this.value)">
-              <button type="button" class="pw-toggle" onclick="togglePassword('signupPassword', this)" tabindex="-1" aria-label="Show/hide password">👁️</button>
+        <!-- ── LOGIN FORM ───────────────────────────────────── -->
+        <div id="loginForm" class="form active">
+            <div class="input-group">
+                <label>📧 Email Address</label>
+                <input type="email" id="loginEmail" placeholder="doctor@easemed.com">
             </div>
-            <div class="pw-strength"><div class="pw-strength-bar" id="pwStrengthBar"></div></div>
-            <div class="pw-strength-label" id="pwStrengthLabel"></div>
-          </div>
-          <div class="input-group">
-            <label>🔒 Confirm Password</label>
-            <div class="pw-wrap">
-              <input type="password" id="signupConfirmPassword" placeholder="Confirm password" oninput="checkPasswordMatch()">
-              <button type="button" class="pw-toggle" onclick="togglePassword('signupConfirmPassword', this)" tabindex="-1" aria-label="Show/hide password">👁️</button>
+            <div class="input-group">
+                <label>🔒 Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="loginPassword" placeholder="••••••••">
+                    <button type="button" class="pw-toggle" onclick="togglePassword('loginPassword', this)" tabindex="-1" aria-label="Show/hide password">
+                        👁️
+                    </button>
+                </div>
             </div>
-            <div class="field-error-msg" id="pwMatchMsg" style="display:none;">❌ Passwords do not match</div>
-          </div>
-        </div>
-        <div class="input-row">
-          <div class="input-group">
-            <label>🏥 Role</label>
-            <select id="signupRole">
-              <option value="">Select Role</option>
-              <option>Medical Student</option>
-              <option>Intern Doctor</option>
-              <option>Resident Doctor</option>
-              <option>Consultant</option>
-              <option>Clinical Officer</option>
-              <option>Nurse</option>
-              <option>Medical Educator</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label>🎓 University / Institution</label>
-            <input type="text" id="signupUniversity" placeholder="e.g., Makerere University">
-          </div>
-        </div>
-        <div class="input-row">
-          <div class="input-group">
-            <label>📚 Year of Study</label>
-            <select id="signupYear">
-              <option value="">Select Year</option>
-              <option>Year 1</option><option>Year 2</option>
-              <option>Year 3</option><option>Year 4</option>
-              <option>Year 5</option><option>Year 6</option>
-              <option>Postgraduate Year 1</option>
-              <option>Postgraduate Year 2</option>
-              <option>Postgraduate Year 3</option>
-              <option>Graduated / Professional</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label>🆔 License No. (Optional)</label>
-            <input type="text" id="signupLicense" placeholder="e.g., UMC-2024-XXXX">
-          </div>
-        </div>
-        <div class="input-group">
-          <label>📍 Practice Location / Hospital</label>
-          <input type="text" id="signupLocation" placeholder="e.g., Mulago National Referral Hospital">
+
+            <div class="forgot-link">
+                <a href="#" onclick="handleForgotPassword(); return false;">Forgot password?</a>
+            </div>
+
+            <button id="loginBtn" class="login-btn" onclick="handleLogin()">
+                <span id="loginBtnText">Login to EaseMed</span>
+                <div class="spinner" id="loginSpinner"></div>
+            </button>
+
+            <div class="divider"><span>OR CONTINUE WITH</span></div>
+
+            <div class="social-buttons">
+                <button class="btn-google-full" onclick="socialLogin('google')">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23DB4437' d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'/%3E%3Cpath fill='%234285F4' d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'/%3E%3Cpath fill='%23FBBC05' d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'/%3E%3Cpath fill='%2334A853' d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'/%3E%3C/svg%3E">
+                    <span class="google-label">Continue with Google</span>
+                    <span class="google-sublabel">— fast &amp; secure</span>
+                </button>
+            </div>
+            <p class="social-note">Your Google account keeps your data safe</p>
         </div>
 
-        <div class="legal-agreement">
-          <label>
-            <input type="checkbox" id="agreeCheckbox">
-            <span>
-              I have read and agree to the
-              <a href="terms.html" target="_blank">Terms &amp; Conditions</a>
-              and the
-              <a href="privacy.html" target="_blank">Privacy Policy</a>.
-              I understand that EaseMed is an educational tool.
-            </span>
-          </label>
-          <div class="error-text" id="agreeError">⚠️ You must agree to the Terms and Privacy Policy to create an account.</div>
+        <!-- ── SIGNUP FORM ──────────────────────────────────── -->
+        <div id="signupForm" class="form">
+            <div class="input-group">
+                <label>👤 Full Name</label>
+                <input type="text" id="signupName" placeholder="Dr. John Doe">
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>📧 Email</label>
+                    <input type="email" id="signupEmail" placeholder="john@example.com">
+                </div>
+                <div class="input-group">
+                    <label>📞 Phone (Optional)</label>
+                    <input type="tel" id="signupPhone" placeholder="+256...">
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>🔒 Password</label>
+                    <div class="pw-wrap">
+                        <input type="password" id="signupPassword" placeholder="Min. 6 characters" oninput="checkPasswordStrength(this.value)">
+                        <button type="button" class="pw-toggle" onclick="togglePassword('signupPassword', this)" tabindex="-1" aria-label="Show/hide password">
+                            👁️
+                        </button>
+                    </div>
+                    <div class="pw-strength"><div class="pw-strength-bar" id="pwStrengthBar"></div></div>
+                    <div class="pw-strength-label" id="pwStrengthLabel"></div>
+                </div>
+                <div class="input-group">
+                    <label>🔒 Confirm Password</label>
+                    <div class="pw-wrap">
+                        <input type="password" id="signupConfirmPassword" placeholder="Confirm password" oninput="checkPasswordMatch()">
+                        <button type="button" class="pw-toggle" onclick="togglePassword('signupConfirmPassword', this)" tabindex="-1" aria-label="Show/hide password">
+                            👁️
+                        </button>
+                    </div>
+                    <div class="field-error-msg" id="pwMatchMsg" style="display:none;">❌ Passwords do not match</div>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>🏥 Role</label>
+                    <select id="signupRole">
+                        <option value="">Select Role</option>
+                        <option>Medical Student</option>
+                        <option>Intern Doctor</option>
+                        <option>Resident Doctor</option>
+                        <option>Consultant</option>
+                        <option>Clinical Officer</option>
+                        <option>Nurse</option>
+                        <option>Medical Educator</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>🎓 University / Institution</label>
+                    <input type="text" id="signupUniversity" placeholder="e.g., Makerere University">
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label>📚 Year of Study</label>
+                    <select id="signupYear">
+                        <option value="">Select Year</option>
+                        <option>Year 1</option><option>Year 2</option>
+                        <option>Year 3</option><option>Year 4</option>
+                        <option>Year 5</option><option>Year 6</option>
+                        <option>Postgraduate Year 1</option>
+                        <option>Postgraduate Year 2</option>
+                        <option>Postgraduate Year 3</option>
+                        <option>Graduated / Professional</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>🆔 License No. (Optional)</label>
+                    <input type="text" id="signupLicense" placeholder="e.g., UMC-2024-XXXX">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>📍 Practice Location / Hospital</label>
+                <input type="text" id="signupLocation" placeholder="e.g., Mulago National Referral Hospital">
+            </div>
+
+            <!-- ── LEGAL AGREEMENT ────────────────────────────── -->
+            <div class="legal-agreement">
+                <label>
+                    <input type="checkbox" id="agreeCheckbox">
+                    <span>
+                        I have read and agree to the 
+                        <a href="terms.html" target="_blank">Terms &amp; Conditions</a> 
+                        and the 
+                        <a href="privacy.html" target="_blank">Privacy Policy</a>.
+                        I understand that EaseMed is an educational tool.
+                    </span>
+                </label>
+                <div class="error-text" id="agreeError">⚠️ You must agree to the Terms and Privacy Policy to create an account.</div>
+            </div>
+
+            <!-- ── SINGLE CREATE ACCOUNT BUTTON ──────────────── -->
+            <button id="signupBtn" class="signup-btn" disabled>
+                <span id="signupBtnText">Create Account</span>
+                <div class="spinner" id="signupSpinner"></div>
+            </button>
+
+            <div class="divider"><span>OR SIGN UP WITH</span></div>
+
+            <div class="social-buttons">
+                <button class="btn-google-full" onclick="socialLogin('google')">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23DB4437' d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'/%3E%3Cpath fill='%234285F4' d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'/%3E%3Cpath fill='%23FBBC05' d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'/%3E%3Cpath fill='%2334A853' d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'/%3E%3C/svg%3E">
+                    <span class="google-label">Sign up with Google</span>
+                    <span class="google-sublabel">— no password needed</span>
+                </button>
+            </div>
+            <p class="social-note">One click — your Google account handles the rest</p>
         </div>
 
-        <button id="signupBtn" class="signup-btn" disabled>
-          <span id="signupBtnText">Create Account</span>
-          <div class="spinner" id="signupSpinner"></div>
-        </button>
-
-        <div class="divider"><span>OR SIGN UP WITH</span></div>
-        <div class="social-buttons">
-          <button class="btn-google-full" onclick="socialLogin('google')">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23DB4437' d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'/%3E%3Cpath fill='%234285F4' d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'/%3E%3Cpath fill='%23FBBC05' d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'/%3E%3Cpath fill='%2334A853' d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'/%3E%3C/svg%3E">
-            <span class="google-label">Sign up with Google</span>
-            <span class="google-sublabel">— no password needed</span>
-          </button>
+        <!-- ── SET NEW PASSWORD FORM ──────────────────────────── -->
+        <div id="resetForm" class="form">
+            <p style="text-align:center; color:#4a5568; font-size:0.85rem; margin-bottom:20px;">
+                🔑 You're verified — set a new password for your account below.
+            </p>
+            <div class="input-group">
+                <label>🔒 New Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="resetPassword" placeholder="Min. 6 characters" oninput="checkPasswordStrength(this.value, 'resetPwStrengthBar', 'resetPwStrengthLabel')">
+                    <button type="button" class="pw-toggle" onclick="togglePassword('resetPassword', this)" tabindex="-1" aria-label="Show/hide password">
+                        👁️
+                    </button>
+                </div>
+                <div class="pw-strength"><div class="pw-strength-bar" id="resetPwStrengthBar"></div></div>
+                <div class="pw-strength-label" id="resetPwStrengthLabel"></div>
+            </div>
+            <div class="input-group">
+                <label>🔒 Confirm New Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="resetConfirmPassword" placeholder="Confirm new password" oninput="checkResetPasswordMatch()">
+                    <button type="button" class="pw-toggle" onclick="togglePassword('resetConfirmPassword', this)" tabindex="-1" aria-label="Show/hide password">
+                        👁️
+                    </button>
+                </div>
+                <div class="field-error-msg" id="resetPwMatchMsg" style="display:none;">❌ Passwords do not match</div>
+            </div>
+            <button id="resetBtn" class="login-btn" onclick="handleSetNewPassword()">
+                <span id="resetBtnText">Set New Password</span>
+                <div class="spinner" id="resetSpinner"></div>
+            </button>
         </div>
-        <p class="social-note">One click — your Google account handles the rest</p>
-      </div>
 
-      <!-- RESET PASSWORD FORM -->
-      <div id="resetForm" class="form">
-        <p style="text-align:center; color:#4a5568; font-size:0.85rem; margin-bottom:20px;">
-          🔑 You're verified — set a new password for your account below.
-        </p>
-        <div class="input-group">
-          <label>🔒 New Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="resetPassword" placeholder="Min. 6 characters" oninput="checkPasswordStrength(this.value, 'resetPwStrengthBar', 'resetPwStrengthLabel')">
-            <button type="button" class="pw-toggle" onclick="togglePassword('resetPassword', this)" tabindex="-1" aria-label="Show/hide password">👁️</button>
-          </div>
-          <div class="pw-strength"><div class="pw-strength-bar" id="resetPwStrengthBar"></div></div>
-          <div class="pw-strength-label" id="resetPwStrengthLabel"></div>
+        <div class="footer">
+            <p>Secure Medical Platform | Powered by Supabase | Data Protected</p>
+            <p>© 2026 EaseMed - Clinical Clerk System</p>
         </div>
-        <div class="input-group">
-          <label>🔒 Confirm New Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="resetConfirmPassword" placeholder="Confirm new password" oninput="checkResetPasswordMatch()">
-            <button type="button" class="pw-toggle" onclick="togglePassword('resetConfirmPassword', this)" tabindex="-1" aria-label="Show/hide password">👁️</button>
-          </div>
-          <div class="field-error-msg" id="resetPwMatchMsg" style="display:none;">❌ Passwords do not match</div>
-        </div>
-        <button id="resetBtn" class="login-btn" onclick="handleSetNewPassword()">
-          <span id="resetBtnText">Set New Password</span>
-          <div class="spinner" id="resetSpinner"></div>
-        </button>
-      </div>
-
-      <div class="footer">
-        <p>Secure Medical Platform | Powered by Supabase | Data Protected</p>
-        <p>© 2026 EaseMed - Clinical Clerk System</p>
-      </div>
     </div>
-  </div>
+</div>
 
-  <script>
-    // ================================================================
-    //  EASEMED — SUPABASE AUTH
-    // ================================================================
+<!-- ─── MAIN SCRIPT ─── -->
+<script>
+// ================================================================
+//  EASEMED — SUPABASE AUTH
+// ================================================================
 
-    const DASHBOARD_URL = 'modules.html';
-    let inPasswordRecovery = false;
-    let sb;
-    let sessionCheckInterval = null;
+const DASHBOARD_URL = 'modules.html';
 
-    // ── Helpers ──────────────────────────────────────────────────
-    function showAlert(msg, type = 'error') {
-      const el = document.getElementById('alertMsg');
-      el.textContent = msg;
-      el.className = `alert alert-${type}`;
-      el.style.display = 'block';
-      setTimeout(() => { el.style.display = 'none'; }, 6000);
-    }
+let inPasswordRecovery = false;
 
-    function setLoading(btnId, spinnerId, textId, loading, label) {
-      const btn = document.getElementById(btnId);
-      const spin = document.getElementById(spinnerId);
-      const txt = document.getElementById(textId);
-      if (btn) btn.disabled = loading;
-      if (spin) spin.style.display = loading ? 'block' : 'none';
-      if (txt) txt.textContent = loading ? 'Please wait...' : label;
-    }
+// ── Helpers ──────────────────────────────────────────────────
+function showAlert(msg, type = 'error') {
+    const el = document.getElementById('alertMsg');
+    el.textContent  = msg;
+    el.className    = `alert alert-${type}`;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
 
-    function switchTab(tab) {
-      const lf = document.getElementById('loginForm');
-      const sf = document.getElementById('signupForm');
-      const rf = document.getElementById('resetForm');
-      const tabs = document.querySelectorAll('#mainTabs .tab');
-      rf.classList.remove('active');
-      if (tab === 'login') {
-        lf.classList.add('active');
-        sf.classList.remove('active');
-        tabs[0].classList.add('active');
-        tabs[1].classList.remove('active');
+function setLoading(btnId, spinnerId, textId, loading, label) {
+    const btn  = document.getElementById(btnId);
+    const spin = document.getElementById(spinnerId);
+    const txt  = document.getElementById(textId);
+    if (btn)  btn.disabled          = loading;
+    if (spin) spin.style.display    = loading ? 'block' : 'none';
+    if (txt)  txt.textContent       = loading ? 'Please wait...' : label;
+}
+
+function switchTab(tab) {
+    const lf   = document.getElementById('loginForm');
+    const sf   = document.getElementById('signupForm');
+    const rf   = document.getElementById('resetForm');
+    const tabs = document.querySelectorAll('#mainTabs .tab');
+
+    rf.classList.remove('active');
+
+    if (tab === 'login') {
+        lf.classList.add('active');    sf.classList.remove('active');
+        tabs[0].classList.add('active'); tabs[1].classList.remove('active');
         document.getElementById('agreeError').classList.remove('show');
-      } else {
-        lf.classList.remove('active');
-        sf.classList.add('active');
-        tabs[0].classList.remove('active');
-        tabs[1].classList.add('active');
-      }
+    } else {
+        lf.classList.remove('active'); sf.classList.add('active');
+        tabs[0].classList.remove('active'); tabs[1].classList.add('active');
     }
+}
 
-    function showResetForm() {
-      document.getElementById('loginForm').classList.remove('active');
-      document.getElementById('signupForm').classList.remove('active');
-      document.getElementById('resetForm').classList.add('active');
-      document.getElementById('mainTabs').style.display = 'none';
-      showAlert('🔑 Please set a new password to finish resetting your account.', 'info');
-    }
+function showResetForm() {
+    document.getElementById('loginForm').classList.remove('active');
+    document.getElementById('signupForm').classList.remove('active');
+    document.getElementById('resetForm').classList.add('active');
+    document.getElementById('mainTabs').style.display = 'none';
+    showAlert('🔑 Please set a new password to finish resetting your account.', 'info');
+}
 
-    function hideOverlay() {
-      const ov = document.getElementById('sdkOverlay');
-      if (!ov) return;
-      ov.style.display = 'none';
-      setTimeout(() => { if (ov.parentNode) ov.remove(); }, 100);
-    }
+function hideOverlay() {
+    const ov = document.getElementById('sdkOverlay');
+    if (!ov) return;
+    ov.style.display = 'none';
+    setTimeout(() => {
+        if (ov.parentNode) ov.remove();
+    }, 100);
+}
 
-    function setOverlayStatus(msg) {
-      const el = document.getElementById('sdkStatus');
-      if (el) el.textContent = msg;
-    }
+function setOverlayStatus(msg) {
+    const el = document.getElementById('sdkStatus');
+    if (el) el.textContent = msg;
+}
 
-    function withTimeout(promise, ms, label) {
-      return Promise.race([
+// ── Timeout wrapper ─────────────────────────────────────────
+function withTimeout(promise, ms, label) {
+    return Promise.race([
         promise,
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms)
+            setTimeout(() => reject(new Error(`${label} timed out after ${ms/1000}s`)), ms)
         )
-      ]);
-    }
+    ]);
+}
 
-    function waitForSDK(maxWaitMs = 8000) {
-      return new Promise((resolve, reject) => {
+// ── Wait for the `supabase` global ──────────────────────────
+function waitForSDK(maxWaitMs = 8000) {
+    return new Promise((resolve, reject) => {
         if (typeof supabase !== 'undefined' && supabase.createClient) {
-          resolve();
-          return;
-        }
-        const start = Date.now();
-        const interval = setInterval(() => {
-          if (typeof supabase !== 'undefined' && supabase.createClient) {
-            clearInterval(interval);
             resolve();
-          } else if (Date.now() - start > maxWaitMs) {
-            clearInterval(interval);
-            reject(new Error('Supabase SDK failed to load. Check your internet connection.'));
-          }
+            return;
+        }
+        const start    = Date.now();
+        const interval = setInterval(() => {
+            if (typeof supabase !== 'undefined' && supabase.createClient) {
+                clearInterval(interval);
+                resolve();
+            } else if (Date.now() - start > maxWaitMs) {
+                clearInterval(interval);
+                reject(new Error('Supabase SDK failed to load. Check your internet connection.'));
+            } 
         }, 100);
-      });
-    }
+    });
+}
 
-    // ── SESSION VALIDATION ──────────────────────────────────────
-    async function validateSession() {
-      if (!sb) return false;
+// ── Boot sequence ─────────────────────────────────────────────
+let sb;
+// Check if this is a password recovery link
+const hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
+const tokenType = hashParams.get('type');
+if (tokenType === 'recovery') {
+    inPasswordRecovery = true;
+}
+// Remove hash from URL to prevent it from persisting
+if (window.location.hash) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+}
 
-      const storedToken = localStorage.getItem('easemed_session_token');
-      if (!storedToken) {
-        console.log('[EaseMed] No session token found');
-        return false;
-      }
+(async function boot() {
+    setOverlayStatus('Loading SDK...');
 
-      const { data: { user } } = await sb.auth.getUser();
-      if (!user) {
-        console.log('[EaseMed] No authenticated user');
-        return false;
-      }
-
-      try {
-        const { data, error } = await sb
-          .from('active_sessions')
-          .select('session_token, last_seen')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error || !data) {
-          console.warn('[EaseMed] No session in database:', error?.message);
-          return false;
-        }
-
-        if (data.session_token !== storedToken) {
-          console.warn('[EaseMed] Session token mismatch - logged in elsewhere');
-          return false;
-        }
-
-        // Check for session expiration (30 minutes inactivity)
-        if (data.last_seen) {
-          const lastSeen = new Date(data.last_seen);
-          const now = new Date();
-          const minutesSinceLastSeen = (now - lastSeen) / 1000 / 60;
-          if (minutesSinceLastSeen > 30) {
-            console.warn('[EaseMed] Session expired (inactive for 30+ minutes)');
-            return false;
-          }
-        }
-
-        // Update last_seen
-        await sb
-          .from('active_sessions')
-          .update({ last_seen: new Date().toISOString() })
-          .eq('user_id', user.id);
-
-        return true;
-      } catch (e) {
-        console.warn('[EaseMed] Session validation error:', e.message);
-        return false;
-      }
-    }
-
-    // ── SESSION MONITORING ─────────────────────────────────────
-    function startSessionMonitoring() {
-      if (sessionCheckInterval) {
-        clearInterval(sessionCheckInterval);
-        sessionCheckInterval = null;
-      }
-
-      sessionCheckInterval = setInterval(async () => {
-        const isValid = await validateSession();
-        if (!isValid) {
-          console.warn('[EaseMed] Session invalidated on another device');
-          clearInterval(sessionCheckInterval);
-          sessionCheckInterval = null;
-          showSessionExpiredAlert();
-        }
-      }, 30000);
-    }
-
-    function stopSessionMonitoring() {
-      if (sessionCheckInterval) {
-        clearInterval(sessionCheckInterval);
-        sessionCheckInterval = null;
-      }
-    }
-
-    function showSessionExpiredAlert() {
-      const alertDiv = document.createElement('div');
-      alertDiv.style.cssText = `
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: #e53e3e; color: white; padding: 16px 24px;
-            border-radius: 12px; font-weight: 600; z-index: 99999;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            text-align: center; max-width: 500px;
-            animation: slideUp2 0.4s ease;
-          `;
-      alertDiv.textContent = '⚠️ You have been logged out on another device. Redirecting...';
-      document.body.appendChild(alertDiv);
-
-      setTimeout(() => {
-        localStorage.removeItem('easemed_user');
-        localStorage.removeItem('easemed_user_name');
-        localStorage.removeItem('easemed_session_token');
-        localStorage.removeItem('easemed_pending_user_id');
-        localStorage.removeItem('easemed_pending_email');
-        localStorage.removeItem('easemed_pending_name');
-
-        if (sb) {
-          sb.auth.signOut().catch(() => {});
-        }
-        window.location.href = 'easemed_login.html';
-      }, 2500);
-    }
-
-    // ── Boot ──────────────────────────────────────────────────────────
-    const hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
-    const tokenType = hashParams.get('type');
-    if (tokenType === 'recovery') {
-      inPasswordRecovery = true;
-    }
-    if (window.location.hash) {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-    }
-
-    (async function boot() {
-      setOverlayStatus('Loading SDK...');
-      try {
+    try {
         await waitForSDK(8000);
-      } catch (e) {
+    } catch (e) {
         setOverlayStatus('❌ ' + e.message);
         setTimeout(hideOverlay, 3000);
         return;
-      }
+    }
 
-      const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-      const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+    const SUPABASE_URL  = 'https://uhjcybwczelmqkkapeac.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
-      try {
+    try {
         sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-      } catch (e) {
+    } catch (e) {
         setOverlayStatus('❌ Could not initialise Supabase: ' + e.message);
         setTimeout(hideOverlay, 3000);
         return;
-      }
+    }
 
-      let redirecting = false;
+// ── Auth state listener ──────────────────────────────────────
+let redirecting = false;
 
-      sb.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          inPasswordRecovery = true;
-          hideOverlay();
-          showResetForm();
-          return;
-        }
+sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+        inPasswordRecovery = true;
+        hideOverlay();
+        showResetForm();
+        return;
+    }
 
-        if (event === 'SIGNED_IN' && session && !inPasswordRecovery && !redirecting) {
-          redirecting = true;
-          const user = session.user;
-          const email = user.email || user.user_metadata?.email;
-          const name = user.user_metadata?.full_name ||
-            user.user_metadata?.name ||
-            email || 'Unknown';
+    if (event === 'SIGNED_IN' && session && !inPasswordRecovery && !redirecting) {
+        redirecting = true;
+        const user = session.user;
+        const email = user.email || user.user_metadata?.email;
+        const name = user.user_metadata?.full_name ||
+                     user.user_metadata?.name ||
+                     email || 'Unknown';
 
-          localStorage.setItem('easemed_user', email);
-          localStorage.setItem('easemed_user_name', name);
+        localStorage.setItem('easemed_user', email);
+        localStorage.setItem('easemed_user_name', name);
+        
+     // ── CHECK IF PROFILE IS COMPLETE ──────────────────
+// A brand-new Google sign-in has NO profiles row yet, so `profile`
+// comes back null with no error. Treat "no row" the same as "row
+// with blank fields" — both mean incomplete. Otherwise first-time
+// Google users skip this gate entirely and land on the dashboard
+// with blank university/year/phone (the bug you just saw).
+const { data: profile, error: profileError } = await sb
+    .from('profiles')
+    .select('university, year_of_study, phone')
+    .eq('id', user.id)
+    .maybeSingle();
 
-          await claimSession(user);
+if (!profileError) {
+    const missingFields = [];
+    if (!profile?.university) missingFields.push('university');
+    if (!profile?.year_of_study) missingFields.push('year_of_study');
+    if (!profile?.phone) missingFields.push('phone');
 
-          const { data: profile, error: profileError } = await sb
-            .from('profiles')
-            .select('university, year_of_study, phone')
-            .eq('id', user.id)
-            .maybeSingle();
+    if (missingFields.length > 0) {
+        // complete-profile.html does an UPDATE, not an upsert, so make
+        // sure a row actually exists before sending a first-timer there.
+        await upsertProfile(user, { name, email });
 
-          if (!profileError) {
-            const missingFields = [];
-            if (!profile?.university) missingFields.push('university');
-            if (!profile?.year_of_study) missingFields.push('year_of_study');
-            if (!profile?.phone) missingFields.push('phone');
+        localStorage.setItem('easemed_pending_user_id', user.id);
+        localStorage.setItem('easemed_pending_email', email);
+        localStorage.setItem('easemed_pending_name', name);
+        window.location.href = 'complete-profile.html';
+        return;
+    }
+}
 
-            if (missingFields.length > 0) {
-              await upsertProfile(user, { name, email });
-              localStorage.setItem('easemed_pending_user_id', user.id);
-              localStorage.setItem('easemed_pending_email', email);
-              localStorage.setItem('easemed_pending_name', name);
-              window.location.href = 'complete-profile.html';
-              return;
-            }
-          }
+await upsertProfile(user, { name, email });
+window.location.href = DASHBOARD_URL;
+return;
+    }
 
-          await upsertProfile(user, { name, email });
-          window.location.href = DASHBOARD_URL;
-          return;
-        }
+    if (event === 'SIGNED_OUT') {
+        localStorage.removeItem('easemed_user');
+        localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_pending_user_id');
+        localStorage.removeItem('easemed_pending_email');
+        localStorage.removeItem('easemed_pending_name');
+    }
 
-        if (event === 'SIGNED_OUT') {
-          stopSessionMonitoring();
-          localStorage.removeItem('easemed_user');
-          localStorage.removeItem('easemed_user_name');
-          localStorage.removeItem('easemed_pending_user_id');
-          localStorage.removeItem('easemed_pending_email');
-          localStorage.removeItem('easemed_pending_name');
-          localStorage.removeItem('easemed_session_token');
-        }
+    if (event === 'TOKEN_REFRESH_FAILED') {
+        console.warn('[EaseMed] Token refresh failed, clearing session.');
+        localStorage.removeItem('easemed_user');
+        localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_pending_user_id');
+        localStorage.removeItem('easemed_pending_email');
+        localStorage.removeItem('easemed_pending_name');
+        await sb.auth.signOut();
+    }
+});
 
-        if (event === 'TOKEN_REFRESH_FAILED') {
-          console.warn('[EaseMed] Token refresh failed, clearing session.');
-          stopSessionMonitoring();
-          localStorage.removeItem('easemed_user');
-          localStorage.removeItem('easemed_user_name');
-          localStorage.removeItem('easemed_pending_user_id');
-          localStorage.removeItem('easemed_pending_email');
-          localStorage.removeItem('easemed_pending_name');
-          localStorage.removeItem('easemed_session_token');
-          await sb.auth.signOut();
-        }
-      });
-
-      setOverlayStatus('Checking session...');
-      try {
+    // ── Check existing session ──────────────────────────────
+    setOverlayStatus('Checking session...');
+    try {
         const { data: { session }, error: sessionError } = await withTimeout(
-          sb.auth.getSession(), 8000, 'Session check'
+            sb.auth.getSession(), 8000, 'Session check'
         );
+
         if (sessionError) {
-          console.warn('[EaseMed] Session check returned error, clearing:', sessionError.message);
-          localStorage.removeItem('easemed_user');
-          localStorage.removeItem('easemed_user_name');
-          localStorage.removeItem('easemed_session_token');
-          await sb.auth.signOut();
+            console.warn('[EaseMed] Session check returned error, clearing:', sessionError.message);
+            localStorage.removeItem('easemed_user');
+            localStorage.removeItem('easemed_user_name');
+            await sb.auth.signOut();
         } else if (session && !inPasswordRecovery && !redirecting) {
-          const isValid = await validateSession();
-          if (isValid) {
             redirecting = true;
             window.location.href = DASHBOARD_URL;
             return;
-          } else {
-            console.warn('[EaseMed] Session validation failed, clearing and redirecting to login');
-            localStorage.removeItem('easemed_user');
-            localStorage.removeItem('easemed_user_name');
-            localStorage.removeItem('easemed_session_token');
-            await sb.auth.signOut();
-          }
         }
-      } catch (e) {
+    } catch (e) {
         console.warn('[EaseMed] Session check failed, clearing local session:', e.message);
         localStorage.removeItem('easemed_user');
         localStorage.removeItem('easemed_user_name');
-        localStorage.removeItem('easemed_session_token');
         try { await sb.auth.signOut(); } catch (_) {}
-      }
+    }
 
-      if (!inPasswordRecovery) {
+    // ── Hide overlay (if not already hidden) ────────────────
+    if (!inPasswordRecovery) {
         hideOverlay();
-      }
+    }
 
-      setTimeout(function() {
+    // ── Extra fallback: hide after 4 seconds (ignores flags) ──
+    setTimeout(function() {
         hideOverlay();
-      }, 4000);
+    }, 4000);
 
-      setTimeout(() => {
+    // ── Fallback "Continue" button ─────────────────────────
+    setTimeout(() => {
         const storedUser = localStorage.getItem('easemed_user');
         if (storedUser && !redirecting) {
-          const loginForm = document.getElementById('loginForm');
-          if (loginForm) {
-            const existingBtn = document.getElementById('fallbackContinueBtn');
-            if (existingBtn) existingBtn.remove();
-            const btn = document.createElement('button');
-            btn.id = 'fallbackContinueBtn';
-            btn.textContent = '🚀 Continue to App';
-            btn.style.cssText = `
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                const existingBtn = document.getElementById('fallbackContinueBtn');
+                if (existingBtn) existingBtn.remove();
+
+                const btn = document.createElement('button');
+                btn.id = 'fallbackContinueBtn';
+                btn.textContent = '🚀 Continue to App';
+                btn.style.cssText = `
                     display: block;
                     margin: 20px auto 0;
                     padding: 14px 30px;
@@ -1260,715 +1019,600 @@
                     transition: all 0.3s;
                     width: 100%;
                     max-width: 300px;
-                  `;
-            btn.onmouseover = () => btn.style.transform = 'scale(1.02)';
-            btn.onmouseout = () => btn.style.transform = 'scale(1)';
-            btn.onclick = async () => {
-              const isValid = await validateSession();
-              if (isValid) {
-                window.location.href = DASHBOARD_URL;
-              } else {
-                showAlert('⚠️ Your session is no longer valid. Please login again.', 'error');
-                localStorage.removeItem('easemed_user');
-                localStorage.removeItem('easemed_user_name');
-                localStorage.removeItem('easemed_session_token');
-                btn.remove();
-              }
-            };
-            loginForm.appendChild(btn);
-          }
+                `;
+                btn.onmouseover = () => btn.style.transform = 'scale(1.02)';
+                btn.onmouseout  = () => btn.style.transform = 'scale(1)';
+                btn.onclick = () => {
+                    window.location.href = DASHBOARD_URL;
+                };
+                loginForm.appendChild(btn);
+            }
         }
-      }, 3500);
+    }, 3500);
 
-      createParticles();
+    createParticles();
 
-      const agreeCheckbox = document.getElementById('agreeCheckbox');
-      const signupBtn = document.getElementById('signupBtn');
-      if (agreeCheckbox && signupBtn) {
+    // ── Setup signup checkbox ──────────────────────────────
+    const agreeCheckbox = document.getElementById('agreeCheckbox');
+    const signupBtn = document.getElementById('signupBtn');
+    if (agreeCheckbox && signupBtn) {
         agreeCheckbox.addEventListener('change', function() {
-          signupBtn.disabled = !this.checked;
-          if (this.checked) {
-            document.getElementById('agreeError').classList.remove('show');
-          }
+            signupBtn.disabled = !this.checked;
+            if (this.checked) {
+                document.getElementById('agreeError').classList.remove('show');
+            }
         });
         if (agreeCheckbox.checked) {
-          signupBtn.disabled = false;
+            signupBtn.disabled = false;
         }
-      }
-      if (signupBtn) {
-        signupBtn.addEventListener('click', handleSignup);
-      }
-    })();
+    }
 
-    // ── FIXED UPSERT PROFILE ─────────────────────────────────────────
-    async function upsertProfile(user, extra) {
-      if (!sb) {
+    if (signupBtn) {
+        signupBtn.addEventListener('click', handleSignup);
+    }
+})();
+
+// ── Upsert profile ──────────────────────────────────────────
+async function upsertProfile(user, extra) {
+    if (!sb) {
         console.warn('[EaseMed] Supabase client not initialized');
         return;
-      }
-      if (!user || !user.id) {
+    }
+
+    if (!user || !user.id) {
         console.warn('[EaseMed] Invalid user object provided');
         return;
-      }
+    }
 
-      const email = user.email ||
-        extra?.email ||
-        user.user_metadata?.email ||
-        user.user_metadata?.email_address ||
-        null;
+    const email = user.email ||
+                  extra?.email ||
+                  user.user_metadata?.email ||
+                  user.user_metadata?.email_address ||
+                  null;
 
-      if (!email) {
+    if (!email) {
         console.warn('[EaseMed] No email available for profile upsert');
         return;
-      }
+    }
 
-      const fullName = extra?.name ||
-        user.user_metadata?.full_name ||
-        user.user_metadata?.name ||
-        email.split('@')[0] ||
-        'Unknown';
+    const fullName = extra?.name ||
+                     user.user_metadata?.full_name ||
+                     user.user_metadata?.name ||
+                     email.split('@')[0] ||
+                     'Unknown';
 
-      let metaYearInt = null;
-      if (extra?.yearOfStudy) {
+    let yearOfStudyInt = null;
+    if (extra?.yearOfStudy) {
         const match = extra.yearOfStudy.match(/\d+/);
-        if (match) metaYearInt = parseInt(match[0], 10);
-      }
+        if (match) yearOfStudyInt = parseInt(match[0], 10);
+    }
 
-      try {
-        const { data: existing } = await sb
-          .from('profiles')
-          .select('id, university, year_of_study, phone, license_number, hospital, role')
-          .eq('id', user.id)
-          .maybeSingle();
-
+    try {
         const profileData = {
-          id: user.id,
-          email: email,
-          full_name: fullName,
-          role: extra?.role || user.user_metadata?.role || existing?.role || 'Medical Student',
-          university: extra?.university || user.user_metadata?.university || existing?.university || '',
-          year_of_study: (extra?.yearOfStudy ? parseInt(extra.yearOfStudy.match(/\d+/)?.[0] || '', 10) : null) ??
-            metaYearInt ??
-            existing?.year_of_study ??
-            null,
-          phone: extra?.phone || user.user_metadata?.phone || existing?.phone || '',
-          license_number: extra?.license || user.user_metadata?.license_number || existing?.license_number || '',
-          hospital: extra?.location || user.user_metadata?.hospital || existing?.hospital || '',
-          updated_at: new Date().toISOString(),
+            id: user.id,
+            email: email,
+            full_name: fullName,
+            role: extra?.role || user.user_metadata?.role || 'Medical Student',
+            university: extra?.university || '',
+            year_of_study: yearOfStudyInt,
+            phone: extra?.phone || '',
+            license_number: extra?.license || '',
+            hospital: extra?.location || '',
+            updated_at: new Date().toISOString(),
         };
 
+        const { data: existing } = await sb
+            .from('profiles')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle();
+
         if (!existing) {
-          profileData.status = 'active';
-          profileData.plan = 'free';
-          profileData.subscription_status = 'inactive';
-          profileData.created_at = new Date().toISOString();
+            profileData.status = 'active';
+            profileData.plan = 'free';
+            profileData.subscription_status = 'inactive';
+            profileData.created_at = new Date().toISOString();
         }
 
         const { error } = await sb.from('profiles').upsert(profileData, {
-          onConflict: 'id'
+            onConflict: 'id'
         });
 
         if (error) {
-          console.warn('[EaseMed] Profile upsert failed:', error.message);
+            console.warn('[EaseMed] Profile upsert failed:', error.message);
         } else {
-          console.log('[EaseMed] Profile upserted successfully for:', email);
+            console.log('[EaseMed] Profile upserted successfully for:', email);
         }
-      } catch (e) {
+    } catch (e) {
         console.warn('[EaseMed] Profile upsert exception:', e.message);
-      }
+    }
+}
+
+// ── EMAIL / PASSWORD LOGIN ─────────────────────────────────
+async function handleLogin() {
+    if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
+
+    const email    = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    if (!email || !password) {
+        showAlert('Please enter both email and password.'); return;
     }
 
-    // ── SESSION CLAIM ──────────────────────────────────────────────────
-    async function claimSession(user) {
-      if (!sb || !user) return;
-      const newToken = crypto.randomUUID();
-      try {
-        const { error } = await sb
-          .from('active_sessions')
-          .upsert({
-            user_id: user.id,
-            session_token: newToken,
-            device_label: navigator.userAgent.slice(0, 100),
-            last_seen: new Date().toISOString()
-          }, { onConflict: 'user_id' });
-        if (!error) {
-          localStorage.setItem('easemed_session_token', newToken);
-          startSessionMonitoring();
-        } else {
-          console.warn('[EaseMed] claimSession failed:', error.message);
-        }
-      } catch (e) {
-        console.warn('[EaseMed] claimSession exception:', e.message);
-      }
-    }
+    setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Login to EaseMed');
 
-    // ── LOGIN ──────────────────────────────────────────────────────────
-    async function handleLogin() {
-      if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
-
-      const email = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value;
-
-      if (!email || !password) {
-        showAlert('Please enter both email and password.');
-        return;
-      }
-
-      setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Logging in...');
-
-      let data, error;
-      try {
+    let data, error;
+    try {
         ({ data, error } = await withTimeout(
-          sb.auth.signInWithPassword({ email, password }),
-          10000, 'Login'
+            sb.auth.signInWithPassword({ email, password }),
+            10000, 'Login'
         ));
         try {
-          const ipResponse = await fetch('https://api.ipify.org?format=json');
-          const ipData = await ipResponse.json();
-          const ip = ipData.ip || 'unknown';
-          await sb.from('user_sessions').insert({
-            user_id: data.user.id,
-            email: data.user.email,
-            ip_address: ip,
-            user_agent: navigator.userAgent || 'unknown',
-            session_active: true
-          });
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipResponse.json();
+            const ip = ipData.ip || 'unknown';
+            await sb.from('user_sessions').insert({
+                user_id: data.user.id,
+                email: data.user.email,
+                ip_address: ip,
+                user_agent: navigator.userAgent || 'unknown',
+                session_active: true
+            });
         } catch (e) { console.warn('Session record failed:', e); }
-      } catch (e) {
+    } catch (e) {
         setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Login to EaseMed');
-        showAlert('❌ ' + (e.message.includes('timed out') ?
-          'Connection timed out. Check your internet and try again.' :
-          'Network error: ' + e.message));
+        showAlert('❌ ' + (e.message.includes('timed out')
+            ? 'Connection timed out. Check your internet and try again.'
+            : 'Network error: ' + e.message));
         return;
-      }
-
-      setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Login to EaseMed');
-
-      if (error) {
-        if (error.message.toLowerCase().includes('invalid login') ||
-          error.message.toLowerCase().includes('invalid credentials')) {
-          showAlert('❌ Incorrect email or password. Please try again.');
-        } else if (error.message.toLowerCase().includes('email not confirmed')) {
-          showAlert('📧 Please check your email and confirm your account first.');
-        } else if (error.message.toLowerCase().includes('failed to fetch') ||
-          error.message.toLowerCase().includes('networkerror')) {
-          showAlert('❌ Could not reach the server. Check your internet connection.');
-        } else {
-          showAlert('❌ ' + error.message);
-        }
-        return;
-      }
-
-      const user = data.user;
-      const fullName = user.user_metadata?.full_name ||
-        user.user_metadata?.name ||
-        user.email;
-
-      localStorage.setItem('easemed_user', user.email);
-      localStorage.setItem('easemed_user_name', fullName);
-
-      await claimSession(user);
-
-      showAlert('✅ Welcome back! Redirecting to dashboard...', 'success');
-      setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
     }
 
-    // ── SIGNUP ─────────────────────────────────────────────────────────
-    async function handleSignup() {
-      if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
+    setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Login to EaseMed');
 
-      const agreeCheckbox = document.getElementById('agreeCheckbox');
-      if (!agreeCheckbox.checked) {
+    if (error) {
+        if (error.message.toLowerCase().includes('invalid login') ||
+            error.message.toLowerCase().includes('invalid credentials')) {
+            showAlert('❌ Incorrect email or password. Please try again.');
+        } else if (error.message.toLowerCase().includes('email not confirmed')) {
+            showAlert('📧 Please check your email and confirm your account first.');
+        } else if (error.message.toLowerCase().includes('failed to fetch') ||
+                   error.message.toLowerCase().includes('networkerror')) {
+            showAlert('❌ Could not reach the server. Check your internet connection.');
+        } else {
+            showAlert('❌ ' + error.message);
+        }
+        return;
+    }
+
+    const user = data.user;
+    const fullName = user.user_metadata?.full_name || 
+                     user.user_metadata?.name || 
+                     user.email;
+    
+    localStorage.setItem('easemed_user', user.email);
+    localStorage.setItem('easemed_user_name', fullName);
+
+    showAlert('✅ Welcome back! Redirecting to dashboard...', 'success');
+    setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
+}
+
+// ── EMAIL / PASSWORD SIGNUP ────────────────────────────────
+async function handleSignup() {
+    if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
+
+    const agreeCheckbox = document.getElementById('agreeCheckbox');
+    if (!agreeCheckbox.checked) {
         document.getElementById('agreeError').classList.add('show');
-        document.getElementById('agreeError').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('agreeError').scrollIntoView({ behavior:'smooth', block:'center' });
         return;
-      } else {
+    } else {
         document.getElementById('agreeError').classList.remove('show');
-      }
+    }
 
-      const name = document.getElementById('signupName').value.trim();
-      const email = document.getElementById('signupEmail').value.trim();
-      const phone = document.getElementById('signupPhone').value.trim();
-      const password = document.getElementById('signupPassword').value;
-      const confirmPassword = document.getElementById('signupConfirmPassword').value;
-      const role = document.getElementById('signupRole').value;
-      const university = document.getElementById('signupUniversity').value.trim();
-      const yearOfStudy = document.getElementById('signupYear').value;
-      const license = document.getElementById('signupLicense').value.trim();
-      const location = document.getElementById('signupLocation').value.trim();
+    const name            = document.getElementById('signupName').value.trim();
+    const email           = document.getElementById('signupEmail').value.trim();
+    const phone           = document.getElementById('signupPhone').value.trim();
+    const password        = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('signupConfirmPassword').value;
+    const role            = document.getElementById('signupRole').value;
+    const university      = document.getElementById('signupUniversity').value.trim();
+    const yearOfStudy     = document.getElementById('signupYear').value;
+    const license         = document.getElementById('signupLicense').value.trim();
+    const location        = document.getElementById('signupLocation').value.trim();
 
-      if (!name || !email || !password || !role || !university || !yearOfStudy) {
-        showAlert('Please fill in all required fields.');
-        return;
-      }
-      if (password !== confirmPassword) {
-        showAlert('Passwords do not match.');
-        return;
-      }
-      if (password.length < 6) {
-        showAlert('Password must be at least 6 characters.');
-        return;
-      }
+    if (!name || !email || !password || !role || !university || !yearOfStudy) {
+        showAlert('Please fill in all required fields.'); return;
+    }
+    if (password !== confirmPassword) {
+        showAlert('Passwords do not match.'); return;
+    }
+    if (password.length < 6) {
+        showAlert('Password must be at least 6 characters.'); return;
+    }
 
-      const signupBtn = document.getElementById('signupBtn');
-      signupBtn.disabled = true;
-      document.getElementById('signupSpinner').style.display = 'block';
+    const signupBtn = document.getElementById('signupBtn');
+    signupBtn.disabled = true;
+    document.getElementById('signupSpinner').style.display = 'block';
 
-      let data, error;
-      try {
+    let data, error;
+    try {
         ({ data, error } = await withTimeout(
-          sb.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                full_name: name,
-                role,
-                university,
-                year_of_study: yearOfStudy.match(/\d+/) ? yearOfStudy.match(/\d+/)[0] : null,
-                phone,
-                license_number: license,
-                hospital: location
-              },
-              emailRedirectTo: window.location.origin + '/' + DASHBOARD_URL,
-            }
-          }),
-          10000, 'Signup'
+            sb.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: name,
+                        role,
+                        university,
+                        year_of_study: yearOfStudy.match(/\d+/) ? yearOfStudy.match(/\d+/)[0] : null,
+                        phone,
+                        license_number: license,
+                        hospital: location
+                    },
+                    emailRedirectTo: window.location.origin + '/' + DASHBOARD_URL,
+                }
+            }),
+            10000, 'Signup'
         ));
-      } catch (e) {
+    } catch (e) {
         signupBtn.disabled = false;
         document.getElementById('signupSpinner').style.display = 'none';
-        showAlert('❌ ' + (e.message.includes('timed out') ?
-          'Connection timed out. Check your internet and try again.' :
-          'Network error: ' + e.message));
+        showAlert('❌ ' + (e.message.includes('timed out')
+            ? 'Connection timed out. Check your internet and try again.'
+            : 'Network error: ' + e.message));
         return;
-      }
-
-      signupBtn.disabled = false;
-      document.getElementById('signupSpinner').style.display = 'none';
-
-      if (error) {
-        if (error.message.toLowerCase().includes('already registered')) {
-          showAlert('📧 Email already registered. Please login instead.');
-        } else if (error.message.toLowerCase().includes('failed to fetch') ||
-          error.message.toLowerCase().includes('networkerror')) {
-          showAlert('❌ Could not reach the server. Check your internet connection.');
-        } else {
-          showAlert('❌ ' + error.message);
-        }
-        return;
-      }
-
-      if (data.user) {
-        await upsertProfile(data.user, { name, role, university, yearOfStudy, phone, license, location });
-      }
-
-      if (data.session) {
-        localStorage.setItem('easemed_user', email);
-        localStorage.setItem('easemed_user_name', name);
-        await claimSession(data.user);
-        showAlert(`✅ Account created! Welcome, ${name}! Redirecting to dashboard...`, 'success');
-        setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
-      } else {
-        showAlert(
-          `📧 Almost there, ${name}! A confirmation email was sent to ${email}. ` +
-          `Click the link in it, then come back to log in.`,
-          'success'
-        );
-        setTimeout(() => switchTab('login'), 5000);
-      }
     }
 
-    // ── GOOGLE OAUTH ──────────────────────────────────────────────────
-    async function socialLogin(provider) {
-      if (provider !== 'google') return;
-      if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
+    signupBtn.disabled = false;
+    document.getElementById('signupSpinner').style.display = 'none';
 
-      document.querySelectorAll('.btn-google-full').forEach(btn => {
+    if (error) {
+        if (error.message.toLowerCase().includes('already registered')) {
+            showAlert('📧 Email already registered. Please login instead.');
+        } else if (error.message.toLowerCase().includes('failed to fetch') ||
+                   error.message.toLowerCase().includes('networkerror')) {
+            showAlert('❌ Could not reach the server. Check your internet connection.');
+        } else {
+            showAlert('❌ ' + error.message);
+        }
+        return;
+    }
+
+    if (data.user) {
+        await upsertProfile(data.user, { name, role, university, yearOfStudy, phone, license, location });
+    }
+
+    if (data.session) {
+        localStorage.setItem('easemed_user', email);
+        localStorage.setItem('easemed_user_name', name);
+        showAlert(`✅ Account created! Welcome, ${name}! Redirecting to dashboard...`, 'success');
+        setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
+    } else {
+        showAlert(
+            `📧 Almost there, ${name}! A confirmation email was sent to ${email}. ` +
+            `Click the link in it, then come back to log in.`,
+            'success'
+        );
+        setTimeout(() => switchTab('login'), 5000);
+    }
+}
+
+// ── GOOGLE OAUTH ────────────────────────────────────────────
+async function socialLogin(provider) {
+    if (provider !== 'google') return;
+    if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
+
+    document.querySelectorAll('.btn-google-full').forEach(btn => {
         btn.disabled = true;
         btn.style.opacity = '0.7';
         const lbl = btn.querySelector('.google-label');
         if (lbl) lbl.textContent = 'Redirecting to Google...';
-      });
+    });
 
-      showAlert('🔐 Opening Google sign-in…', 'info');
+    showAlert('🔐 Opening Google sign-in…', 'info');
 
-      const { error } = await sb.auth.signInWithOAuth({
+    const { error } = await sb.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/' + DASHBOARD_URL,
-          queryParams: { access_type: 'offline', prompt: 'select_account' }
+            redirectTo: window.location.origin + '/' + DASHBOARD_URL,
+            queryParams: { access_type: 'offline', prompt: 'select_account' }
         }
-      });
+    });
 
-      if (error) {
+    if (error) {
         document.querySelectorAll('.btn-google-full').forEach(btn => {
-          btn.disabled = false;
-          btn.style.opacity = '1';
-          const lbl = btn.querySelector('.google-label');
-          if (lbl) lbl.textContent = 'Continue with Google';
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            const lbl = btn.querySelector('.google-label');
+            if (lbl) lbl.textContent = 'Continue with Google';
         });
         showAlert('❌ Google sign-in failed: ' + error.message);
-      }
     }
+}
 
-    // ── FORGOT PASSWORD ──────────────────────────────────────────────
-    async function handleForgotPassword() {
-      if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
-      const email = document.getElementById('loginEmail').value.trim();
-      if (!email) {
+// ── FORGOT PASSWORD ─────────────────────────────────────────
+async function handleForgotPassword() {
+    if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email) {
         showAlert('Enter your email address first, then click "Forgot password".', 'info');
         return;
-      }
-      const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://easemedapp.site/easemed_login.html',
-      });
-      if (error) {
-        showAlert('❌ ' + error.message);
-      } else {
-        showAlert(`📧 Password reset email sent to ${email}. Check your inbox, click the link, then set a new password right here.`, 'success');
-      }
     }
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://easemedapp.site/easemed_login.html',
+    });
+    if (error) {
+        showAlert('❌ ' + error.message);
+    } else {
+        showAlert(`📧 Password reset email sent to ${email}. Check your inbox, click the link, then set a new password right here.`, 'success');
+    }
+}
 
-    // ── SET NEW PASSWORD ──────────────────────────────────────────────
-    async function handleSetNewPassword() {
-      if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
+// ── SET NEW PASSWORD ─────────────────────────────────────────
+async function handleSetNewPassword() {
+    if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
-      const pw = document.getElementById('resetPassword').value;
-      const cpw = document.getElementById('resetConfirmPassword').value;
+    const pw  = document.getElementById('resetPassword').value;
+    const cpw = document.getElementById('resetConfirmPassword').value;
 
-      clearAllErrors('resetForm');
-      let valid = true;
+    clearAllErrors('resetForm');
+    let valid = true;
 
-      const pwEl = document.getElementById('resetPassword');
-      const cpwEl = document.getElementById('resetConfirmPassword');
+    const pwEl  = document.getElementById('resetPassword');
+    const cpwEl = document.getElementById('resetConfirmPassword');
 
-      if (!pw) {
+    if (!pw) {
         markFieldError(pwEl, 'New password is required');
         valid = false;
-      } else if (pw.length < 6) {
+    } else if (pw.length < 6) {
         markFieldError(pwEl, 'Password must be at least 6 characters');
         valid = false;
-      }
+    }
 
-      if (!cpw) {
+    if (!cpw) {
         markFieldError(cpwEl, 'Please confirm your new password');
         valid = false;
-      } else if (pw && pw !== cpw) {
+    } else if (pw && pw !== cpw) {
         markFieldError(cpwEl, 'Passwords do not match');
         valid = false;
-      }
+    }
 
-      if (!valid) {
+    if (!valid) {
         document.querySelector('#resetForm .field-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
-      }
+    }
 
-      setLoading('resetBtn', 'resetSpinner', 'resetBtnText', true, 'Set New Password');
+    setLoading('resetBtn', 'resetSpinner', 'resetBtnText', true, 'Set New Password');
 
-      let error;
-      try {
+    let error;
+    try {
         ({ error } = await withTimeout(
-          sb.auth.updateUser({ password: pw }),
-          10000, 'Password update'
+            sb.auth.updateUser({ password: pw }),
+            10000, 'Password update'
         ));
-      } catch (e) {
+    } catch (e) {
         setLoading('resetBtn', 'resetSpinner', 'resetBtnText', false, 'Set New Password');
-        showAlert('❌ ' + (e.message.includes('timed out') ?
-          'Connection timed out. Check your internet and try again.' :
-          'Network error: ' + e.message));
+        showAlert('❌ ' + (e.message.includes('timed out')
+            ? 'Connection timed out. Check your internet and try again.'
+            : 'Network error: ' + e.message));
         return;
-      }
+    }
 
-      setLoading('resetBtn', 'resetSpinner', 'resetBtnText', false, 'Set New Password');
+    setLoading('resetBtn', 'resetSpinner', 'resetBtnText', false, 'Set New Password');
 
-      if (error) {
+    if (error) {
         showAlert('❌ ' + error.message);
         return;
-      }
-
-      inPasswordRecovery = false;
-      showAlert('✅ Password updated! Redirecting to your dashboard...', 'success');
-      setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
     }
 
-    // ── PARTICLES ──────────────────────────────────────────────────────
-    function createParticles() {
-      const container = document.getElementById('particles');
-      if (!container) return;
-      for (let i = 0; i < 30; i++) {
-        const p = document.createElement('div');
+    inPasswordRecovery = false;
+    showAlert('✅ Password updated! Redirecting to your dashboard...', 'success');
+    setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
+}
+
+// ── PARTICLES ────────────────────────────────────────────────
+function createParticles() {
+    const container = document.getElementById('particles');
+    if (!container) return;
+    for (let i = 0; i < 30; i++) {
+        const p    = document.createElement('div');
         const size = Math.random() * 4 + 2;
-        p.className = 'particle';
+        p.className  = 'particle';
         p.style.cssText = `
-              width:${size}px; height:${size}px;
-              left:${Math.random()*100}%;
-              animation-duration:${Math.random()*8+4}s;
-              animation-delay:${Math.random()*5}s;
-            `;
+            width:${size}px; height:${size}px;
+            left:${Math.random()*100}%;
+            animation-duration:${Math.random()*8+4}s;
+            animation-delay:${Math.random()*5}s;
+        `;
         container.appendChild(p);
-      }
     }
+}
 
-    // ── PASSWORD TOGGLE ──────────────────────────────────────────────
-    function togglePassword(inputId, btn) {
-      const input = document.getElementById(inputId);
-      if (!input) return;
-      const isHidden = input.type === 'password';
-      input.type = isHidden ? 'text' : 'password';
-      btn.textContent = isHidden ? '🙈' : '👁️';
-      btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-    }
+// ── PASSWORD TOGGLE ──────────────────────────────────────────
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    btn.textContent = isHidden ? '🙈' : '👁️';
+    btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+}
 
-    // ── PASSWORD STRENGTH ────────────────────────────────────────────
-    function checkPasswordStrength(value, barId = 'pwStrengthBar', labelId = 'pwStrengthLabel') {
-      const bar = document.getElementById(barId);
-      const label = document.getElementById(labelId);
-      if (!bar || !label) return;
+// ── PASSWORD STRENGTH METER ─────────────────────────────────
+function checkPasswordStrength(value, barId = 'pwStrengthBar', labelId = 'pwStrengthLabel') {
+    const bar   = document.getElementById(barId);
+    const label = document.getElementById(labelId);
+    if (!bar || !label) return;
 
-      let score = 0;
-      if (value.length >= 6) score++;
-      if (value.length >= 10) score++;
-      if (/[A-Z]/.test(value)) score++;
-      if (/[0-9]/.test(value)) score++;
-      if (/[^A-Za-z0-9]/.test(value)) score++;
+    let score = 0;
+    if (value.length >= 6)  score++;
+    if (value.length >= 10) score++;
+    if (/[A-Z]/.test(value)) score++;
+    if (/[0-9]/.test(value)) score++;
+    if (/[^A-Za-z0-9]/.test(value)) score++;
 
-      const levels = [
-        { pct: '20%', color: '#e53e3e', text: 'Very weak' },
-        { pct: '40%', color: '#dd6b20', text: 'Weak' },
-        { pct: '60%', color: '#d69e2e', text: 'Fair' },
-        { pct: '80%', color: '#38a169', text: 'Strong' },
-        { pct: '100%', color: '#2c5282', text: 'Very strong 💪' },
-      ];
+    const levels = [
+        { pct:'20%', color:'#e53e3e', text:'Very weak' },
+        { pct:'40%', color:'#dd6b20', text:'Weak' },
+        { pct:'60%', color:'#d69e2e', text:'Fair' },
+        { pct:'80%', color:'#38a169', text:'Strong' },
+        { pct:'100%',color:'#2c5282', text:'Very strong 💪' },
+    ];
 
-      const lvl = levels[Math.max(0, score - 1)] || levels[0];
-      bar.style.width = value.length ? lvl.pct : '0%';
-      bar.style.background = lvl.color;
-      label.textContent = value.length ? lvl.text : '';
-      label.style.color = lvl.color;
-    }
+    const lvl = levels[Math.max(0, score - 1)] || levels[0];
+    bar.style.width     = value.length ? lvl.pct : '0%';
+    bar.style.background = lvl.color;
+    label.textContent   = value.length ? lvl.text : '';
+    label.style.color   = lvl.color;
+}
 
-    function checkPasswordMatch() {
-      const pw = document.getElementById('signupPassword')?.value;
-      const cpw = document.getElementById('signupConfirmPassword')?.value;
-      const msg = document.getElementById('pwMatchMsg');
-      const conf = document.getElementById('signupConfirmPassword');
-      if (!msg || !conf || !cpw) return;
-      if (pw !== cpw) {
+// ── REAL-TIME PASSWORD MATCH (signup) ──────────────────────
+function checkPasswordMatch() {
+    const pw   = document.getElementById('signupPassword')?.value;
+    const cpw  = document.getElementById('signupConfirmPassword')?.value;
+    const msg  = document.getElementById('pwMatchMsg');
+    const conf = document.getElementById('signupConfirmPassword');
+    if (!msg || !conf || !cpw) return;
+
+    if (pw !== cpw) {
         conf.classList.add('field-error');
         msg.style.display = 'flex';
-      } else {
+    } else {
         conf.classList.remove('field-error');
         msg.style.display = 'none';
-      }
     }
+}
 
-    function checkResetPasswordMatch() {
-      const pw = document.getElementById('resetPassword')?.value;
-      const cpw = document.getElementById('resetConfirmPassword')?.value;
-      const msg = document.getElementById('resetPwMatchMsg');
-      const conf = document.getElementById('resetConfirmPassword');
-      if (!msg || !conf || !cpw) return;
-      if (pw !== cpw) {
+// ── REAL-TIME PASSWORD MATCH (reset) ──────────────────────
+function checkResetPasswordMatch() {
+    const pw   = document.getElementById('resetPassword')?.value;
+    const cpw  = document.getElementById('resetConfirmPassword')?.value;
+    const msg  = document.getElementById('resetPwMatchMsg');
+    const conf = document.getElementById('resetConfirmPassword');
+    if (!msg || !conf || !cpw) return;
+
+    if (pw !== cpw) {
         conf.classList.add('field-error');
         msg.style.display = 'flex';
-      } else {
+    } else {
         conf.classList.remove('field-error');
         msg.style.display = 'none';
-      }
     }
+}
 
-    // ── FIELD VALIDATION HELPERS ──────────────────────────────────────
-    function markFieldError(el, message) {
-      el.classList.add('field-error');
-      const existing = el.parentElement.querySelector('.field-error-msg');
-      if (existing) existing.remove();
-      const msg = document.createElement('div');
-      msg.className = 'field-error-msg';
-      msg.textContent = '⚠️ ' + message;
-      el.parentElement.appendChild(msg);
-      el.addEventListener('input', function clearErr() {
+// ── FIELD VALIDATION HELPERS ────────────────────────────────
+function markFieldError(el, message) {
+    el.classList.add('field-error');
+    const existing = el.parentElement.querySelector('.field-error-msg');
+    if (existing) existing.remove();
+    const msg = document.createElement('div');
+    msg.className   = 'field-error-msg';
+    msg.textContent = '⚠️ ' + message;
+    el.parentElement.appendChild(msg);
+    el.addEventListener('input', function clearErr() {
         el.classList.remove('field-error');
         msg.remove();
         el.removeEventListener('input', clearErr);
-      }, { once: true });
-    }
+    }, { once: true });
+}
 
-    function clearAllErrors(formId) {
-      document.querySelectorAll(`#${formId} .field-error`).forEach(el => {
+function clearAllErrors(formId) {
+    document.querySelectorAll(`#${formId} .field-error`).forEach(el => {
         el.classList.remove('field-error');
-      });
-      document.querySelectorAll(`#${formId} .field-error-msg`).forEach(el => {
+    });
+    document.querySelectorAll(`#${formId} .field-error-msg`).forEach(el => {
         if (el.id !== 'pwMatchMsg' && el.id !== 'resetPwMatchMsg') el.remove();
-      });
-    }
+    });
+}
 
-    // ── OVERRIDE HANDLE LOGIN WITH VALIDATION ──────────────────────
-    const _origHandleLogin = handleLogin;
-    window.handleLogin = async function() {
-      clearAllErrors('loginForm');
-      let valid = true;
+// ── OVERRIDE handleLogin WITH VALIDATION ──────────────────
+const _origHandleLogin = handleLogin;
+window.handleLogin = async function() {
+    clearAllErrors('loginForm');
+    let valid = true;
 
-      const emailEl = document.getElementById('loginEmail');
-      const passEl = document.getElementById('loginPassword');
+    const emailEl = document.getElementById('loginEmail');
+    const passEl  = document.getElementById('loginPassword');
 
-      if (!emailEl.value.trim()) {
+    if (!emailEl.value.trim()) {
         markFieldError(emailEl, 'Email is required');
         valid = false;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim())) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim())) {
         markFieldError(emailEl, 'Enter a valid email address');
         valid = false;
-      }
-
-      if (!passEl.value) {
-        markFieldError(passEl, 'Password is required');
-        valid = false;
-      }
-
-      if (!valid) {
-        document.querySelector('#loginForm .field-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-
-      await _origHandleLogin();
-    };
-
-    // ── ENTER KEY SUPPORT ────────────────────────────────────────────
-    document.getElementById('loginPassword').addEventListener('keypress', e => {
-      if (e.key === 'Enter') handleLogin();
-    });
-    document.getElementById('signupConfirmPassword').addEventListener('keypress', e => {
-      if (e.key === 'Enter') document.getElementById('signupBtn').click();
-    });
-    document.getElementById('resetConfirmPassword').addEventListener('keypress', e => {
-      if (e.key === 'Enter') handleSetNewPassword();
-    });
-
-    // ── SERVICE WORKER ──────────────────────────────────────────────
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(r => console.log('[EaseMed] SW registered:', r.scope))
-          .catch(e => console.warn('[EaseMed] SW failed:', e));
-      });
     }
 
-    // ── PWA INSTALL PROMPT ──────────────────────────────────────────
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const banner = document.createElement('div');
-      banner.innerHTML = `
-            <div id="installBannerInner" style="
-                position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
-                background:linear-gradient(135deg,#1e3c72,#2a5298);
-                color:white; padding:14px 24px; border-radius:16px;
-                box-shadow:0 8px 32px rgba(0,0,0,0.4);
-                display:flex; align-items:center; gap:14px;
-                font-family:'Segoe UI',sans-serif; font-size:0.9rem;
-                z-index:99999; min-width:300px; max-width:90vw;
-                animation:slideUp2 0.4s ease;">
-                <span style="font-size:1.6rem;">🩺</span>
-                <div>
-                    <div style="font-weight:700;margin-bottom:2px;">Install EaseMed</div>
-                    <div style="opacity:.85;font-size:.8rem;">Add to home screen for offline access</div>
-                </div>
-                <div style="display:flex;gap:8px;margin-left:auto;">
-                    <button id="installBtn" style="background:white;color:#1e3c72;border:none;padding:8px 16px;border-radius:10px;font-weight:700;cursor:pointer;font-size:.85rem;">Install</button>
-                    <button id="dismissBtn" style="background:rgba(255,255,255,.15);color:white;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-size:.85rem;">✕</button>
-                </div>
-            </div>`;
-      document.body.appendChild(banner);
-      document.getElementById('installBtn').onclick = async () => {
-        banner.remove();
-        deferredPrompt.prompt();
+    if (!passEl.value) {
+        markFieldError(passEl, 'Password is required');
+        valid = false;
+    }
+
+    if (!valid) {
+        document.querySelector('#loginForm .field-error')?.scrollIntoView({ behavior:'smooth', block:'center' });
+        return;
+    }
+
+    await _origHandleLogin();
+};
+
+// ── ENTER KEY SUPPORT ────────────────────────────────────────
+document.getElementById('loginPassword').addEventListener('keypress', e => {
+    if (e.key === 'Enter') handleLogin();
+});
+document.getElementById('signupConfirmPassword').addEventListener('keypress', e => {
+    if (e.key === 'Enter') document.getElementById('signupBtn').click();
+});
+document.getElementById('resetConfirmPassword').addEventListener('keypress', e => {
+    if (e.key === 'Enter') handleSetNewPassword();
+});
+
+// ── SERVICE WORKER ────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+            .then(r  => console.log('[EaseMed] SW registered:', r.scope))
+            .catch(e => console.warn('[EaseMed] SW failed:', e));
+    });
+}
+
+// ── PWA INSTALL PROMPT (unchanged) ──────────────────────────
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const banner = document.createElement('div');
+    banner.innerHTML = `
+        <div id="installBannerInner" style="
+            position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+            background:linear-gradient(135deg,#1e3c72,#2a5298);
+            color:white; padding:14px 24px; border-radius:16px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.4);
+            display:flex; align-items:center; gap:14px;
+            font-family:'Segoe UI',sans-serif; font-size:0.9rem;
+            z-index:99999; min-width:300px; max-width:90vw;
+            animation:slideUp2 0.4s ease;">
+            <span style="font-size:1.6rem;">🩺</span>
+            <div>
+                <div style="font-weight:700;margin-bottom:2px;">Install EaseMed</div>
+                <div style="opacity:.85;font-size:.8rem;">Add to home screen for offline access</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-left:auto;">
+                <button id="installBtn" style="background:white;color:#1e3c72;border:none;padding:8px 16px;border-radius:10px;font-weight:700;cursor:pointer;font-size:.85rem;">Install</button>
+                <button id="dismissBtn" style="background:rgba(255,255,255,.15);color:white;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-size:.85rem;">✕</button>
+            </div>
+        </div>`;
+    document.body.appendChild(banner);
+    document.getElementById('installBtn').onclick = async () => {
+        banner.remove(); deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         console.log('[EaseMed] Install:', outcome);
         deferredPrompt = null;
-      };
-      document.getElementById('dismissBtn').onclick = () => banner.remove();
-    });
-  </script>
- <style>
-#easemedBanner {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 999999;
-    padding: 12px 20px; text-align: center;
-    font-family: 'Segoe UI', sans-serif; font-size: 0.9rem; font-weight: 600;
-    display: none; align-items: center; justify-content: center; gap: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-}
-#easemedBanner.info    { background: #ebf8ff; color: #2c5282; border-bottom: 3px solid #3498db; }
-#easemedBanner.warning { background: #fffaf0; color: #92400e; border-bottom: 3px solid #f39c12; }
-#easemedBanner.success { background: #f0fff4; color: #276749; border-bottom: 3px solid #38a169; }
-#easemedBanner button {
-    background: rgba(0,0,0,0.08); border: none; border-radius: 6px;
-    width: 22px; height: 22px; cursor: pointer; font-size: 0.9rem; flex-shrink: 0;
-}
-</style>
-
-<div id="easemedBanner">
-    <span id="easemedBannerText"></span>
-    <button onclick="dismissEasemedBanner()">✕</button>
-</div>
-
-<script>
-(async function loadEasemedAnnouncement() {
-    // Wait for the Supabase SDK script tag to finish loading, if it hasn't yet.
-    let sdkTries = 0;
-    while (typeof supabase === 'undefined' && sdkTries < 30) {
-        await new Promise(r => setTimeout(r, 200));
-        sdkTries++;
-    }
-    if (typeof supabase === 'undefined') {
-        console.warn('[EaseMed Banner] Supabase SDK never loaded.');
-        return;
-    }
-
-    const BANNER_SUPABASE_URL  = 'https://uhjcybwczelmqkkapeac.supabase.co';
-    const BANNER_SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
-
-    let bannerClient;
-    try {
-        bannerClient = supabase.createClient(BANNER_SUPABASE_URL, BANNER_SUPABASE_ANON);
-    } catch (e) {
-        console.warn('[EaseMed Banner] Could not create client:', e.message);
-        return;
-    }
-
-    const { data, error } = await bannerClient
-        .from('announcements')
-        .select('id, message, type')
-        .eq('active', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-    if (error) {
-        console.warn('[EaseMed Banner] Fetch failed:', error.message);
-        return;
-    }
-    if (!data) return;
-
-    const dismissedId = localStorage.getItem('easemed_dismissed_announcement');
-    if (dismissedId === String(data.id)) return;
-
-    const banner = document.getElementById('easemedBanner');
-    banner.className = data.type || 'info';
-    banner.style.display = 'flex';
-    document.getElementById('easemedBannerText').textContent = data.message;
-    window._currentAnnouncementId = data.id;
-})();
-
-function dismissEasemedBanner() {
-    document.getElementById('easemedBanner').style.display = 'none';
-    if (window._currentAnnouncementId) {
-        localStorage.setItem('easemed_dismissed_announcement', String(window._currentAnnouncementId));
-    }
-}
+    };
+    document.getElementById('dismissBtn').onclick = () => banner.remove();
+});
 </script>
-
-<!-- Make sure this is on the page — if the Supabase SDK is already loaded elsewhere, this line is harmless/duplicate -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+  <!-- Supabase JS SDK (CDN) — pinned to stable version -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 </body>
 </html>
