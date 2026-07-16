@@ -652,5 +652,65 @@ setTimeout(() => {
         }
     });
 </script>
+  <style>
+#easemedBanner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 999999;
+    padding: 12px 20px; text-align: center;
+    font-family: 'Segoe UI', sans-serif; font-size: 0.9rem; font-weight: 600;
+    display: none; align-items: center; justify-content: center; gap: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+#easemedBanner.info    { background: #ebf8ff; color: #2c5282; border-bottom: 3px solid #3498db; }
+#easemedBanner.warning { background: #fffaf0; color: #92400e; border-bottom: 3px solid #f39c12; }
+#easemedBanner.success { background: #f0fff4; color: #276749; border-bottom: 3px solid #38a169; }
+#easemedBanner button {
+    background: rgba(0,0,0,0.08); border: none; border-radius: 6px;
+    width: 22px; height: 22px; cursor: pointer; font-size: 0.9rem; flex-shrink: 0;
+}
+</style>
+
+<div id="easemedBanner">
+    <span id="easemedBannerText"></span>
+    <button onclick="dismissEasemedBanner()">✕</button>
+</div>
+
+<script>
+(async function loadAnnouncement() {
+    // Reuses the same `sb` client already initialized on the page.
+    // If this script runs on a page without `sb` yet, wait briefly for it.
+    let tries = 0;
+    while (typeof sb === 'undefined' && tries < 20) {
+        await new Promise(r => setTimeout(r, 200));
+        tries++;
+    }
+    if (typeof sb === 'undefined') return;
+
+    const { data, error } = await sb
+        .from('announcements')
+        .select('id, message, type')
+        .eq('active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error || !data) return;
+
+    const dismissedId = localStorage.getItem('easemed_dismissed_announcement');
+    if (dismissedId === String(data.id)) return;
+
+    const banner = document.getElementById('easemedBanner');
+    banner.className = data.type || 'info';
+    banner.style.display = 'flex';
+    document.getElementById('easemedBannerText').textContent = data.message;
+    window._currentAnnouncementId = data.id;
+})();
+
+function dismissEasemedBanner() {
+    document.getElementById('easemedBanner').style.display = 'none';
+    if (window._currentAnnouncementId) {
+        localStorage.setItem('easemed_dismissed_announcement', String(window._currentAnnouncementId));
+    }
+}
+</script>
 </body>
 </html>
