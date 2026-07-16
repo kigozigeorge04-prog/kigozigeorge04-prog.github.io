@@ -875,7 +875,7 @@ async function createSession(user) {
 }
 
 // ── Wait for the `supabase` global ──────────────────────────
-function waitForSDK(maxWaitMs = 8000) {
+function waitForSDK(maxWaitMs = 15000) {
     return new Promise((resolve, reject) => {
         if (typeof supabase !== 'undefined' && supabase.createClient) {
             resolve();
@@ -911,7 +911,7 @@ if (window.location.hash) {
     setOverlayStatus('Loading SDK...');
 
     try {
-        await waitForSDK(8000);
+        await waitForSDK(15000);
     } catch (e) {
         setOverlayStatus('❌ ' + e.message);
         setTimeout(hideOverlay, 3000);
