@@ -1129,17 +1129,19 @@ async function upsertProfile(user, extra) {
 }
 
 // ── EMAIL / PASSWORD LOGIN ─────────────────────────────────
+// ── LOGIN ──────────────────────────────────────────────────────────
 async function handleLogin() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
-    const email    = document.getElementById('loginEmail').value.trim();
+    const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
 
     if (!email || !password) {
-        showAlert('Please enter both email and password.'); return;
+        showAlert('Please enter both email and password.');
+        return;
     }
 
-    setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Login to EaseMed');
+    setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Logging in...');
 
     let data, error;
     try {
@@ -1147,23 +1149,11 @@ async function handleLogin() {
             sb.auth.signInWithPassword({ email, password }),
             10000, 'Login'
         ));
-        try {
-            const ipResponse = await fetch('https://api.ipify.org?format=json');
-            const ipData = await ipResponse.json();
-            const ip = ipData.ip || 'unknown';
-            await sb.from('user_sessions').insert({
-                user_id: data.user.id,
-                email: data.user.email,
-                ip_address: ip,
-                user_agent: navigator.userAgent || 'unknown',
-                session_active: true
-            });
-        } catch (e) { console.warn('Session record failed:', e); }
     } catch (e) {
         setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Login to EaseMed');
-        showAlert('❌ ' + (e.message.includes('timed out')
-            ? 'Connection timed out. Check your internet and try again.'
-            : 'Network error: ' + e.message));
+        showAlert('❌ ' + (e.message.includes('timed out') ?
+            'Connection timed out. Check your internet and try again.' :
+            'Network error: ' + e.message));
         return;
     }
 
@@ -1176,7 +1166,7 @@ async function handleLogin() {
         } else if (error.message.toLowerCase().includes('email not confirmed')) {
             showAlert('📧 Please check your email and confirm your account first.');
         } else if (error.message.toLowerCase().includes('failed to fetch') ||
-                   error.message.toLowerCase().includes('networkerror')) {
+            error.message.toLowerCase().includes('networkerror')) {
             showAlert('❌ Could not reach the server. Check your internet connection.');
         } else {
             showAlert('❌ ' + error.message);
@@ -1184,19 +1174,41 @@ async function handleLogin() {
         return;
     }
 
+    // ── Safety check ──
+    if (!data || !data.user) {
+        showAlert('❌ Login failed. Please try again.');
+        return;
+    }
+
+    // ── Record session (only after successful login) ──
+    try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        const ip = ipData.ip || 'unknown';
+        await sb.from('user_sessions').insert({
+            user_id: data.user.id,
+            email: data.user.email,
+            ip_address: ip,
+            user_agent: navigator.userAgent || 'unknown',
+            session_active: true
+        });
+    } catch (e) { console.warn('Session record failed:', e); }
+
     const user = data.user;
-    const fullName = user.user_metadata?.full_name || 
-                     user.user_metadata?.name || 
-                     user.email;
-    
+    const fullName = user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email;
+
     localStorage.setItem('easemed_user', user.email);
     localStorage.setItem('easemed_user_name', fullName);
+
+    await claimSession(user);
 
     showAlert('✅ Welcome back! Redirecting to dashboard...', 'success');
     setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
 }
-
-// ── EMAIL / PASSWORD SIGNUP ────────────────────────────────
+    
+    // ── EMAIL / PASSWORD SIGNUP ────────────────────────────────
 async function handleSignup() {
     if (!sb) { showAlert('❌ Still connecting to server. Please wait a moment.'); return; }
 
