@@ -4,46 +4,72 @@ const urlsToCache = [
     '/',
     '/index.html',
     '/modules.html',
-    '/styles.css',
-    '/app.js',
-    // ... other assets
+    '/easemed_login.html',
+    '/complete-profile.html',
+    '/manifest.json',
+    // Add only critical files that you know exist
 ];
 
+// ── INSTALL ──
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
+            .then(cache => {
+                // Use Promise.allSettled so one failure doesn't break everything
+                return Promise.allSettled(
+                    urlsToCache.map(url => {
+                        return cache.add(url).catch(err => {
+                            console.warn('[SW] Failed to cache:', url, err.message);
+                        });
+                    })
+                );
+            })
+            .then(() => {
+                console.log('[SW] Installation complete');
+            })
     );
+    self.skipWaiting();
 });
 
+// ── ACTIVATE ──
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cacheName => {
                     if (cacheName !== CACHE_NAME) {
+                        console.log('[SW] Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
                 })
             );
         })
     );
+    self.clients.claim();
 });
 
+// ── FETCH ──
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
     
-    // ── SKIP NON-CACHEABLE SCHEMES ──
-    if (url.protocol === 'chrome-extension:' || 
-        url.protocol === 'chrome:' ||
-        url.protocol === 'data:' ||
-        url.protocol === 'blob:' ||
-        url.protocol === 'moz-extension:') {
+    // Skip non-cacheable schemes
+    const skipSchemes = [
+        'chrome-extension:',
+        'chrome:',
+        'data:',
+        'blob:',
+        'moz-extension:',
+        'edge:'
+    ];
+    
+    if (skipSchemes.includes(url.protocol)) {
         return;
     }
     
-    // ── SKIP SUPABASE API REQUESTS ──
-    if (url.hostname.includes('supabase.co')) {
+    // Skip API calls
+    if (url.hostname.includes('supabase.co') ||
+        url.hostname.includes('google-analytics') ||
+        url.hostname.includes('googletagmanager')) {
         return;
     }
     
@@ -54,7 +80,7 @@ self.addEventListener('fetch', event => {
                     return response;
                 }
                 return fetch(event.request).then(response => {
-                    // Don't cache if not a valid response
+                    // Only cache successful responses
                     if (!response || response.status !== 200 || response.type !== 'basic') {
                         return response;
                     }
@@ -64,9 +90,10 @@ self.addEventListener('fetch', event => {
                             try {
                                 cache.put(event.request, responseToCache);
                             } catch (e) {
-                                // Silently fail for non-cacheable requests
+                                // Silently fail
                             }
-                        });
+                        })
+                        .catch(() => {});
                     return response;
                 });
             })
