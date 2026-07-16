@@ -590,24 +590,6 @@ setTimeout(() => {
     });
 
     // When DOM is ready, attach click listener to the button
-    document.addEventListener('DOMContentLoaded', function() {
-      const installBtn = document.getElementById('installBtn');
-      if (installBtn) {
-        installBtn.addEventListener('click', async function() {
-          if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-              installBtn.style.display = 'none';
-            }
-            deferredPrompt = null;
-          } else {
-            alert('📱 To install EaseMed on your device, open this page in Chrome or Edge and look for the "Install" icon in the address bar, or use "Add to Home Screen" from your browser menu.');
-          }
-        });
-      }
-    });
-
     // Hide button after installation
     window.addEventListener('appinstalled', () => {
       document.getElementById('installBtn').style.display = 'none';
