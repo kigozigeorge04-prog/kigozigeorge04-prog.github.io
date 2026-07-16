@@ -748,7 +748,7 @@ setTimeout(function() {
 <!-- ─── MAIN SCRIPT ─── -->
 <script>
 // ================================================================
-//  EASEMED — SUPABASE AUTH
+//  EASEMED — SUPABASE AUTH WITH SESSION MANAGEMENT
 // ================================================================
 
 const DASHBOARD_URL = 'modules.html';
@@ -821,6 +821,57 @@ function withTimeout(promise, ms, label) {
             setTimeout(() => reject(new Error(`${label} timed out after ${ms/1000}s`)), ms)
         )
     ]);
+}
+
+// ── SESSION MANAGEMENT ──────────────────────────────────────
+/**
+ * Create or update the active session for a user.
+ * This is called after successful login, signup, or OAuth.
+ * It generates a random token and upserts it to the active_sessions table.
+ */
+async function createSession(user) {
+    if (!sb) {
+        console.warn('[Session] Supabase client not available');
+        return null;
+    }
+    
+    try {
+        // Generate a random session token
+        const token = crypto.randomUUID();
+        
+        // Store token in localStorage
+        localStorage.setItem('easemed_session_token', token);
+        
+        // Store login timestamp for grace period
+        localStorage.setItem('easemed_login_time', Date.now().toString());
+        
+        // Upsert into active_sessions table
+        const { data, error } = await withTimeout(
+            sb
+                .from('active_sessions')
+                .upsert({
+                    user_id: user.id,
+                    session_token: token,
+                    last_seen: new Date().toISOString()
+                }, { onConflict: 'user_id' }),
+            8000,
+            'Session creation'
+        );
+        
+        if (error) {
+            console.error('[Session] Failed to create session:', error);
+            // Don't throw - we want login to proceed even if session creation fails
+            // The session check will fail and log the user out if this happens
+            return null;
+        }
+        
+        console.log('[Session] Session created successfully for user:', user.email);
+        return token;
+        
+    } catch (error) {
+        console.error('[Session] Session creation error:', error.message);
+        return null;
+    }
 }
 
 // ── Wait for the `supabase` global ──────────────────────────
@@ -900,6 +951,9 @@ sb.auth.onAuthStateChange(async (event, session) => {
         localStorage.setItem('easemed_user', email);
         localStorage.setItem('easemed_user_name', name);
         
+        // ── CREATE SESSION TOKEN ──────────────────────────
+        await createSession(user);
+        
         // ── CHECK IF PROFILE IS COMPLETE ──────────────────
         const { data: profile, error: profileError } = await sb
             .from('profiles')
@@ -932,6 +986,8 @@ sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_OUT') {
         localStorage.removeItem('easemed_user');
         localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_session_token');
+        localStorage.removeItem('easemed_login_time');
         localStorage.removeItem('easemed_pending_user_id');
         localStorage.removeItem('easemed_pending_email');
         localStorage.removeItem('easemed_pending_name');
@@ -941,6 +997,8 @@ sb.auth.onAuthStateChange(async (event, session) => {
         console.warn('[EaseMed] Token refresh failed, clearing session.');
         localStorage.removeItem('easemed_user');
         localStorage.removeItem('easemed_user_name');
+        localStorage.removeItem('easemed_session_token');
+        localStorage.removeItem('easemed_login_time');
         localStorage.removeItem('easemed_pending_user_id');
         localStorage.removeItem('easemed_pending_email');
         localStorage.removeItem('easemed_pending_name');
@@ -1182,6 +1240,9 @@ async function handleLogin() {
         return;
     }
 
+    // ── CREATE SESSION TOKEN ──────────────────────────────
+    await createSession(data.user);
+
     // ── Record session (only after successful login) ──
     try {
         const ipResponse = await fetch('https://api.ipify.org?format=json');
@@ -1292,6 +1353,8 @@ async function handleSignup() {
     }
 
     if (data.user) {
+        // ── CREATE SESSION TOKEN ──────────────────────────
+        await createSession(data.user);
         await upsertProfile(data.user, { name, role, university, yearOfStudy, phone, license, location });
     }
 
