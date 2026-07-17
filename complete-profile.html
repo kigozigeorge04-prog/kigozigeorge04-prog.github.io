@@ -5,61 +5,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Your Profile - EaseMed</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e3c72">
+    <meta name="theme-color" content="#E8F4FD">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EaseMed">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, #0c4a6e 0%, #1e3a5f 25%, #2d3748 50%, #1a3a4f 75%, #0f2c44 100%);
+            background: linear-gradient(160deg, #E8F4FD 0%, #B8D8F0 40%, #8EC4E8 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 40px 20px;
             position: relative;
             overflow-x: hidden;
+            color: #0B1A2E;
         }
 
-        .medical-bg {
-            position: fixed; top: 0; left: 0;
+        /* ──────────── BACKGROUND ──────────── */
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(59, 130, 246, 0.10) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                linear-gradient(180deg, #E8F4FD 0%, #B8D8F0 50%, #8EC4E8 100%);
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(11, 26, 46, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(11, 26, 46, 0.06) 1px, transparent 1px);
+            background-size: 48px 48px;
+            opacity: 0.5;
+        }
+
+        .clinical-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.12), transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            animation: pulseGlow 3s ease-in-out infinite;
+            pointer-events: none;
+            filter: blur(60px);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        .medical-icons {
+            position: fixed;
+            top: 0; left: 0;
             width: 100%; height: 100%;
-            z-index: 0; overflow: hidden;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
         }
 
-        .medical-bg::before {
+        .medical-icons::before {
             content: '🫀';
-            position: absolute; font-size: 300px; opacity: 0.03;
+            position: absolute; font-size: 300px; opacity: 0.04;
             bottom: -50px; right: -50px;
-            animation: float 20s infinite ease-in-out;
+            animation: floatIcon 20s infinite ease-in-out;
         }
 
-        .medical-bg::after {
+        .medical-icons::after {
             content: '🩺';
-            position: absolute; font-size: 250px; opacity: 0.03;
+            position: absolute; font-size: 250px; opacity: 0.04;
             top: -50px; left: -50px;
-            animation: float 15s infinite ease-in-out reverse;
+            animation: floatIcon 15s infinite ease-in-out reverse;
         }
 
-        @keyframes float {
+        @keyframes floatIcon {
             0%, 100% { transform: translate(0,0) rotate(0deg); }
             50%       { transform: translate(-30px,-30px) rotate(10deg); }
         }
 
+        /* ──────────── GLASS CONTAINER ──────────── */
         .container {
             position: relative;
             z-index: 1;
-            background: rgba(255,255,255,0.98);
-            backdrop-filter: blur(10px);
-            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 24px;
             padding: 50px;
             width: 600px;
             max-width: 100%;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 8px 40px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
             animation: slideUp 0.6s cubic-bezier(0.68,-0.55,0.265,1.55);
         }
 
@@ -70,11 +125,11 @@
 
         .container::before {
             content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 5px;
-            background: linear-gradient(90deg, #2ecc71, #3498db, #e74c3c, #f39c12, #2ecc71);
+            position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #3B82F6, #8B5CF6, #3B82F6);
             background-size: 200% 100%;
             animation: gradientMove 3s linear infinite;
-            border-radius: 40px 40px 0 0;
+            border-radius: 24px 24px 0 0;
         }
 
         @keyframes gradientMove {
@@ -82,103 +137,118 @@
             100% { background-position: 200% 0%; }
         }
 
+        /* ──────────── LOGO ──────────── */
         .logo {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 28px;
         }
 
         .logo-icon {
-            font-size: 60px;
+            font-size: 56px;
             animation: heartbeat 1.5s ease-in-out infinite;
             display: inline-block;
         }
 
         @keyframes heartbeat {
             0%, 100% { transform: scale(1); }
-            50%       { transform: scale(1.1); }
+            50%       { transform: scale(1.08); }
         }
 
         .logo h1 {
+            font-family: 'Lora', serif;
             font-size: 1.8rem;
-            background: linear-gradient(135deg, #1e3a5f, #2c5282);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            font-weight: 700;
+            color: #0B1A2E;
             margin-top: 8px;
         }
 
         .logo p {
-            color: #718096;
+            color: rgba(11, 26, 46, 0.5);
             font-size: 0.85rem;
             margin-top: 4px;
+            font-weight: 400;
         }
 
+        /* ──────────── WELCOME BANNER ──────────── */
         .welcome-banner {
-            background: linear-gradient(135deg, #ebf8ff, #e6f7ff);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border-radius: 16px;
             padding: 20px 24px;
-            margin-bottom: 28px;
-            border: 1px solid #bee3f8;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             text-align: center;
         }
 
         .welcome-banner h2 {
-            color: #2c5282;
+            color: #0B1A2E;
             font-size: 1.2rem;
             margin-bottom: 4px;
+            font-weight: 700;
         }
 
         .welcome-banner p {
-            color: #4a6a8a;
+            color: rgba(11, 26, 46, 0.6);
             font-size: 0.9rem;
+            font-weight: 400;
         }
 
         .welcome-banner .highlight {
             font-weight: 700;
-            color: #1a365d;
+            color: #2563EB;
         }
 
+        /* ──────────── INFO BOX ──────────── */
         .info-box {
-            background: #f7fafc;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border-radius: 14px;
             padding: 16px 20px;
             margin-bottom: 24px;
-            border-left: 4px solid #e53e3e;
+            border-left: 4px solid #3B82F6;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left-width: 4px;
         }
 
         .info-box p {
-            color: #4a5568;
+            color: rgba(11, 26, 46, 0.7);
             font-size: 0.85rem;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 8px;
+            font-weight: 400;
+            line-height: 1.5;
         }
 
         .info-box .emoji {
             font-size: 1.2rem;
+            flex-shrink: 0;
         }
 
         .info-box .required-note {
-            color: #e53e3e;
+            color: #DC2626;
             font-weight: 700;
         }
 
+        /* ──────────── FORM ──────────── */
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .input-group label {
             display: block;
             margin-bottom: 6px;
             font-weight: 600;
-            color: #2d3748;
+            color: rgba(11, 26, 46, 0.7);
             font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .input-group label .required {
-            color: #e53e3e;
+            color: #DC2626;
             margin-left: 4px;
         }
 
@@ -186,25 +256,34 @@
         .input-group select {
             width: 100%;
             padding: 14px 16px;
-            border: 2px solid #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 14px;
             font-size: 14px;
             transition: all 0.3s;
-            background: white;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #0B1A2E;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(11, 26, 46, 0.3);
         }
 
         .input-group input:focus,
         .input-group select:focus {
             outline: none;
-            border-color: #2c5282;
-            box-shadow: 0 0 0 3px rgba(44,82,130,0.1);
+            border-color: #3B82F6;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
             transform: translateY(-2px);
         }
 
         .input-group input.field-error,
         .input-group select.field-error {
-            border-color: #e53e3e !important;
-            box-shadow: 0 0 0 3px rgba(229,62,62,0.12) !important;
+            border-color: #DC2626 !important;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08) !important;
             animation: fieldShake 0.4s ease;
         }
 
@@ -215,7 +294,7 @@
         }
 
         .field-error-msg {
-            color: #e53e3e;
+            color: #DC2626;
             font-size: 0.72rem;
             font-weight: 600;
             margin-top: 5px;
@@ -236,10 +315,11 @@
             gap: 15px;
         }
 
+        /* ──────────── BUTTON ──────────── */
         .btn-continue {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #2c5282, #1e3a5f);
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
             color: white;
             border: none;
             border-radius: 14px;
@@ -252,11 +332,27 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-continue::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .btn-continue:hover:not(:disabled)::after {
+            transform: translateX(100%);
         }
 
         .btn-continue:hover:not(:disabled) {
             transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(44,82,130,0.4);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
         }
 
         .btn-continue:disabled {
@@ -279,42 +375,60 @@
             to { transform: rotate(360deg); }
         }
 
+        /* ──────────── ALERT ──────────── */
         .alert {
-            padding: 12px;
+            padding: 12px 16px;
             border-radius: 12px;
             margin-bottom: 20px;
             display: none;
             font-size: 0.88rem;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .alert-error {
-            background: #fed7d7;
-            color: #c53030;
-            border-left: 4px solid #e53e3e;
+            color: #DC2626;
+            border-left: 4px solid #DC2626;
         }
 
         .alert-success {
-            background: #c6f6d5;
-            color: #276749;
-            border-left: 4px solid #38a169;
+            color: #065F46;
+            border-left: 4px solid #10B981;
         }
 
         .alert-info {
-            background: #ebf8ff;
-            color: #2c5282;
-            border-left: 4px solid #3498db;
+            color: #1A365D;
+            border-left: 4px solid #3B82F6;
         }
 
+        /* ──────────── FOOTER ──────────── */
         .footer {
             text-align: center;
             margin-top: 24px;
             font-size: 0.7rem;
-            color: #a0aec0;
+            color: rgba(11, 26, 46, 0.3);
+            font-weight: 400;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .footer p {
+            margin-top: 2px;
+        }
+
+        .security-note {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: rgba(11, 26, 46, 0.4);
+            font-weight: 400;
         }
 
         .required-badge {
             display: inline-block;
-            background: #e53e3e;
+            background: #DC2626;
             color: white;
             font-size: 0.65rem;
             font-weight: 700;
@@ -324,21 +438,53 @@
             text-transform: uppercase;
         }
 
+        /* ──────────── RESPONSIVE ──────────── */
         @media (max-width: 550px) {
             .container { padding: 30px 20px; }
             .input-row { grid-template-columns: 1fr; gap: 0; }
             .logo h1 { font-size: 1.4rem; }
             .welcome-banner { padding: 16px; }
+            .container::before { height: 3px; }
+            .medical-icons::before { font-size: 200px; }
+            .medical-icons::after { font-size: 180px; }
+        }
+
+        @media (max-width: 400px) {
+            .container { padding: 24px 16px; }
+            .logo-icon { font-size: 40px; }
+            .logo h1 { font-size: 1.2rem; }
+            .btn-continue { font-size: 14px; padding: 14px; }
+        }
+
+        /* ──────────── SELECTION ──────────── */
+        ::selection {
+            background: rgba(59, 130, 246, 0.15);
+            color: #0B1A2E;
+        }
+
+        /* ──────────── SCROLLBAR ──────────── */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.3);
         }
     </style>
 </head>
 <body>
 
-<div class="medical-bg">
-    <div class="cross" style="top:10%;left:5%;">✚</div>
-    <div class="cross" style="bottom:15%;right:8%;">✚</div>
-    <div class="cross" style="top:50%;left:85%;">✚</div>
-</div>
+<!-- Background -->
+<div class="bg-gradient"></div>
+<div class="bg-grid"></div>
+<div class="clinical-glow"></div>
+<div class="medical-icons"></div>
 
 <div class="container">
     <div class="logo">
@@ -406,8 +552,8 @@
         </button>
     </form>
 
-    <div style="margin-top: 16px; text-align: center; font-size: 0.8rem; color: #a0aec0;">
-        <p>🔒 Your information is securely stored and only used for educational purposes.</p>
+    <div class="security-note">
+        🔒 Your information is securely stored and only used for educational purposes.
     </div>
 
     <div class="footer">
