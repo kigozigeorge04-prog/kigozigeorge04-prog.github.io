@@ -9,10 +9,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EaseMed — Choose a Clerking Module</title>
 <meta name="description" content="EaseMed: clinical clerking modules for Ugandan medical students, grounded in Hutchison's Clinical Methods.">
-<meta name="theme-color" content="#0c1b22">
+<meta name="theme-color" content="#E8F4FD">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* ──────────── RESET & BASE ──────────── */
   * {
@@ -22,11 +22,11 @@
   }
 
   body {
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     min-height: 100vh;
     width: 100%;
-    background: linear-gradient(160deg, #0B1120 0%, #0F172A 55%, #0B1120 100%);
-    color: #F8FAFC;
+    background: linear-gradient(160deg, #E8F4FD 0%, #B8D8F0 40%, #8EC4E8 100%);
+    color: #1A2A3A;
     display: none;
     position: relative;
     overflow-x: hidden;
@@ -43,8 +43,8 @@
   }
 
   @keyframes pulse-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.35; }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.8); }
   }
   .pulse-dot {
     animation: pulse-dot 1.6s ease-in-out infinite;
@@ -81,12 +81,49 @@
     animation: float 6s ease-in-out infinite;
   }
 
-  @keyframes shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
   }
 
-  /* ──────────── BACKGROUND BLOBS ──────────── */
+  /* ──────────── BACKGROUND ──────────── */
+  .bg-gradient {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: 
+      radial-gradient(ellipse at 20% 30%, rgba(59, 130, 246, 0.10) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+      linear-gradient(180deg, #E8F4FD 0%, #B8D8F0 50%, #8EC4E8 100%);
+  }
+
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(26, 42, 58, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26, 42, 58, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.5;
+  }
+
+  .clinical-glow {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.12), transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    animation: pulseGlow 3s ease-in-out infinite;
+    pointer-events: none;
+    filter: blur(60px);
+  }
+
   .blobs {
     position: fixed;
     inset: 0;
@@ -98,22 +135,11 @@
     position: absolute;
     border-radius: 9999px;
     filter: blur(90px);
-    opacity: 0.35;
+    opacity: 0.15;
   }
   .blob-1 { top: -10%; left: -8%; width: 480px; height: 480px; background: #3B82F6; }
-  .blob-2 { bottom: -15%; left: 20%; width: 420px; height: 420px; background: #2563EB; opacity: 0.22; }
-  .blob-3 { top: 20%; right: -10%; width: 520px; height: 520px; background: #1D4ED8; opacity: 0.25; }
-
-  .grid-paper {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background-image:
-      linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px);
-    background-size: 28px 28px;
-  }
+  .blob-2 { bottom: -15%; left: 20%; width: 420px; height: 420px; background: #2563EB; opacity: 0.10; }
+  .blob-3 { top: 20%; right: -10%; width: 520px; height: 520px; background: #1D4ED8; opacity: 0.12; }
 
   /* ──────────── GLASS ──────────── */
   .glass {
@@ -129,12 +155,23 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px 36px;
-    border-bottom: 1px solid rgba(51, 65, 85, 0.6);
-    background: rgba(15, 23, 42, 0.35);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     flex-wrap: wrap;
     gap: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 16px 20px 0;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .topline {
+      margin: 12px 12px 0;
+      padding: 16px 18px;
+      border-radius: 12px;
+    }
   }
 
   .topline .brand {
@@ -146,12 +183,12 @@
   .topline .crest {
     width: 36px;
     height: 36px;
-    border-radius: 9px;
-    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    border-radius: 10px;
+    background: linear-gradient(135deg, #3B82F6, #8B5CF6);
     display: grid;
     place-items: center;
     font-size: 17px;
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
   }
 
   .topline .brand-name {
@@ -159,18 +196,18 @@
     font-weight: 600;
     font-size: 1.18rem;
     letter-spacing: 0.01em;
-    color: #F8FAFC;
+    color: #1A2A3A;
   }
 
   .topline .edition {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
     letter-spacing: 0.06em;
-    color: rgba(246, 243, 234, 0.45);
-    border: 1px solid rgba(51, 65, 85, 0.6);
+    color: rgba(26, 42, 58, 0.4);
+    border: 1px solid rgba(26, 42, 58, 0.1);
     padding: 4px 10px;
     border-radius: 999px;
-    background: rgba(15, 23, 42, 0.4);
+    background: rgba(255, 255, 255, 0.3);
   }
 
   .topline .right-group {
@@ -184,11 +221,11 @@
     background: linear-gradient(135deg, #3B82F6, #2563EB);
     color: #FFFFFF;
     border: none;
-    border-radius: 7px;
+    border-radius: 8px;
     padding: 6px 16px;
     font-size: 0.78rem;
     font-weight: 600;
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -207,20 +244,20 @@
   }
 
   .btn-logout {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(51, 65, 85, 0.6);
-    color: #F8FAFC;
-    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(26, 42, 58, 0.1);
+    color: #1A2A3A;
+    border-radius: 8px;
     padding: 6px 13px;
     font-size: 0.76rem;
     font-weight: 600;
     cursor: pointer;
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     transition: background 0.2s, border-color 0.2s;
   }
   .btn-logout:hover {
-    background: rgba(255, 255, 255, 0.16);
-    border-color: #3B82F6;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(59, 130, 246, 0.3);
   }
 
   /* ──────────── HERO ──────────── */
@@ -237,7 +274,7 @@
     display: inline-flex;
     align-items: center;
     gap: 9px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
     font-weight: 500;
     letter-spacing: 0.14em;
@@ -250,7 +287,7 @@
     content: '';
     width: 22px;
     height: 1px;
-    background: rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.3);
   }
 
   .hero h1 {
@@ -259,20 +296,24 @@
     font-size: clamp(2rem, 4.5vw, 3.2rem);
     line-height: 1.08;
     letter-spacing: -0.01em;
-    color: #F8FAFC;
+    color: #1A2A3A;
   }
   .hero h1 em {
     font-style: italic;
     font-weight: 500;
-    color: #3B82F6;
+    background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .hero p {
     margin: 16px auto 0;
     max-width: 480px;
-    color: rgba(246, 243, 234, 0.6);
+    color: rgba(26, 42, 58, 0.5);
     font-size: 1rem;
     line-height: 1.65;
+    font-weight: 300;
   }
 
   /* ──────────── MODULES GRID ──────────── */
@@ -297,15 +338,17 @@
   /* ──────────── MODULE CARDS ──────────── */
   .card {
     position: relative;
-    background: rgba(30, 41, 59, 0.55);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    color: #F8FAFC;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    color: #1A2A3A;
     border-radius: 16px;
     text-decoration: none;
     overflow: hidden;
-    border: 1px solid rgba(51, 65, 85, 0.6);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 20px 60px rgba(0,0,0,0.45);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s ease, border-color 0.3s ease;
     display: flex;
     flex-direction: column;
@@ -314,15 +357,17 @@
 
   .card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-    border-color: #3B82F6;
+    box-shadow: 
+      0 16px 48px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: rgba(59, 130, 246, 0.3);
   }
 
   .card .banner {
     position: relative;
     height: 128px;
     background:
-      repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0 2px, transparent 2px 14px),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 14px),
       linear-gradient(135deg, var(--accent-a), var(--accent-b));
     display: flex;
     align-items: flex-end;
@@ -332,7 +377,7 @@
   }
 
   .card .banner .num {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
     color: rgba(255, 255, 255, 0.5);
     position: absolute;
@@ -343,7 +388,7 @@
 
   .card .banner .icon-big {
     font-size: 46px;
-    filter: drop-shadow(0 8px 14px rgba(0,0,0,0.3));
+    filter: drop-shadow(0 8px 14px rgba(0,0,0,0.2));
     transition: transform 0.35s cubic-bezier(.2,.8,.2,1);
     line-height: 1;
   }
@@ -354,13 +399,13 @@
 
   .card .banner .tag {
     align-self: flex-end;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.66rem;
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.8);
-    background: rgba(0,0,0,0.2);
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(0,0,0,0.15);
     padding: 2px 10px;
     border-radius: 20px;
   }
@@ -371,21 +416,22 @@
     flex-direction: column;
     gap: 9px;
     flex: 1;
-    border-top: 1px solid rgba(51, 65, 85, 0.4);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .card h3 {
     font-family: 'Lora', serif;
     font-weight: 600;
     font-size: 1.28rem;
-    color: #F8FAFC;
+    color: #1A2A3A;
     letter-spacing: -0.01em;
   }
 
   .card p.desc {
-    color: #94A3B8;
+    color: rgba(26, 42, 58, 0.6);
     font-size: 0.89rem;
     line-height: 1.55;
+    font-weight: 300;
   }
 
   .card .go {
@@ -399,7 +445,7 @@
     gap: 7px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
   .card .go .arrow {
@@ -410,7 +456,7 @@
     transform: translateX(6px);
   }
 
-  /* Card color variants */
+  /* Card color variants - softer for light theme */
   .card.medicine { --accent-a: #1E3A5F; --accent-b: #3B82F6; }
   .card.surgery { --accent-a: #1A365D; --accent-b: #60A5FA; }
   .card.peds { --accent-a: #065F46; --accent-b: #34D399; }
@@ -422,8 +468,8 @@
     z-index: 10;
     text-align: center;
     padding: 0 28px 44px;
-    color: rgba(246, 243, 234, 0.3);
-    font-family: 'IBM Plex Mono', monospace;
+    color: rgba(26, 42, 58, 0.25);
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
     letter-spacing: 0.04em;
   }
@@ -450,9 +496,9 @@
   }
 
   .loading-text {
-    color: rgba(246, 243, 234, 0.6);
+    color: rgba(26, 42, 58, 0.5);
     font-size: 0.9rem;
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
   /* ──────────── ERROR STATE ──────────── */
@@ -464,13 +510,13 @@
   }
 
   .error-state h2 {
-    color: #F87171;
+    color: #EF4444;
     margin-bottom: 16px;
     font-family: 'Lora', serif;
   }
 
   .error-state p {
-    color: rgba(246, 243, 234, 0.7);
+    color: rgba(26, 42, 58, 0.6);
     margin-bottom: 20px;
     line-height: 1.6;
   }
@@ -491,7 +537,7 @@
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     transition: transform 0.2s, box-shadow 0.2s;
   }
   .error-state .btn-retry:hover {
@@ -501,20 +547,20 @@
 
   .error-state .btn-login {
     padding: 12px 30px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #F8FAFC;
-    border: 1px solid rgba(51, 65, 85, 0.6);
+    background: rgba(255, 255, 255, 0.1);
+    color: #1A2A3A;
+    border: 1px solid rgba(26, 42, 58, 0.1);
     border-radius: 8px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     text-decoration: none;
     transition: background 0.2s, border-color 0.2s;
   }
   .error-state .btn-login:hover {
-    background: rgba(255, 255, 255, 0.16);
-    border-color: #3B82F6;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(59, 130, 246, 0.3);
   }
 
   /* ──────────── FAB BUTTONS ──────────── */
@@ -536,7 +582,7 @@
     border: none;
     border-radius: 60px;
     padding: 12px 22px;
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
     font-weight: 600;
     box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
@@ -556,7 +602,7 @@
     border: none;
     border-radius: 60px;
     padding: 12px 22px;
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
     font-weight: 600;
     text-decoration: none;
@@ -580,57 +626,62 @@
     z-index: 999999;
     padding: 12px 20px;
     text-align: center;
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
     font-weight: 500;
     display: none;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
   #easemedBanner.info {
-    background: rgba(30, 58, 95, 0.95);
-    color: #BFDBFE;
+    background: rgba(59, 130, 246, 0.15);
+    backdrop-filter: blur(20px);
+    color: #1A2A3A;
     border-bottom: 3px solid #3B82F6;
   }
   #easemedBanner.warning {
-    background: rgba(95, 58, 30, 0.95);
-    color: #FDE68A;
+    background: rgba(245, 158, 11, 0.15);
+    backdrop-filter: blur(20px);
+    color: #1A2A3A;
     border-bottom: 3px solid #F59E0B;
   }
   #easemedBanner.success {
-    background: rgba(6, 95, 70, 0.95);
-    color: #A7F3D0;
+    background: rgba(16, 185, 129, 0.15);
+    backdrop-filter: blur(20px);
+    color: #1A2A3A;
     border-bottom: 3px solid #10B981;
   }
   #easemedBanner button {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(26, 42, 58, 0.08);
+    border: 1px solid rgba(26, 42, 58, 0.1);
     border-radius: 6px;
     width: 28px;
     height: 28px;
     cursor: pointer;
     font-size: 0.9rem;
-    color: #F8FAFC;
+    color: #1A2A3A;
     flex-shrink: 0;
     transition: background 0.2s;
   }
   #easemedBanner button:hover {
-    background: rgba(255,255,255,0.2);
+    background: rgba(26, 42, 58, 0.15);
   }
 
   /* ──────────── USER GREETING ──────────── */
   #userGreeting {
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.82rem;
-    color: rgba(246, 243, 234, 0.7);
+    color: rgba(26, 42, 58, 0.6);
   }
 
   /* ──────────── RESPONSIVE ──────────── */
   @media (max-width: 768px) {
     .topline {
       padding: 16px 20px;
+      margin: 12px 12px 0;
+      border-radius: 12px;
     }
     .topline .edition {
       font-size: 0.55rem;
@@ -649,18 +700,64 @@
       padding: 10px 16px;
       font-size: 0.75rem;
     }
+    .modules {
+      padding: 0 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .topline {
+      margin: 8px 8px 0;
+      padding: 12px 14px;
+      border-radius: 10px;
+    }
+    .topline .brand-name {
+      font-size: 1rem;
+    }
+    .topline .crest {
+      width: 30px;
+      height: 30px;
+      font-size: 14px;
+    }
+    .btn-admin-top, .btn-logout {
+      padding: 4px 10px;
+      font-size: 0.7rem;
+    }
+  }
+
+  /* ──────────── SELECTION ──────────── */
+  ::selection {
+    background: rgba(59, 130, 246, 0.15);
+    color: #1A2A3A;
+  }
+
+  /* ──────────── SCROLLBAR ──────────── */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.2);
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.3);
   }
 </style>
 </head>
 <body>
 
-<!-- Background Blobs -->
+<!-- Background -->
+<div class="bg-gradient"></div>
+<div class="bg-grid"></div>
+<div class="clinical-glow"></div>
 <div class="blobs" aria-hidden="true">
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
   <div class="blob blob-3"></div>
 </div>
-<div class="grid-paper" aria-hidden="true"></div>
 
 <!-- Loading Spinner -->
 <div id="loadingSpinner" class="loading-spinner">
@@ -671,7 +768,7 @@
 <!-- Main Content -->
 <div id="mainContent" style="display:none;">
   <!-- Top Bar -->
-  <div class="topline">
+  <div class="topline glass">
     <div class="brand">
       <div class="crest">🩺</div>
       <span class="brand-name">EaseMed</span>
@@ -698,7 +795,7 @@
 
   <!-- Modules Grid -->
   <div class="modules">
-    <div onclick="openModule('easemed_dashboard.html')" class="card medicine">
+    <div onclick="openModule('easemed_dashboard.html')" class="card medicine panel-in">
       <div class="banner">
         <span class="num">01</span>
         <span class="icon-big">📚</span>
@@ -711,7 +808,7 @@
       </div>
     </div>
 
-    <div onclick="openModule('surgery-clerking.html')" class="card surgery">
+    <div onclick="openModule('surgery-clerking.html')" class="card surgery panel-in" style="animation-delay:0.05s;">
       <div class="banner">
         <span class="num">02</span>
         <span class="icon-big">🔪</span>
@@ -724,7 +821,7 @@
       </div>
     </div>
 
-    <div onclick="openModule('easemed_pediatrics.html')" class="card peds">
+    <div onclick="openModule('easemed_pediatrics.html')" class="card peds panel-in" style="animation-delay:0.1s;">
       <div class="banner">
         <span class="num">03</span>
         <span class="icon-big">👶</span>
@@ -737,7 +834,7 @@
       </div>
     </div>
 
-    <div onclick="openModule('ObGyn.html')" class="card obgyn">
+    <div onclick="openModule('ObGyn.html')" class="card obgyn panel-in" style="animation-delay:0.15s;">
       <div class="banner">
         <span class="num">04</span>
         <span class="icon-big">🤰</span>
