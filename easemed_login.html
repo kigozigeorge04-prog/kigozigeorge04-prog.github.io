@@ -721,234 +721,464 @@
         </div>
     </div>
 
-  <script>
-    // ──────────────────── SUPABASE CONFIG ────────────────────
-    const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+    <script>
+        // ──────────────────── SUPABASE CONFIG ────────────────────
+        // Wait for Supabase to load
+        function initSupabase() {
+            if (typeof window.supabase === 'undefined') {
+                console.log('Waiting for Supabase to load...');
+                setTimeout(initSupabase, 500);
+                return;
+            }
 
-    // Only create the client ONCE
-    if (typeof supabase === 'undefined') {
-        var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
+            console.log('Supabase loaded, initializing...');
+            
+            const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
-    // ──────────────────── DATA ────────────────────
-    const ROTATIONS = [
-        "Internal Medicine — Week 4",
-        "General Surgery — Week 2",
-        "Pediatrics — Week 1",
-        "OB/GYN — Week 3",
-        "Psychiatry — Week 5",
-    ];
-
-    const ROLES = [
-        "Medical Student",
-        "Intern Doctor",
-        "Resident Doctor",
-        "Consultant",
-        "Clinical Officer",
-        "Nurse",
-        "Medical Educator",
-    ];
-
-    const YEARS = [
-        "Year 1",
-        "Year 2",
-        "Year 3",
-        "Year 4",
-        "Year 5",
-        "Year 6",
-        "Postgraduate Year 1",
-        "Postgraduate Year 2",
-        "Postgraduate Year 3",
-        "Graduated / Professional",
-    ];
-
-    function getStrength(value) {
-        let score = 0;
-        if (value.length >= 6) score++;
-        if (value.length >= 10) score++;
-        if (/[A-Z]/.test(value)) score++;
-        if (/[0-9]/.test(value)) score++;
-        if (/[^A-Za-z0-9]/.test(value)) score++;
-        const tiers = [
-            { pct: 20, color: "#E2836E", label: "Very weak" },
-            { pct: 40, color: "#E2836E", label: "Weak" },
-            { pct: 65, color: "#D9A75D", label: "Fair" },
-            { pct: 85, color: "#5DCAA5", label: "Strong" },
-            { pct: 100, color: "#38846F", label: "Very strong" },
-        ];
-        return value.length ? tiers[Math.max(0, score - 1)] : { pct: 0, color: "#2A363B", label: "" };
-    }
-
-    // ──────────────────── STATE ────────────────────
-    let currentView = 'login';
-    let rotationIndex = 0;
-    let rotationInterval = null;
-
-    // ──────────────────── RENDER FUNCTIONS ────────────────────
-
-    function renderView() {
-        const container = document.getElementById('viewContainer');
-        switch (currentView) {
-            case 'login':
-                container.innerHTML = renderLogin();
-                break;
-            case 'signup':
-                container.innerHTML = renderSignup();
-                break;
-            case 'forgot':
-                container.innerHTML = renderForgot();
-                break;
-            case 'reset':
-                container.innerHTML = renderReset();
-                break;
+            // Create the Supabase client
+            window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            console.log('Supabase client initialized successfully!');
+            
+            // Now start the app
+            startApp();
         }
-        bindEvents();
-    }
 
-    // ──────────────────── LOGIN ────────────────────
-    function renderLogin() {
-        return `
-            <div class="tab-group">
-                <button class="tab tab-active" data-view="login">Log in</button>
-                <button class="tab" data-view="signup">Sign up</button>
-            </div>
+        // ──────────────────── DATA ────────────────────
+        const ROTATIONS = [
+            "Internal Medicine — Week 4",
+            "General Surgery — Week 2",
+            "Pediatrics — Week 1",
+            "OB/GYN — Week 3",
+            "Psychiatry — Week 5",
+        ];
 
-            <h1 class="title">Sign in to your logbook</h1>
-            <p class="subtitle">Pick up where your last rotation left off.</p>
+        const ROLES = [
+            "Medical Student",
+            "Intern Doctor",
+            "Resident Doctor",
+            "Consultant",
+            "Clinical Officer",
+            "Nurse",
+            "Medical Educator",
+        ];
 
-            <div class="card panel-in">
-                <div id="loginNotice"></div>
+        const YEARS = [
+            "Year 1",
+            "Year 2",
+            "Year 3",
+            "Year 4",
+            "Year 5",
+            "Year 6",
+            "Postgraduate Year 1",
+            "Postgraduate Year 2",
+            "Postgraduate Year 3",
+            "Graduated / Professional",
+        ];
 
-                <form id="loginForm" onsubmit="return handleLogin(event)">
-                    <div style="margin-bottom:20px;">
-                        <label class="label">Student email</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="4" width="20" height="16" rx="2"/>
-                                <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/>
-                            </svg>
-                            <input type="email" id="loginEmail" class="input-field" placeholder="you@medschool.edu" value="">
-                        </div>
-                        <div id="loginEmailError" class="error-text hidden"></div>
-                    </div>
+        function getStrength(value) {
+            let score = 0;
+            if (value.length >= 6) score++;
+            if (value.length >= 10) score++;
+            if (/[A-Z]/.test(value)) score++;
+            if (/[0-9]/.test(value)) score++;
+            if (/[^A-Za-z0-9]/.test(value)) score++;
+            const tiers = [
+                { pct: 20, color: "#E2836E", label: "Very weak" },
+                { pct: 40, color: "#E2836E", label: "Weak" },
+                { pct: 65, color: "#D9A75D", label: "Fair" },
+                { pct: 85, color: "#5DCAA5", label: "Strong" },
+                { pct: 100, color: "#38846F", label: "Very strong" },
+            ];
+            return value.length ? tiers[Math.max(0, score - 1)] : { pct: 0, color: "#2A363B", label: "" };
+        }
 
-                    <div style="margin-bottom:16px;">
-                        <label class="label">Password</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                <path d="M7 11V7a5 5 0 0110 0v4"/>
-                            </svg>
-                            <input type="password" id="loginPassword" class="input-field has-right-icon" placeholder="••••••••">
-                            <button type="button" class="input-right-icon" onclick="togglePassword('loginPassword', this)">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </button>
-                        </div>
-                        <div id="loginPasswordError" class="error-text hidden"></div>
-                    </div>
+        // ──────────────────── STATE ────────────────────
+        let currentView = 'login';
+        let rotationIndex = 0;
+        let rotationInterval = null;
 
-                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:20px;">
-                        <label class="checkbox-group">
-                            <input type="checkbox" id="loginRemember" checked>
-                            Keep me signed in
-                        </label>
-                        <button type="button" class="inline-link" onclick="switchView('forgot')">Forgot password?</button>
-                    </div>
+        // ──────────────────── RENDER FUNCTIONS ────────────────────
 
-                    <button type="submit" class="btn-primary" id="loginBtn">
-                        Sign in
-                    </button>
-                </form>
+        function renderView() {
+            const container = document.getElementById('viewContainer');
+            switch (currentView) {
+                case 'login':
+                    container.innerHTML = renderLogin();
+                    break;
+                case 'signup':
+                    container.innerHTML = renderSignup();
+                    break;
+                case 'forgot':
+                    container.innerHTML = renderForgot();
+                    break;
+                case 'reset':
+                    container.innerHTML = renderReset();
+                    break;
+            }
+            bindEvents();
+        }
 
-                <div class="divider">
-                    <div class="divider-line"></div>
-                    <span class="divider-label">Or continue with</span>
-                    <div class="divider-line"></div>
+        // ──────────────────── LOGIN ────────────────────
+        function renderLogin() {
+            return `
+                <div class="tab-group">
+                    <button class="tab tab-active" data-view="login">Log in</button>
+                    <button class="tab" data-view="signup">Sign up</button>
                 </div>
 
-                <button class="btn-google" onclick="handleGoogleSignIn()" id="loginGoogleBtn">
-                    <svg width="16" height="16" viewBox="0 0 24 24">
-                        <path fill="#DB4437" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#4285F4" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#34A853" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    <span id="loginGoogleLabel">Continue with Google</span>
-                    <span class="sub">fast & secure</span>
-                </button>
-            </div>
+                <h1 class="title">Sign in to your logbook</h1>
+                <p class="subtitle">Pick up where your last rotation left off.</p>
 
-            <p class="text-center text-sm" style="color:#94A3B8;margin-top:24px;">
-                New to your rotations?
-                <button class="inline-link" onclick="switchView('signup')">Create an account</button>
-            </p>
-        `;
-    }
+                <div class="card panel-in">
+                    <div id="loginNotice"></div>
 
-    // ──────────────────── SIGNUP ────────────────────
-    function renderSignup() {
-        return `
-            <div class="tab-group">
-                <button class="tab" data-view="login">Log in</button>
-                <button class="tab tab-active" data-view="signup">Sign up</button>
-            </div>
-
-            <h1 class="title">Start your logbook</h1>
-            <p class="subtitle">A few details so your rotations track correctly.</p>
-
-            <div class="card panel-in">
-                <div id="signupNotice"></div>
-
-                <form id="signupForm" onsubmit="return handleSignup(event)">
-                    <div style="margin-bottom:16px;">
-                        <label class="label">Full name</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                                <circle cx="12" cy="7" r="4"/>
-                            </svg>
-                            <input type="text" id="signupName" class="input-field" placeholder="Jordan Achieng">
-                        </div>
-                        <div id="signupNameError" class="error-text hidden"></div>
-                    </div>
-
-                    <div class="grid-2" style="margin-bottom:16px;">
-                        <div>
-                            <label class="label">Email</label>
+                    <form id="loginForm" onsubmit="return handleLogin(event)">
+                        <div style="margin-bottom:20px;">
+                            <label class="label">Student email</label>
                             <div class="input-wrapper">
                                 <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="2" y="4" width="20" height="16" rx="2"/>
                                     <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/>
                                 </svg>
-                                <input type="email" id="signupEmail" class="input-field" placeholder="you@medschool.edu">
+                                <input type="email" id="loginEmail" class="input-field" placeholder="you@medschool.edu" value="">
                             </div>
-                            <div id="signupEmailError" class="error-text hidden"></div>
+                            <div id="loginEmailError" class="error-text hidden"></div>
                         </div>
-                        <div>
-                            <label class="label">Phone (optional)</label>
-                            <div class="input-wrapper">
-                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0122 16.92z"/>
-                                </svg>
-                                <input type="tel" id="signupPhone" class="input-field" placeholder="+256…">
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="grid-2" style="margin-bottom:16px;">
-                        <div>
+                        <div style="margin-bottom:16px;">
                             <label class="label">Password</label>
                             <div class="input-wrapper">
                                 <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                     <path d="M7 11V7a5 5 0 0110 0v4"/>
                                 </svg>
-                                <input type="password" id="signupPassword" class="input-field has-right-icon" placeholder="Min. 6 characters" oninput="updateStrength(this.value)">
-                                <button type="button" class="input-right-icon" onclick="togglePassword('signupPassword', this)">
+                                <input type="password" id="loginPassword" class="input-field has-right-icon" placeholder="••••••••">
+                                <button type="button" class="input-right-icon" onclick="togglePassword('loginPassword', this)">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="loginPasswordError" class="error-text hidden"></div>
+                        </div>
+
+                        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:20px;">
+                            <label class="checkbox-group">
+                                <input type="checkbox" id="loginRemember" checked>
+                                Keep me signed in
+                            </label>
+                            <button type="button" class="inline-link" onclick="switchView('forgot')">Forgot password?</button>
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="loginBtn">
+                            Sign in
+                        </button>
+                    </form>
+
+                    <div class="divider">
+                        <div class="divider-line"></div>
+                        <span class="divider-label">Or continue with</span>
+                        <div class="divider-line"></div>
+                    </div>
+
+                    <button class="btn-google" onclick="handleGoogleSignIn()" id="loginGoogleBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24">
+                            <path fill="#DB4437" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#4285F4" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#34A853" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        <span id="loginGoogleLabel">Continue with Google</span>
+                        <span class="sub">fast & secure</span>
+                    </button>
+                </div>
+
+                <p class="text-center text-sm" style="color:#94A3B8;margin-top:24px;">
+                    New to your rotations?
+                    <button class="inline-link" onclick="switchView('signup')">Create an account</button>
+                </p>
+            `;
+        }
+
+        // ──────────────────── SIGNUP ────────────────────
+        function renderSignup() {
+            return `
+                <div class="tab-group">
+                    <button class="tab" data-view="login">Log in</button>
+                    <button class="tab tab-active" data-view="signup">Sign up</button>
+                </div>
+
+                <h1 class="title">Start your logbook</h1>
+                <p class="subtitle">A few details so your rotations track correctly.</p>
+
+                <div class="card panel-in">
+                    <div id="signupNotice"></div>
+
+                    <form id="signupForm" onsubmit="return handleSignup(event)">
+                        <div style="margin-bottom:16px;">
+                            <label class="label">Full name</label>
+                            <div class="input-wrapper">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                <input type="text" id="signupName" class="input-field" placeholder="Jordan Achieng">
+                            </div>
+                            <div id="signupNameError" class="error-text hidden"></div>
+                        </div>
+
+                        <div class="grid-2" style="margin-bottom:16px;">
+                            <div>
+                                <label class="label">Email</label>
+                                <div class="input-wrapper">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                        <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/>
+                                    </svg>
+                                    <input type="email" id="signupEmail" class="input-field" placeholder="you@medschool.edu">
+                                </div>
+                                <div id="signupEmailError" class="error-text hidden"></div>
+                            </div>
+                            <div>
+                                <label class="label">Phone (optional)</label>
+                                <div class="input-wrapper">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0122 16.92z"/>
+                                    </svg>
+                                    <input type="tel" id="signupPhone" class="input-field" placeholder="+256…">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid-2" style="margin-bottom:16px;">
+                            <div>
+                                <label class="label">Password</label>
+                                <div class="input-wrapper">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                                    </svg>
+                                    <input type="password" id="signupPassword" class="input-field has-right-icon" placeholder="Min. 6 characters" oninput="updateStrength(this.value)">
+                                    <button type="button" class="input-right-icon" onclick="togglePassword('signupPassword', this)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="password-strength">
+                                    <div class="password-strength-bar" id="strengthBar"></div>
+                                </div>
+                                <div id="strengthLabel" class="password-strength-label" style="color:#2A363B;"></div>
+                                <div id="signupPasswordError" class="error-text hidden"></div>
+                            </div>
+                            <div>
+                                <label class="label">Confirm password</label>
+                                <div class="input-wrapper">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                                    </svg>
+                                    <input type="password" id="signupConfirm" class="input-field has-right-icon" placeholder="Confirm password">
+                                    <button type="button" class="input-right-icon" onclick="togglePassword('signupConfirm', this)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div id="signupConfirmError" class="error-text hidden"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid-2" style="margin-bottom:16px;">
+                            <div>
+                                <label class="label">Role</label>
+                                <div class="input-wrapper">
+                                    <select id="signupRole" class="input-field select-field">
+                                        <option value="">Select role</option>
+                                        ${ROLES.map(r => `<option value="${r}">${r}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div id="signupRoleError" class="error-text hidden"></div>
+                            </div>
+                            <div>
+                                <label class="label">Year of study</label>
+                                <div class="input-wrapper">
+                                    <select id="signupYear" class="input-field select-field">
+                                        <option value="">Select year</option>
+                                        ${YEARS.map(y => `<option value="${y}">${y}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div id="signupYearError" class="error-text hidden"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:16px;">
+                            <label class="label">University / institution</label>
+                            <div class="input-wrapper">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                                    <path d="M6 12v5c0 1.5 3 2 6 2s6-.5 6-2v-5"/>
+                                </svg>
+                                <input type="text" id="signupUniversity" class="input-field" placeholder="e.g., Makerere University">
+                            </div>
+                            <div id="signupUniversityError" class="error-text hidden"></div>
+                        </div>
+
+                        <div class="grid-2" style="margin-bottom:16px;">
+                            <div>
+                                <label class="label">License no. (optional)</label>
+                                <div class="input-wrapper">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="4" y1="9" x2="20" y2="9"/>
+                                        <line x1="4" y1="15" x2="20" y2="15"/>
+                                        <line x1="10" y1="3" x2="8" y2="21"/>
+                                        <line x1="14" y1="3" x2="12" y2="21"/>
+                                    </svg>
+                                    <input type="text" id="signupLicense" class="input-field" placeholder="e.g., UMC-2024-XXXX">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="label">Practice location (optional)</label>
+                                <div class="input-wrapper">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                        <circle cx="12" cy="10" r="3"/>
+                                    </svg>
+                                    <input type="text" id="signupLocation" class="input-field" placeholder="e.g., Mulago Hospital">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="consent-box" id="consentBox" style="margin-bottom:16px;">
+                            <label class="label">
+                                <input type="checkbox" id="signupAgree">
+                                <span>
+                                    I agree to the
+                                    <a href="terms.html" target="_blank" rel="noopener">Terms</a>
+                                    and
+                                    <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>,
+                                    and understand EaseMed is an educational tool.
+                                </span>
+                            </label>
+                            <div id="signupAgreeError" class="error-text hidden"></div>
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="signupBtn">
+                            Create account
+                        </button>
+                    </form>
+
+                    <div class="divider">
+                        <div class="divider-line"></div>
+                        <span class="divider-label">Or sign up with</span>
+                        <div class="divider-line"></div>
+                    </div>
+
+                    <button class="btn-google" onclick="handleGoogleSignUp()" id="signupGoogleBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24">
+                            <path fill="#DB4437" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#4285F4" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#34A853" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        <span id="signupGoogleLabel">Sign up with Google</span>
+                        <span class="sub">no password needed</span>
+                    </button>
+                </div>
+
+                <p class="text-center text-sm" style="color:#94A3B8;margin-top:24px;">
+                    Already have a logbook?
+                    <button class="inline-link" onclick="switchView('login')">Sign in</button>
+                </p>
+            `;
+        }
+
+        // ──────────────────── FORGOT ────────────────────
+        function renderForgot() {
+            return `
+                <button class="back-link" onclick="switchView('login')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"/>
+                        <polyline points="12 19 5 12 12 5"/>
+                    </svg>
+                    Back to sign in
+                </button>
+
+                <div class="eyebrow">Password reset</div>
+                <h1 class="title">Reset your password</h1>
+                <p class="subtitle" id="forgotSubtitle">We'll email you a link to set a new one.</p>
+
+                <div class="card panel-in">
+                    <div id="forgotNotice"></div>
+
+                    <form id="forgotForm" onsubmit="return handleForgot(event)">
+                        <div style="margin-bottom:20px;">
+                            <label class="label">Student email</label>
+                            <div class="input-wrapper">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                    <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/>
+                                </svg>
+                                <input type="email" id="forgotEmail" class="input-field" placeholder="you@medschool.edu">
+                            </div>
+                            <div id="forgotEmailError" class="error-text hidden"></div>
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="forgotBtn">
+                            Send reset link
+                        </button>
+                    </form>
+
+                    <div id="forgotSuccess" class="hidden" style="margin-top:8px;">
+                        <div class="notice notice-success">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            <span id="forgotSuccessText">Password reset email sent! Check your inbox.</span>
+                        </div>
+                        <button class="btn-primary" onclick="switchView('login')" style="margin-top:16px;">
+                            Back to sign in
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ──────────────────── RESET ────────────────────
+        function renderReset() {
+            return `
+                <div class="eyebrow">Password reset</div>
+                <h1 class="title">Set a new password</h1>
+                <p class="subtitle">You're verified — choose something you'll remember.</p>
+
+                <div class="card panel-in">
+                    <div id="resetNotice"></div>
+                    <div id="resetSuccess" class="hidden">
+                        <div class="notice notice-success">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            <span>Password updated successfully! Taking you back to sign in…</span>
+                        </div>
+                    </div>
+
+                    <form id="resetForm" onsubmit="return handleReset(event)">
+                        <div style="margin-bottom:16px;">
+                            <label class="label">New password</label>
+                            <div class="input-wrapper">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0110 0v4"/>
+                                </svg>
+                                <input type="password" id="resetPassword" class="input-field has-right-icon" placeholder="Min. 6 characters" oninput="updateResetStrength(this.value)">
+                                <button type="button" class="input-right-icon" onclick="togglePassword('resetPassword', this)">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                         <circle cx="12" cy="12" r="3"/>
@@ -956,704 +1186,531 @@
                                 </button>
                             </div>
                             <div class="password-strength">
-                                <div class="password-strength-bar" id="strengthBar"></div>
+                                <div class="password-strength-bar" id="resetStrengthBar"></div>
                             </div>
-                            <div id="strengthLabel" class="password-strength-label" style="color:#2A363B;"></div>
-                            <div id="signupPasswordError" class="error-text hidden"></div>
+                            <div id="resetStrengthLabel" class="password-strength-label" style="color:#2A363B;"></div>
+                            <div id="resetPasswordError" class="error-text hidden"></div>
                         </div>
-                        <div>
-                            <label class="label">Confirm password</label>
+
+                        <div style="margin-bottom:20px;">
+                            <label class="label">Confirm new password</label>
                             <div class="input-wrapper">
                                 <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                     <path d="M7 11V7a5 5 0 0110 0v4"/>
                                 </svg>
-                                <input type="password" id="signupConfirm" class="input-field has-right-icon" placeholder="Confirm password">
-                                <button type="button" class="input-right-icon" onclick="togglePassword('signupConfirm', this)">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                        <circle cx="12" cy="12" r="3"/>
-                                    </svg>
-                                </button>
+                                <input type="password" id="resetConfirm" class="input-field" placeholder="Confirm new password">
                             </div>
-                            <div id="signupConfirmError" class="error-text hidden"></div>
+                            <div id="resetConfirmError" class="error-text hidden"></div>
                         </div>
-                    </div>
 
-                    <div class="grid-2" style="margin-bottom:16px;">
-                        <div>
-                            <label class="label">Role</label>
-                            <div class="input-wrapper">
-                                <select id="signupRole" class="input-field select-field">
-                                    <option value="">Select role</option>
-                                    ${ROLES.map(r => `<option value="${r}">${r}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div id="signupRoleError" class="error-text hidden"></div>
-                        </div>
-                        <div>
-                            <label class="label">Year of study</label>
-                            <div class="input-wrapper">
-                                <select id="signupYear" class="input-field select-field">
-                                    <option value="">Select year</option>
-                                    ${YEARS.map(y => `<option value="${y}">${y}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div id="signupYearError" class="error-text hidden"></div>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom:16px;">
-                        <label class="label">University / institution</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                                <path d="M6 12v5c0 1.5 3 2 6 2s6-.5 6-2v-5"/>
-                            </svg>
-                            <input type="text" id="signupUniversity" class="input-field" placeholder="e.g., Makerere University">
-                        </div>
-                        <div id="signupUniversityError" class="error-text hidden"></div>
-                    </div>
-
-                    <div class="grid-2" style="margin-bottom:16px;">
-                        <div>
-                            <label class="label">License no. (optional)</label>
-                            <div class="input-wrapper">
-                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="4" y1="9" x2="20" y2="9"/>
-                                    <line x1="4" y1="15" x2="20" y2="15"/>
-                                    <line x1="10" y1="3" x2="8" y2="21"/>
-                                    <line x1="14" y1="3" x2="12" y2="21"/>
-                                </svg>
-                                <input type="text" id="signupLicense" class="input-field" placeholder="e.g., UMC-2024-XXXX">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="label">Practice location (optional)</label>
-                            <div class="input-wrapper">
-                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-                                    <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                <input type="text" id="signupLocation" class="input-field" placeholder="e.g., Mulago Hospital">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="consent-box" id="consentBox" style="margin-bottom:16px;">
-                        <label class="label">
-                            <input type="checkbox" id="signupAgree">
-                            <span>
-                                I agree to the
-                                <a href="terms.html" target="_blank" rel="noopener">Terms</a>
-                                and
-                                <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>,
-                                and understand EaseMed is an educational tool.
-                            </span>
-                        </label>
-                        <div id="signupAgreeError" class="error-text hidden"></div>
-                    </div>
-
-                    <button type="submit" class="btn-primary" id="signupBtn">
-                        Create account
-                    </button>
-                </form>
-
-                <div class="divider">
-                    <div class="divider-line"></div>
-                    <span class="divider-label">Or sign up with</span>
-                    <div class="divider-line"></div>
+                        <button type="submit" class="btn-primary" id="resetBtn">
+                            Set new password
+                        </button>
+                    </form>
                 </div>
-
-                <button class="btn-google" onclick="handleGoogleSignUp()" id="signupGoogleBtn">
-                    <svg width="16" height="16" viewBox="0 0 24 24">
-                        <path fill="#DB4437" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#4285F4" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#34A853" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    <span id="signupGoogleLabel">Sign up with Google</span>
-                    <span class="sub">no password needed</span>
-                </button>
-            </div>
-
-            <p class="text-center text-sm" style="color:#94A3B8;margin-top:24px;">
-                Already have a logbook?
-                <button class="inline-link" onclick="switchView('login')">Sign in</button>
-            </p>
-        `;
-    }
-
-    // ──────────────────── FORGOT ────────────────────
-    function renderForgot() {
-        return `
-            <button class="back-link" onclick="switchView('login')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"/>
-                    <polyline points="12 19 5 12 12 5"/>
-                </svg>
-                Back to sign in
-            </button>
-
-            <div class="eyebrow">Password reset</div>
-            <h1 class="title">Reset your password</h1>
-            <p class="subtitle" id="forgotSubtitle">We'll email you a link to set a new one.</p>
-
-            <div class="card panel-in">
-                <div id="forgotNotice"></div>
-
-                <form id="forgotForm" onsubmit="return handleForgot(event)">
-                    <div style="margin-bottom:20px;">
-                        <label class="label">Student email</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="4" width="20" height="16" rx="2"/>
-                                <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/>
-                            </svg>
-                            <input type="email" id="forgotEmail" class="input-field" placeholder="you@medschool.edu">
-                        </div>
-                        <div id="forgotEmailError" class="error-text hidden"></div>
-                    </div>
-
-                    <button type="submit" class="btn-primary" id="forgotBtn">
-                        Send reset link
-                    </button>
-                </form>
-
-                <div id="forgotSuccess" class="hidden" style="margin-top:8px;">
-                    <div class="notice notice-success">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-                            <polyline points="22 4 12 14.01 9 11.01"/>
-                        </svg>
-                        <span id="forgotSuccessText">Password reset email sent! Check your inbox.</span>
-                    </div>
-                    <button class="btn-primary" onclick="switchView('login')" style="margin-top:16px;">
-                        Back to sign in
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    // ──────────────────── RESET ────────────────────
-    function renderReset() {
-        return `
-            <div class="eyebrow">Password reset</div>
-            <h1 class="title">Set a new password</h1>
-            <p class="subtitle">You're verified — choose something you'll remember.</p>
-
-            <div class="card panel-in">
-                <div id="resetNotice"></div>
-                <div id="resetSuccess" class="hidden">
-                    <div class="notice notice-success">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-                            <polyline points="22 4 12 14.01 9 11.01"/>
-                        </svg>
-                        <span>Password updated successfully! Taking you back to sign in…</span>
-                    </div>
-                </div>
-
-                <form id="resetForm" onsubmit="return handleReset(event)">
-                    <div style="margin-bottom:16px;">
-                        <label class="label">New password</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                <path d="M7 11V7a5 5 0 0110 0v4"/>
-                            </svg>
-                            <input type="password" id="resetPassword" class="input-field has-right-icon" placeholder="Min. 6 characters" oninput="updateResetStrength(this.value)">
-                            <button type="button" class="input-right-icon" onclick="togglePassword('resetPassword', this)">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="password-strength">
-                            <div class="password-strength-bar" id="resetStrengthBar"></div>
-                        </div>
-                        <div id="resetStrengthLabel" class="password-strength-label" style="color:#2A363B;"></div>
-                        <div id="resetPasswordError" class="error-text hidden"></div>
-                    </div>
-
-                    <div style="margin-bottom:20px;">
-                        <label class="label">Confirm new password</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                <path d="M7 11V7a5 5 0 0110 0v4"/>
-                            </svg>
-                            <input type="password" id="resetConfirm" class="input-field" placeholder="Confirm new password">
-                        </div>
-                        <div id="resetConfirmError" class="error-text hidden"></div>
-                    </div>
-
-                    <button type="submit" class="btn-primary" id="resetBtn">
-                        Set new password
-                    </button>
-                </form>
-            </div>
-        `;
-    }
-
-    // ──────────────────── EVENT HANDLERS ────────────────────
-
-    function switchView(view) {
-        currentView = view;
-        renderView();
-    }
-
-    function togglePassword(inputId, btn) {
-        const input = document.getElementById(inputId);
-        if (input.type === 'password') {
-            input.type = 'text';
-            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
-                <line x1="1" y1="1" x2="23" y2="23"/>
-            </svg>`;
-        } else {
-            input.type = 'password';
-            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-            </svg>`;
-        }
-    }
-
-    function updateStrength(value) {
-        const s = getStrength(value);
-        const bar = document.getElementById('strengthBar');
-        const label = document.getElementById('strengthLabel');
-        if (bar) {
-            bar.style.width = s.pct + '%';
-            bar.style.background = s.color;
-        }
-        if (label) {
-            label.textContent = s.label;
-            label.style.color = s.color;
-        }
-    }
-
-    function updateResetStrength(value) {
-        const s = getStrength(value);
-        const bar = document.getElementById('resetStrengthBar');
-        const label = document.getElementById('resetStrengthLabel');
-        if (bar) {
-            bar.style.width = s.pct + '%';
-            bar.style.background = s.color;
-        }
-        if (label) {
-            label.textContent = s.label;
-            label.style.color = s.color;
-        }
-    }
-
-    function showNotice(containerId, type, message) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        const className = type === 'success' ? 'notice-success' : 'notice-error';
-        container.innerHTML = `
-            <div class="notice ${className}">
-                ${type === 'success' 
-                    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
-                    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
-                }
-                ${message}
-            </div>
-        `;
-    }
-
-    // ─── LOGIN HANDLER ───
-    async function handleLogin(e) {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        const emailErr = document.getElementById('loginEmailError');
-        const pwErr = document.getElementById('loginPasswordError');
-        const btn = document.getElementById('loginBtn');
-
-        let valid = true;
-        emailErr.classList.add('hidden');
-        pwErr.classList.add('hidden');
-
-        if (!email) {
-            emailErr.textContent = 'Enter your student email.';
-            emailErr.classList.remove('hidden');
-            valid = false;
-        } else if (!/^\S+@\S+\.\S+$/.test(email)) {
-            emailErr.textContent = 'That email doesn\'t look right.';
-            emailErr.classList.remove('hidden');
-            valid = false;
+            `;
         }
 
-        if (!password) {
-            pwErr.textContent = 'Enter your password.';
-            pwErr.classList.remove('hidden');
-            valid = false;
+        // ──────────────────── EVENT HANDLERS ────────────────────
+
+        function switchView(view) {
+            currentView = view;
+            renderView();
         }
 
-        if (!valid) return false;
-
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spin">⟳</span> Signing in…';
-
-        try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
-
-            if (error) throw error;
-
-            showNotice('loginNotice', 'success', 'Welcome back! Redirecting to your logbook…');
-            
-            localStorage.setItem('easemed_user', JSON.stringify(data.user));
-            
-            setTimeout(() => {
-                window.location.href = '/modules.html';
-            }, 1500);
-
-        } catch (error) {
-            showNotice('loginNotice', 'error', error.message || 'Login failed. Please try again.');
-            btn.disabled = false;
-            btn.innerHTML = 'Sign in';
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>`;
+            } else {
+                input.type = 'password';
+                btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>`;
+            }
         }
 
-        return false;
-    }
+        function updateStrength(value) {
+            const s = getStrength(value);
+            const bar = document.getElementById('strengthBar');
+            const label = document.getElementById('strengthLabel');
+            if (bar) {
+                bar.style.width = s.pct + '%';
+                bar.style.background = s.color;
+            }
+            if (label) {
+                label.textContent = s.label;
+                label.style.color = s.color;
+            }
+        }
 
-    // ─── SIGNUP HANDLER ───
-    async function handleSignup(e) {
-        e.preventDefault();
-        const name = document.getElementById('signupName').value.trim();
-        const email = document.getElementById('signupEmail').value.trim();
-        const password = document.getElementById('signupPassword').value;
-        const confirm = document.getElementById('signupConfirm').value;
-        const role = document.getElementById('signupRole').value;
-        const year = document.getElementById('signupYear').value;
-        const university = document.getElementById('signupUniversity').value.trim();
-        const phone = document.getElementById('signupPhone').value.trim();
-        const license = document.getElementById('signupLicense').value.trim();
-        const location = document.getElementById('signupLocation').value.trim();
-        const agree = document.getElementById('signupAgree').checked;
+        function updateResetStrength(value) {
+            const s = getStrength(value);
+            const bar = document.getElementById('resetStrengthBar');
+            const label = document.getElementById('resetStrengthLabel');
+            if (bar) {
+                bar.style.width = s.pct + '%';
+                bar.style.background = s.color;
+            }
+            if (label) {
+                label.textContent = s.label;
+                label.style.color = s.color;
+            }
+        }
 
-        const errors = {};
-        if (!name) errors.name = 'Enter your full name.';
-        if (!email) errors.email = 'Enter your email.';
-        else if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = 'That email doesn\'t look right.';
-        if (!password) errors.password = 'Choose a password.';
-        else if (password.length < 6) errors.password = 'At least 6 characters.';
-        if (confirm !== password) errors.confirm = 'Passwords don\'t match.';
-        if (!role) errors.role = 'Select your role.';
-        if (!university) errors.university = 'Enter your institution.';
-        if (!year) errors.year = 'Select your year.';
-        if (!agree) errors.agree = 'Agree to continue.';
-
-        showSignupErrors(errors);
-
-        if (Object.keys(errors).length > 0) return false;
-
-        const btn = document.getElementById('signupBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spin">⟳</span> Creating account…';
-
-        try {
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: {
-                        full_name: name,
-                        role: role,
-                        year: year,
-                        university: university,
-                        phone: phone,
-                        license: license,
-                        location: location,
+        function showNotice(containerId, type, message) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const className = type === 'success' ? 'notice-success' : 'notice-error';
+            container.innerHTML = `
+                <div class="notice ${className}">
+                    ${type === 'success' 
+                        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+                        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
                     }
-                }
-            });
-
-            if (error) throw error;
-
-            if (data.user) {
-                try {
-                    const { error: profileError } = await supabase
-                        .from('profiles')
-                        .insert([
-                            {
-                                id: data.user.id,
-                                full_name: name,
-                                email: email,
-                                role: role,
-                                year: year,
-                                university: university,
-                                phone: phone,
-                                license: license,
-                                location: location,
-                                created_at: new Date().toISOString()
-                            }
-                        ]);
-
-                    if (profileError) {
-                        console.warn('Profile creation warning:', profileError);
-                    }
-                } catch (profileErr) {
-                    console.warn('Profile creation skipped:', profileErr);
-                }
-
-                const container = document.getElementById('viewContainer');
-                container.innerHTML = `
-                    <div class="eyebrow">Clerkship access</div>
-                    <h1 class="title">Check your inbox</h1>
-                    <p class="subtitle">
-                        We sent a confirmation link to <span style="color:#DBEAFE;">${email}</span>. Click it, then come back to sign in.
-                    </p>
-                    <div class="card panel-in">
-                        <div class="notice notice-success">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-                                <polyline points="22 4 12 14.01 9 11.01"/>
-                            </svg>
-                            <span>Account details saved. Once you confirm your email, your logbook is ready.</span>
-                        </div>
-                        <button class="btn-primary" onclick="switchView('login')">Back to sign in</button>
-                    </div>
-                    <p class="text-center text-sm" style="color:#94A3B8;margin-top:24px;">
-                        Already have a logbook?
-                        <button class="inline-link" onclick="switchView('login')">Sign in</button>
-                    </p>
-                `;
-            }
-
-        } catch (error) {
-            showNotice('signupNotice', 'error', error.message || 'Signup failed. Please try again.');
-            btn.disabled = false;
-            btn.innerHTML = 'Create account';
+                    ${message}
+                </div>
+            `;
         }
 
-        return false;
-    }
-
-    function showSignupErrors(errors) {
-        const fields = {
-            name: 'signupNameError',
-            email: 'signupEmailError',
-            password: 'signupPasswordError',
-            confirm: 'signupConfirmError',
-            role: 'signupRoleError',
-            year: 'signupYearError',
-            university: 'signupUniversityError',
-            agree: 'signupAgreeError'
-        };
-
-        Object.values(fields).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) { el.classList.add('hidden'); el.textContent = ''; }
-        });
-        document.getElementById('consentBox').classList.remove('error');
-
-        for (const [key, msg] of Object.entries(errors)) {
-            const id = fields[key];
-            if (id) {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.textContent = msg;
-                    el.classList.remove('hidden');
-                }
+        // ─── LOGIN HANDLER ───
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            // Make sure supabase client is available
+            if (!window.supabaseClient) {
+                showNotice('loginNotice', 'error', 'Supabase is not initialized. Please refresh the page.');
+                return false;
             }
-            if (key === 'agree') {
-                document.getElementById('consentBox').classList.add('error');
+
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const emailErr = document.getElementById('loginEmailError');
+            const pwErr = document.getElementById('loginPasswordError');
+            const btn = document.getElementById('loginBtn');
+
+            let valid = true;
+            emailErr.classList.add('hidden');
+            pwErr.classList.add('hidden');
+
+            if (!email) {
+                emailErr.textContent = 'Enter your student email.';
+                emailErr.classList.remove('hidden');
+                valid = false;
+            } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+                emailErr.textContent = 'That email doesn\'t look right.';
+                emailErr.classList.remove('hidden');
+                valid = false;
             }
-        }
-    }
 
-    // ─── FORGOT HANDLER ───
-    async function handleForgot(e) {
-        e.preventDefault();
-        const email = document.getElementById('forgotEmail').value.trim();
-        const err = document.getElementById('forgotEmailError');
-        const btn = document.getElementById('forgotBtn');
+            if (!password) {
+                pwErr.textContent = 'Enter your password.';
+                pwErr.classList.remove('hidden');
+                valid = false;
+            }
 
-        err.classList.add('hidden');
+            if (!valid) return false;
 
-        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-            err.textContent = 'Enter the email on your account.';
-            err.classList.remove('hidden');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spin">⟳</span> Signing in…';
+
+            try {
+                const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) throw error;
+
+                showNotice('loginNotice', 'success', 'Welcome back! Redirecting to your logbook…');
+                
+                localStorage.setItem('easemed_user', JSON.stringify(data.user));
+                
+                setTimeout(() => {
+                    window.location.href = '/modules.html';
+                }, 1500);
+
+            } catch (error) {
+                showNotice('loginNotice', 'error', error.message || 'Login failed. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = 'Sign in';
+            }
+
             return false;
         }
 
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spin">⟳</span> Sending…';
-
-        try {
-            const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin + '/reset-password.html',
-            });
-
-            if (error) throw error;
-
-            document.getElementById('forgotForm').classList.add('hidden');
-            document.getElementById('forgotSuccess').classList.remove('hidden');
-            document.getElementById('forgotSuccessText').textContent = 
-                `Password reset email sent to ${email}! Check your inbox.`;
-            document.getElementById('forgotSubtitle').textContent = 'Check your email for the reset link.';
-
-        } catch (error) {
-            showNotice('forgotNotice', 'error', error.message || 'Failed to send reset email. Please try again.');
-            btn.disabled = false;
-            btn.innerHTML = 'Send reset link';
-        }
-
-        return false;
-    }
-
-    // ─── RESET HANDLER ───
-    async function handleReset(e) {
-        e.preventDefault();
-        const password = document.getElementById('resetPassword').value;
-        const confirm = document.getElementById('resetConfirm').value;
-        const pwErr = document.getElementById('resetPasswordError');
-        const cfErr = document.getElementById('resetConfirmError');
-        const btn = document.getElementById('resetBtn');
-
-        pwErr.classList.add('hidden');
-        cfErr.classList.add('hidden');
-
-        let valid = true;
-        if (!password || password.length < 6) {
-            pwErr.textContent = 'At least 6 characters.';
-            pwErr.classList.remove('hidden');
-            valid = false;
-        }
-        if (confirm !== password) {
-            cfErr.textContent = 'Passwords don\'t match.';
-            cfErr.classList.remove('hidden');
-            valid = false;
-        }
-
-        if (!valid) return false;
-
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spin">⟳</span> Updating…';
-
-        try {
-            const { data, error } = await supabase.auth.updateUser({
-                password: password
-            });
-
-            if (error) throw error;
-
-            document.getElementById('resetForm').classList.add('hidden');
-            document.getElementById('resetSuccess').classList.remove('hidden');
+        // ─── SIGNUP HANDLER ───
+        async function handleSignup(e) {
+            e.preventDefault();
             
-            setTimeout(() => {
-                switchView('login');
-            }, 2000);
-
-        } catch (error) {
-            showNotice('resetNotice', 'error', error.message || 'Failed to update password. Please try again.');
-            btn.disabled = false;
-            btn.innerHTML = 'Set new password';
-        }
-
-        return false;
-    }
-
-    // ─── GOOGLE SIGN IN ───
-    async function handleGoogleSignIn() {
-        const btn = document.getElementById('loginGoogleBtn');
-        const label = document.getElementById('loginGoogleLabel');
-        btn.disabled = true;
-        label.textContent = 'Redirecting to Google…';
-
-        try {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin + '/modules.html',
-                }
-            });
-
-            if (error) throw error;
-
-        } catch (error) {
-            showNotice('loginNotice', 'error', error.message || 'Google sign-in failed.');
-            btn.disabled = false;
-            label.textContent = 'Continue with Google';
-        }
-    }
-
-    // ─── GOOGLE SIGN UP ───
-    async function handleGoogleSignUp() {
-        const btn = document.getElementById('signupGoogleBtn');
-        const label = document.getElementById('signupGoogleLabel');
-        btn.disabled = true;
-        label.textContent = 'Redirecting to Google…';
-
-        try {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin + '/modules.html',
-                }
-            });
-
-            if (error) throw error;
-
-        } catch (error) {
-            showNotice('signupNotice', 'error', error.message || 'Google sign-up failed.');
-            btn.disabled = false;
-            label.textContent = 'Sign up with Google';
-        }
-    }
-
-    // ─── BIND EVENTS ───
-    function bindEvents() {
-        document.querySelectorAll('.tab[data-view]').forEach(tab => {
-            tab.addEventListener('click', function() {
-                switchView(this.dataset.view);
-            });
-        });
-    }
-
-    // ─── ROTATION ROTATOR ───
-    function startRotation() {
-        if (rotationInterval) clearInterval(rotationInterval);
-        rotationInterval = setInterval(() => {
-            rotationIndex = (rotationIndex + 1) % ROTATIONS.length;
-            const el = document.getElementById('rotationText');
-            if (el) {
-                el.textContent = ROTATIONS[rotationIndex];
-                const badge = document.getElementById('rotationBadge');
-                badge.classList.remove('rotation-label');
-                void badge.offsetWidth;
-                badge.classList.add('rotation-label');
+            if (!window.supabaseClient) {
+                showNotice('signupNotice', 'error', 'Supabase is not initialized. Please refresh the page.');
+                return false;
             }
-        }, 2800);
-    }
 
-    // ─── CHECK SESSION ───
-    async function checkSession() {
-        // Comment this out to see the login form
-        // const { data: { session } } = await supabase.auth.getSession();
-        // if (session) {
-        //     window.location.href = '/modules.html';
-        // }
-    }
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('signupConfirm').value;
+            const role = document.getElementById('signupRole').value;
+            const year = document.getElementById('signupYear').value;
+            const university = document.getElementById('signupUniversity').value.trim();
+            const phone = document.getElementById('signupPhone').value.trim();
+            const license = document.getElementById('signupLicense').value.trim();
+            const location = document.getElementById('signupLocation').value.trim();
+            const agree = document.getElementById('signupAgree').checked;
 
-    // ─── INIT ───
-    document.addEventListener('DOMContentLoaded', function() {
-        checkSession();
-        renderView();
-        startRotation();
-    });
+            const errors = {};
+            if (!name) errors.name = 'Enter your full name.';
+            if (!email) errors.email = 'Enter your email.';
+            else if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = 'That email doesn\'t look right.';
+            if (!password) errors.password = 'Choose a password.';
+            else if (password.length < 6) errors.password = 'At least 6 characters.';
+            if (confirm !== password) errors.confirm = 'Passwords don\'t match.';
+            if (!role) errors.role = 'Select your role.';
+            if (!university) errors.university = 'Enter your institution.';
+            if (!year) errors.year = 'Select your year.';
+            if (!agree) errors.agree = 'Agree to continue.';
 
-    // ─── ADD THIS FOR DEBUGGING ───
-    console.log('Supabase client initialized:', supabase);
-    console.log('Current view:', currentView);
-</script>
+            showSignupErrors(errors);
+
+            if (Object.keys(errors).length > 0) return false;
+
+            const btn = document.getElementById('signupBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spin">⟳</span> Creating account…';
+
+            try {
+                const { data, error } = await window.supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            full_name: name,
+                            role: role,
+                            year: year,
+                            university: university,
+                            phone: phone,
+                            license: license,
+                            location: location,
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                if (data.user) {
+                    try {
+                        const { error: profileError } = await window.supabaseClient
+                            .from('profiles')
+                            .insert([
+                                {
+                                    id: data.user.id,
+                                    full_name: name,
+                                    email: email,
+                                    role: role,
+                                    year: year,
+                                    university: university,
+                                    phone: phone,
+                                    license: license,
+                                    location: location,
+                                    created_at: new Date().toISOString()
+                                }
+                            ]);
+
+                        if (profileError) {
+                            console.warn('Profile creation warning:', profileError);
+                        }
+                    } catch (profileErr) {
+                        console.warn('Profile creation skipped:', profileErr);
+                    }
+
+                    const container = document.getElementById('viewContainer');
+                    container.innerHTML = `
+                        <div class="eyebrow">Clerkship access</div>
+                        <h1 class="title">Check your inbox</h1>
+                        <p class="subtitle">
+                            We sent a confirmation link to <span style="color:#DBEAFE;">${email}</span>. Click it, then come back to sign in.
+                        </p>
+                        <div class="card panel-in">
+                            <div class="notice notice-success">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                                    <polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                                <span>Account details saved. Once you confirm your email, your logbook is ready.</span>
+                            </div>
+                            <button class="btn-primary" onclick="switchView('login')">Back to sign in</button>
+                        </div>
+                        <p class="text-center text-sm" style="color:#94A3B8;margin-top:24px;">
+                            Already have a logbook?
+                            <button class="inline-link" onclick="switchView('login')">Sign in</button>
+                        </p>
+                    `;
+                }
+
+            } catch (error) {
+                showNotice('signupNotice', 'error', error.message || 'Signup failed. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = 'Create account';
+            }
+
+            return false;
+        }
+
+        function showSignupErrors(errors) {
+            const fields = {
+                name: 'signupNameError',
+                email: 'signupEmailError',
+                password: 'signupPasswordError',
+                confirm: 'signupConfirmError',
+                role: 'signupRoleError',
+                year: 'signupYearError',
+                university: 'signupUniversityError',
+                agree: 'signupAgreeError'
+            };
+
+            Object.values(fields).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.classList.add('hidden'); el.textContent = ''; }
+            });
+            document.getElementById('consentBox').classList.remove('error');
+
+            for (const [key, msg] of Object.entries(errors)) {
+                const id = fields[key];
+                if (id) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.textContent = msg;
+                        el.classList.remove('hidden');
+                    }
+                }
+                if (key === 'agree') {
+                    document.getElementById('consentBox').classList.add('error');
+                }
+            }
+        }
+
+        // ─── FORGOT HANDLER ───
+        async function handleForgot(e) {
+            e.preventDefault();
+            
+            if (!window.supabaseClient) {
+                showNotice('forgotNotice', 'error', 'Supabase is not initialized. Please refresh the page.');
+                return false;
+            }
+
+            const email = document.getElementById('forgotEmail').value.trim();
+            const err = document.getElementById('forgotEmailError');
+            const btn = document.getElementById('forgotBtn');
+
+            err.classList.add('hidden');
+
+            if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+                err.textContent = 'Enter the email on your account.';
+                err.classList.remove('hidden');
+                return false;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spin">⟳</span> Sending…';
+
+            try {
+                const { data, error } = await window.supabaseClient.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/reset-password.html',
+                });
+
+                if (error) throw error;
+
+                document.getElementById('forgotForm').classList.add('hidden');
+                document.getElementById('forgotSuccess').classList.remove('hidden');
+                document.getElementById('forgotSuccessText').textContent = 
+                    `Password reset email sent to ${email}! Check your inbox.`;
+                document.getElementById('forgotSubtitle').textContent = 'Check your email for the reset link.';
+
+            } catch (error) {
+                showNotice('forgotNotice', 'error', error.message || 'Failed to send reset email. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = 'Send reset link';
+            }
+
+            return false;
+        }
+
+        // ─── RESET HANDLER ───
+        async function handleReset(e) {
+            e.preventDefault();
+            
+            if (!window.supabaseClient) {
+                showNotice('resetNotice', 'error', 'Supabase is not initialized. Please refresh the page.');
+                return false;
+            }
+
+            const password = document.getElementById('resetPassword').value;
+            const confirm = document.getElementById('resetConfirm').value;
+            const pwErr = document.getElementById('resetPasswordError');
+            const cfErr = document.getElementById('resetConfirmError');
+            const btn = document.getElementById('resetBtn');
+
+            pwErr.classList.add('hidden');
+            cfErr.classList.add('hidden');
+
+            let valid = true;
+            if (!password || password.length < 6) {
+                pwErr.textContent = 'At least 6 characters.';
+                pwErr.classList.remove('hidden');
+                valid = false;
+            }
+            if (confirm !== password) {
+                cfErr.textContent = 'Passwords don\'t match.';
+                cfErr.classList.remove('hidden');
+                valid = false;
+            }
+
+            if (!valid) return false;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spin">⟳</span> Updating…';
+
+            try {
+                const { data, error } = await window.supabaseClient.auth.updateUser({
+                    password: password
+                });
+
+                if (error) throw error;
+
+                document.getElementById('resetForm').classList.add('hidden');
+                document.getElementById('resetSuccess').classList.remove('hidden');
+                
+                setTimeout(() => {
+                    switchView('login');
+                }, 2000);
+
+            } catch (error) {
+                showNotice('resetNotice', 'error', error.message || 'Failed to update password. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = 'Set new password';
+            }
+
+            return false;
+        }
+
+        // ─── GOOGLE SIGN IN ───
+        async function handleGoogleSignIn() {
+            if (!window.supabaseClient) {
+                showNotice('loginNotice', 'error', 'Supabase is not initialized. Please refresh the page.');
+                return;
+            }
+
+            const btn = document.getElementById('loginGoogleBtn');
+            const label = document.getElementById('loginGoogleLabel');
+            btn.disabled = true;
+            label.textContent = 'Redirecting to Google…';
+
+            try {
+                const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + '/modules.html',
+                    }
+                });
+
+                if (error) throw error;
+
+            } catch (error) {
+                showNotice('loginNotice', 'error', error.message || 'Google sign-in failed.');
+                btn.disabled = false;
+                label.textContent = 'Continue with Google';
+            }
+        }
+
+        // ─── GOOGLE SIGN UP ───
+        async function handleGoogleSignUp() {
+            if (!window.supabaseClient) {
+                showNotice('signupNotice', 'error', 'Supabase is not initialized. Please refresh the page.');
+                return;
+            }
+
+            const btn = document.getElementById('signupGoogleBtn');
+            const label = document.getElementById('signupGoogleLabel');
+            btn.disabled = true;
+            label.textContent = 'Redirecting to Google…';
+
+            try {
+                const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + '/modules.html',
+                    }
+                });
+
+                if (error) throw error;
+
+            } catch (error) {
+                showNotice('signupNotice', 'error', error.message || 'Google sign-up failed.');
+                btn.disabled = false;
+                label.textContent = 'Sign up with Google';
+            }
+        }
+
+        // ─── BIND EVENTS ───
+        function bindEvents() {
+            document.querySelectorAll('.tab[data-view]').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    switchView(this.dataset.view);
+                });
+            });
+        }
+
+        // ─── ROTATION ROTATOR ───
+        function startRotation() {
+            if (rotationInterval) clearInterval(rotationInterval);
+            rotationInterval = setInterval(() => {
+                rotationIndex = (rotationIndex + 1) % ROTATIONS.length;
+                const el = document.getElementById('rotationText');
+                if (el) {
+                    el.textContent = ROTATIONS[rotationIndex];
+                    const badge = document.getElementById('rotationBadge');
+                    badge.classList.remove('rotation-label');
+                    void badge.offsetWidth;
+                    badge.classList.add('rotation-label');
+                }
+            }, 2800);
+        }
+
+        // ─── CHECK SESSION ───
+        async function checkSession() {
+            if (!window.supabaseClient) return;
+            
+            try {
+                const { data: { session } } = await window.supabaseClient.auth.getSession();
+                if (session) {
+                    window.location.href = '/modules.html';
+                }
+            } catch (error) {
+                console.log('Session check error:', error);
+            }
+        }
+
+        // ─── START APP ───
+        function startApp() {
+            renderView();
+            startRotation();
+            checkSession();
+            console.log('App started successfully!');
+        }
+
+        // ─── INIT ───
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for Supabase to load and initialize
+            initSupabase();
+        });
+    </script>
 </body>
 </html>
