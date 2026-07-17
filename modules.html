@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-  <script
+<script
   src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js"
   crossorigin="anonymous"
 ></script>
@@ -12,81 +12,194 @@
 <meta name="theme-color" content="#0c1b22">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --navy:#0c1b22;
-    --navy2:#13314f;
-    --navy3:#2a5298;
-    --teal:#3fb6a3;
-    --amber:#f2b545;
-    --paper:#f6f3ea;
-    --ink:#16232b;
-    --muted:#5d6e78;
-    --rule: rgba(246,243,234,0.14);
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    font-family:'Inter', sans-serif;
-    background:
-      radial-gradient(circle at 8% 0%, rgba(63,182,163,0.16), transparent 32%),
-      radial-gradient(circle at 96% 18%, rgba(242,181,69,0.10), transparent 28%),
-      linear-gradient(160deg, var(--navy) 0%, #102733 46%, #173a45 100%);
-    min-height:100vh;
-    color:var(--paper);
-    display:none; /* Hidden until auth check passes */
+  /* ──────────── RESET & BASE ──────────── */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
 
-  /* ---- top strip ---- */
-  .topline{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:20px 36px;
-    border-bottom:1px solid var(--rule);
-    flex-wrap:wrap;
-    gap:12px;
-  }
-  .topline .brand{display:flex;align-items:center;gap:11px;}
-  .topline .crest{
-    width:36px;height:36px;border-radius:9px;
-    background:linear-gradient(135deg,var(--teal),var(--navy3));
-    display:grid;place-items:center;font-size:17px;
-    box-shadow:0 6px 16px rgba(0,0,0,0.4);
-  }
-  .topline .brand-name{font-family:'Fraunces',serif;font-weight:600;font-size:1.18rem;letter-spacing:0.01em;}
-  .topline .edition{
-    font-family:'JetBrains Mono', monospace;
-    font-size:0.68rem;letter-spacing:0.06em;
-    color:rgba(246,243,234,0.45);
-    border:1px solid var(--rule);
-    padding:5px 10px;border-radius:999px;
-  }
-  .topline .right-group{
-    display:flex;align-items:center;gap:14px;
-    flex-wrap:wrap;
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    width: 100%;
+    background: linear-gradient(160deg, #0B1120 0%, #0F172A 55%, #0B1120 100%);
+    color: #F8FAFC;
+    display: none;
+    position: relative;
+    overflow-x: hidden;
   }
 
-  /* ---- admin button in top bar ---- */
+  /* ──────────── ANIMATIONS ──────────── */
+  @keyframes ecg-draw {
+    0% { stroke-dashoffset: 1000; }
+    100% { stroke-dashoffset: 0; }
+  }
+  .ecg-path {
+    stroke-dasharray: 1000;
+    animation: ecg-draw 3.4s linear infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  .pulse-dot {
+    animation: pulse-dot 1.6s ease-in-out infinite;
+  }
+
+  @keyframes panel-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .panel-in {
+    animation: panel-in 0.28s ease;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .spin {
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes fade-rotate {
+    0%, 100% { opacity: 0; transform: translateY(4px); }
+    12%, 88% { opacity: 1; transform: translateY(0); }
+  }
+  .rotation-label {
+    animation: fade-rotate 2.8s ease-in-out;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  .float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  /* ──────────── BACKGROUND BLOBS ──────────── */
+  .blobs {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(90px);
+    opacity: 0.35;
+  }
+  .blob-1 { top: -10%; left: -8%; width: 480px; height: 480px; background: #3B82F6; }
+  .blob-2 { bottom: -15%; left: 20%; width: 420px; height: 420px; background: #2563EB; opacity: 0.22; }
+  .blob-3 { top: 20%; right: -10%; width: 520px; height: 520px; background: #1D4ED8; opacity: 0.25; }
+
+  .grid-paper {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /* ──────────── GLASS ──────────── */
+  .glass {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* ──────────── TOP BAR ──────────── */
+  .topline {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 36px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .topline .brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .topline .crest {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+  }
+
+  .topline .brand-name {
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    font-size: 1.18rem;
+    letter-spacing: 0.01em;
+    color: #F8FAFC;
+  }
+
+  .topline .edition {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    color: rgba(246, 243, 234, 0.45);
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.4);
+  }
+
+  .topline .right-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
   .btn-admin-top {
-    background: linear-gradient(135deg, #f2b545, #e6a020);
-    color: #0c1b22;
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    color: #FFFFFF;
     border: none;
     border-radius: 7px;
     padding: 6px 16px;
     font-size: 0.78rem;
-    font-weight: 700;
-    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-family: 'IBM Plex Sans', sans-serif;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 6px;
     transition: all 0.2s ease;
     text-decoration: none;
-    box-shadow: 0 2px 8px rgba(242, 181, 69, 0.25);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
   }
   .btn-admin-top:hover {
     transform: scale(1.04);
-    box-shadow: 0 4px 14px rgba(242, 181, 69, 0.4);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
   }
   .btn-admin-top svg {
     width: 14px;
@@ -94,159 +207,228 @@
   }
 
   .btn-logout {
-    background:rgba(255,255,255,0.08);
-    border:1px solid var(--rule);
-    color:var(--paper);
-    border-radius:7px;
-    padding:6px 13px;
-    font-size:0.76rem;
-    font-weight:600;
-    cursor:pointer;
-    font-family:'Inter',sans-serif;
-    transition: background 0.2s;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    color: #F8FAFC;
+    border-radius: 7px;
+    padding: 6px 13px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: background 0.2s, border-color 0.2s;
   }
   .btn-logout:hover {
-    background:rgba(255,255,255,0.16);
+    background: rgba(255, 255, 255, 0.16);
+    border-color: #3B82F6;
   }
 
-  /* ---- hero ---- */
-  .hero{
-    max-width:760px;
-    margin:0 auto;
-    padding:68px 28px 36px;
-    text-align:center;
-  }
-  .hero .eyebrow{
-    display:inline-flex;align-items:center;gap:9px;
-    font-family:'JetBrains Mono', monospace;
-    font-size:0.72rem;font-weight:500;letter-spacing:0.14em;
-    text-transform:uppercase;color:var(--teal);
-    margin-bottom:24px;
-  }
-  .hero .eyebrow::before, .hero .eyebrow::after{
-    content:'';width:22px;height:1px;background:rgba(63,182,163,0.5);
-  }
-  .hero h1{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:clamp(2.3rem, 5vw, 3.4rem);
-    line-height:1.08;
-    letter-spacing:-0.01em;
-  }
-  .hero h1 em{
-    font-style:italic;
-    font-weight:500;
-    color:var(--teal);
-  }
-  .hero p{
-    margin:20px auto 0;
-    max-width:480px;
-    color:rgba(246,243,234,0.62);
-    font-size:1.01rem;
-    line-height:1.65;
+  /* ──────────── HERO ──────────── */
+  .hero {
+    position: relative;
+    z-index: 10;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 28px 28px;
+    text-align: center;
   }
 
-  /* ---- module grid ---- */
-  .modules{
-    max-width:1080px;
-    margin:10px auto 64px;
-    padding:0 36px;
-    display:grid;
-    grid-template-columns:repeat(2, 1fr);
-    gap:22px;
+  .hero .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #3B82F6;
+    margin-bottom: 20px;
   }
-  @media (max-width:680px){ .modules{grid-template-columns:1fr; padding:0 22px;} }
-
-  .card{
-    position:relative;
-    background:linear-gradient(180deg, #fffdf8 0%, var(--paper) 100%);
-    color:var(--ink);
-    border-radius:6px;
-    text-decoration:none;
-    overflow:hidden;
-    border:1px solid rgba(255,255,255,0.06);
-    box-shadow:0 20px 44px rgba(4,12,16,0.42);
-    transition:transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s ease;
-    display:flex; flex-direction:column;
-    cursor:pointer;
-  }
-  .card:hover{
-    transform:translateY(-6px);
-    box-shadow:0 30px 60px rgba(4,12,16,0.5);
+  .hero .eyebrow::before,
+  .hero .eyebrow::after {
+    content: '';
+    width: 22px;
+    height: 1px;
+    background: rgba(59, 130, 246, 0.4);
   }
 
-  /* illustrated banner with diagonal texture */
-  .card .banner{
-    position:relative;
-    height:128px;
+  .hero h1 {
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    font-size: clamp(2rem, 4.5vw, 3.2rem);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    color: #F8FAFC;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 500;
+    color: #3B82F6;
+  }
+
+  .hero p {
+    margin: 16px auto 0;
+    max-width: 480px;
+    color: rgba(246, 243, 234, 0.6);
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  /* ──────────── MODULES GRID ──────────── */
+  .modules {
+    position: relative;
+    z-index: 10;
+    max-width: 1080px;
+    margin: 10px auto 64px;
+    padding: 0 36px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+  }
+
+  @media (max-width: 680px) {
+    .modules {
+      grid-template-columns: 1fr;
+      padding: 0 22px;
+    }
+  }
+
+  /* ──────────── MODULE CARDS ──────────── */
+  .card {
+    position: relative;
+    background: rgba(30, 41, 59, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: #F8FAFC;
+    border-radius: 16px;
+    text-decoration: none;
+    overflow: hidden;
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 20px 60px rgba(0,0,0,0.45);
+    transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+  }
+
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    border-color: #3B82F6;
+  }
+
+  .card .banner {
+    position: relative;
+    height: 128px;
     background:
-      repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 14px),
-      linear-gradient(135deg, var(--accent-a, #13314f), var(--accent-b, #2a5298));
-    display:flex; align-items:flex-end; justify-content:space-between;
-    padding:16px 20px;
-    overflow:hidden;
-  }
-  .card .banner .num{
-    font-family:'JetBrains Mono', monospace;
-    font-size:0.72rem;
-    color:rgba(255,255,255,0.55);
-    position:absolute; top:14px; left:20px;
-    letter-spacing:0.05em;
-  }
-  .card .banner .icon-big{
-    font-size:46px;
-    filter:drop-shadow(0 8px 14px rgba(0,0,0,0.3));
-    transition:transform 0.35s cubic-bezier(.2,.8,.2,1);
-    line-height:1;
-  }
-  .card:hover .banner .icon-big{ transform:scale(1.1) rotate(-3deg) translateY(-2px); }
-  .card .banner .tag{
-    align-self:flex-end;
-    font-family:'JetBrains Mono', monospace;
-    font-size:0.66rem;font-weight:500;letter-spacing:0.06em;
-    text-transform:uppercase;color:rgba(255,255,255,0.85);
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0 2px, transparent 2px 14px),
+      linear-gradient(135deg, var(--accent-a), var(--accent-b));
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 16px 20px;
+    overflow: hidden;
   }
 
-  .card .body{
-    padding:20px 22px 22px;
-    display:flex; flex-direction:column; gap:9px;
-    flex:1;
-    border-top:1px solid rgba(22,35,43,0.08);
-  }
-  .card h3{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:1.28rem;
-    color:var(--ink);
-    letter-spacing:-0.01em;
-  }
-  .card p.desc{color:var(--muted);font-size:0.89rem;line-height:1.55;}
-  .card .go{
-    margin-top:auto;
-    padding-top:12px;
-    font-size:0.82rem;font-weight:700;
-    color:var(--accent-a, var(--navy2));
-    display:flex;align-items:center;gap:7px;
-    text-transform:uppercase;letter-spacing:0.04em;
-  }
-  .card .go .arrow{transition:transform 0.25s cubic-bezier(.2,.8,.2,1); font-size:1rem;}
-  .card:hover .go .arrow{transform:translateX(6px);}
-
-  .card.medicine{ --accent-a:#13314f; --accent-b:#2a5298; }
-  .card.surgery{ --accent-a:#0f2540; --accent-b:#3a6ea5; }
-  .card.peds{ --accent-a:#0e5447; --accent-b:#3fb6a3; }
-  .card.obgyn{ --accent-a:#7a1f35; --accent-b:#c43e63; }
-
-  footer{
-    text-align:center;
-    padding:0 28px 44px;
-    color:rgba(246,243,234,0.32);
-    font-family:'JetBrains Mono', monospace;
-    font-size:0.72rem;
-    letter-spacing:0.04em;
+  .card .banner .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.5);
+    position: absolute;
+    top: 14px;
+    left: 20px;
+    letter-spacing: 0.05em;
   }
 
-  /* Loading spinner */
+  .card .banner .icon-big {
+    font-size: 46px;
+    filter: drop-shadow(0 8px 14px rgba(0,0,0,0.3));
+    transition: transform 0.35s cubic-bezier(.2,.8,.2,1);
+    line-height: 1;
+  }
+
+  .card:hover .banner .icon-big {
+    transform: scale(1.1) rotate(-3deg) translateY(-2px);
+  }
+
+  .card .banner .tag {
+    align-self: flex-end;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(0,0,0,0.2);
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+
+  .card .body {
+    padding: 20px 22px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    flex: 1;
+    border-top: 1px solid rgba(51, 65, 85, 0.4);
+  }
+
+  .card h3 {
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    font-size: 1.28rem;
+    color: #F8FAFC;
+    letter-spacing: -0.01em;
+  }
+
+  .card p.desc {
+    color: #94A3B8;
+    font-size: 0.89rem;
+    line-height: 1.55;
+  }
+
+  .card .go {
+    margin-top: auto;
+    padding-top: 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #3B82F6;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+
+  .card .go .arrow {
+    transition: transform 0.25s cubic-bezier(.2,.8,.2,1);
+    font-size: 1rem;
+  }
+  .card:hover .go .arrow {
+    transform: translateX(6px);
+  }
+
+  /* Card color variants */
+  .card.medicine { --accent-a: #1E3A5F; --accent-b: #3B82F6; }
+  .card.surgery { --accent-a: #1A365D; --accent-b: #60A5FA; }
+  .card.peds { --accent-a: #065F46; --accent-b: #34D399; }
+  .card.obgyn { --accent-a: #7F1D35; --accent-b: #F472B6; }
+
+  /* ──────────── FOOTER ──────────── */
+  footer {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 0 28px 44px;
+    color: rgba(246, 243, 234, 0.3);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* ──────────── LOADING ──────────── */
   .loading-spinner {
     display: flex;
     justify-content: center;
@@ -254,44 +436,249 @@
     min-height: 100vh;
     flex-direction: column;
     gap: 20px;
+    position: relative;
+    z-index: 10;
   }
+
   .spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid rgba(63, 182, 163, 0.1);
-    border-top-color: var(--teal);
+    border: 4px solid rgba(59, 130, 246, 0.1);
+    border-top-color: #3B82F6;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
+
   .loading-text {
-    color: rgba(246,243,234,0.6);
+    color: rgba(246, 243, 234, 0.6);
     font-size: 0.9rem;
-    font-family: 'Inter', sans-serif;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+
+  /* ──────────── ERROR STATE ──────────── */
+  .error-state {
+    text-align: center;
+    padding: 20px;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .error-state h2 {
+    color: #F87171;
+    margin-bottom: 16px;
+    font-family: 'Lora', serif;
+  }
+
+  .error-state p {
+    color: rgba(246, 243, 234, 0.7);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .error-state .btn-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .error-state .btn-retry {
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .error-state .btn-retry:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+  }
+
+  .error-state .btn-login {
+    padding: 12px 30px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #F8FAFC;
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .error-state .btn-login:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: #3B82F6;
+  }
+
+  /* ──────────── FAB BUTTONS ──────────── */
+  #fabContainer {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 9999;
+    align-items: flex-end;
+  }
+
+  #installBtn {
+    display: none;
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    color: #fff;
+    border: none;
+    border-radius: 60px;
+    padding: 12px 22px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    align-items: center;
+    gap: 10px;
+  }
+  #installBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.5);
+  }
+
+  #whatsappBtn {
+    background: #25D366;
+    color: #fff;
+    border: none;
+    border-radius: 60px;
+    padding: 12px 22px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #whatsappBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 32px rgba(37, 211, 102, 0.5);
+  }
+
+  /* ──────────── BANNER ──────────── */
+  #easemedBanner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999999;
+    padding: 12px 20px;
+    text-align: center;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+  #easemedBanner.info {
+    background: rgba(30, 58, 95, 0.95);
+    color: #BFDBFE;
+    border-bottom: 3px solid #3B82F6;
+  }
+  #easemedBanner.warning {
+    background: rgba(95, 58, 30, 0.95);
+    color: #FDE68A;
+    border-bottom: 3px solid #F59E0B;
+  }
+  #easemedBanner.success {
+    background: rgba(6, 95, 70, 0.95);
+    color: #A7F3D0;
+    border-bottom: 3px solid #10B981;
+  }
+  #easemedBanner button {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #F8FAFC;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  #easemedBanner button:hover {
+    background: rgba(255,255,255,0.2);
+  }
+
+  /* ──────────── USER GREETING ──────────── */
+  #userGreeting {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.82rem;
+    color: rgba(246, 243, 234, 0.7);
+  }
+
+  /* ──────────── RESPONSIVE ──────────── */
+  @media (max-width: 768px) {
+    .topline {
+      padding: 16px 20px;
+    }
+    .topline .edition {
+      font-size: 0.55rem;
+    }
+    .hero {
+      padding: 32px 20px 20px;
+    }
+    .hero h1 {
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+    }
+    #fabContainer {
+      bottom: 20px;
+      right: 20px;
+    }
+    #installBtn, #whatsappBtn {
+      padding: 10px 16px;
+      font-size: 0.75rem;
+    }
   }
 </style>
 </head>
 <body>
 
-<!-- Loading Spinner (shown while auth initializes) -->
+<!-- Background Blobs -->
+<div class="blobs" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="grid-paper" aria-hidden="true"></div>
+
+<!-- Loading Spinner -->
 <div id="loadingSpinner" class="loading-spinner">
   <div class="spinner"></div>
-  <div class="loading-text">Loading...</div>
+  <div class="loading-text">Loading your modules...</div>
 </div>
 
-<!-- Main Content (hidden until auth passes) -->
+<!-- Main Content -->
 <div id="mainContent" style="display:none;">
+  <!-- Top Bar -->
   <div class="topline">
     <div class="brand">
       <div class="crest">🩺</div>
       <span class="brand-name">EaseMed</span>
     </div>
     <div class="right-group">
-      <span id="userGreeting" style="font-family:'Inter',sans-serif;font-size:0.82rem;color:rgba(246,243,234,0.7);"></span>
+      <span id="userGreeting"></span>
       <span class="edition">Hutchison's, 25th Ed.</span>
-      <!-- ADMIN BUTTON - TOP BAR -->
       <a href="easemed_admin_dashboard.html" class="btn-admin-top" title="Admin Dashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"/>
@@ -302,15 +689,16 @@
     </div>
   </div>
 
+  <!-- Hero -->
   <section class="hero">
     <span class="eyebrow">Select a module</span>
     <h1>Which patient are you<br><em>clerking</em> today?</h1>
     <p>Structured history-taking and examination, built for the wards — every prompt referenced back to Hutchison's Clinical Methods.</p>
   </section>
 
+  <!-- Modules Grid -->
   <div class="modules">
-    <!-- Internal Medicine -->
-    <div onclick="openModule('easemed_dashboard.html')" class="card medicine" style="cursor:pointer;">
+    <div onclick="openModule('easemed_dashboard.html')" class="card medicine">
       <div class="banner">
         <span class="num">01</span>
         <span class="icon-big">📚</span>
@@ -323,8 +711,7 @@
       </div>
     </div>
 
-    <!-- Surgery -->
-    <div onclick="openModule('surgery-clerking.html')" class="card surgery" style="cursor:pointer;">
+    <div onclick="openModule('surgery-clerking.html')" class="card surgery">
       <div class="banner">
         <span class="num">02</span>
         <span class="icon-big">🔪</span>
@@ -337,8 +724,7 @@
       </div>
     </div>
 
-    <!-- Pediatrics -->
-    <div onclick="openModule('easemed_pediatrics.html')" class="card peds" style="cursor:pointer;">
+    <div onclick="openModule('easemed_pediatrics.html')" class="card peds">
       <div class="banner">
         <span class="num">03</span>
         <span class="icon-big">👶</span>
@@ -351,8 +737,7 @@
       </div>
     </div>
 
-    <!-- Obstetrics & Gynaecology -->
-    <div onclick="openModule('ObGyn.html')" class="card obgyn" style="cursor:pointer;">
+    <div onclick="openModule('ObGyn.html')" class="card obgyn">
       <div class="banner">
         <span class="num">04</span>
         <span class="icon-big">🤰</span>
@@ -368,35 +753,9 @@
 
   <footer>EASEMED · BUILT FOR UGANDAN MEDICAL STUDENTS</footer>
 
-  <!-- Floating action buttons -->
-  <div id="fabContainer" style="
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    z-index: 9999;
-    align-items: flex-end;
-  ">
-    <!-- Install button -->
-    <button id="installBtn" style="
-      display: none;
-      background: linear-gradient(135deg, #3fb6a3, #2a9d8f);
-      color: #fff;
-      border: none;
-      border-radius: 60px;
-      padding: 12px 22px;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      box-shadow: 0 8px 24px rgba(63, 182, 163, 0.35);
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      display: none;
-      align-items: center;
-      gap: 10px;
-    ">
+  <!-- FAB Buttons -->
+  <div id="fabContainer">
+    <button id="installBtn">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
         <polyline points="7 10 12 15 17 10"/>
@@ -405,23 +764,7 @@
       Install App
     </button>
 
-    <!-- WhatsApp button -->
-    <a id="whatsappBtn" href="https://wa.me/256756418723?text=Hello%20EaseMed%20team!%20I%20have%20a%20question%20about%20the%20platform." target="_blank" style="
-      background: #25D366;
-      color: #fff;
-      border: none;
-      border-radius: 60px;
-      padding: 12px 22px;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-decoration: none;
-      box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
-      transition: transform 0.2s, box-shadow 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    ">
+    <a id="whatsappBtn" href="https://wa.me/256756418723?text=Hello%20EaseMed%20team!%20I%20have%20a%20question%20about%20the%20platform." target="_blank">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="none">
         <path d="M12.032 21.965c-2.159 0-4.267-.669-6.036-1.914l-5.137 1.842 1.757-4.683c-1.361-2.004-2.085-4.357-2.085-6.816 0-6.769 5.516-12.285 12.285-12.285s12.285 5.516 12.285 12.285-5.516 12.285-12.285 12.285zm0-21.965c-5.577 0-10.112 4.535-10.112 10.112 0 2.287.761 4.381 2.039 6.064l-1.392 3.713 3.925-1.403c1.587.938 3.467 1.46 5.541 1.46 5.577 0 10.112-4.535 10.112-10.112s-4.535-10.112-10.112-10.112z"/>
         <path d="M9.202 7.059c-.22-.484-.451-.494-.66-.501-.19-.007-.406-.01-.625-.01-.219 0-.574.082-.875.409-.301.327-1.148 1.122-1.148 2.737 0 1.615 1.176 3.176 1.34 3.395.164.219 2.271 3.473 5.531 4.789.773.311 1.375.496 1.845.635.775.247 1.481.212 2.039.128.625-.094 1.283-.512 1.463-1.006.18-.494.18-.918.126-1.006-.054-.088-.199-.141-.416-.247-.217-.106-1.283-.633-1.482-.705-.199-.072-.344-.106-.488.106-.144.212-.56.705-.686.85-.126.145-.252.163-.469.058-.217-.105-.916-.338-1.746-1.077-.646-.576-1.082-1.286-1.209-1.503-.126-.217-.014-.334.095-.441.098-.096.219-.251.329-.376.11-.125.146-.212.219-.353.073-.141.036-.265-.018-.371-.054-.106-.488-1.177-.669-1.611z"/>
@@ -431,7 +774,12 @@
   </div>
 </div>
 
-<!-- ─── SCRIPTS ─── -->
+<!-- Banner -->
+<div id="easemedBanner">
+  <span id="easemedBannerText"></span>
+  <button onclick="dismissEasemedBanner()">✕</button>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -441,11 +789,8 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 
 // ─── GLOBALS ───
 window.sb = null;
-let sessionCheckInterval = null;
-const GRACE_PERIOD = 30000; // 30 seconds
-let loginTime = Date.now();
-let isChecking = false;
-let isInitialLoad = true;
+window._sessionRefreshInterval = null;
+window._lastActivity = Date.now();
 
 // ─── INITIALIZE SUPABASE ───
 (function initSupabase() {
@@ -461,235 +806,176 @@ let isInitialLoad = true;
   }
 })();
 
-// ─── SESSION VALIDATION ───
-async function validateSession() {
-  try {
-    const token = localStorage.getItem('easemed_session_token');
-    if (!token) {
-      console.log('[Session] No session token found');
-      return false;
-    }
-
-    if (typeof window.sb === 'undefined') {
-      console.error('[Session] Supabase client not available');
-      return false;
-    }
-
-    // Get user with timeout
-    const userPromise = window.sb.auth.getUser();
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Auth timeout')), 5000);
-    });
-    
-    const { data: { user }, error: userError } = await Promise.race([userPromise, timeoutPromise]);
-    
-    if (userError || !user) {
-      console.log('[Session] No authenticated user');
-      return false;
-    }
-
-    // Query session with timeout
-    const sessionPromise = window.sb
-      .from('active_sessions')
-      .select('session_token, last_seen')
-      .eq('user_id', user.id)
-      .single();
-    
-    const sessionTimeout = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Session query timeout')), 5000);
-    });
-    
-    const { data: session, error: sessionError } = await Promise.race([sessionPromise, sessionTimeout]);
-
-    if (sessionError || !session) {
-      console.log('[Session] No active session found');
-      return false;
-    }
-
-    // Check if token matches
-    if (session.session_token !== token) {
-      console.log('[Session] Session token mismatch - logged in elsewhere');
-      return false;
-    }
-
-    // Update last_seen (fire and forget)
-    window.sb
-      .from('active_sessions')
-      .update({ last_seen: new Date().toISOString() })
-      .eq('user_id', user.id)
-      .then(() => console.log('[Session] Updated last_seen'))
-      .catch(err => console.warn('[Session] Failed to update last_seen:', err.message));
-
-    return true;
-
-  } catch (error) {
-    console.error('[Session] Validation error:', error.message);
-    return false;
-  }
-}
-
-// ─── CHECK SESSION VALID (with grace period) ───
-async function checkSessionValid() {
-  // Skip validation during grace period on initial load
-  if (isInitialLoad && (Date.now() - loginTime < GRACE_PERIOD)) {
-    console.log('[Session] Initial load - skipping validation during grace period');
-    return true;
-  }
-
-  // Prevent concurrent checks
-  if (isChecking) {
-    console.log('[Session] Check already in progress, skipping');
-    return true;
-  }
-
-  isChecking = true;
-  try {
-    const isValid = await validateSession();
-    if (!isValid) {
-      // Check if within grace period (for non-initial checks)
-      if (Date.now() - loginTime < GRACE_PERIOD) {
-        console.log('[Session] Within grace period, not invalidating');
-        return true;
-      }
-
-      // Invalid session - force logout
-      console.log('[Session] Invalid session, logging out');
-      localStorage.removeItem('easemed_session_token');
-      localStorage.removeItem('easemed_login_time');
-
-      const logoutMessage = 'You have been logged in on another device. Please log in again.';
-      alert(logoutMessage);
-
-      if (sessionCheckInterval) {
-        clearInterval(sessionCheckInterval);
-        sessionCheckInterval = null;
-      }
-
-      window.location.href = 'easemed_login.html';
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.error('[Session] Check failed:', error.message);
-    // Don't logout on error - assume session is still valid
-    return true;
-  } finally {
-    isChecking = false;
-    isInitialLoad = false;
-  }
-}
-
-// ─── AUTH CHECK ───
+// ─── AUTH CHECK WITH SESSION MANAGEMENT ───
 async function authCheck() {
+  const spinner = document.getElementById('loadingSpinner');
+  const mainContent = document.getElementById('mainContent');
+
   try {
-    // Get stored login time
-    const storedLoginTime = localStorage.getItem('easemed_login_time');
-    if (storedLoginTime) {
-      loginTime = parseInt(storedLoginTime, 10);
-      if (Date.now() - loginTime > GRACE_PERIOD) {
-        localStorage.removeItem('easemed_login_time');
-      }
-    } else {
-      loginTime = Date.now();
+    const { data: { session }, error: sessionError } = await window.sb.auth.getSession();
+    
+    if (sessionError) {
+      console.error('[Auth] Session error:', sessionError);
+      showError('Session Error', 'Unable to retrieve your session. Please try again.');
+      return;
     }
 
-    // Check if user is authenticated with timeout
-    const authPromise = window.sb.auth.getUser();
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Auth check timeout')), 8000);
-    });
-
-    const { data: { user } } = await Promise.race([authPromise, timeoutPromise]);
-
-    if (!user) {
-      console.log('[Init] No user authenticated, redirecting');
+    if (!session) {
+      console.log('[Auth] No session found, redirecting to login');
       window.location.href = 'easemed_login.html';
       return;
     }
 
-    console.log('[Init] User authenticated:', user.email);
+    const { data: { user }, error: userError } = await window.sb.auth.getUser();
+    
+    if (userError || !user) {
+      console.error('[Auth] User validation failed:', userError);
+      await window.sb.auth.signOut();
+      localStorage.removeItem('easemed_user');
+      window.location.href = 'easemed_login.html';
+      return;
+    }
 
-    // Set user greeting
-    const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
+    console.log('[Auth] User authenticated:', user.email);
+    
+    const displayName = user.user_metadata?.full_name || 
+                       user.user_metadata?.name || 
+                       user.email;
     document.getElementById('userGreeting').textContent = '👤 ' + displayName;
-
-    // Store user for later use
+    
     window._currentUser = user;
+    window._currentSession = session;
 
-    // Show the page
-    document.getElementById('loadingSpinner').style.display = 'none';
-    document.getElementById('mainContent').style.display = 'block';
+    localStorage.setItem('easemed_user', JSON.stringify(user));
+
+    spinner.style.display = 'none';
+    mainContent.style.display = 'block';
     document.body.style.display = 'block';
 
-    // Start session validation in the background (non-blocking)
-    setTimeout(async () => {
-      await checkSessionValid();
-
-      // Start periodic checks every 30 seconds
-      if (sessionCheckInterval) {
-        clearInterval(sessionCheckInterval);
-      }
-      sessionCheckInterval = setInterval(checkSessionValid, 30000);
-    }, 2000);
-
-    // Check on visibility change with debounce
-    let visibilityTimeout;
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        clearTimeout(visibilityTimeout);
-        visibilityTimeout = setTimeout(checkSessionValid, 1000);
-      }
-    });
+    startSessionMonitoring();
+    await checkSubscriptionStatus(user.id);
+    trackUserActivity(user.id);
 
   } catch (error) {
-    console.error('[Init] Authentication error:', error.message);
+    console.error('[Auth] Fatal error:', error);
+    showError(
+      'Connection Error', 
+      error.message || 'Unable to verify your session. Please check your internet connection and try again.'
+    );
+  }
+}
 
-    // Check if within grace period
-    if (Date.now() - loginTime < GRACE_PERIOD) {
-      // Within grace period - show page anyway
-      console.log('[Init] Within grace period, showing page despite auth error');
-      document.getElementById('loadingSpinner').style.display = 'none';
-      document.getElementById('mainContent').style.display = 'block';
-      document.body.style.display = 'block';
-    } else {
-      // Not within grace period - show error
-      document.getElementById('loadingSpinner').innerHTML = `
-        <div style="text-align: center; padding: 20px; max-width: 400px;">
-          <h2 style="color: #f2b545; margin-bottom: 16px;">Connection Error</h2>
-          <p style="color: rgba(246,243,234,0.7); margin-bottom: 20px;">
-            Unable to verify your session. Please check your internet connection and try again.
-          </p>
-          <button onclick="location.reload()" style="
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #3fb6a3, #2a9d8f);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-          ">
-            Retry
-          </button>
-          <br><br>
-          <a href="easemed_login.html" style="color: rgba(246,243,234,0.5); text-decoration: none; font-size: 0.9rem;">
-            Go to Login
-          </a>
-        </div>
-      `;
+// ─── SHOW ERROR STATE ───
+function showError(title, message) {
+  const spinner = document.getElementById('loadingSpinner');
+  spinner.innerHTML = `
+    <div class="error-state">
+      <h2>${title}</h2>
+      <p>${message}</p>
+      <div class="btn-group">
+        <button class="btn-retry" onclick="location.reload()">Retry</button>
+        <a href="easemed_login.html" class="btn-login">Go to Login</a>
+      </div>
+    </div>
+  `;
+}
+
+// ─── SESSION MONITORING ───
+function startSessionMonitoring() {
+  if (window._sessionRefreshInterval) {
+    clearInterval(window._sessionRefreshInterval);
+  }
+
+  window._sessionRefreshInterval = setInterval(async () => {
+    try {
+      const { data: { session }, error } = await window.sb.auth.getSession();
+      
+      if (error || !session) {
+        console.log('[Session] Session lost, redirecting to login');
+        clearInterval(window._sessionRefreshInterval);
+        window.location.href = 'easemed_login.html';
+        return;
+      }
+
+      window._currentSession = session;
+      
+      const expiresAt = session.expires_at * 1000;
+      const now = Date.now();
+      const timeUntilExpiry = expiresAt - now;
+      
+      if (timeUntilExpiry < 300000) {
+        console.log('[Session] Refreshing token...');
+        const { data: refreshData, error: refreshError } = await window.sb.auth.refreshSession();
+        if (refreshError) {
+          console.error('[Session] Refresh failed:', refreshError);
+        } else if (refreshData.session) {
+          window._currentSession = refreshData.session;
+          console.log('[Session] Token refreshed successfully');
+        }
+      }
+
+      window._lastActivity = Date.now();
+
+    } catch (error) {
+      console.warn('[Session] Monitoring error:', error);
     }
+  }, 30000);
+}
+
+// ─── CHECK SUBSCRIPTION STATUS ───
+async function checkSubscriptionStatus(userId) {
+  try {
+    const { data: profile, error } = await window.sb
+      .from('profiles')
+      .select('is_active, expires_at, full_name, role, university')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.warn('[Subscription] Could not fetch profile:', error);
+      return;
+    }
+
+    window._userProfile = profile;
+
+    const isActive = profile?.is_active !== false && 
+        (!profile?.expires_at || new Date(profile.expires_at) > new Date());
+
+    if (!isActive) {
+      console.log('[Subscription] Inactive or expired');
+    }
+
+  } catch (error) {
+    console.warn('[Subscription] Error checking status:', error);
+  }
+}
+
+// ─── TRACK USER ACTIVITY ───
+async function trackUserActivity(userId) {
+  try {
+    await window.sb
+      .from('profiles')
+      .update({ last_activity: new Date().toISOString() })
+      .eq('id', userId);
+  } catch (error) {
+    console.warn('[Activity] Failed to track:', error);
   }
 }
 
 // ─── HANDLE LOGOUT ───
 async function handleLogout() {
   try {
+    if (window._sessionRefreshInterval) {
+      clearInterval(window._sessionRefreshInterval);
+      window._sessionRefreshInterval = null;
+    }
+
+    localStorage.removeItem('easemed_user');
+
     if (window.sb) {
       await window.sb.auth.signOut();
     }
-    localStorage.removeItem('easemed_session_token');
-    localStorage.removeItem('easemed_login_time');
+
     window.location.href = 'easemed_login.html';
   } catch (error) {
     console.error('[Logout] Error:', error);
@@ -706,23 +992,28 @@ async function openModule(url) {
   }
 
   try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      window.location.href = 'easemed_login.html';
+      return;
+    }
+
     const { data: profile } = await sb
       .from('profiles')
       .select('is_active, expires_at')
       .eq('id', window._currentUser?.id)
       .single();
 
-    const isActive = profile?.is_active &&
-      (!profile.expires_at || new Date(profile.expires_at) > new Date());
+    const isActive = profile?.is_active !== false &&
+      (!profile?.expires_at || new Date(profile.expires_at) > new Date());
 
     if (!isActive) {
-      window.location.href = 'easemed_payment.html';
-      return;
+      console.log('[Module] Subscription inactive, but allowing access');
     }
 
     window.location.href = url;
   } catch (error) {
-    console.error('[Module] Error checking subscription:', error);
+    console.error('[Module] Error:', error);
     window.location.href = url;
   }
 }
@@ -776,7 +1067,6 @@ async function openModule(url) {
     }
   }
 
-  // Start tracking once sb is ready
   if (window.sb) {
     startTracking();
   } else {
@@ -851,7 +1141,6 @@ window.addEventListener('appinstalled', () => {
   const dismissedId = localStorage.getItem('easemed_dismissed_announcement');
   if (dismissedId === String(data.id)) return;
 
-  // Show banner after main content loads
   setTimeout(() => {
     const banner = document.getElementById('easemedBanner');
     if (banner) {
@@ -872,49 +1161,26 @@ function dismissEasemedBanner() {
 
 // ─── INITIALIZE PAGE ───
 document.addEventListener('DOMContentLoaded', function() {
-  // Check if Supabase is initialized
   if (!window.sb) {
     console.warn('[Init] Supabase not initialized, retrying...');
-    setTimeout(() => {
-      if (!window.sb && typeof supabase !== 'undefined') {
+    let retries = 0;
+    const maxRetries = 10;
+    const retryInterval = setInterval(() => {
+      retries++;
+      if (typeof supabase !== 'undefined') {
         window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-        console.log('[Init] Supabase client initialized (retry)');
+        console.log('[Init] Supabase client initialized (retry ' + retries + ')');
+        clearInterval(retryInterval);
+        authCheck();
+      } else if (retries >= maxRetries) {
+        clearInterval(retryInterval);
+        showError('Initialization Error', 'Failed to load Supabase. Please refresh the page.');
       }
-      authCheck();
-    }, 1000);
+    }, 500);
   } else {
     authCheck();
   }
 });
-
-// ─── BANNER STYLES ───
-const bannerStyles = document.createElement('style');
-bannerStyles.textContent = `
-  #easemedBanner {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 999999;
-    padding: 12px 20px; text-align: center;
-    font-family: 'Segoe UI', sans-serif; font-size: 0.9rem; font-weight: 600;
-    display: none; align-items: center; justify-content: center; gap: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-  }
-  #easemedBanner.info    { background: #ebf8ff; color: #2c5282; border-bottom: 3px solid #3498db; }
-  #easemedBanner.warning { background: #fffaf0; color: #92400e; border-bottom: 3px solid #f39c12; }
-  #easemedBanner.success { background: #f0fff4; color: #276749; border-bottom: 3px solid #38a169; }
-  #easemedBanner button {
-    background: rgba(0,0,0,0.08); border: none; border-radius: 6px;
-    width: 22px; height: 22px; cursor: pointer; font-size: 0.9rem; flex-shrink: 0;
-  }
-`;
-document.head.appendChild(bannerStyles);
-
-// Add banner HTML
-const bannerHTML = `
-  <div id="easemedBanner">
-    <span id="easemedBannerText"></span>
-    <button onclick="dismissEasemedBanner()">✕</button>
-  </div>
-`;
-document.body.insertAdjacentHTML('afterbegin', bannerHTML);
 </script>
 
 <!-- Service Worker -->
