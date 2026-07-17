@@ -126,12 +126,24 @@
             background: var(--deep) !important;
             transform: translateY(-1px);
         }
+        /* Text links collapse on mobile, but the signup CTA stays reachable */
+        .nav-link-text {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
+        }
         @media (max-width: 680px) {
-            .nav-links {
+            .nav-link-text {
                 display: none;
             }
             nav {
                 padding: 0 20px;
+                backdrop-filter: blur(8px); /* cheaper composite on low-end/mobile GPUs */
+            }
+            .nav-pill {
+                padding: 8px 16px;
+                font-size: 0.82rem;
             }
         }
 
@@ -170,6 +182,7 @@
         .ecg-line svg {
             width: 200%;
             animation: ecgMove 6s linear infinite;
+            will-change: transform;
         }
         @keyframes ecgMove {
             from {
@@ -196,12 +209,14 @@
             position: relative;
             z-index: 1;
         }
+        /* LCP element: reserve the box before text/webfont metrics settle so nothing reflows */
         .hero h1 {
             font-family: var(--font-d);
             font-size: clamp(2.6rem, 6.5vw, 4.8rem);
             color: var(--white);
             line-height: 1.1;
             max-width: 860px;
+            min-height: 2.2em;
             margin-bottom: 24px;
             font-weight: 700;
             position: relative;
@@ -335,6 +350,9 @@
         /* ── MODULES SECTION ────────────────────── */
         .modules-sec {
             background: var(--bg);
+            /* below the fold: let the browser skip layout/paint work until it's scrolled into view */
+            content-visibility: auto;
+            contain-intrinsic-size: 1100px 900px;
         }
         .modules-grid {
             display: grid;
@@ -444,6 +462,8 @@
         /* ── FEATURES ───────────────────────────── */
         .features-sec {
             background: var(--white);
+            content-visibility: auto;
+            contain-intrinsic-size: 1100px 900px;
         }
         .feat-grid {
             display: grid;
@@ -483,6 +503,8 @@
         /* ── FOR WHO ─────────────────────────────── */
         .who-sec {
             background: var(--deep);
+            content-visibility: auto;
+            contain-intrinsic-size: 1100px 500px;
         }
         .who-sec .tag {
             color: var(--bright);
@@ -530,6 +552,8 @@
         /* ── HOW IT WORKS ────────────────────────── */
         .how-sec {
             background: var(--bg-pale);
+            content-visibility: auto;
+            contain-intrinsic-size: 1100px 400px;
         }
         .steps {
             display: grid;
@@ -583,10 +607,12 @@
             line-height: 1.65;
         }
 
-        /* ── CLINICAL SUMMARY CARD (UPDATED) ────── */
+        /* ── CLINICAL SUMMARY CARD ───────────────── */
         .summary-sec {
             background: var(--bg);
             padding: 80px 24px;
+            content-visibility: auto;
+            contain-intrinsic-size: 940px 1400px;
         }
         .summary-wrap {
             max-width: 940px;
@@ -872,6 +898,8 @@
             background: linear-gradient(135deg, var(--mid), var(--deep));
             padding: 100px 24px;
             text-align: center;
+            content-visibility: auto;
+            contain-intrinsic-size: 1100px 400px;
         }
         .cta-sec h2 {
             font-family: var(--font-d);
@@ -983,6 +1011,14 @@
             }
         }
     </style>
+    <!-- Fail-safe #1: true no-JS cases (JS disabled, some crawlers, scripts
+         stripped by a proxy/ad-blocker) never see .rv's opacity:0 — <noscript>
+         is exactly the situation a JS-based fix can't cover. -->
+    <noscript>
+        <style>
+            .rv { opacity: 1 !important; transform: none !important; }
+        </style>
+    </noscript>
 </head>
 <body>
 
@@ -993,9 +1029,9 @@
             EaseMed
         </a>
         <ul class="nav-links">
-            <li><a href="#modules">Modules</a></li>
-            <li><a href="#features">Features</a></li>
-            <li><a href="#how">How it works</a></li>
+            <li class="nav-link-text"><a href="#modules">Modules</a></li>
+            <li class="nav-link-text"><a href="#features">Features</a></li>
+            <li class="nav-link-text"><a href="#how">How it works</a></li>
             <li><a href="easemed_login.html" class="nav-pill">Get started →</a></li>
         </ul>
     </nav>
@@ -1100,7 +1136,7 @@
         </div>
     </section>
 
-    <!-- CLINICAL SUMMARY CARD (UPDATED) -->
+    <!-- CLINICAL SUMMARY CARD -->
     <section class="summary-sec" id="summary">
         <div class="summary-wrap rv">
             <div style="text-align:center; margin-bottom:32px;">
@@ -1155,7 +1191,7 @@
                         </div>
                     </div>
 
-                    <!-- Examination & Vitals (expanded) -->
+                    <!-- Examination & Vitals -->
                     <div class="summary-section">
                         <div class="section-label"><span class="icon">❤️</span> Examination &amp; Vitals</div>
                         <div class="section-content">
@@ -1434,17 +1470,32 @@
         </div>
     </footer>
 
-    <script>
-        // Scroll reveal
-        const obs = new IntersectionObserver((entries) => {
-            entries.forEach(e => {
-                if (e.isIntersecting) {
-                    e.target.classList.add('in');
-                    obs.unobserve(e.target);
-                }
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+    <script defer>
+        // Scroll reveal — deferred, non-critical to first paint.
+        // Fail-safe #2: if IntersectionObserver is unsupported or this script
+        // throws partway through, force every .rv visible after a short delay
+        // rather than leaving sections permanently at opacity:0.
+        const revealAll = () => document.querySelectorAll('.rv:not(.in)')
+            .forEach(el => el.classList.add('in'));
+        const safetyTimer = setTimeout(revealAll, 2500);
+
+        try {
+            if (!('IntersectionObserver' in window)) throw new Error('no IO support');
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        e.target.classList.add('in');
+                        obs.unobserve(e.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+            // safetyTimer stays armed: it's the backstop for elements that
+            // never scroll into view (e.g. a very short viewport) or any
+            // other edge case the observer doesn't catch.
+        } catch (err) {
+            revealAll();
+        }
     </script>
 
 </body>
