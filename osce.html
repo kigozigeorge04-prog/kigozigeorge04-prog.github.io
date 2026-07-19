@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EaseMed — OSCE Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    background: linear-gradient(160deg, #E8F4FD 0%, #B8D8F0 40%, #8EC4E8 100%);
+    color:#0B1A2E;
+    position:relative;
+    overflow-x:hidden;
+  }
+  .bg-grid { position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: linear-gradient(rgba(11,26,46,0.06) 1px, transparent 1px),
+                       linear-gradient(90deg, rgba(11,26,46,0.06) 1px, transparent 1px);
+    background-size:48px 48px; opacity:0.5; }
+  .blobs { position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+  .blob { position:absolute; border-radius:9999px; filter:blur(90px); opacity:0.15; }
+  .blob-1 { top:-10%; left:-8%; width:480px; height:480px; background:#3B82F6; }
+  .blob-2 { bottom:-15%; left:20%; width:420px; height:420px; background:#2563EB; opacity:0.10; }
+  .blob-3 { top:20%; right:-10%; width:520px; height:520px; background:#1D4ED8; opacity:0.12; }
+
+  .topbar {
+    position:relative; z-index:10; display:flex; align-items:center; justify-content:space-between;
+    padding:16px 28px; margin:16px 20px 0; border-radius:16px;
+    background:rgba(255,255,255,0.5); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+    border:1px solid rgba(255,255,255,0.4); flex-wrap:wrap; gap:12px;
+  }
+  .topbar .brand { display:flex; align-items:center; gap:10px; font-family:'Lora',serif; font-weight:700; font-size:1.1rem; }
+  .topbar .crest { width:32px; height:32px; border-radius:9px; background:linear-gradient(135deg,#3B82F6,#8B5CF6); display:grid; place-items:center; color:#fff; font-size:15px; }
+  .topbar a.back { text-decoration:none; color:#2563EB; font-weight:600; font-size:0.85rem; }
+  #moduleTitle { font-family:'JetBrains Mono', monospace; font-size:0.72rem; letter-spacing:0.06em; text-transform:uppercase; color:rgba(11,26,46,0.5); border:1px solid rgba(11,26,46,0.12); padding:4px 10px; border-radius:999px; background:rgba(255,255,255,0.3); }
+
+  .wrap { position:relative; z-index:10; max-width:820px; margin:0 auto; padding:28px 20px 80px; }
+
+  /* Mode / progress bar */
+  .control-bar {
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    background:rgba(255,255,255,0.5); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,0.4); border-radius:14px; padding:14px 18px; margin-bottom:20px;
+  }
+  .mode-toggle { display:flex; gap:6px; background:rgba(255,255,255,0.5); padding:4px; border-radius:10px; }
+  .mode-toggle button { border:none; background:transparent; padding:7px 16px; border-radius:8px; font-weight:700; font-size:0.8rem; cursor:pointer; color:#0B1A2E; }
+  .mode-toggle button.active { background:linear-gradient(135deg,#3B82F6,#2563EB); color:#fff; }
+  .progress-label { font-size:0.8rem; color:rgba(11,26,46,0.6); font-weight:600; }
+  #timerDisplay { font-family:'JetBrains Mono', monospace; font-weight:700; font-size:1rem; color:#2563EB; }
+  #timerDisplay.low { color:#DC2626; }
+
+  /* Station card */
+  .station-card {
+    background:rgba(255,255,255,0.55); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+    border:1px solid rgba(255,255,255,0.4); border-radius:18px; padding:26px 26px 22px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.06);
+  }
+  .station-meta { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .pill { font-size:0.68rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; padding:4px 11px; border-radius:20px; }
+  .pill.type { background:rgba(59,130,246,0.15); color:#2563EB; }
+  .pill.marks { background:rgba(16,185,129,0.15); color:#047857; }
+  .station-card h2 { font-family:'Lora',serif; font-size:1.3rem; margin-bottom:12px; }
+  .scenario { background:rgba(255,255,255,0.4); border-left:3px solid #3B82F6; padding:12px 16px; border-radius:8px; font-size:0.9rem; line-height:1.6; margin-bottom:14px; color:rgba(11,26,46,0.8); }
+  .question { font-size:0.98rem; font-weight:600; line-height:1.6; margin-bottom:16px; }
+  .station-image { width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff; margin-bottom:16px; border:1px solid rgba(11,26,46,0.08); }
+
+  .reveal-btn, .submit-btn, .next-btn {
+    border:none; border-radius:10px; padding:12px 24px; font-weight:700; font-size:0.88rem; cursor:pointer;
+    background:linear-gradient(135deg,#3B82F6,#2563EB); color:#fff; transition:transform 0.15s, box-shadow 0.15s;
+  }
+  .reveal-btn:hover, .submit-btn:hover, .next-btn:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(59,130,246,0.3); }
+
+  .marking-scheme { margin-top:18px; padding-top:18px; border-top:1px solid rgba(11,26,46,0.1); display:none; }
+  .marking-scheme.show { display:block; }
+  .marking-scheme h3 { font-size:0.85rem; text-transform:uppercase; letter-spacing:0.04em; color:#2563EB; margin-bottom:10px; }
+  .criterion { display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid rgba(11,26,46,0.06); font-size:0.88rem; }
+  .criterion input { margin-top:3px; width:16px; height:16px; accent-color:#2563EB; cursor:pointer; }
+  .criterion .marks-badge { margin-left:auto; font-size:0.72rem; font-weight:700; color:#047857; white-space:nowrap; }
+  .model-answer { margin-top:14px; background:rgba(59,130,246,0.06); border-radius:10px; padding:14px 16px; font-size:0.86rem; line-height:1.6; color:rgba(11,26,46,0.75); }
+  .model-answer strong { color:#0B1A2E; }
+
+  .score-row { display:flex; align-items:center; justify-content:space-between; margin-top:16px; flex-wrap:wrap; gap:10px; }
+  .score-display { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:1.05rem; color:#0B1A2E; }
+  .action-row { display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+
+  .summary-card { text-align:center; padding:40px 24px; }
+  .summary-card .big-score { font-family:'Lora',serif; font-size:3rem; font-weight:700; color:#2563EB; margin:14px 0; }
+  .summary-card p { color:rgba(11,26,46,0.6); }
+
+  .loading { text-align:center; padding:60px 20px; color:rgba(11,26,46,0.5); font-size:0.9rem; }
+
+  @media (max-width:600px) {
+    .wrap { padding:20px 14px 60px; }
+    .station-card { padding:20px 18px 18px; }
+    .control-bar { flex-direction:column; align-items:stretch; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="blobs" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<div class="topbar">
+  <div class="brand"><div class="crest">🩺</div>EaseMed OSCE</div>
+  <span id="moduleTitle">Loading module…</span>
+  <a href="modules.html" class="back">← Back to modules</a>
+</div>
+
+<div class="wrap">
+  <div class="control-bar">
+    <div class="mode-toggle">
+      <button id="practiceBtn" class="active" onclick="setMode('practice')">Practice</button>
+      <button id="timedBtn" onclick="setMode('timed')">Timed</button>
+    </div>
+    <span class="progress-label" id="progressLabel">Station 1 of —</span>
+    <span id="timerDisplay"></span>
+  </div>
+
+  <div id="stationContainer">
+    <div class="loading">Loading OSCE stations…</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ─── CONFIG ───
+const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+const MODULE_LABELS = {
+  peds: 'Pediatrics',
+  imed: 'Internal Medicine',
+  obgyn: 'Obstetrics & Gynaecology',
+  surgery: 'Surgery'
+};
+
+let sb = null;
+let currentUser = null;
+let stations = [];
+let currentIndex = 0;
+let mode = 'practice';
+let timerInterval = null;
+let timeRemaining = 0;
+let stationStartTime = null;
+let checkedMarks = 0;
+
+function getModuleFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const m = params.get('module');
+  return MODULE_LABELS[m] ? m : 'peds';
+}
+const currentModule = getModuleFromUrl();
+
+async function init() {
+  try {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      window.location.href = 'easemed_login.html';
+      return;
+    }
+    currentUser = session.user;
+
+    document.getElementById('moduleTitle').textContent = MODULE_LABELS[currentModule];
+
+    const { data, error } = await sb
+      .from('osce_stations')
+      .select('*')
+      .eq('module', currentModule)
+      .order('display_order', { ascending: true });
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      document.getElementById('stationContainer').innerHTML =
+        '<div class="loading">No OSCE stations available for this module yet. Check back soon.</div>';
+      return;
+    }
+
+    stations = data;
+    currentIndex = 0;
+    renderStation();
+  } catch (err) {
+    console.error('[OSCE Init]', err);
+    document.getElementById('stationContainer').innerHTML =
+      `<div class="loading">⚠️ Could not load OSCE stations: ${err.message}</div>`;
+  }
+}
+
+function setMode(newMode) {
+  mode = newMode;
+  document.getElementById('practiceBtn').classList.toggle('active', mode === 'practice');
+  document.getElementById('timedBtn').classList.toggle('active', mode === 'timed');
+  renderStation();
+}
+
+function stopTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function startTimer(seconds) {
+  stopTimer();
+  timeRemaining = seconds;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeRemaining--;
+    updateTimerDisplay();
+    if (timeRemaining <= 0) {
+      stopTimer();
+      revealMarkingScheme(true);
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('timerDisplay');
+  const m = Math.floor(timeRemaining / 60);
+  const s = timeRemaining % 60;
+  el.textContent = `⏱ ${m}:${s.toString().padStart(2,'0')}`;
+  el.classList.toggle('low', timeRemaining <= 30);
+}
+
+function renderStation() {
+  stopTimer();
+  const station = stations[currentIndex];
+  const container = document.getElementById('stationContainer');
+  document.getElementById('progressLabel').textContent = `Station ${currentIndex + 1} of ${stations.length}`;
+  document.getElementById('timerDisplay').textContent = '';
+  stationStartTime = Date.now();
+  checkedMarks = 0;
+
+  const typeLabels = {
+    history: '📋 History Taking', exam: '🩺 Physical Exam', instrument: '🔧 Instrument ID',
+    xray: '🩻 Imaging', medicine: '💊 Medicine', case_discussion: '🗣️ Case Discussion'
+  };
+
+  container.innerHTML = `
+    <div class="station-card">
+      <div class="station-meta">
+        <span class="pill type">${typeLabels[station.station_type] || station.station_type}</span>
+        <span class="pill marks">${station.max_marks} marks</span>
+      </div>
+      <h2>${station.title}</h2>
+      ${station.image_url ? `<img class="station-image" src="${station.image_url}" alt="${station.title}" />` : ''}
+      ${station.scenario_text ? `<div class="scenario">${station.scenario_text}</div>` : ''}
+      <div class="question">${station.question_text}</div>
+
+      <div class="action-row" id="preRevealActions">
+        <button class="reveal-btn" onclick="revealMarkingScheme(false)">Reveal marking scheme</button>
+      </div>
+
+      <div class="marking-scheme" id="markingScheme">
+        <h3>Self-scoring checklist</h3>
+        <div id="criteriaList"></div>
+        <div class="model-answer"><strong>Model answer / summary:</strong><br>${station.model_answer || 'N/A'}</div>
+        <div class="score-row">
+          <span class="score-display" id="liveScore">Score: 0 / ${station.max_marks}</span>
+        </div>
+        <div class="action-row">
+          <button class="submit-btn" onclick="submitAttempt()">Submit attempt</button>
+          ${currentIndex < stations.length - 1 ? `<button class="next-btn" onclick="nextStation()">Next station →</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (mode === 'timed') {
+    startTimer(station.time_limit_seconds || 300);
+  }
+}
+
+function revealMarkingScheme(auto) {
+  stopTimer();
+  const station = stations[currentIndex];
+  const criteria = station.marking_criteria || [];
+  const list = document.getElementById('criteriaList');
+  list.innerHTML = criteria.map((c, i) => `
+    <label class="criterion">
+      <input type="checkbox" data-marks="${c.marks}" onchange="updateScore()" />
+      <span>${c.point}</span>
+      <span class="marks-badge">${c.marks} mk${c.marks > 1 ? 's' : ''}</span>
+    </label>
+  `).join('');
+
+  document.getElementById('preRevealActions').style.display = 'none';
+  document.getElementById('markingScheme').classList.add('show');
+  if (auto) {
+    document.getElementById('liveScore').textContent = `⏰ Time's up — self-score below (0 / ${station.max_marks})`;
+  }
+}
+
+function updateScore() {
+  const checkboxes = document.querySelectorAll('#criteriaList input[type="checkbox"]');
+  let score = 0;
+  checkboxes.forEach(cb => { if (cb.checked) score += parseInt(cb.dataset.marks, 10); });
+  checkedMarks = score;
+  const station = stations[currentIndex];
+  document.getElementById('liveScore').textContent = `Score: ${score} / ${station.max_marks}`;
+}
+
+async function submitAttempt() {
+  const station = stations[currentIndex];
+  const duration = Math.round((Date.now() - stationStartTime) / 1000);
+  const checkedCriteria = [];
+  document.querySelectorAll('#criteriaList input[type="checkbox"]').forEach((cb, i) => {
+    if (cb.checked) checkedCriteria.push(i);
+  });
+
+  try {
+    await sb.from('osce_attempts').insert({
+      user_id: currentUser.id,
+      station_id: station.id,
+      mode: mode,
+      self_scored_marks: checkedMarks,
+      max_marks: station.max_marks,
+      criteria_checked: checkedCriteria,
+      duration_seconds: duration
+    });
+    const btn = document.querySelector('.submit-btn');
+    if (btn) { btn.textContent = '✓ Saved'; btn.disabled = true; }
+  } catch (err) {
+    console.error('[OSCE Submit]', err);
+    alert('Could not save attempt: ' + err.message);
+  }
+}
+
+function nextStation() {
+  if (currentIndex < stations.length - 1) {
+    currentIndex++;
+    renderStation();
+  } else {
+    showFinalSummary();
+  }
+}
+
+async function showFinalSummary() {
+  stopTimer();
+  const { data, error } = await sb.rpc('get_osce_summary', { p_user_id: currentUser.id });
+  const container = document.getElementById('stationContainer');
+
+  let overallPct = '—';
+  if (!error && data) {
+    const overall = data.find(r => r.scope === 'overall');
+    if (overall) overallPct = overall.avg_percent + '%';
+  }
+
+  container.innerHTML = `
+    <div class="station-card summary-card">
+      <div class="pill type">Module complete</div>
+      <h2 style="margin-top:14px;">${MODULE_LABELS[currentModule]} OSCE — Done</h2>
+      <div class="big-score">${overallPct}</div>
+      <p>Your all-time average across all OSCE attempts. Keep practicing to improve.</p>
+      <div class="action-row" style="justify-content:center;">
+        <a href="modules.html" class="next-btn" style="text-decoration:none;">← Back to modules</a>
+      </div>
+    </div>
+  `;
+}
+
+init();
+</script>
+</body>
+</html>
