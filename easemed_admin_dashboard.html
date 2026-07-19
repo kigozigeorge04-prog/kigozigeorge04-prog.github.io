@@ -7,11 +7,22 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* (all your existing styles – kept unchanged) */
+        /* (all your existing styles – kept unchanged, background section updated) */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: "Segoe UI", Arial, sans-serif; color: #20313f; background: radial-gradient(circle at 12% 10%, rgba(42,157,143,0.22), transparent 28%), radial-gradient(circle at 86% 12%, rgba(244,211,94,0.18), transparent 25%), linear-gradient(135deg, #0f2027 0%, #203a43 48%, #2c5364 100%); padding: 22px; }
-        .shell { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: 270px 1fr; gap: 22px; }
-        .sidebar, .main-panel, .card, .table-panel { background: rgba(255,255,255,0.96); border: 1px solid rgba(255,255,255,0.55); box-shadow: 0 22px 55px rgba(15,32,39,0.25), inset 0 1px 0 rgba(255,255,255,0.75); backdrop-filter: blur(14px); }
+        body { font-family: "Segoe UI", Arial, sans-serif; color: #20313f; background: linear-gradient(160deg, #E8F4FD 0%, #B8D8F0 40%, #8EC4E8 100%); padding: 22px; position: relative; overflow-x: hidden; }
+
+        .bg-grid { position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(11,26,46,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(11,26,46,0.06) 1px, transparent 1px); background-size: 48px 48px; opacity: 0.5; }
+
+        .clinical-glow { position: fixed; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.12), transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; filter: blur(60px); }
+
+        .blobs { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+        .blob { position: absolute; border-radius: 9999px; filter: blur(90px); opacity: 0.15; }
+        .blob-1 { top: -10%; left: -8%; width: 480px; height: 480px; background: #3B82F6; }
+        .blob-2 { bottom: -15%; left: 20%; width: 420px; height: 420px; background: #2A9D8F; opacity: 0.10; }
+        .blob-3 { top: 20%; right: -10%; width: 520px; height: 520px; background: #1D4ED8; opacity: 0.12; }
+
+        .shell { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: 270px 1fr; gap: 22px; position: relative; z-index: 10; }
+        .sidebar, .main-panel, .card, .table-panel { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.3); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); position: relative; z-index: 10; }
         .sidebar { border-radius: 20px; padding: 22px; min-height: calc(100vh - 44px); position: sticky; top: 22px; }
         .brand { display: flex; align-items: center; gap: 12px; padding-bottom: 22px; border-bottom: 1px solid #dbe7ef; }
         .brand-mark { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: #fff; font-weight: 900; background: linear-gradient(135deg,#1e3c72,#2a9d8f); box-shadow: 0 10px 20px rgba(30,60,114,0.25); }
@@ -29,16 +40,16 @@
         .hero h2 { font-size: 1.75rem; margin-bottom: 7px; }
         .hero p { opacity: 0.9; max-width: 720px; line-height: 1.55; }
         .admin-pill { white-space: nowrap; border-radius: 999px; padding: 9px 13px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28); font-weight: 800; font-size: 0.84rem; }
-        .auth-bar { max-width: 1500px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; color: #fff; background: rgba(15,32,39,0.74); border: 1px solid rgba(255,255,255,0.18); border-radius: 16px; padding: 12px 16px; backdrop-filter: blur(12px); box-shadow: 0 12px 28px rgba(0,0,0,0.18); }
+        .auth-bar { max-width: 1500px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; color: #fff; background: rgba(15,32,39,0.74); border: 1px solid rgba(255,255,255,0.18); border-radius: 16px; padding: 12px 16px; backdrop-filter: blur(12px); box-shadow: 0 12px 28px rgba(0,0,0,0.18); position: relative; z-index: 10; }
         .auth-bar strong { color: #90cdf4; }
         .auth-actions button { border: 0; border-radius: 10px; padding: 9px 12px; color: #fff; background: linear-gradient(135deg,#e53e3e,#c53030); cursor: pointer; font-weight: 800; }
-        .access-lock { max-width: 720px; margin: 90px auto; background: rgba(255,255,255,0.96); border: 1px solid rgba(255,255,255,0.55); border-radius: 22px; padding: 28px; text-align: center; box-shadow: 0 22px 55px rgba(15,32,39,0.30); }
+        .access-lock { max-width: 720px; margin: 90px auto; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.4); border-radius: 22px; padding: 28px; text-align: center; box-shadow: 0 22px 55px rgba(15,32,39,0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); position: relative; z-index: 10; }
         .access-lock h2 { color: #1e3c72; margin-bottom: 10px; }
         .access-lock p { color: #496173; line-height: 1.6; }
         .access-lock button { margin-top: 18px; border: 0; border-radius: 12px; padding: 12px 16px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); cursor: pointer; font-weight: 800; }
         .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 20px; }
         .card { border-radius: 16px; padding: 18px; transition: 0.25s ease; }
-        .card:hover, .table-panel:hover { transform: translateY(-3px); box-shadow: 0 26px 60px rgba(15,32,39,0.27), inset 0 1px 0 rgba(255,255,255,0.8); }
+        .card:hover, .table-panel:hover { transform: translateY(-3px); box-shadow: 0 26px 60px rgba(15,32,39,0.15), inset 0 1px 0 rgba(255,255,255,0.4); }
         .metric-label { color: #718096; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
         .metric-value { font-size: 2rem; color: #17324d; font-weight: 900; margin-top: 8px; }
         .metric-sub { margin-top: 8px; font-size: 0.84rem; color: #496173; }
@@ -53,8 +64,8 @@
         .panel-title button { border: 0; border-radius: 10px; padding: 9px 12px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); cursor: pointer; font-weight: 800; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #edf2f7; font-size: 0.9rem; }
-        th { color: #718096; background: #f8fafc; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; }
-        tr:hover td { background: #f8fcfd; }
+        th { color: #718096; background: rgba(248,250,252,0.6); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        tr:hover td { background: rgba(248,252,253,0.6); }
         .status { display: inline-flex; border-radius: 999px; padding: 5px 9px; font-size: 0.76rem; font-weight: 900; }
         .status.good { color: #1e7d5a; background: #e8f7ef; }
         .status.warn { color: #936900; background: #fff6d8; }
@@ -66,13 +77,13 @@
         .activity strong { color: #20313f; display: block; margin-bottom: 3px; }
         .activity span { color: #718096; font-size: 0.84rem; }
         .quick-actions { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
-        .action { border: 1px solid #dbe7ef; border-radius: 16px; padding: 16px; background: rgba(255,255,255,0.95); cursor: pointer; transition: 0.25s ease; }
-        .action:hover { border-color: #2a9d8f; transform: translateY(-3px); box-shadow: 0 15px 30px rgba(15,32,39,0.12); }
+        .action { border: 1px solid rgba(255,255,255,0.4); border-radius: 16px; padding: 16px; background: rgba(255,255,255,0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); cursor: pointer; transition: 0.25s ease; position: relative; z-index: 10; }
+        .action:hover { border-color: #2a9d8f; transform: translateY(-3px); box-shadow: 0 15px 30px rgba(15,32,39,0.10); }
         .action span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); font-weight: 900; margin-bottom: 12px; }
         .action strong { color: #17324d; display: block; margin-bottom: 5px; }
         .action p { color: #718096; font-size: 0.84rem; line-height: 1.45; }
         .tabs { display: flex; gap: 12px; padding: 0 20px; margin-top: 8px; margin-bottom: 8px; }
-        .admin-tab { background: rgba(255,255,255,0.9); border: none; padding: 8px 18px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #1e3c72; }
+        .admin-tab { background: rgba(255,255,255,0.6); border: none; padding: 8px 18px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #1e3c72; }
         .admin-tab.active { background: #2a9d8f; color: white; box-shadow: 0 4px 12px rgba(42,157,143,0.3); }
         .alert-info { background: #e6f7ff; color: #0c5460; border-left: 5px solid #17a2b8; padding: 15px; border-radius: 12px; margin: 15px 20px; font-size: 0.9rem; }
         .alert-error { background: #f8d7da; color: #721c24; border-left: 5px solid #e53e3e; padding: 15px; border-radius: 12px; margin: 15px 20px; font-size: 0.9rem; }
@@ -94,6 +105,14 @@
     </style>
 </head>
 <body>
+    <div class="bg-grid"></div>
+    <div class="clinical-glow"></div>
+    <div class="blobs" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
     <div class="auth-bar" id="adminAuthBar" style="display:none;">
         <div>Signed in as <strong id="adminUserName">Admin</strong></div>
         <div class="auth-actions">
@@ -241,7 +260,7 @@
                         <button onclick="loadAllUsers()">Refresh</button>
                     </div>
 
-                    <div style="padding:16px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                    <div style="padding:16px 20px; background:rgba(248,250,252,0.6); border-bottom:1px solid #e2e8f0; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
                         <input id="userSearchInput" type="text" placeholder="Search by email or name..."
                             oninput="filterUsers()"
                             style="flex:1; min-width:200px; padding:10px 14px; border:1.5px solid #dbe7ef; border-radius:10px; font-size:0.9rem; outline:none;" />
