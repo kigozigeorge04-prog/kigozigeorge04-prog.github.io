@@ -1319,5 +1319,71 @@ document.addEventListener('DOMContentLoaded', function() {
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
+  <!-- Cookie consent banner -->
+<div id="cookie-banner" style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: #0a2e2d;
+    color: #ffffff;
+    padding: 18px 24px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+">
+    <p style="margin: 0; font-size: 0.88rem; color: rgba(255,255,255,0.85); max-width: 560px;">
+        EaseMed uses cookies to keep you signed in and improve your experience. By continuing, you agree to our
+        <a href="privacy.html" style="color: #14b8a6; text-decoration: underline;">Privacy Policy</a>.
+    </p>
+    <div style="display: flex; gap: 10px; flex-shrink: 0;">
+        <button id="cookie-accept" style="
+            background: #14b8a6;
+            color: #0a2e2d;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+        ">Accept</button>
+        <button id="cookie-decline" style="
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+        ">Decline</button>
+    </div>
+</div>
+
+<script>
+(function () {
+    const banner = document.getElementById('cookie-banner');
+    const consent = localStorage.getItem('easemed_cookie_consent');
+
+    if (!consent) {
+        banner.style.display = 'flex';
+    }
+
+    document.getElementById('cookie-accept').addEventListener('click', function () {
+        localStorage.setItem('easemed_cookie_consent', 'accepted');
+        banner.style.display = 'none';
+    });
+
+    document.getElementById('cookie-decline').addEventListener('click', function () {
+        localStorage.setItem('easemed_cookie_consent', 'declined');
+        banner.style.display = 'none';
+    });
+})();
+</script>
 </body>
 </html>
