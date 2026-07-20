@@ -1,17 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Security Headers - FIXED: Added unpkg.com and cdnjs -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://js.sentry-cdn.com https://*.supabase.co https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
-<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-<meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>EaseMed — Sign In</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#E8F4FD">
@@ -50,6 +41,7 @@
                 script.src = url;
                 script.type = 'text/javascript';
                 script.async = false;
+                script.crossOrigin = 'anonymous';
                 
                 script.onload = function() {
                     console.log(`[SDK] Successfully loaded from ${url}`);
@@ -1552,7 +1544,7 @@
 
     <script>
         // ──────────────────── VERSION CONTROL ────────────────────
-        const APP_VERSION = '2.0.3';
+        const APP_VERSION = '2.0.4';
         const CACHE_KEY = 'easemed_app_version';
         
         const storedVersion = localStorage.getItem(CACHE_KEY);
