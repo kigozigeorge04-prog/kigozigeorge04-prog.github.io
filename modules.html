@@ -1,858 +1,855 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Security Headers - Already fixed with unpkg.com -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://js.sentry-cdn.com https://*.supabase.co https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
-<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-<meta http-equiv="X-XSS-Protection" content="1; mode=block">
-<meta charset="UTF-8">
-<script
-  src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js"
-  crossorigin="anonymous"
-></script>
-      <script defer src="/_vercel/insights/script.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EaseMed — Choose a Clerking Module</title>
+    <meta name="description" content="EaseMed: clinical clerking modules for Ugandan medical students, grounded in Hutchison's Clinical Methods.">
+    <meta name="theme-color" content="#E8F4FD">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script
+        src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js"
+        crossorigin="anonymous"
+    ></script>
+    
+    <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EaseMed — Choose a Clerking Module</title>
-<meta name="description" content="EaseMed: clinical clerking modules for Ugandan medical students, grounded in Hutchison's Clinical Methods.">
-<meta name="theme-color" content="#E8F4FD">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<!-- Dynamic Supabase SDK Loader - Multiple CDN Fallbacks -->
-<script>
-    (function loadSupabaseSDK() {
-        console.log('[SDK] Attempting to load Supabase SDK...');
-        
-        const CDN_URLS = [
-            'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-            'https://unpkg.com/@supabase/supabase-js@2',
-            'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.47.10/umd/supabase.min.js'
-        ];
-        
-        let currentIndex = 0;
-        
-        function tryLoadNext() {
-            if (currentIndex >= CDN_URLS.length) {
-                console.error('[SDK] All CDN sources failed');
-                showFatalError(
-                    'Unable to connect to EaseMed services. The Supabase SDK could not be loaded. ' +
-                    'Please check your internet connection and refresh the page.'
-                );
-                return;
-            }
+    <!-- Dynamic Supabase SDK Loader - Multiple CDN Fallbacks -->
+    <script>
+        (function loadSupabaseSDK() {
+            console.log('[SDK] Attempting to load Supabase SDK...');
             
-            const url = CDN_URLS[currentIndex];
-            console.log(`[SDK] Trying CDN #${currentIndex + 1}: ${url}`);
+            const CDN_URLS = [
+                'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+                'https://unpkg.com/@supabase/supabase-js@2',
+                'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.47.10/umd/supabase.min.js'
+            ];
             
-            const script = document.createElement('script');
-            script.src = url;
-            script.type = 'text/javascript';
-            script.async = false;
+            let currentIndex = 0;
             
-            script.onload = function() {
-                console.log(`[SDK] Successfully loaded from ${url}`);
-                if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-                    console.log('[SDK] Supabase SDK is ready!');
-                    initSupabase();
-                } else {
-                    console.warn('[SDK] Script loaded but supabase object not found');
+            function tryLoadNext() {
+                if (currentIndex >= CDN_URLS.length) {
+                    console.error('[SDK] All CDN sources failed');
+                    showFatalError(
+                        'Unable to connect to EaseMed services. The Supabase SDK could not be loaded. ' +
+                        'Please check your internet connection and refresh the page.'
+                    );
+                    return;
+                }
+                
+                const url = CDN_URLS[currentIndex];
+                console.log(`[SDK] Trying CDN #${currentIndex + 1}: ${url}`);
+                
+                const script = document.createElement('script');
+                script.src = url;
+                script.type = 'text/javascript';
+                script.async = false;
+                script.crossOrigin = 'anonymous';
+                
+                script.onload = function() {
+                    console.log(`[SDK] Successfully loaded from ${url}`);
+                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                        console.log('[SDK] Supabase SDK is ready!');
+                        initSupabase();
+                    } else {
+                        console.warn('[SDK] Script loaded but supabase object not found');
+                        currentIndex++;
+                        tryLoadNext();
+                    }
+                };
+                
+                script.onerror = function() {
+                    console.warn(`[SDK] Failed to load from ${url}`);
                     currentIndex++;
                     tryLoadNext();
-                }
-            };
+                };
+                
+                document.head.appendChild(script);
+            }
             
-            script.onerror = function() {
-                console.warn(`[SDK] Failed to load from ${url}`);
-                currentIndex++;
-                tryLoadNext();
-            };
-            
-            document.head.appendChild(script);
-        }
-        
-        // Define showFatalError before it's called
-        window.showFatalError = function(message) {
-            const spinner = document.getElementById('loadingSpinner');
-            if (spinner) {
-                spinner.innerHTML = `
-                    <div class="error-state">
-                        <h2>⚠️ Service Unavailable</h2>
-                        <p>${message}</p>
-                        <div class="btn-group">
-                            <button class="btn-retry" onclick="location.reload()">Retry</button>
-                            <a href="easemed_login.html" class="btn-login">Go to Login</a>
+            // Define showFatalError before it's called
+            window.showFatalError = function(message) {
+                const spinner = document.getElementById('loadingSpinner');
+                if (spinner) {
+                    spinner.innerHTML = `
+                        <div class="error-state">
+                            <h2>⚠️ Service Unavailable</h2>
+                            <p>${message}</p>
+                            <div class="btn-group">
+                                <button class="btn-retry" onclick="location.reload()">Retry</button>
+                                <a href="easemed_login.html" class="btn-login">Go to Login</a>
+                            </div>
                         </div>
-                    </div>
-                `;
-            }
-        };
-        
-        tryLoadNext();
-        
-        setTimeout(function() {
-            if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-                console.warn('[SDK] Timeout reached, trying next CDN...');
-                if (currentIndex < CDN_URLS.length - 1) {
-                    currentIndex++;
-                    tryLoadNext();
+                    `;
                 }
+            };
+            
+            tryLoadNext();
+            
+            setTimeout(function() {
+                if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                    console.warn('[SDK] Timeout reached, trying next CDN...');
+                    if (currentIndex < CDN_URLS.length - 1) {
+                        currentIndex++;
+                        tryLoadNext();
+                    }
+                }
+            }, 10000);
+        })();
+    </script>
+
+    <style>
+        /* ──────────── RESET & BASE ──────────── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            width: 100%;
+            background: linear-gradient(160deg, #E8F4FD 0%, #B8D8F0 40%, #8EC4E8 100%);
+            color: #0B1A2E;
+            display: block;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ──────────── ANIMATIONS ──────────── */
+        @keyframes ecg-draw {
+            0% { stroke-dashoffset: 1000; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .ecg-path {
+            stroke-dasharray: 1000;
+            animation: ecg-draw 3.4s linear infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.8); }
+        }
+        .pulse-dot {
+            animation: pulse-dot 1.6s ease-in-out infinite;
+        }
+
+        @keyframes panel-in {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .panel-in {
+            animation: panel-in 0.28s ease;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spin {
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes fade-rotate {
+            0%, 100% { opacity: 0; transform: translateY(4px); }
+            12%, 88% { opacity: 1; transform: translateY(0); }
+        }
+        .rotation-label {
+            animation: fade-rotate 2.8s ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        /* ──────────── BACKGROUND ──────────── */
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(59, 130, 246, 0.10) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                linear-gradient(180deg, #E8F4FD 0%, #B8D8F0 50%, #8EC4E8 100%);
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(11, 26, 46, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(11, 26, 46, 0.06) 1px, transparent 1px);
+            background-size: 48px 48px;
+            opacity: 0.5;
+        }
+
+        .clinical-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.12), transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            animation: pulseGlow 3s ease-in-out infinite;
+            pointer-events: none;
+            filter: blur(60px);
+        }
+
+        .blobs {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .blob {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(90px);
+            opacity: 0.15;
+        }
+        .blob-1 { top: -10%; left: -8%; width: 480px; height: 480px; background: #3B82F6; }
+        .blob-2 { bottom: -15%; left: 20%; width: 420px; height: 420px; background: #2563EB; opacity: 0.10; }
+        .blob-3 { top: 20%; right: -10%; width: 520px; height: 520px; background: #1D4ED8; opacity: 0.12; }
+
+        /* ──────────── GLASS ──────────── */
+        .glass {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* ──────────── TOP BAR ──────────── */
+        .topline {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 36px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            flex-wrap: wrap;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            margin: 16px 20px 0;
+            border-radius: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .topline {
+                margin: 12px 12px 0;
+                padding: 16px 18px;
+                border-radius: 12px;
             }
-        }, 10000);
-    })();
-</script>
+        }
 
-<style>
-  /* ──────────── RESET & BASE ──────────── */
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+        .topline .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
 
-  body {
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
-    width: 100%;
-    background: linear-gradient(160deg, #E8F4FD 0%, #B8D8F0 40%, #8EC4E8 100%);
-    color: #0B1A2E;
-    display: block;
-    position: relative;
-    overflow-x: hidden;
-  }
+        .topline .crest {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            display: grid;
+            place-items: center;
+            font-size: 17px;
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+        }
 
-  /* ──────────── ANIMATIONS ──────────── */
-  @keyframes ecg-draw {
-    0% { stroke-dashoffset: 1000; }
-    100% { stroke-dashoffset: 0; }
-  }
-  .ecg-path {
-    stroke-dasharray: 1000;
-    animation: ecg-draw 3.4s linear infinite;
-  }
+        .topline .brand-name {
+            font-family: 'Lora', serif;
+            font-weight: 700;
+            font-size: 1.18rem;
+            letter-spacing: 0.01em;
+            color: #0B1A2E;
+        }
 
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.35; transform: scale(0.8); }
-  }
-  .pulse-dot {
-    animation: pulse-dot 1.6s ease-in-out infinite;
-  }
+        .topline .edition {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.06em;
+            color: rgba(11, 26, 46, 0.5);
+            border: 1px solid rgba(11, 26, 46, 0.12);
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.3);
+        }
 
-  @keyframes panel-in {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .panel-in {
-    animation: panel-in 0.28s ease;
-  }
+        .topline .right-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
 
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  .spin {
-    animation: spin 0.8s linear infinite;
-  }
+        .btn-admin-top {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 16px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+        }
+        .btn-admin-top:hover {
+            transform: scale(1.04);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+        }
+        .btn-admin-top svg {
+            width: 14px;
+            height: 14px;
+        }
 
-  @keyframes fade-rotate {
-    0%, 100% { opacity: 0; transform: translateY(4px); }
-    12%, 88% { opacity: 1; transform: translateY(0); }
-  }
-  .rotation-label {
-    animation: fade-rotate 2.8s ease-in-out;
-  }
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(11, 26, 46, 0.12);
+            color: #0B1A2E;
+            border-radius: 8px;
+            padding: 6px 13px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-  }
-  .float {
-    animation: float 6s ease-in-out infinite;
-  }
+        /* ──────────── HERO ──────────── */
+        .hero {
+            position: relative;
+            z-index: 10;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 28px 28px;
+            text-align: center;
+        }
 
-  @keyframes pulseGlow {
-    0%, 100% { opacity: 0.5; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.05); }
-  }
+        .hero .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #2563EB;
+            margin-bottom: 20px;
+        }
+        .hero .eyebrow::before,
+        .hero .eyebrow::after {
+            content: '';
+            width: 22px;
+            height: 1px;
+            background: rgba(59, 130, 246, 0.3);
+        }
 
-  /* ──────────── BACKGROUND ──────────── */
-  .bg-gradient {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    background: 
-      radial-gradient(ellipse at 20% 30%, rgba(59, 130, 246, 0.10) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
-      linear-gradient(180deg, #E8F4FD 0%, #B8D8F0 50%, #8EC4E8 100%);
-  }
+        .hero h1 {
+            font-family: 'Lora', serif;
+            font-weight: 700;
+            font-size: clamp(2rem, 4.5vw, 3.2rem);
+            line-height: 1.08;
+            letter-spacing: -0.01em;
+            color: #0B1A2E;
+        }
+        .hero h1 em {
+            font-style: italic;
+            font-weight: 600;
+            background: linear-gradient(135deg, #3B82F6, #7C3AED);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-  .bg-grid {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background-image:
-      linear-gradient(rgba(11, 26, 46, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(11, 26, 46, 0.06) 1px, transparent 1px);
-    background-size: 48px 48px;
-    opacity: 0.5;
-  }
+        .hero p {
+            margin: 16px auto 0;
+            max-width: 480px;
+            color: rgba(11, 26, 46, 0.6);
+            font-size: 1rem;
+            line-height: 1.65;
+            font-weight: 400;
+        }
 
-  .clinical-glow {
-    position: fixed;
-    width: 600px;
-    height: 600px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.12), transparent 70%);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 0;
-    animation: pulseGlow 3s ease-in-out infinite;
-    pointer-events: none;
-    filter: blur(60px);
-  }
+        /* ──────────── MODULES GRID ──────────── */
+        .modules {
+            position: relative;
+            z-index: 10;
+            max-width: 1080px;
+            margin: 10px auto 64px;
+            padding: 0 36px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 22px;
+        }
 
-  .blobs {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .blob {
-    position: absolute;
-    border-radius: 9999px;
-    filter: blur(90px);
-    opacity: 0.15;
-  }
-  .blob-1 { top: -10%; left: -8%; width: 480px; height: 480px; background: #3B82F6; }
-  .blob-2 { bottom: -15%; left: 20%; width: 420px; height: 420px; background: #2563EB; opacity: 0.10; }
-  .blob-3 { top: 20%; right: -10%; width: 520px; height: 520px; background: #1D4ED8; opacity: 0.12; }
+        @media (max-width: 680px) {
+            .modules {
+                grid-template-columns: 1fr;
+                padding: 0 22px;
+            }
+        }
 
-  /* ──────────── GLASS ──────────── */
-  .glass {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
+        /* ──────────── MODULE CARDS ──────────── */
+        .card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            color: #0B1A2E;
+            border-radius: 16px;
+            text-decoration: none;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s ease, border-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
 
-  /* ──────────── TOP BAR ──────────── */
-  .topline {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 36px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    flex-wrap: wrap;
-    gap: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    margin: 16px 20px 0;
-    border-radius: 16px;
-  }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 
+                0 16px 48px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
 
-  @media (max-width: 768px) {
-    .topline {
-      margin: 12px 12px 0;
-      padding: 16px 18px;
-      border-radius: 12px;
-    }
-  }
+        .card .banner {
+            position: relative;
+            height: 128px;
+            background:
+                repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 14px),
+                linear-gradient(135deg, var(--accent-a), var(--accent-b));
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 16px 20px;
+            overflow: hidden;
+        }
 
-  .topline .brand {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-  }
+        .card .banner .num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.5);
+            position: absolute;
+            top: 14px;
+            left: 20px;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
 
-  .topline .crest {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #3B82F6, #8B5CF6);
-    display: grid;
-    place-items: center;
-    font-size: 17px;
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
-  }
+        .card .banner .icon-big {
+            font-size: 46px;
+            filter: drop-shadow(0 8px 14px rgba(0,0,0,0.2));
+            transition: transform 0.35s cubic-bezier(.2,.8,.2,1);
+            line-height: 1;
+        }
 
-  .topline .brand-name {
-    font-family: 'Lora', serif;
-    font-weight: 700;
-    font-size: 1.18rem;
-    letter-spacing: 0.01em;
-    color: #0B1A2E;
-  }
+        .card:hover .banner .icon-big {
+            transform: scale(1.1) rotate(-3deg) translateY(-2px);
+        }
 
-  .topline .edition {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.06em;
-    color: rgba(11, 26, 46, 0.5);
-    border: 1px solid rgba(11, 26, 46, 0.12);
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.3);
-  }
+        .card .banner .tag {
+            align-self: flex-end;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.66rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(0,0,0,0.15);
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
 
-  .topline .right-group {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-  }
+        .card .body {
+            padding: 20px 22px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            flex: 1;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
 
-  .btn-admin-top {
-    background: linear-gradient(135deg, #3B82F6, #2563EB);
-    color: #FFFFFF;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 16px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
-  }
-  .btn-admin-top:hover {
-    transform: scale(1.04);
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-  }
-  .btn-admin-top svg {
-    width: 14px;
-    height: 14px;
-  }
+        .card h3 {
+            font-family: 'Lora', serif;
+            font-weight: 700;
+            font-size: 1.28rem;
+            color: #0B1A2E;
+            letter-spacing: -0.01em;
+        }
 
-  .btn-logout {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(11, 26, 46, 0.12);
-    color: #0B1A2E;
-    border-radius: 8px;
-    padding: 6px 13px;
-    font-size: 0.76rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: background 0.2s, border-color 0.2s;
-  }
-  .btn-logout:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(59, 130, 246, 0.3);
-  }
+        .card p.desc {
+            color: rgba(11, 26, 46, 0.7);
+            font-size: 0.89rem;
+            line-height: 1.55;
+            font-weight: 400;
+        }
 
-  /* ──────────── HERO ──────────── */
-  .hero {
-    position: relative;
-    z-index: 10;
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 48px 28px 28px;
-    text-align: center;
-  }
+        .card .go {
+            margin-top: auto;
+            padding-top: 12px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #2563EB;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-family: 'Inter', sans-serif;
+        }
 
-  .hero .eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #2563EB;
-    margin-bottom: 20px;
-  }
-  .hero .eyebrow::before,
-  .hero .eyebrow::after {
-    content: '';
-    width: 22px;
-    height: 1px;
-    background: rgba(59, 130, 246, 0.3);
-  }
+        .card .go .arrow {
+            transition: transform 0.25s cubic-bezier(.2,.8,.2,1);
+            font-size: 1rem;
+        }
+        .card:hover .go .arrow {
+            transform: translateX(6px);
+        }
 
-  .hero h1 {
-    font-family: 'Lora', serif;
-    font-weight: 700;
-    font-size: clamp(2rem, 4.5vw, 3.2rem);
-    line-height: 1.08;
-    letter-spacing: -0.01em;
-    color: #0B1A2E;
-  }
-  .hero h1 em {
-    font-style: italic;
-    font-weight: 600;
-    background: linear-gradient(135deg, #3B82F6, #7C3AED);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+        /* Card color variants - darker for better contrast */
+        .card.medicine { --accent-a: #1E3A5F; --accent-b: #3B82F6; }
+        .card.surgery { --accent-a: #1A365D; --accent-b: #60A5FA; }
+        .card.peds { --accent-a: #065F46; --accent-b: #34D399; }
+        .card.obgyn { --accent-a: #7F1D35; --accent-b: #F472B6; }
 
-  .hero p {
-    margin: 16px auto 0;
-    max-width: 480px;
-    color: rgba(11, 26, 46, 0.6);
-    font-size: 1rem;
-    line-height: 1.65;
-    font-weight: 400;
-  }
+        /* ──────────── FOOTER ──────────── */
+        footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 0 28px 44px;
+            color: rgba(11, 26, 46, 0.35);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.04em;
+            font-weight: 500;
+        }
 
-  /* ──────────── MODULES GRID ──────────── */
-  .modules {
-    position: relative;
-    z-index: 10;
-    max-width: 1080px;
-    margin: 10px auto 64px;
-    padding: 0 36px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 22px;
-  }
+        /* ──────────── LOADING ──────────── */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            z-index: 10;
+        }
 
-  @media (max-width: 680px) {
-    .modules {
-      grid-template-columns: 1fr;
-      padding: 0 22px;
-    }
-  }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(59, 130, 246, 0.1);
+            border-top-color: #3B82F6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
 
-  /* ──────────── MODULE CARDS ──────────── */
-  .card {
-    position: relative;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    color: #0B1A2E;
-    border-radius: 16px;
-    text-decoration: none;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s ease, border-color 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    cursor: pointer;
-  }
+        .loading-text {
+            color: rgba(11, 26, 46, 0.6);
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
 
-  .card:hover {
-    transform: translateY(-6px);
-    box-shadow: 
-      0 16px 48px rgba(0, 0, 0, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    border-color: rgba(59, 130, 246, 0.3);
-  }
+        /* ──────────── ERROR STATE ──────────── */
+        .error-state {
+            text-align: center;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
 
-  .card .banner {
-    position: relative;
-    height: 128px;
-    background:
-      repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 14px),
-      linear-gradient(135deg, var(--accent-a), var(--accent-b));
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    padding: 16px 20px;
-    overflow: hidden;
-  }
+        .error-state h2 {
+            color: #DC2626;
+            margin-bottom: 16px;
+            font-family: 'Lora', serif;
+            font-weight: 700;
+        }
 
-  .card .banner .num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.5);
-    position: absolute;
-    top: 14px;
-    left: 20px;
-    letter-spacing: 0.05em;
-    font-weight: 500;
-  }
+        .error-state p {
+            color: rgba(11, 26, 46, 0.7);
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
 
-  .card .banner .icon-big {
-    font-size: 46px;
-    filter: drop-shadow(0 8px 14px rgba(0,0,0,0.2));
-    transition: transform 0.35s cubic-bezier(.2,.8,.2,1);
-    line-height: 1;
-  }
+        .error-state .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
 
-  .card:hover .banner .icon-big {
-    transform: scale(1.1) rotate(-3deg) translateY(-2px);
-  }
+        .error-state .btn-retry {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .error-state .btn-retry:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+        }
 
-  .card .banner .tag {
-    align-self: flex-end;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.66rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.9);
-    background: rgba(0,0,0,0.15);
-    padding: 2px 10px;
-    border-radius: 20px;
-  }
+        .error-state .btn-login {
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #0B1A2E;
+            border: 1px solid rgba(11, 26, 46, 0.12);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .error-state .btn-login:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
 
-  .card .body {
-    padding: 20px 22px 22px;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-    flex: 1;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-  }
+        /* ──────────── FAB BUTTONS ──────────── */
+        #fabContainer {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            z-index: 9999;
+            align-items: flex-end;
+        }
 
-  .card h3 {
-    font-family: 'Lora', serif;
-    font-weight: 700;
-    font-size: 1.28rem;
-    color: #0B1A2E;
-    letter-spacing: -0.01em;
-  }
+        #installBtn {
+            display: none;
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: #fff;
+            border: none;
+            border-radius: 60px;
+            padding: 12px 22px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            align-items: center;
+            gap: 10px;
+        }
+        #installBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.5);
+        }
 
-  .card p.desc {
-    color: rgba(11, 26, 46, 0.7);
-    font-size: 0.89rem;
-    line-height: 1.55;
-    font-weight: 400;
-  }
+        #whatsappBtn {
+            background: #25D366;
+            color: #fff;
+            border: none;
+            border-radius: 60px;
+            padding: 12px 22px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #whatsappBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 32px rgba(37, 211, 102, 0.5);
+        }
 
-  .card .go {
-    margin-top: auto;
-    padding-top: 12px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: #2563EB;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    font-family: 'Inter', sans-serif;
-  }
+        /* ──────────── BANNER ──────────── */
+        #easemedBanner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999999;
+            padding: 12px 20px;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #easemedBanner.info {
+            background: rgba(59, 130, 246, 0.15);
+            backdrop-filter: blur(20px);
+            color: #0B1A2E;
+            border-bottom: 3px solid #3B82F6;
+        }
+        #easemedBanner.warning {
+            background: rgba(245, 158, 11, 0.15);
+            backdrop-filter: blur(20px);
+            color: #0B1A2E;
+            border-bottom: 3px solid #F59E0B;
+        }
+        #easemedBanner.success {
+            background: rgba(16, 185, 129, 0.15);
+            backdrop-filter: blur(20px);
+            color: #0B1A2E;
+            border-bottom: 3px solid #10B981;
+        }
+        #easemedBanner button {
+            background: rgba(11, 26, 46, 0.08);
+            border: 1px solid rgba(11, 26, 46, 0.1);
+            border-radius: 6px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #0B1A2E;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        #easemedBanner button:hover {
+            background: rgba(11, 26, 46, 0.15);
+        }
 
-  .card .go .arrow {
-    transition: transform 0.25s cubic-bezier(.2,.8,.2,1);
-    font-size: 1rem;
-  }
-  .card:hover .go .arrow {
-    transform: translateX(6px);
-  }
+        /* ──────────── USER GREETING ──────────── */
+        #userGreeting {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            color: rgba(11, 26, 46, 0.7);
+            font-weight: 500;
+        }
 
-  /* Card color variants - darker for better contrast */
-  .card.medicine { --accent-a: #1E3A5F; --accent-b: #3B82F6; }
-  .card.surgery { --accent-a: #1A365D; --accent-b: #60A5FA; }
-  .card.peds { --accent-a: #065F46; --accent-b: #34D399; }
-  .card.obgyn { --accent-a: #7F1D35; --accent-b: #F472B6; }
+        /* ──────────── RESPONSIVE ──────────── */
+        @media (max-width: 768px) {
+            .topline {
+                padding: 16px 20px;
+                margin: 12px 12px 0;
+                border-radius: 12px;
+            }
+            .topline .edition {
+                font-size: 0.55rem;
+            }
+            .hero {
+                padding: 32px 20px 20px;
+            }
+            .hero h1 {
+                font-size: clamp(1.6rem, 5vw, 2.2rem);
+            }
+            #fabContainer {
+                bottom: 20px;
+                right: 20px;
+            }
+            #installBtn, #whatsappBtn {
+                padding: 10px 16px;
+                font-size: 0.75rem;
+            }
+            .modules {
+                padding: 0 16px;
+            }
+        }
 
-  /* ──────────── FOOTER ──────────── */
-  footer {
-    position: relative;
-    z-index: 10;
-    text-align: center;
-    padding: 0 28px 44px;
-    color: rgba(11, 26, 46, 0.35);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
-    font-weight: 500;
-  }
+        @media (max-width: 480px) {
+            .topline {
+                margin: 8px 8px 0;
+                padding: 12px 14px;
+                border-radius: 10px;
+            }
+            .topline .brand-name {
+                font-size: 1rem;
+            }
+            .topline .crest {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
+            .btn-admin-top, .btn-logout {
+                padding: 4px 10px;
+                font-size: 0.7rem;
+            }
+            .card .body {
+                padding: 16px 18px 18px;
+            }
+            .card h3 {
+                font-size: 1.1rem;
+            }
+            .card p.desc {
+                font-size: 0.8rem;
+            }
+        }
 
-  /* ──────────── LOADING ──────────── */
-  .loading-spinner {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    flex-direction: column;
-    gap: 20px;
-    position: relative;
-    z-index: 10;
-  }
+        /* ──────────── SELECTION ──────────── */
+        ::selection {
+            background: rgba(59, 130, 246, 0.2);
+            color: #0B1A2E;
+        }
 
-  .spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(59, 130, 246, 0.1);
-    border-top-color: #3B82F6;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  .loading-text {
-    color: rgba(11, 26, 46, 0.6);
-    font-size: 0.9rem;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-  }
-
-  /* ──────────── ERROR STATE ──────────── */
-  .error-state {
-    text-align: center;
-    padding: 20px;
-    max-width: 400px;
-    margin: 0 auto;
-  }
-
-  .error-state h2 {
-    color: #DC2626;
-    margin-bottom: 16px;
-    font-family: 'Lora', serif;
-    font-weight: 700;
-  }
-
-  .error-state p {
-    color: rgba(11, 26, 46, 0.7);
-    margin-bottom: 20px;
-    line-height: 1.6;
-    font-weight: 400;
-  }
-
-  .error-state .btn-group {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .error-state .btn-retry {
-    padding: 12px 30px;
-    background: linear-gradient(135deg, #3B82F6, #2563EB);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .error-state .btn-retry:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-  }
-
-  .error-state .btn-login {
-    padding: 12px 30px;
-    background: rgba(255, 255, 255, 0.15);
-    color: #0B1A2E;
-    border: 1px solid rgba(11, 26, 46, 0.12);
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    text-decoration: none;
-    transition: background 0.2s, border-color 0.2s;
-  }
-  .error-state .btn-login:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(59, 130, 246, 0.3);
-  }
-
-  /* ──────────── FAB BUTTONS ──────────── */
-  #fabContainer {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    z-index: 9999;
-    align-items: flex-end;
-  }
-
-  #installBtn {
-    display: none;
-    background: linear-gradient(135deg, #3B82F6, #2563EB);
-    color: #fff;
-    border: none;
-    border-radius: 60px;
-    padding: 12px 22px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 600;
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    align-items: center;
-    gap: 10px;
-  }
-  #installBtn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.5);
-  }
-
-  #whatsappBtn {
-    background: #25D366;
-    color: #fff;
-    border: none;
-    border-radius: 60px;
-    padding: 12px 22px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none;
-    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  #whatsappBtn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 32px rgba(37, 211, 102, 0.5);
-  }
-
-  /* ──────────── BANNER ──────────── */
-  #easemedBanner {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 999999;
-    padding: 12px 20px;
-    text-align: center;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 500;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  }
-  #easemedBanner.info {
-    background: rgba(59, 130, 246, 0.15);
-    backdrop-filter: blur(20px);
-    color: #0B1A2E;
-    border-bottom: 3px solid #3B82F6;
-  }
-  #easemedBanner.warning {
-    background: rgba(245, 158, 11, 0.15);
-    backdrop-filter: blur(20px);
-    color: #0B1A2E;
-    border-bottom: 3px solid #F59E0B;
-  }
-  #easemedBanner.success {
-    background: rgba(16, 185, 129, 0.15);
-    backdrop-filter: blur(20px);
-    color: #0B1A2E;
-    border-bottom: 3px solid #10B981;
-  }
-  #easemedBanner button {
-    background: rgba(11, 26, 46, 0.08);
-    border: 1px solid rgba(11, 26, 46, 0.1);
-    border-radius: 6px;
-    width: 28px;
-    height: 28px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    color: #0B1A2E;
-    flex-shrink: 0;
-    transition: background 0.2s;
-  }
-  #easemedBanner button:hover {
-    background: rgba(11, 26, 46, 0.15);
-  }
-
-  /* ──────────── USER GREETING ──────────── */
-  #userGreeting {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.82rem;
-    color: rgba(11, 26, 46, 0.7);
-    font-weight: 500;
-  }
-
-  /* ──────────── RESPONSIVE ──────────── */
-  @media (max-width: 768px) {
-    .topline {
-      padding: 16px 20px;
-      margin: 12px 12px 0;
-      border-radius: 12px;
-    }
-    .topline .edition {
-      font-size: 0.55rem;
-    }
-    .hero {
-      padding: 32px 20px 20px;
-    }
-    .hero h1 {
-      font-size: clamp(1.6rem, 5vw, 2.2rem);
-    }
-    #fabContainer {
-      bottom: 20px;
-      right: 20px;
-    }
-    #installBtn, #whatsappBtn {
-      padding: 10px 16px;
-      font-size: 0.75rem;
-    }
-    .modules {
-      padding: 0 16px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .topline {
-      margin: 8px 8px 0;
-      padding: 12px 14px;
-      border-radius: 10px;
-    }
-    .topline .brand-name {
-      font-size: 1rem;
-    }
-    .topline .crest {
-      width: 30px;
-      height: 30px;
-      font-size: 14px;
-    }
-    .btn-admin-top, .btn-logout {
-      padding: 4px 10px;
-      font-size: 0.7rem;
-    }
-    .card .body {
-      padding: 16px 18px 18px;
-    }
-    .card h3 {
-      font-size: 1.1rem;
-    }
-    .card p.desc {
-      font-size: 0.8rem;
-    }
-  }
-
-  /* ──────────── SELECTION ──────────── */
-  ::selection {
-    background: rgba(59, 130, 246, 0.2);
-    color: #0B1A2E;
-  }
-
-  /* ──────────── SCROLLBAR ──────────── */
-  ::-webkit-scrollbar {
-    width: 4px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(59, 130, 246, 0.2);
-    border-radius: 2px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(59, 130, 246, 0.3);
-  }
-</style>
+        /* ──────────── SCROLLBAR ──────────── */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.3);
+        }
+    </style>
 </head>
 <body>
 
@@ -861,177 +858,279 @@
 <div class="bg-grid"></div>
 <div class="clinical-glow"></div>
 <div class="blobs" aria-hidden="true">
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
-  <div class="blob blob-3"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
 </div>
 
 <!-- Loading Spinner -->
 <div id="loadingSpinner" class="loading-spinner">
-  <div class="spinner"></div>
-  <div class="loading-text">Loading your modules...</div>
+    <div class="spinner"></div>
+    <div class="loading-text">Loading your modules...</div>
 </div>
 
 <!-- Main Content -->
 <div id="mainContent" style="display:none;">
-  <!-- Top Bar -->
-  <div class="topline glass">
-    <div class="brand">
-      <div class="crest">🩺</div>
-      <span class="brand-name">EaseMed</span>
-    </div>
-    <div class="right-group">
-      <span id="userGreeting"></span>
-      <span class="edition">Hutchison's, 25th Ed.</span>
-      <a href="easemed_admin_dashboard.html" class="btn-admin-top" title="Admin Dashboard">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"/>
-        </svg>
-        Admin
-      </a>
-      <button class="btn-logout" onclick="handleLogout()">Logout</button>
-    </div>
-  </div>
-
-  <!-- Hero -->
-  <section class="hero">
-    <span class="eyebrow">Select a module</span>
-    <h1>Which patient are you<br><em>clerking</em> today?</h1>
-    <p>Structured history-taking and examination, built for the wards — every prompt referenced back to Hutchison's Clinical Methods.</p>
-  </section>
-
-  <!-- Modules Grid -->
-  <div class="modules">
-    <div onclick="openModule('easemed_dashboard.html')" class="card medicine panel-in">
-      <div class="banner">
-        <span class="num">01</span>
-        <span class="icon-big">📚</span>
-        <span class="tag">General</span>
-      </div>
-      <div class="body">
-        <h3>Internal Medicine</h3>
-       <p class="desc">Full adult history: presenting complaint, HPC, PMH, HIV history, review of systems &amp; examination.</p>
-        <span class="go">Open module <span class="arrow">→</span></span>
-        <a href="osce.html?module=imed" onclick="event.stopPropagation()" class="go" style="color:#059669;">🎯 OSCE Practice</a>
-      </div>
+    <!-- Top Bar -->
+    <div class="topline glass">
+        <div class="brand">
+            <div class="crest">🩺</div>
+            <span class="brand-name">EaseMed</span>
+        </div>
+        <div class="right-group">
+            <span id="userGreeting"></span>
+            <span class="edition">Hutchison's, 25th Ed.</span>
+            <a href="easemed_admin_dashboard.html" class="btn-admin-top" title="Admin Dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"/>
+                </svg>
+                Admin
+            </a>
+            <button class="btn-logout" onclick="handleLogout()">Logout</button>
+        </div>
     </div>
 
-    <div onclick="openModule('surgery-clerking.html')" class="card surgery panel-in" style="animation-delay:0.05s;">
-      <div class="banner">
-        <span class="num">02</span>
-        <span class="icon-big">🔪</span>
-        <span class="tag">Surgical</span>
-      </div>
-      <div class="body">
-        <h3>Surgery</h3>
-       <p class="desc">Surgical history taking: PC, HPC, PMH, ROS, physical examination &amp; assessment.</p>
-        <span class="go">Open module <span class="arrow">→</span></span>
-        <a href="osce.html?module=surgery" onclick="event.stopPropagation()" class="go" style="color:#059669;">🎯 OSCE Practice</a>
-      </div>
+    <!-- Hero -->
+    <section class="hero">
+        <span class="eyebrow">Select a module</span>
+        <h1>Which patient are you<br><em>clerking</em> today?</h1>
+        <p>Structured history-taking and examination, built for the wards — every prompt referenced back to Hutchison's Clinical Methods.</p>
+    </section>
+
+    <!-- Modules Grid -->
+    <div class="modules">
+        <div onclick="openModule('easemed_dashboard.html')" class="card medicine panel-in">
+            <div class="banner">
+                <span class="num">01</span>
+                <span class="icon-big">📚</span>
+                <span class="tag">General</span>
+            </div>
+            <div class="body">
+                <h3>Internal Medicine</h3>
+                <p class="desc">Full adult history: presenting complaint, HPC, PMH, HIV history, review of systems &amp; examination.</p>
+                <span class="go">Open module <span class="arrow">→</span></span>
+                <a href="osce.html?module=imed" onclick="event.stopPropagation()" class="go" style="color:#059669;">🎯 OSCE Practice</a>
+            </div>
+        </div>
+
+        <div onclick="openModule('surgery-clerking.html')" class="card surgery panel-in" style="animation-delay:0.05s;">
+            <div class="banner">
+                <span class="num">02</span>
+                <span class="icon-big">🔪</span>
+                <span class="tag">Surgical</span>
+            </div>
+            <div class="body">
+                <h3>Surgery</h3>
+                <p class="desc">Surgical history taking: PC, HPC, PMH, ROS, physical examination &amp; assessment.</p>
+                <span class="go">Open module <span class="arrow">→</span></span>
+                <a href="osce.html?module=surgery" onclick="event.stopPropagation()" class="go" style="color:#059669;">🎯 OSCE Practice</a>
+            </div>
+        </div>
+
+        <div onclick="openModule('easemed_pediatrics.html')" class="card peds panel-in" style="animation-delay:0.1s;">
+            <div class="banner">
+                <span class="num">03</span>
+                <span class="icon-big">👶</span>
+                <span class="tag">Child</span>
+            </div>
+            <div class="body">
+                <h3>Pediatrics</h3>
+                <p class="desc">Birth history, developmental milestones, immunisations, growth charts &amp; red flags.</p>
+                <span class="go">Open module <span class="arrow">→</span></span>
+                <a href="osce.html?module=peds" onclick="event.stopPropagation()" class="go" style="color:#059669;">🎯 OSCE Practice</a>
+            </div>
+        </div>
+
+        <div onclick="openModule('ObGyn.html')" class="card obgyn panel-in" style="animation-delay:0.15s;">
+            <div class="banner">
+                <span class="num">04</span>
+                <span class="icon-big">🤰</span>
+                <span class="tag">Complete</span>
+            </div>
+            <div class="body">
+                <h3>Obstetrics &amp; Gynaecology</h3>
+                <p class="desc">Menstrual, obstetric &amp; gynaecological history, ANC data, system-specific ROS &amp; examination.</p>
+                <span class="go">Open module <span class="arrow">→</span></span>
+                <a href="osce.html?module=obgyn" onclick="event.stopPropagation()" class="go" style="color:#059669;">🎯 OSCE Practice</a>
+            </div>
+        </div>
     </div>
 
-    <div onclick="openModule('easemed_pediatrics.html')" class="card peds panel-in" style="animation-delay:0.1s;">
-      <div class="banner">
-        <span class="num">03</span>
-        <span class="icon-big">👶</span>
-        <span class="tag">Child</span>
-      </div>
-      <div class="body">
-        <h3>Pediatrics</h3>
-       <p class="desc">Birth history, developmental milestones, immunisations, growth charts &amp; red flags.</p>
-        <span class="go">Open module <span class="arrow">→</span></span>
-        <a href="osce.html?module=peds" onclick="event.stopPropagation()" class="go" style="color:#059669;">🎯 OSCE Practice</a>
-      </div>
+    <footer>EASEMED · BUILT FOR UGANDAN MEDICAL STUDENTS</footer>
+
+    <!-- FAB Buttons -->
+    <div id="fabContainer">
+        <button id="installBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Install App
+        </button>
+
+        <a id="whatsappBtn" href="https://wa.me/256756418723?text=Hello%20EaseMed%20team!%20I%20have%20a%20question%20about%20the%20platform." target="_blank">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="none">
+                <path d="M12.032 21.965c-2.159 0-4.267-.669-6.036-1.914l-5.137 1.842 1.757-4.683c-1.361-2.004-2.085-4.357-2.085-6.816 0-6.769 5.516-12.285 12.285-12.285s12.285 5.516 12.285 12.285-5.516 12.285-12.285 12.285zm0-21.965c-5.577 0-10.112 4.535-10.112 10.112 0 2.287.761 4.381 2.039 6.064l-1.392 3.713 3.925-1.403c1.587.938 3.467 1.46 5.541 1.46 5.577 0 10.112-4.535 10.112-10.112s-4.535-10.112-10.112-10.112z"/>
+                <path d="M9.202 7.059c-.22-.484-.451-.494-.66-.501-.19-.007-.406-.01-.625-.01-.219 0-.574.082-.875.409-.301.327-1.148 1.122-1.148 2.737 0 1.615 1.176 3.176 1.34 3.395.164.219 2.271 3.473 5.531 4.789.773.311 1.375.496 1.845.635.775.247 1.481.212 2.039.128.625-.094 1.283-.512 1.463-1.006.18-.494.18-.918.126-1.006-.054-.088-.199-.141-.416-.247-.217-.106-1.283-.633-1.482-.705-.199-.072-.344-.106-.488.106-.144.212-.56.705-.686.85-.126.145-.252.163-.469.058-.217-.105-.916-.338-1.746-1.077-.646-.576-1.082-1.286-1.209-1.503-.126-.217-.014-.334.095-.441.098-.096.219-.251.329-.376.11-.125.146-.212.219-.353.073-.141.036-.265-.018-.371-.054-.106-.488-1.177-.669-1.611z"/>
+            </svg>
+            WhatsApp Support
+        </a>
     </div>
-
-    <div onclick="openModule('ObGyn.html')" class="card obgyn panel-in" style="animation-delay:0.15s;">
-      <div class="banner">
-        <span class="num">04</span>
-        <span class="icon-big">🤰</span>
-        <span class="tag">Complete</span>
-      </div>
-      <div class="body">
-        <h3>Obstetrics &amp; Gynaecology</h3>
-       <p class="desc">Menstrual, obstetric &amp; gynaecological history, ANC data, system-specific ROS &amp; examination.</p>
-        <span class="go">Open module <span class="arrow">→</span></span>
-        <a href="osce.html?module=obgyn" onclick="event.stopPropagation()" class="go" style="color:#059669;">🎯 OSCE Practice</a>
-      </div>
-    </div>
-  </div>
-
-  <footer>EASEMED · BUILT FOR UGANDAN MEDICAL STUDENTS</footer>
-
-  <!-- FAB Buttons -->
-  <div id="fabContainer">
-    <button id="installBtn">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      Install App
-    </button>
-
-    <a id="whatsappBtn" href="https://wa.me/256756418723?text=Hello%20EaseMed%20team!%20I%20have%20a%20question%20about%20the%20platform." target="_blank">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="none">
-        <path d="M12.032 21.965c-2.159 0-4.267-.669-6.036-1.914l-5.137 1.842 1.757-4.683c-1.361-2.004-2.085-4.357-2.085-6.816 0-6.769 5.516-12.285 12.285-12.285s12.285 5.516 12.285 12.285-5.516 12.285-12.285 12.285zm0-21.965c-5.577 0-10.112 4.535-10.112 10.112 0 2.287.761 4.381 2.039 6.064l-1.392 3.713 3.925-1.403c1.587.938 3.467 1.46 5.541 1.46 5.577 0 10.112-4.535 10.112-10.112s-4.535-10.112-10.112-10.112z"/>
-        <path d="M9.202 7.059c-.22-.484-.451-.494-.66-.501-.19-.007-.406-.01-.625-.01-.219 0-.574.082-.875.409-.301.327-1.148 1.122-1.148 2.737 0 1.615 1.176 3.176 1.34 3.395.164.219 2.271 3.473 5.531 4.789.773.311 1.375.496 1.845.635.775.247 1.481.212 2.039.128.625-.094 1.283-.512 1.463-1.006.18-.494.18-.918.126-1.006-.054-.088-.199-.141-.416-.247-.217-.106-1.283-.633-1.482-.705-.199-.072-.344-.106-.488.106-.144.212-.56.705-.686.85-.126.145-.252.163-.469.058-.217-.105-.916-.338-1.746-1.077-.646-.576-1.082-1.286-1.209-1.503-.126-.217-.014-.334.095-.441.098-.096.219-.251.329-.376.11-.125.146-.212.219-.353.073-.141.036-.265-.018-.371-.054-.106-.488-1.177-.669-1.611z"/>
-      </svg>
-      WhatsApp Support
-    </a>
-  </div>
 </div>
 
 <!-- Banner -->
 <div id="easemedBanner">
-  <span id="easemedBannerText"></span>
-  <button onclick="dismissEasemedBanner()">✕</button>
+    <span id="easemedBannerText"></span>
+    <button onclick="dismissEasemedBanner()">✕</button>
 </div>
 
 <script>
-// ─── CONFIGURATION ───
-const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+    // ─── VERSION CONTROL ───
+    const APP_VERSION = '2.0.4';
+    const CACHE_KEY = 'easemed_app_version';
+    
+    const storedVersion = localStorage.getItem(CACHE_KEY);
+    if (storedVersion !== APP_VERSION) {
+        console.log('[Cache] New version detected, clearing cache...');
+        if ('caches' in window) {
+            caches.keys().then(keys => {
+                keys.forEach(key => caches.delete(key));
+            });
+        }
+        localStorage.setItem(CACHE_KEY, APP_VERSION);
+    }
 
-// ─── GLOBALS ───
-window.sb = null;
-window._sessionRefreshInterval = null;
-window._lastActivity = Date.now();
+    // ─── CONFIGURATION ───
+    const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
-// ─── SUPABASE CONFIG ───
-function initSupabase() {
-    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-        console.warn('[Supabase] initSupabase called but SDK not available. Retrying...');
-        setTimeout(function() {
-            if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-                initSupabase();
-            } else {
-                showFatalError('Supabase SDK failed to load. Please refresh the page.');
+    // ─── GLOBALS ───
+    window.sb = null;
+    window._sessionRefreshInterval = null;
+    window._lastActivity = Date.now();
+
+    // ─── SUPABASE CONFIG ───
+    function initSupabase() {
+        if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+            console.warn('[Supabase] initSupabase called but SDK not available. Retrying...');
+            setTimeout(function() {
+                if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                    initSupabase();
+                } else {
+                    showFatalError('Supabase SDK failed to load. Please refresh the page.');
+                }
+            }, 2000);
+            return;
+        }
+
+        try {
+            window.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+            console.log('[Supabase] Client initialized successfully.');
+            authCheck();
+        } catch (error) {
+            console.error('[Supabase] Initialization error:', error);
+            showFatalError(
+                'Failed to initialize EaseMed services. Please refresh the page. ' +
+                '(Error: ' + error.message + ')'
+            );
+        }
+    }
+
+    // ─── FATAL ERROR UI ───
+    function showFatalError(message) {
+        const spinner = document.getElementById('loadingSpinner');
+        if (spinner) {
+            spinner.innerHTML = `
+                <div class="error-state">
+                    <h2>⚠️ Service Unavailable</h2>
+                    <p>${message}</p>
+                    <div class="btn-group">
+                        <button class="btn-retry" onclick="location.reload()">Retry</button>
+                        <a href="easemed_login.html" class="btn-login">Go to Login</a>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // ─── AUTH CHECK WITH SESSION MANAGEMENT ───
+    async function authCheck() {
+        const spinner = document.getElementById('loadingSpinner');
+        const mainContent = document.getElementById('mainContent');
+
+        if (!window.sb) {
+            console.warn('[Auth] Supabase client not available, retrying...');
+            setTimeout(function() {
+                if (window.sb) {
+                    authCheck();
+                } else {
+                    showFatalError('Supabase client not available. Please refresh the page.');
+                }
+            }, 1000);
+            return;
+        }
+
+        try {
+            const { data: { session }, error: sessionError } = await window.sb.auth.getSession();
+            
+            if (sessionError) {
+                console.error('[Auth] Session error:', sessionError);
+                showError('Session Error', 'Unable to retrieve your session. Please try again.');
+                return;
             }
-        }, 2000);
-        return;
+
+            if (!session) {
+                console.log('[Auth] No session found, redirecting to login');
+                window.location.href = 'easemed_login.html';
+                return;
+            }
+
+            const { data: { user }, error: userError } = await window.sb.auth.getUser();
+            
+            if (userError || !user) {
+                console.error('[Auth] User validation failed:', userError);
+                await window.sb.auth.signOut();
+                localStorage.removeItem('easemed_user');
+                window.location.href = 'easemed_login.html';
+                return;
+            }
+
+            console.log('[Auth] User authenticated:', user.email);
+            
+            const displayName = user.user_metadata?.full_name || 
+                               user.user_metadata?.name || 
+                               user.email;
+            document.getElementById('userGreeting').textContent = '👤 ' + displayName;
+            
+            window._currentUser = user;
+            window._currentSession = session;
+
+            localStorage.setItem('easemed_user', JSON.stringify(user));
+
+            spinner.style.display = 'none';
+            mainContent.style.display = 'block';
+            document.body.style.display = 'block';
+
+            startSessionMonitoring();
+            await checkSubscriptionStatus(user.id);
+            trackUserActivity(user.id);
+
+        } catch (error) {
+            console.error('[Auth] Fatal error:', error);
+            showError(
+                'Connection Error', 
+                error.message || 'Unable to verify your session. Please check your internet connection and try again.'
+            );
+        }
     }
 
-    try {
-        window.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-        console.log('[Supabase] Client initialized successfully.');
-        authCheck();
-    } catch (error) {
-        console.error('[Supabase] Initialization error:', error);
-        showFatalError(
-            'Failed to initialize EaseMed services. Please refresh the page. ' +
-            '(Error: ' + error.message + ')'
-        );
-    }
-}
-
-// ─── FATAL ERROR UI ───
-function showFatalError(message) {
-    const spinner = document.getElementById('loadingSpinner');
-    if (spinner) {
+    // ─── SHOW ERROR STATE ───
+    function showError(title, message) {
+        const spinner = document.getElementById('loadingSpinner');
         spinner.innerHTML = `
             <div class="error-state">
-                <h2>⚠️ Service Unavailable</h2>
+                <h2>${title}</h2>
                 <p>${message}</p>
                 <div class="btn-group">
                     <button class="btn-retry" onclick="location.reload()">Retry</button>
@@ -1040,402 +1139,309 @@ function showFatalError(message) {
             </div>
         `;
     }
-}
 
-// ─── AUTH CHECK WITH SESSION MANAGEMENT ───
-async function authCheck() {
-  const spinner = document.getElementById('loadingSpinner');
-  const mainContent = document.getElementById('mainContent');
+    // ─── SESSION MONITORING ───
+    function startSessionMonitoring() {
+        if (window._sessionRefreshInterval) {
+            clearInterval(window._sessionRefreshInterval);
+        }
 
-  if (!window.sb) {
-    console.warn('[Auth] Supabase client not available, retrying...');
-    setTimeout(function() {
+        window._sessionRefreshInterval = setInterval(async () => {
+            try {
+                const { data: { session }, error } = await window.sb.auth.getSession();
+                
+                if (error || !session) {
+                    console.log('[Session] Session lost, redirecting to login');
+                    clearInterval(window._sessionRefreshInterval);
+                    window.location.href = 'easemed_login.html';
+                    return;
+                }
+
+                window._currentSession = session;
+                
+                const expiresAt = session.expires_at * 1000;
+                const now = Date.now();
+                const timeUntilExpiry = expiresAt - now;
+                
+                if (timeUntilExpiry < 300000) {
+                    console.log('[Session] Refreshing token...');
+                    const { data: refreshData, error: refreshError } = await window.sb.auth.refreshSession();
+                    if (refreshError) {
+                        console.error('[Session] Refresh failed:', refreshError);
+                    } else if (refreshData.session) {
+                        window._currentSession = refreshData.session;
+                        console.log('[Session] Token refreshed successfully');
+                    }
+                }
+
+                window._lastActivity = Date.now();
+
+            } catch (error) {
+                console.warn('[Session] Monitoring error:', error);
+            }
+        }, 30000);
+    }
+
+    // ─── CHECK SUBSCRIPTION STATUS ───
+    async function checkSubscriptionStatus(userId) {
+        try {
+            const { data: profile, error } = await window.sb
+                .from('profiles')
+                .select('is_active, expires_at, full_name, role, university')
+                .eq('id', userId)
+                .single();
+
+            if (error) {
+                console.warn('[Subscription] Could not fetch profile:', error);
+                return;
+            }
+
+            window._userProfile = profile;
+
+            const isActive = profile?.is_active !== false && 
+                (!profile?.expires_at || new Date(profile.expires_at) > new Date());
+
+            if (!isActive) {
+                console.log('[Subscription] Inactive or expired');
+            }
+
+        } catch (error) {
+            console.warn('[Subscription] Error checking status:', error);
+        }
+    }
+
+    // ─── TRACK USER ACTIVITY ───
+    async function trackUserActivity(userId) {
+        try {
+            await window.sb
+                .from('profiles')
+                .update({ last_activity: new Date().toISOString() })
+                .eq('id', userId);
+        } catch (error) {
+            console.warn('[Activity] Failed to track:', error);
+        }
+    }
+
+    // ─── HANDLE LOGOUT ───
+    async function handleLogout() {
+        try {
+            if (window._sessionRefreshInterval) {
+                clearInterval(window._sessionRefreshInterval);
+                window._sessionRefreshInterval = null;
+            }
+
+            localStorage.removeItem('easemed_user');
+
+            if (window.sb) {
+                await window.sb.auth.signOut();
+            }
+
+            window.location.href = 'easemed_login.html';
+        } catch (error) {
+            console.error('[Logout] Error:', error);
+            window.location.href = 'easemed_login.html';
+        }
+    }
+
+    // ─── OPEN MODULE ───
+    async function openModule(url) {
+        const sb = window.sb;
+        if (!sb) {
+            window.location.href = 'easemed_login.html';
+            return;
+        }
+
+        try {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                window.location.href = 'easemed_login.html';
+                return;
+            }
+
+            const { data: profile } = await sb
+                .from('profiles')
+                .select('is_active, expires_at')
+                .eq('id', window._currentUser?.id)
+                .single();
+
+            const isActive = profile?.is_active !== false &&
+                (!profile?.expires_at || new Date(profile.expires_at) > new Date());
+
+            if (!isActive) {
+                console.log('[Module] Subscription inactive, but allowing access');
+            }
+
+            window.location.href = url;
+        } catch (error) {
+            console.error('[Module] Error:', error);
+            window.location.href = url;
+        }
+    }
+
+    // ─── TRACKING ───
+    (function tracking() {
+        let currentLogId = null;
+        let startTime = null;
+        let flushed = false;
+
+        async function startTracking() {
+            try {
+                if (!window.sb) {
+                    console.warn('[Tracking] Supabase not available');
+                    return;
+                }
+                const { data: { user } } = await window.sb.auth.getUser();
+                if (!user) return;
+
+                const moduleName = window.EASEMED_MODULE_NAME || document.title || location.pathname;
+                startTime = Date.now();
+
+                const { data, error } = await window.sb.from('activity_logs').insert({
+                    user_id: user.id,
+                    event_type: 'module_view',
+                    module_name: moduleName,
+                    page_path: location.pathname,
+                    started_at: new Date(startTime).toISOString(),
+                }).select('id').single();
+
+                if (!error && data) {
+                    currentLogId = data.id;
+                }
+            } catch (e) {
+                console.warn('[Tracking] Failed to start:', e.message);
+            }
+        }
+
+        async function flushTracking() {
+            if (!currentLogId || flushed || !startTime) return;
+            flushed = true;
+
+            const durationSeconds = Math.round((Date.now() - startTime) / 1000);
+            if (durationSeconds < 1) return;
+
+            try {
+                if (!window.sb) return;
+                await window.sb.from('activity_logs')
+                    .update({
+                        duration_seconds: durationSeconds,
+                        ended_at: new Date().toISOString(),
+                    })
+                    .eq('id', currentLogId);
+            } catch (e) {
+                console.warn('[Tracking] Failed to flush:', e.message);
+            }
+        }
+
         if (window.sb) {
-            authCheck();
+            startTracking();
         } else {
-            showFatalError('Supabase client not available. Please refresh the page.');
+            const waitInterval = setInterval(() => {
+                if (window.sb) {
+                    clearInterval(waitInterval);
+                    startTracking();
+                }
+            }, 200);
+            setTimeout(() => clearInterval(waitInterval), 5000);
         }
-    }, 1000);
-    return;
-  }
 
-  try {
-    const { data: { session }, error: sessionError } = await window.sb.auth.getSession();
-    
-    if (sessionError) {
-      console.error('[Auth] Session error:', sessionError);
-      showError('Session Error', 'Unable to retrieve your session. Please try again.');
-      return;
-    }
+        window.addEventListener('beforeunload', flushTracking);
+        window.addEventListener('pagehide', flushTracking);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') flushTracking();
+        });
+    })();
 
-    if (!session) {
-      console.log('[Auth] No session found, redirecting to login');
-      window.location.href = 'easemed_login.html';
-      return;
-    }
-
-    const { data: { user }, error: userError } = await window.sb.auth.getUser();
-    
-    if (userError || !user) {
-      console.error('[Auth] User validation failed:', userError);
-      await window.sb.auth.signOut();
-      localStorage.removeItem('easemed_user');
-      window.location.href = 'easemed_login.html';
-      return;
-    }
-
-    console.log('[Auth] User authenticated:', user.email);
-    
-    const displayName = user.user_metadata?.full_name || 
-                       user.user_metadata?.name || 
-                       user.email;
-    document.getElementById('userGreeting').textContent = '👤 ' + displayName;
-    
-    window._currentUser = user;
-    window._currentSession = session;
-
-    localStorage.setItem('easemed_user', JSON.stringify(user));
-
-    spinner.style.display = 'none';
-    mainContent.style.display = 'block';
-    document.body.style.display = 'block';
-
-    startSessionMonitoring();
-    await checkSubscriptionStatus(user.id);
-    trackUserActivity(user.id);
-
-  } catch (error) {
-    console.error('[Auth] Fatal error:', error);
-    showError(
-      'Connection Error', 
-      error.message || 'Unable to verify your session. Please check your internet connection and try again.'
-    );
-  }
-}
-
-// ─── SHOW ERROR STATE ───
-function showError(title, message) {
-  const spinner = document.getElementById('loadingSpinner');
-  spinner.innerHTML = `
-    <div class="error-state">
-      <h2>${title}</h2>
-      <p>${message}</p>
-      <div class="btn-group">
-        <button class="btn-retry" onclick="location.reload()">Retry</button>
-        <a href="easemed_login.html" class="btn-login">Go to Login</a>
-      </div>
-    </div>
-  `;
-}
-
-// ─── SESSION MONITORING ───
-function startSessionMonitoring() {
-  if (window._sessionRefreshInterval) {
-    clearInterval(window._sessionRefreshInterval);
-  }
-
-  window._sessionRefreshInterval = setInterval(async () => {
-    try {
-      const { data: { session }, error } = await window.sb.auth.getSession();
-      
-      if (error || !session) {
-        console.log('[Session] Session lost, redirecting to login');
-        clearInterval(window._sessionRefreshInterval);
-        window.location.href = 'easemed_login.html';
-        return;
-      }
-
-      window._currentSession = session;
-      
-      const expiresAt = session.expires_at * 1000;
-      const now = Date.now();
-      const timeUntilExpiry = expiresAt - now;
-      
-      if (timeUntilExpiry < 300000) {
-        console.log('[Session] Refreshing token...');
-        const { data: refreshData, error: refreshError } = await window.sb.auth.refreshSession();
-        if (refreshError) {
-          console.error('[Session] Refresh failed:', refreshError);
-        } else if (refreshData.session) {
-          window._currentSession = refreshData.session;
-          console.log('[Session] Token refreshed successfully');
-        }
-      }
-
-      window._lastActivity = Date.now();
-
-    } catch (error) {
-      console.warn('[Session] Monitoring error:', error);
-    }
-  }, 30000);
-}
-
-// ─── CHECK SUBSCRIPTION STATUS ───
-async function checkSubscriptionStatus(userId) {
-  try {
-    const { data: profile, error } = await window.sb
-      .from('profiles')
-      .select('is_active, expires_at, full_name, role, university')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.warn('[Subscription] Could not fetch profile:', error);
-      return;
-    }
-
-    window._userProfile = profile;
-
-    const isActive = profile?.is_active !== false && 
-        (!profile?.expires_at || new Date(profile.expires_at) > new Date());
-
-    if (!isActive) {
-      console.log('[Subscription] Inactive or expired');
-    }
-
-  } catch (error) {
-    console.warn('[Subscription] Error checking status:', error);
-  }
-}
-
-// ─── TRACK USER ACTIVITY ───
-async function trackUserActivity(userId) {
-  try {
-    await window.sb
-      .from('profiles')
-      .update({ last_activity: new Date().toISOString() })
-      .eq('id', userId);
-  } catch (error) {
-    console.warn('[Activity] Failed to track:', error);
-  }
-}
-
-// ─── HANDLE LOGOUT ───
-async function handleLogout() {
-  try {
-    if (window._sessionRefreshInterval) {
-      clearInterval(window._sessionRefreshInterval);
-      window._sessionRefreshInterval = null;
-    }
-
-    localStorage.removeItem('easemed_user');
-
-    if (window.sb) {
-      await window.sb.auth.signOut();
-    }
-
-    window.location.href = 'easemed_login.html';
-  } catch (error) {
-    console.error('[Logout] Error:', error);
-    window.location.href = 'easemed_login.html';
-  }
-}
-
-// ─── OPEN MODULE ───
-async function openModule(url) {
-  const sb = window.sb;
-  if (!sb) {
-    window.location.href = 'easemed_login.html';
-    return;
-  }
-
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-      window.location.href = 'easemed_login.html';
-      return;
-    }
-
-    const { data: profile } = await sb
-      .from('profiles')
-      .select('is_active, expires_at')
-      .eq('id', window._currentUser?.id)
-      .single();
-
-    const isActive = profile?.is_active !== false &&
-      (!profile?.expires_at || new Date(profile.expires_at) > new Date());
-
-    if (!isActive) {
-      console.log('[Module] Subscription inactive, but allowing access');
-    }
-
-    window.location.href = url;
-  } catch (error) {
-    console.error('[Module] Error:', error);
-    window.location.href = url;
-  }
-}
-
-// ─── TRACKING ───
-(function tracking() {
-  let currentLogId = null;
-  let startTime = null;
-  let flushed = false;
-
-  async function startTracking() {
-    try {
-      if (!window.sb) {
-        console.warn('[Tracking] Supabase not available');
-        return;
-      }
-      const { data: { user } } = await window.sb.auth.getUser();
-      if (!user) return;
-
-      const moduleName = window.EASEMED_MODULE_NAME || document.title || location.pathname;
-      startTime = Date.now();
-
-      const { data, error } = await window.sb.from('activity_logs').insert({
-        user_id: user.id,
-        event_type: 'module_view',
-        module_name: moduleName,
-        page_path: location.pathname,
-        started_at: new Date(startTime).toISOString(),
-      }).select('id').single();
-
-      if (!error && data) {
-        currentLogId = data.id;
-      }
-    } catch (e) {
-      console.warn('[Tracking] Failed to start:', e.message);
-    }
-  }
-
-  async function flushTracking() {
-    if (!currentLogId || flushed || !startTime) return;
-    flushed = true;
-
-    const durationSeconds = Math.round((Date.now() - startTime) / 1000);
-    if (durationSeconds < 1) return;
-
-    try {
-      if (!window.sb) return;
-      await window.sb.from('activity_logs')
-        .update({
-          duration_seconds: durationSeconds,
-          ended_at: new Date().toISOString(),
-        })
-        .eq('id', currentLogId);
-    } catch (e) {
-      console.warn('[Tracking] Failed to flush:', e.message);
-    }
-  }
-
-  if (window.sb) {
-    startTracking();
-  } else {
-    const waitInterval = setInterval(() => {
-      if (window.sb) {
-        clearInterval(waitInterval);
-        startTracking();
-      }
-    }, 200);
-    setTimeout(() => clearInterval(waitInterval), 5000);
-  }
-
-  window.addEventListener('beforeunload', flushTracking);
-  window.addEventListener('pagehide', flushTracking);
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') flushTracking();
-  });
-})();
-
-// ─── PWA INSTALL ───
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const installBtn = document.getElementById('installBtn');
-  if (installBtn) installBtn.style.display = 'flex';
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  const installBtn = document.getElementById('installBtn');
-  if (installBtn) {
-    installBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const result = await deferredPrompt.userChoice;
-        if (result.outcome === 'accepted') {
-          installBtn.style.display = 'none';
-        }
-        deferredPrompt = null;
-      }
+    // ─── PWA INSTALL ───
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const installBtn = document.getElementById('installBtn');
+        if (installBtn) installBtn.style.display = 'flex';
     });
-  }
-});
 
-window.addEventListener('appinstalled', () => {
-  document.getElementById('installBtn').style.display = 'none';
-});
+    document.addEventListener('DOMContentLoaded', () => {
+        const installBtn = document.getElementById('installBtn');
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const result = await deferredPrompt.userChoice;
+                    if (result.outcome === 'accepted') {
+                        installBtn.style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                }
+            });
+        }
+    });
 
-// ─── ANNOUNCEMENT BANNER ───
-(async function loadEasemedAnnouncement() {
-  // Wait for SDK to be available
-  let sdkTries = 0;
-  while (typeof window.supabase === 'undefined' && sdkTries < 30) {
-    await new Promise(r => setTimeout(r, 200));
-    sdkTries++;
-  }
-  if (typeof window.supabase === 'undefined') {
-    console.warn('[Banner] Supabase SDK never loaded.');
-    return;
-  }
+    window.addEventListener('appinstalled', () => {
+        document.getElementById('installBtn').style.display = 'none';
+    });
 
-  const bannerClient = window.sb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-  const { data, error } = await bannerClient
-    .from('announcements')
-    .select('id, message, type')
-    .eq('active', true)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    // ─── ANNOUNCEMENT BANNER ───
+    (async function loadEasemedAnnouncement() {
+        // Wait for SDK to be available
+        let sdkTries = 0;
+        while (typeof window.supabase === 'undefined' && sdkTries < 30) {
+            await new Promise(r => setTimeout(r, 200));
+            sdkTries++;
+        }
+        if (typeof window.supabase === 'undefined') {
+            console.warn('[Banner] Supabase SDK never loaded.');
+            return;
+        }
 
-  if (error || !data) return;
+        const bannerClient = window.sb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+        const { data, error } = await bannerClient
+            .from('announcements')
+            .select('id, message, type')
+            .eq('active', true)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
-  const dismissedId = localStorage.getItem('easemed_dismissed_announcement');
-  if (dismissedId === String(data.id)) return;
+        if (error || !data) return;
 
-  setTimeout(() => {
-    const banner = document.getElementById('easemedBanner');
-    if (banner) {
-      banner.className = data.type || 'info';
-      banner.style.display = 'flex';
-      document.getElementById('easemedBannerText').textContent = data.message;
-      window._currentAnnouncementId = data.id;
+        const dismissedId = localStorage.getItem('easemed_dismissed_announcement');
+        if (dismissedId === String(data.id)) return;
+
+        setTimeout(() => {
+            const banner = document.getElementById('easemedBanner');
+            if (banner) {
+                banner.className = data.type || 'info';
+                banner.style.display = 'flex';
+                document.getElementById('easemedBannerText').textContent = data.message;
+                window._currentAnnouncementId = data.id;
+            }
+        }, 1000);
+    })();
+
+    function dismissEasemedBanner() {
+        document.getElementById('easemedBanner').style.display = 'none';
+        if (window._currentAnnouncementId) {
+            localStorage.setItem('easemed_dismissed_announcement', String(window._currentAnnouncementId));
+        }
     }
-  }, 1000);
-})();
 
-function dismissEasemedBanner() {
-  document.getElementById('easemedBanner').style.display = 'none';
-  if (window._currentAnnouncementId) {
-    localStorage.setItem('easemed_dismissed_announcement', String(window._currentAnnouncementId));
-  }
-}
-
-// ─── INITIALIZE PAGE ───
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('[App] DOM ready, waiting for SDK...');
-  // The SDK loading is handled by the inline script at the top
-});
+    // ─── INITIALIZE PAGE ───
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('[App] DOM ready, waiting for SDK...');
+        // The SDK loading is handled by the inline script at the top
+    });
 </script>
 
 <!-- Service Worker -->
 <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('✅ Service Worker registered'))
-        .catch(err => console.warn('❌ SW registration failed:', err));
-    });
-  }
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('✅ Service Worker registered'))
+                .catch(err => console.warn('❌ SW registration failed:', err));
+        });
+    }
 </script>
-
-<!-- Vercel Analytics -->
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
 
 <!-- Cookie consent banner -->
 <div id="cookie-banner" style="
@@ -1484,24 +1490,25 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
-(function () {
-    const banner = document.getElementById('cookie-banner');
-    const consent = localStorage.getItem('easemed_cookie_consent');
+    (function () {
+        const banner = document.getElementById('cookie-banner');
+        const consent = localStorage.getItem('easemed_cookie_consent');
 
-    if (!consent) {
-        banner.style.display = 'flex';
-    }
+        if (!consent) {
+            banner.style.display = 'flex';
+        }
 
-    document.getElementById('cookie-accept').addEventListener('click', function () {
-        localStorage.setItem('easemed_cookie_consent', 'accepted');
-        banner.style.display = 'none';
-    });
+        document.getElementById('cookie-accept').addEventListener('click', function () {
+            localStorage.setItem('easemed_cookie_consent', 'accepted');
+            banner.style.display = 'none';
+        });
 
-    document.getElementById('cookie-decline').addEventListener('click', function () {
-        localStorage.setItem('easemed_cookie_consent', 'declined');
-        banner.style.display = 'none';
-    });
-})();
+        document.getElementById('cookie-decline').addEventListener('click', function () {
+            localStorage.setItem('easemed_cookie_consent', 'declined');
+            banner.style.display = 'none';
+        });
+    })();
 </script>
+
 </body>
 </html>
