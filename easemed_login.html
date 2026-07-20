@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Security Headers -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://js.sentry-cdn.com https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <!-- Security Headers - FIXED: Added unpkg.com and cdnjs -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://js.sentry-cdn.com https://*.supabase.co https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
 <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -20,11 +20,71 @@
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <!-- Supabase SDK with onerror fallback -->
-    <script 
-        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" 
-        onerror="this.onerror=null; this.src='https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js';"
-    ></script>
+    <!-- Dynamic Supabase SDK Loader - Multiple CDN Fallbacks -->
+    <script>
+        (function loadSupabaseSDK() {
+            console.log('[SDK] Attempting to load Supabase SDK...');
+            
+            const CDN_URLS = [
+                'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+                'https://unpkg.com/@supabase/supabase-js@2',
+                'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.47.10/umd/supabase.min.js'
+            ];
+            
+            let currentIndex = 0;
+            
+            function tryLoadNext() {
+                if (currentIndex >= CDN_URLS.length) {
+                    console.error('[SDK] All CDN sources failed');
+                    showFatalError(
+                        'Unable to connect to EaseMed services. The Supabase SDK could not be loaded. ' +
+                        'Please check your internet connection and refresh the page.'
+                    );
+                    return;
+                }
+                
+                const url = CDN_URLS[currentIndex];
+                console.log(`[SDK] Trying CDN #${currentIndex + 1}: ${url}`);
+                
+                const script = document.createElement('script');
+                script.src = url;
+                script.type = 'text/javascript';
+                script.async = false;
+                
+                script.onload = function() {
+                    console.log(`[SDK] Successfully loaded from ${url}`);
+                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                        console.log('[SDK] Supabase SDK is ready!');
+                        initSupabase();
+                    } else {
+                        console.warn('[SDK] Script loaded but supabase object not found');
+                        currentIndex++;
+                        tryLoadNext();
+                    }
+                };
+                
+                script.onerror = function() {
+                    console.warn(`[SDK] Failed to load from ${url}`);
+                    currentIndex++;
+                    tryLoadNext();
+                };
+                
+                document.head.appendChild(script);
+            }
+            
+            tryLoadNext();
+            
+            setTimeout(function() {
+                if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                    console.warn('[SDK] Timeout reached, trying next CDN...');
+                    if (currentIndex < CDN_URLS.length - 1) {
+                        currentIndex++;
+                        tryLoadNext();
+                    }
+                }
+            }, 10000);
+        })();
+    </script>
     
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
@@ -356,7 +416,6 @@
             padding-bottom: 40px;
         }
 
-        /* Scrollable content inside login container */
         .login-scroll {
             max-height: calc(100vh - 80px);
             overflow-y: auto;
@@ -374,7 +433,6 @@
             border-radius: 2px;
         }
 
-        /* Mobile Brand */
         .mobile-brand {
             display: flex;
             align-items: center;
@@ -409,7 +467,6 @@
             color: #0B1A2E;
         }
 
-        /* ─── GLASS CARD ─── */
         .glass-card {
             background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(24px);
@@ -431,7 +488,6 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.4);
         }
 
-        /* ─── LOGIN HEADER ─── */
         .login-header {
             margin-bottom: 24px;
         }
@@ -461,7 +517,6 @@
             color: #2563EB;
         }
 
-        /* ─── FORM ─── */
         .form-group {
             margin-bottom: 16px;
         }
@@ -783,7 +838,6 @@
             color: #2563EB;
         }
 
-        /* ─── PASSWORD STRENGTH ─── */
         .password-strength {
             margin-top: 6px;
             height: 2px;
@@ -808,7 +862,6 @@
             font-weight: 500;
         }
 
-        /* ─── SELECT DROPDOWN ─── */
         .select-field {
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(11,26,46,0.3)' stroke-width='1.4' fill='none' fill-rule='evenodd' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -880,7 +933,6 @@
             color: #2563EB;
         }
 
-        /* ─── TABS ─── */
         .tab-group {
             display: flex;
             gap: 8px;
@@ -913,7 +965,6 @@
             border-color: rgba(59, 130, 246, 0.2);
         }
 
-        /* ─── BACK LINK ─── */
         .back-link {
             display: inline-flex;
             align-items: center;
@@ -934,7 +985,6 @@
             transform: translateX(-4px);
         }
 
-        /* ─── PWA INSTALL BUTTON ─── */
         #installBtn {
             position: fixed;
             bottom: 30px;
@@ -990,7 +1040,6 @@
             }
         }
 
-        /* ─── UTILITY ─── */
         .hidden {
             display: none !important;
         }
@@ -1012,7 +1061,6 @@
         .mb-3 { margin-bottom: 12px; }
         .mb-4 { margin-bottom: 16px; }
 
-        /* ─── RESPONSIVE ─── */
         @media (max-width: 480px) {
             .login-panel {
                 padding: 16px 12px;
@@ -1085,7 +1133,6 @@
             }
         }
 
-        /* ─── SELECTION ─── */
         ::selection {
             background: rgba(59, 130, 246, 0.15);
             color: #0B1A2E;
@@ -1128,7 +1175,6 @@
                     Structured history-taking and examination, built for the wards — every prompt referenced back to clinical methods.
                 </p>
 
-                <!-- ECG & Rotation Badge -->
                 <div class="ecg-container">
                     <svg viewBox="0 0 400 90" preserveAspectRatio="none">
                         <path d="M0,45 L60,45 L80,45 L95,15 L110,78 L125,8 L140,45 L160,45 L400,45"
@@ -1170,7 +1216,7 @@
                         <span class="brand-name">EaseMed</span>
                     </div>
 
-                    <!-- ─── LOGIN VIEW ─── -->
+                    <!-- LOGIN VIEW -->
                     <div id="loginView">
                         <div class="tab-group">
                             <button class="tab tab-active" data-view="login">Log in</button>
@@ -1251,7 +1297,7 @@
                         </div>
                     </div>
 
-                    <!-- ─── SIGNUP VIEW ─── -->
+                    <!-- SIGNUP VIEW -->
                     <div id="signupView" style="display:none;">
                         <div class="tab-group">
                             <button class="tab" data-view="login" onclick="switchToLogin()">Log in</button>
@@ -1453,7 +1499,7 @@
                         </div>
                     </div>
 
-                    <!-- ─── FORGOT PASSWORD VIEW ─── -->
+                    <!-- FORGOT PASSWORD VIEW -->
                     <div id="forgotView" style="display:none;">
                         <div class="glass-card">
                             <button class="back-link" onclick="switchToLogin()">
@@ -1521,7 +1567,6 @@
         }
 
         // ──────────────────── REMEMBER ME ────────────────────
-        // Load saved email if "Remember me" was checked
         function loadSavedEmail() {
             const savedEmail = localStorage.getItem('easemed_remembered_email');
             const rememberMe = localStorage.getItem('easemed_remember_me') === 'true';
@@ -1532,74 +1577,10 @@
             }
         }
 
-        // ──────────────────── SUPABASE LOADER ────────────────────
-        // This function attempts to load Supabase with fallback and clear error states
-        let supabaseLoadAttempts = 0;
-        const MAX_LOAD_ATTEMPTS = 3;
-
-        function loadSupabase() {
-            // Check if it's already loaded
-            if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-                console.log('[Supabase] SDK loaded successfully.');
-                initSupabase();
-                return true;
-            }
-
-            // If we've tried too many times, show a persistent error
-            if (supabaseLoadAttempts >= MAX_LOAD_ATTEMPTS) {
-                showFatalError(
-                    'Unable to connect to EaseMed services. The Supabase SDK could not be loaded. ' +
-                    'Please check your internet connection and refresh the page. ' +
-                    'If the problem persists, contact support.'
-                );
-                return false;
-            }
-
-            supabaseLoadAttempts++;
-            console.log(`[Supabase] Attempt ${supabaseLoadAttempts} to load SDK...`);
-
-            // Dynamically create a script tag with fallback
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-            
-            script.onerror = function() {
-                console.warn('[Supabase] jsdelivr failed, trying unpkg...');
-                // Try the fallback
-                const fallbackScript = document.createElement('script');
-                fallbackScript.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-                fallbackScript.onload = function() {
-                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-                        console.log('[Supabase] SDK loaded via unpkg fallback.');
-                        initSupabase();
-                    } else {
-                        // If still not available, retry
-                        setTimeout(loadSupabase, 1000);
-                    }
-                };
-                fallbackScript.onerror = function() {
-                    // Fallback failed, retry the whole process
-                    setTimeout(loadSupabase, 1000);
-                };
-                document.head.appendChild(fallbackScript);
-            };
-
-            script.onload = function() {
-                if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-                    console.log('[Supabase] SDK loaded via jsdelivr.');
-                    initSupabase();
-                } else {
-                    // The script loaded but the global isn't set — retry
-                    setTimeout(loadSupabase, 500);
-                }
-            };
-
-            document.head.appendChild(script);
-            return false;
-        }
-
         // ──────────────────── FATAL ERROR UI ────────────────────
         function showFatalError(message) {
-            // Disable all interactive elements
+            console.error('[Fatal]', message);
+            
             const forms = document.querySelectorAll('form');
             forms.forEach(form => {
                 const btns = form.querySelectorAll('button[type="submit"]');
@@ -1615,7 +1596,6 @@
                 btn.textContent = 'Unavailable';
             });
 
-            // Show a prominent error notice
             const loginNotice = document.getElementById('loginNotice');
             if (loginNotice) {
                 loginNotice.innerHTML = `
@@ -1628,24 +1608,10 @@
                         <div>
                             <strong style="display:block; margin-bottom:4px;">⚠️ Service Unavailable</strong>
                             <span style="font-weight:400; opacity:0.9;">${message}</span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Also show on signup if visible
-            const signupNotice = document.getElementById('signupNotice');
-            if (signupNotice) {
-                signupNotice.innerHTML = `
-                    <div class="notice notice-error" style="border-color: #DC2626; background: rgba(220,38,38,0.08);">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                        <div>
-                            <strong style="display:block; margin-bottom:4px;">⚠️ Service Unavailable</strong>
-                            <span style="font-weight:400; opacity:0.9;">${message}</span>
+                            <br><br>
+                            <button onclick="location.reload()" style="padding:8px 20px; background:#3B82F6; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600; margin-top:8px;">
+                                Retry
+                            </button>
                         </div>
                     </div>
                 `;
@@ -1655,9 +1621,14 @@
         // ──────────────────── SUPABASE CONFIG ────────────────────
         function initSupabase() {
             if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-                // If somehow we got here without the SDK, retry loading
                 console.warn('[Supabase] initSupabase called but SDK not available. Retrying...');
-                setTimeout(loadSupabase, 500);
+                setTimeout(function() {
+                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                        initSupabase();
+                    } else {
+                        showFatalError('Supabase SDK failed to load. Please refresh the page.');
+                    }
+                }, 2000);
                 return;
             }
 
@@ -1668,15 +1639,13 @@
                 window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 console.log('[Supabase] Client initialized successfully.');
                 
-                // Load saved email after Supabase is initialized
                 loadSavedEmail();
-                
                 startApp();
             } catch (error) {
                 console.error('[Supabase] Initialization error:', error);
                 showFatalError(
                     'Failed to initialize EaseMed services. Please refresh the page. ' +
-                    'If the problem persists, contact support. (Error: ' + error.message + ')'
+                    '(Error: ' + error.message + ')'
                 );
             }
         }
@@ -1708,7 +1677,6 @@
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('signupView').style.display = 'block';
             document.getElementById('forgotView').style.display = 'none';
-            // Scroll to top of signup form
             const container = document.querySelector('.login-scroll');
             if (container) container.scrollTop = 0;
         }
@@ -1862,7 +1830,6 @@
 
                 if (error) throw error;
 
-                // ── Handle "Remember Me" ──
                 if (rememberMe) {
                     localStorage.setItem('easemed_remembered_email', email);
                     localStorage.setItem('easemed_remember_me', 'true');
@@ -2150,10 +2117,10 @@
             console.log('[App] Started');
         }
 
-        // ─── INIT ───
+        // ─── DOM CONTENT LOADED ───
         document.addEventListener('DOMContentLoaded', function() {
-            // Start the Supabase loading process
-            loadSupabase();
+            console.log('[App] DOM ready, waiting for SDK...');
+            // The SDK loading is handled by the inline script at the top
         });
     </script>
 </body>
