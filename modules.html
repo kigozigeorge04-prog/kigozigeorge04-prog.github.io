@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <!-- Security Headers -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://js.sentry-cdn.com https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://js.sentry-cdn.com https://*.supabase.co https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
 <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -21,6 +21,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Supabase SDK with onerror fallback -->
+<script 
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" 
+    onerror="this.onerror=null; this.src='https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js';"
+></script>
+
 <style>
   /* ──────────── RESET & BASE ──────────── */
   * {
@@ -904,9 +911,116 @@
   <button onclick="dismissEasemedBanner()">✕</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
+// ─── SUPABASE LOADER ───
+// This function attempts to load Supabase with fallback and clear error states
+let supabaseLoadAttempts = 0;
+const MAX_LOAD_ATTEMPTS = 3;
+
+function loadSupabase() {
+    // Check if it's already loaded
+    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+        console.log('[Supabase] SDK loaded successfully.');
+        initSupabase();
+        return true;
+    }
+
+    // If we've tried too many times, show a persistent error
+    if (supabaseLoadAttempts >= MAX_LOAD_ATTEMPTS) {
+        showFatalError(
+            'Unable to connect to EaseMed services. The Supabase SDK could not be loaded. ' +
+            'Please check your internet connection and refresh the page. ' +
+            'If the problem persists, contact support.'
+        );
+        return false;
+    }
+
+    supabaseLoadAttempts++;
+    console.log(`[Supabase] Attempt ${supabaseLoadAttempts} to load SDK...`);
+
+    // Dynamically create a script tag with fallback
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+    
+    script.onerror = function() {
+        console.warn('[Supabase] jsdelivr failed, trying unpkg...');
+        // Try the fallback
+        const fallbackScript = document.createElement('script');
+        fallbackScript.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+        fallbackScript.onload = function() {
+            if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                console.log('[Supabase] SDK loaded via unpkg fallback.');
+                initSupabase();
+            } else {
+                // If still not available, retry
+                setTimeout(loadSupabase, 1000);
+            }
+        };
+        fallbackScript.onerror = function() {
+            // Fallback failed, retry the whole process
+            setTimeout(loadSupabase, 1000);
+        };
+        document.head.appendChild(fallbackScript);
+    };
+
+    script.onload = function() {
+        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+            console.log('[Supabase] SDK loaded via jsdelivr.');
+            initSupabase();
+        } else {
+            // The script loaded but the global isn't set — retry
+            setTimeout(loadSupabase, 500);
+        }
+    };
+
+    document.head.appendChild(script);
+    return false;
+}
+
+// ─── FATAL ERROR UI ───
+function showFatalError(message) {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.innerHTML = `
+            <div class="error-state">
+                <h2>⚠️ Service Unavailable</h2>
+                <p>${message}</p>
+                <div class="btn-group">
+                    <button class="btn-retry" onclick="location.reload()">Retry</button>
+                    <a href="easemed_login.html" class="btn-login">Go to Login</a>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// ─── SUPABASE CONFIG ───
+function initSupabase() {
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+        // If somehow we got here without the SDK, retry loading
+        console.warn('[Supabase] initSupabase called but SDK not available. Retrying...');
+        setTimeout(loadSupabase, 500);
+        return;
+    }
+
+    try {
+        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+        window.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('[Supabase] Client initialized successfully.');
+        
+        // Proceed with auth check
+        authCheck();
+    } catch (error) {
+        console.error('[Supabase] Initialization error:', error);
+        showFatalError(
+            'Failed to initialize EaseMed services. Please refresh the page. ' +
+            'If the problem persists, contact support. (Error: ' + error.message + ')'
+        );
+    }
+}
+
 // ─── CONFIGURATION ───
 const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
@@ -916,24 +1030,17 @@ window.sb = null;
 window._sessionRefreshInterval = null;
 window._lastActivity = Date.now();
 
-// ─── INITIALIZE SUPABASE ───
-(function initSupabase() {
-  try {
-    if (typeof supabase !== 'undefined') {
-      window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-      console.log('[Init] Supabase client initialized');
-    } else {
-      console.error('[Init] Supabase SDK not loaded');
-    }
-  } catch (error) {
-    console.error('[Init] Failed to initialize Supabase:', error);
-  }
-})();
-
 // ─── AUTH CHECK WITH SESSION MANAGEMENT ───
 async function authCheck() {
   const spinner = document.getElementById('loadingSpinner');
   const mainContent = document.getElementById('mainContent');
+
+  // Ensure Supabase client is available
+  if (!window.sb) {
+    console.warn('[Auth] Supabase client not available, retrying...');
+    setTimeout(loadSupabase, 500);
+    return;
+  }
 
   try {
     const { data: { session }, error: sessionError } = await window.sb.auth.getSession();
@@ -1242,16 +1349,17 @@ window.addEventListener('appinstalled', () => {
 // ─── ANNOUNCEMENT BANNER ───
 (async function loadEasemedAnnouncement() {
   let sdkTries = 0;
-  while (typeof supabase === 'undefined' && sdkTries < 30) {
+  while (typeof window.supabase === 'undefined' && sdkTries < 30) {
     await new Promise(r => setTimeout(r, 200));
     sdkTries++;
   }
-  if (typeof supabase === 'undefined') {
+  if (typeof window.supabase === 'undefined') {
     console.warn('[Banner] Supabase SDK never loaded.');
     return;
   }
 
-  const bannerClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  // Use the already initialized client if available
+  const bannerClient = window.sb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
   const { data, error } = await bannerClient
     .from('announcements')
     .select('id, message, type')
@@ -1285,25 +1393,8 @@ function dismissEasemedBanner() {
 
 // ─── INITIALIZE PAGE ───
 document.addEventListener('DOMContentLoaded', function() {
-  if (!window.sb) {
-    console.warn('[Init] Supabase not initialized, retrying...');
-    let retries = 0;
-    const maxRetries = 10;
-    const retryInterval = setInterval(() => {
-      retries++;
-      if (typeof supabase !== 'undefined') {
-        window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-        console.log('[Init] Supabase client initialized (retry ' + retries + ')');
-        clearInterval(retryInterval);
-        authCheck();
-      } else if (retries >= maxRetries) {
-        clearInterval(retryInterval);
-        showError('Initialization Error', 'Failed to load Supabase. Please refresh the page.');
-      }
-    }, 500);
-  } else {
-    authCheck();
-  }
+  // Start the Supabase loading process
+  loadSupabase();
 });
 </script>
 
