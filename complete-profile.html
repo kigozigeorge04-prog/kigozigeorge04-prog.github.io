@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Security Headers - FIXED with all CDN sources -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://js.sentry-cdn.com https://*.supabase.co https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Your Profile - EaseMed</title>
@@ -12,6 +18,70 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Dynamic Supabase SDK Loader - Multiple CDN Fallbacks -->
+    <script>
+        (function loadSupabaseSDK() {
+            console.log('[SDK] Attempting to load Supabase SDK for Profile page...');
+            
+            const CDN_URLS = [
+                'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+                'https://unpkg.com/@supabase/supabase-js@2',
+                'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.47.10/umd/supabase.min.js'
+            ];
+            
+            let currentIndex = 0;
+            
+            function tryLoadNext() {
+                if (currentIndex >= CDN_URLS.length) {
+                    console.error('[SDK] All CDN sources failed');
+                    document.getElementById('userNameDisplay').textContent = 'Guest';
+                    showAlert('❌ Unable to load authentication services. Please check your internet connection and refresh the page.', 'error');
+                    return;
+                }
+                
+                const url = CDN_URLS[currentIndex];
+                console.log(`[SDK] Trying CDN #${currentIndex + 1}: ${url}`);
+                
+                const script = document.createElement('script');
+                script.src = url;
+                script.type = 'text/javascript';
+                script.async = false;
+                
+                script.onload = function() {
+                    console.log(`[SDK] Successfully loaded from ${url}`);
+                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                        console.log('[SDK] Supabase SDK is ready!');
+                        initApp();
+                    } else {
+                        console.warn('[SDK] Script loaded but supabase object not found');
+                        currentIndex++;
+                        tryLoadNext();
+                    }
+                };
+                
+                script.onerror = function() {
+                    console.warn(`[SDK] Failed to load from ${url}`);
+                    currentIndex++;
+                    tryLoadNext();
+                };
+                
+                document.head.appendChild(script);
+            }
+            
+            tryLoadNext();
+            
+            setTimeout(function() {
+                if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                    console.warn('[SDK] Timeout reached, trying next CDN...');
+                    if (currentIndex < CDN_URLS.length - 1) {
+                        currentIndex++;
+                        tryLoadNext();
+                    }
+                }
+            }, 10000);
+        })();
+    </script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -569,7 +639,7 @@
 // ================================================================
 
 const DASHBOARD_URL = 'modules.html';
-let sb;
+let sb = null;
 
 // ── Show alert ──────────────────────────────────────────────
 function showAlert(msg, type = 'error') {
@@ -590,78 +660,100 @@ function setLoading(loading, label) {
     txt.textContent = loading ? 'Saving...' : label;
 }
 
-// ── Wait for Supabase SDK ──────────────────────────────────
-function waitForSDK(maxWaitMs = 8000) {
-    return new Promise((resolve, reject) => {
-        if (typeof supabase !== 'undefined' && supabase.createClient) {
-            resolve();
-            return;
-        }
-        const start = Date.now();
-        const interval = setInterval(() => {
-            if (typeof supabase !== 'undefined' && supabase.createClient) {
-                clearInterval(interval);
-                resolve();
-            } else if (Date.now() - start > maxWaitMs) {
-                clearInterval(interval);
-                reject(new Error('Supabase SDK failed to load'));
-            }
-        }, 100);
-    });
+// ── Init App ─────────────────────────────────────────────────
+function initApp() {
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+        console.warn('[App] Supabase SDK not available, retrying...');
+        setTimeout(initApp, 1000);
+        return;
+    }
+
+    try {
+        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+        sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+        console.log('[Supabase] Client initialized successfully.');
+        
+        loadUserData();
+    } catch (e) {
+        console.error('[App] Initialization error:', e);
+        document.getElementById('userNameDisplay').textContent = 'Guest';
+        showAlert('❌ Failed to initialize services. Please refresh the page.', 'error');
+    }
 }
 
-// ── Init ─────────────────────────────────────────────────────
-(async function init() {
-    try {
-        await waitForSDK(8000);
-    } catch (e) {
-        document.getElementById('userNameDisplay').textContent = 'Guest';
-        showAlert('❌ Failed to load authentication. Please refresh.', 'error');
+// ── Load user data ──────────────────────────────────────────
+async function loadUserData() {
+    if (!sb) {
+        showAlert('❌ Service not available. Please refresh.', 'error');
         return;
     }
 
-    const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
-
     try {
-        sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-    } catch (e) {
-        document.getElementById('userNameDisplay').textContent = 'Guest';
-        showAlert('❌ Failed to initialize Supabase.', 'error');
-        return;
-    }
+        // Check if we have pending user data from Google sign-in
+        let userId = localStorage.getItem('easemed_pending_user_id');
+        let email = localStorage.getItem('easemed_pending_email');
+        let name = localStorage.getItem('easemed_pending_name');
 
-    // ── Get user data from localStorage ────────────────────
-    const userId = localStorage.getItem('easemed_pending_user_id');
-    const email = localStorage.getItem('easemed_pending_email');
-    const name = localStorage.getItem('easemed_pending_name') || 'User';
-
-    document.getElementById('userNameDisplay').textContent = name;
-
-    // If no user ID, try to get current session
-    if (!userId) {
-        try {
+        // If no pending data, try to get current session
+        if (!userId) {
             const { data: { session } } = await sb.auth.getSession();
             if (session?.user) {
-                localStorage.setItem('easemed_pending_user_id', session.user.id);
-                localStorage.setItem('easemed_pending_email', session.user.email);
-                localStorage.setItem('easemed_pending_name', 
-                    session.user.user_metadata?.full_name || 
-                    session.user.user_metadata?.name || 
-                    session.user.email || 'User'
-                );
-                document.getElementById('userNameDisplay').textContent = 
-                    localStorage.getItem('easemed_pending_name');
-            } else {
-                showAlert('⚠️ No active session found. Please log in again.', 'error');
-                setTimeout(() => { window.location.href = 'easemed_login.html'; }, 3000);
+                userId = session.user.id;
+                email = session.user.email;
+                name = session.user.user_metadata?.full_name || 
+                       session.user.user_metadata?.name || 
+                       session.user.email || 'User';
+                
+                localStorage.setItem('easemed_pending_user_id', userId);
+                localStorage.setItem('easemed_pending_email', email);
+                localStorage.setItem('easemed_pending_name', name);
             }
-        } catch (e) {
-            showAlert('⚠️ Session error. Please log in again.', 'error');
-            setTimeout(() => { window.location.href = 'easemed_login.html'; }, 3000);
         }
+
+        if (!userId) {
+            showAlert('⚠️ No active session found. Please log in again.', 'error');
+            setTimeout(() => { window.location.href = 'easemed_login.html'; }, 3000);
+            return;
+        }
+
+        document.getElementById('userNameDisplay').textContent = name || 'User';
+        console.log('[App] User loaded:', name);
+
+        // Check if profile already has required fields
+        const { data: profile, error } = await sb
+            .from('profiles')
+            .select('university, year_of_study, phone')
+            .eq('id', userId)
+            .single();
+
+        if (error && error.code !== 'PGRST116') {
+            console.warn('[App] Profile fetch warning:', error);
+        }
+
+        if (profile) {
+            // Pre-fill if they have data
+            if (profile.university) document.getElementById('university').value = profile.university;
+            if (profile.year_of_study) document.getElementById('yearOfStudy').value = profile.year_of_study;
+            if (profile.phone) document.getElementById('phone').value = profile.phone;
+
+            // If all fields are filled, we could redirect automatically
+            if (profile.university && profile.year_of_study && profile.phone) {
+                // They already have a complete profile, redirect to dashboard
+                console.log('[App] Profile already complete, redirecting...');
+                showAlert('✅ Profile already complete! Redirecting to dashboard...', 'success');
+                setTimeout(() => {
+                    window.location.href = DASHBOARD_URL;
+                }, 1500);
+            }
+        }
+
+    } catch (e) {
+        console.error('[App] Load user error:', e);
+        showAlert('❌ Error loading profile. Please refresh.', 'error');
     }
-})();
+}
 
 // ── Submit profile ──────────────────────────────────────────
 async function submitProfile() {
@@ -738,12 +830,6 @@ async function submitProfile() {
         localStorage.removeItem('easemed_pending_email');
         localStorage.removeItem('easemed_pending_name');
 
-        // ── Also update the main user storage ──────────────
-        const email = localStorage.getItem('easemed_pending_email');
-        const name = localStorage.getItem('easemed_pending_name');
-        if (email) localStorage.setItem('easemed_user', email);
-        if (name) localStorage.setItem('easemed_user_name', name);
-
         // ── Redirect ────────────────────────────────────────
         showAlert('✅ Profile updated successfully! Redirecting to dashboard...', 'success');
         setLoading(false, 'Complete Profile & Continue');
@@ -793,10 +879,16 @@ document.getElementById('yearOfStudy').addEventListener('keypress', e => {
     if (e.key === 'Enter') document.getElementById('phone').focus();
 });
 
-// ── Supabase SDK ─────────────────────────────────────────────
-// Note: This script assumes supabase is loaded globally
+// ── DOM Ready ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[App] DOM ready, waiting for SDK...');
+    // The SDK loading is handled by the inline script at the top
+    // initApp() will be called when the SDK loads
+});
+
+// ── Global handler for SDK load failure ────────────────────
+window.initApp = initApp;
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
 
 </body>
 </html>
