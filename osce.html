@@ -77,8 +77,18 @@
   .marking-scheme { margin-top:18px; padding-top:18px; border-top:1px solid rgba(11,26,46,0.1); display:none; }
   .marking-scheme.show { display:block; }
   .marking-scheme h3 { font-size:0.85rem; text-transform:uppercase; letter-spacing:0.04em; color:#2563EB; margin-bottom:10px; }
+  .hint-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
+  .hint-controls { display:flex; gap:8px; flex-wrap:wrap; }
+  .hint-btn, .reveal-all-btn { border:none; border-radius:8px; padding:8px 14px; font-size:0.78rem; font-weight:700; cursor:pointer; }
+  .hint-btn { background:linear-gradient(135deg,#F59E0B,#D97706); color:#fff; }
+  .hint-btn:disabled { opacity:0.4; cursor:not-allowed; }
+  .reveal-all-btn { background:rgba(11,26,46,0.08); color:#0B1A2E; }
+  .hint-note { width:100%; font-size:0.76rem; color:#B45309; font-weight:600; }
   .criterion { display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid rgba(11,26,46,0.06); font-size:0.88rem; }
+  .criterion.locked { color:rgba(11,26,46,0.25); }
+  .criterion.locked .point-text { filter:blur(5px); user-select:none; }
   .criterion input { margin-top:3px; width:16px; height:16px; accent-color:#2563EB; cursor:pointer; }
+  .criterion input:disabled { cursor:not-allowed; }
   .criterion .marks-badge { margin-left:auto; font-size:0.72rem; font-weight:700; color:#047857; white-space:nowrap; }
   .model-answer { margin-top:14px; background:rgba(59,130,246,0.06); border-radius:10px; padding:14px 16px; font-size:0.86rem; line-height:1.6; color:rgba(11,26,46,0.75); }
   .model-answer strong { color:#0B1A2E; }
@@ -217,7 +227,7 @@ function startTimer(seconds) {
     updateTimerDisplay();
     if (timeRemaining <= 0) {
       stopTimer();
-      revealMarkingScheme(true);
+      beginScoring(true);
     }
   }, 1000);
 }
@@ -256,13 +266,20 @@ function renderStation() {
       <div class="question">${station.question_text}</div>
 
       <div class="action-row" id="preRevealActions">
-        <button class="reveal-btn" onclick="revealMarkingScheme(false)">Reveal marking scheme</button>
+        <button class="reveal-btn" onclick="beginScoring()">I've finished — start scoring</button>
       </div>
 
       <div class="marking-scheme" id="markingScheme">
-        <h3>Self-scoring checklist</h3>
+        <div class="hint-bar" id="hintBar">
+          <h3 style="margin-bottom:0;">Self-scoring checklist</h3>
+          <div class="hint-controls">
+            <button class="hint-btn" id="hintBtn" onclick="revealNextHint()">💡 Get a hint (<span id="hintsLeft"></span> left)</button>
+            <button class="reveal-all-btn" onclick="revealAllCriteria()">Reveal all</button>
+          </div>
+          <div class="hint-note" id="hintNote"></div>
+        </div>
         <div id="criteriaList"></div>
-        <div class="model-answer"><strong>Model answer / summary:</strong><br>${station.model_answer || 'N/A'}</div>
+        <div class="model-answer" id="modelAnswerBox" style="display:none;"><strong>Model answer / summary:</strong><br>${station.model_answer || 'N/A'}</div>
         <div class="score-row">
           <span class="score-display" id="liveScore">Score: 0 / ${station.max_marks}</span>
         </div>
@@ -279,33 +296,85 @@ function renderStation() {
   }
 }
 
-function revealMarkingScheme(auto) {
+let hintsRevealed = 0;
+let hintsUsed = 0;
+
+function beginScoring(auto) {
   stopTimer();
   const station = stations[currentIndex];
   const criteria = station.marking_criteria || [];
+  hintsRevealed = 0;
+  hintsUsed = 0;
+
   const list = document.getElementById('criteriaList');
   list.innerHTML = criteria.map((c, i) => `
-    <label class="criterion">
-      <input type="checkbox" data-marks="${c.marks}" onchange="updateScore()" />
-      <span>${c.point}</span>
+    <label class="criterion locked" id="criterion-${i}">
+      <input type="checkbox" data-marks="${c.marks}" data-index="${i}" onchange="updateScore()" disabled />
+      <span class="point-text">${c.point}</span>
       <span class="marks-badge">${c.marks} mk${c.marks > 1 ? 's' : ''}</span>
     </label>
   `).join('');
 
+  document.getElementById('hintsLeft').textContent = criteria.length;
+  document.getElementById('hintBtn').disabled = criteria.length === 0;
+
   document.getElementById('preRevealActions').style.display = 'none';
   document.getElementById('markingScheme').classList.add('show');
+
   if (auto) {
-    document.getElementById('liveScore').textContent = `⏰ Time's up — self-score below (0 / ${station.max_marks})`;
+    document.getElementById('liveScore').textContent = `⏰ Time's up — reveal criteria below to self-score (0 / ${station.max_marks})`;
   }
+}
+
+function revealNextHint() {
+  const station = stations[currentIndex];
+  const criteria = station.marking_criteria || [];
+  if (hintsRevealed >= criteria.length) return;
+
+  const row = document.getElementById(`criterion-${hintsRevealed}`);
+  if (row) {
+    row.classList.remove('locked');
+    row.querySelector('input[type="checkbox"]').disabled = false;
+  }
+  hintsRevealed++;
+  hintsUsed++;
+
+  const left = criteria.length - hintsRevealed;
+  document.getElementById('hintsLeft').textContent = left;
+  document.getElementById('hintBtn').disabled = left === 0;
+
+  if (mode === 'timed') {
+    document.getElementById('hintNote').textContent =
+      `⚠ ${hintsUsed} hint${hintsUsed > 1 ? 's' : ''} used — timed mode deducts 1 mark per hint from your final score`;
+  }
+}
+
+function revealAllCriteria() {
+  const station = stations[currentIndex];
+  const criteria = station.marking_criteria || [];
+  document.querySelectorAll('#criteriaList .criterion').forEach((row, i) => {
+    row.classList.remove('locked');
+    row.querySelector('input[type="checkbox"]').disabled = false;
+  });
+  hintsRevealed = criteria.length;
+  document.getElementById('hintsLeft').textContent = 0;
+  document.getElementById('hintBtn').disabled = true;
+  document.getElementById('modelAnswerBox').style.display = 'block';
 }
 
 function updateScore() {
   const checkboxes = document.querySelectorAll('#criteriaList input[type="checkbox"]');
   let score = 0;
   checkboxes.forEach(cb => { if (cb.checked) score += parseInt(cb.dataset.marks, 10); });
-  checkedMarks = score;
+
   const station = stations[currentIndex];
-  document.getElementById('liveScore').textContent = `Score: ${score} / ${station.max_marks}`;
+  const penalty = mode === 'timed' ? hintsUsed : 0;
+  const finalScore = Math.max(0, score - penalty);
+  checkedMarks = finalScore;
+
+  document.getElementById('liveScore').textContent = penalty > 0
+    ? `Score: ${finalScore} / ${station.max_marks} (${score} raw − ${penalty} hint penalty)`
+    : `Score: ${finalScore} / ${station.max_marks}`;
 }
 
 async function submitAttempt() {
@@ -324,7 +393,8 @@ async function submitAttempt() {
       self_scored_marks: checkedMarks,
       max_marks: station.max_marks,
       criteria_checked: checkedCriteria,
-      duration_seconds: duration
+      duration_seconds: duration,
+      hints_used: hintsUsed
     });
     const btn = document.querySelector('.submit-btn');
     if (btn) { btn.textContent = '✓ Saved'; btn.disabled = true; }
