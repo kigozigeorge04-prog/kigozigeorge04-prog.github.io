@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EaseMed — OSCE Image Manager</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Segoe UI", Arial, sans-serif; background:linear-gradient(160deg,#E8F4FD 0%,#B8D8F0 40%,#8EC4E8 100%); color:#0B1A2E; padding:24px; min-height:100vh; }
+  .wrap { max-width:900px; margin:0 auto; }
+  h1 { font-size:1.4rem; margin-bottom:6px; }
+  .sub { color:rgba(11,26,46,0.6); font-size:0.9rem; margin-bottom:24px; }
+  .station-row {
+    background:rgba(255,255,255,0.55); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,0.4); border-radius:14px; padding:16px 20px; margin-bottom:12px;
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  .station-info { flex:1; min-width:220px; }
+  .station-info .mod { font-size:0.68rem; text-transform:uppercase; font-weight:700; color:#2563EB; letter-spacing:0.04em; }
+  .station-info .title { font-weight:700; margin-top:2px; }
+  .thumb { width:70px; height:70px; object-fit:cover; border-radius:8px; background:#fff; border:1px solid rgba(11,26,46,0.1); }
+  .thumb.empty { display:flex; align-items:center; justify-content:center; color:rgba(11,26,46,0.3); font-size:0.7rem; text-align:center; }
+  input[type="file"] { font-size:0.8rem; max-width:180px; }
+  .upload-btn { border:none; border-radius:8px; padding:9px 16px; background:linear-gradient(135deg,#3B82F6,#2563EB); color:#fff; font-weight:700; font-size:0.82rem; cursor:pointer; }
+  .upload-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .status-msg { font-size:0.78rem; margin-top:6px; }
+  .status-msg.success { color:#047857; }
+  .status-msg.error { color:#DC2626; }
+  .loading { text-align:center; padding:40px; color:rgba(11,26,46,0.5); }
+  .filter-bar { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+  .filter-bar button { border:1px solid rgba(11,26,46,0.15); background:rgba(255,255,255,0.5); padding:7px 14px; border-radius:20px; font-size:0.8rem; font-weight:600; cursor:pointer; }
+  .filter-bar button.active { background:#2563EB; color:#fff; border-color:#2563EB; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🖼️ OSCE Image Manager</h1>
+  <p class="sub">Upload images directly to Supabase Storage and attach them to instrument/X-ray stations. Admin access only — same login as the admin dashboard.</p>
+
+  <div class="filter-bar" id="filterBar">
+    <button class="active" data-mod="all" onclick="setFilter('all')">All modules</button>
+    <button data-mod="peds" onclick="setFilter('peds')">Pediatrics</button>
+    <button data-mod="imed" onclick="setFilter('imed')">Internal Medicine</button>
+    <button data-mod="obgyn" onclick="setFilter('obgyn')">ObGyn</button>
+    <button data-mod="surgery" onclick="setFilter('surgery')">Surgery</button>
+  </div>
+
+  <div id="stationList"><div class="loading">Loading stations…</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+const ADMIN_EMAILS = ['kigozigeorge04@gmail.com'];
+const STORAGE_BUCKET = 'osce-images'; // must be created once in Supabase Storage (public bucket)
+
+let sb = null;
+let stations = [];
+let currentFilter = 'all';
+
+async function init() {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  const { data: { session } } = await sb.auth.getSession();
+
+  if (!session || !ADMIN_EMAILS.includes((session.user.email || '').toLowerCase())) {
+    document.body.innerHTML = '<div class="wrap"><h1>Access denied</h1><p class="sub">This tool is admin-only.</p></div>';
+    return;
+  }
+
+  await loadStations();
+}
+
+async function loadStations() {
+  // Only stations that use images: instrument + xray types
+  const { data, error } = await sb
+    .from('osce_stations')
+    .select('id, module, station_type, title, image_url')
+    .in('station_type', ['instrument', 'xray'])
+    .order('module', { ascending: true })
+    .order('display_order', { ascending: true });
+
+  if (error) {
+    document.getElementById('stationList').innerHTML = `<div class="loading">⚠️ ${error.message}</div>`;
+    return;
+  }
+
+  stations = data || [];
+  renderList();
+}
+
+function setFilter(mod) {
+  currentFilter = mod;
+  document.querySelectorAll('#filterBar button').forEach(b => b.classList.toggle('active', b.dataset.mod === mod));
+  renderList();
+}
+
+const MODULE_LABELS = { peds: 'Pediatrics', imed: 'Internal Medicine', obgyn: 'ObGyn', surgery: 'Surgery' };
+
+function renderList() {
+  const list = currentFilter === 'all' ? stations : stations.filter(s => s.module === currentFilter);
+  const container = document.getElementById('stationList');
+
+  if (list.length === 0) {
+    container.innerHTML = '<div class="loading">No image-based stations found.</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(s => `
+    <div class="station-row" id="row-${s.id}">
+      ${s.image_url
+        ? `<img class="thumb" src="${s.image_url}" alt="" />`
+        : `<div class="thumb empty">No image</div>`
+      }
+      <div class="station-info">
+        <div class="mod">${MODULE_LABELS[s.module]} · ${s.station_type}</div>
+        <div class="title">${s.title}</div>
+        <div class="status-msg" id="status-${s.id}"></div>
+      </div>
+      <input type="file" id="file-${s.id}" accept="image/*" />
+      <button class="upload-btn" onclick="uploadImage('${s.id}')">Upload & Attach</button>
+    </div>
+  `).join('');
+}
+
+async function uploadImage(stationId) {
+  const fileInput = document.getElementById(`file-${stationId}`);
+  const statusEl = document.getElementById(`status-${stationId}`);
+  const file = fileInput.files[0];
+
+  if (!file) {
+    statusEl.textContent = 'Please choose a file first.';
+    statusEl.className = 'status-msg error';
+    return;
+  }
+
+  statusEl.textContent = 'Uploading…';
+  statusEl.className = 'status-msg';
+
+  try {
+    const ext = file.name.split('.').pop();
+    const path = `${stationId}-${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await sb.storage
+      .from(STORAGE_BUCKET)
+      .upload(path, file, { cacheControl: '3600', upsert: false });
+
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrlData } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    const publicUrl = publicUrlData.publicUrl;
+
+    const { error: updateError } = await sb
+      .from('osce_stations')
+      .update({ image_url: publicUrl })
+      .eq('id', stationId);
+
+    if (updateError) throw updateError;
+
+    statusEl.textContent = '✅ Uploaded and attached';
+    statusEl.className = 'status-msg success';
+
+    // Refresh just this row's thumbnail
+    const station = stations.find(s => s.id === stationId);
+    if (station) station.image_url = publicUrl;
+    renderList();
+
+  } catch (err) {
+    console.error('[Upload]', err);
+    statusEl.textContent = '❌ ' + err.message;
+    statusEl.className = 'status-msg error';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
