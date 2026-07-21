@@ -11,75 +11,12 @@
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <!-- Dynamic Supabase SDK Loader - Multiple CDN Fallbacks -->
-    <script>
-        (function loadSupabaseSDK() {
-            console.log('[SDK] Attempting to load Supabase SDK...');
-            
-            const CDN_URLS = [
-                'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-                'https://unpkg.com/@supabase/supabase-js@2',
-                'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.47.10/umd/supabase.min.js'
-            ];
-            
-            let currentIndex = 0;
-            
-            function tryLoadNext() {
-                if (currentIndex >= CDN_URLS.length) {
-                    console.error('[SDK] All CDN sources failed');
-                    showFatalError(
-                        'Unable to connect to EaseMed services. The Supabase SDK could not be loaded. ' +
-                        'Please check your internet connection and refresh the page.'
-                    );
-                    return;
-                }
-                
-                const url = CDN_URLS[currentIndex];
-                console.log(`[SDK] Trying CDN #${currentIndex + 1}: ${url}`);
-                
-                const script = document.createElement('script');
-                script.src = url;
-                script.type = 'text/javascript';
-                script.async = false;
-                script.crossOrigin = 'anonymous';
-                
-                script.onload = function() {
-                    console.log(`[SDK] Successfully loaded from ${url}`);
-                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-                        console.log('[SDK] Supabase SDK is ready!');
-                        initSupabase();
-                    } else {
-                        console.warn('[SDK] Script loaded but supabase object not found');
-                        currentIndex++;
-                        tryLoadNext();
-                    }
-                };
-                
-                script.onerror = function() {
-                    console.warn(`[SDK] Failed to load from ${url}`);
-                    currentIndex++;
-                    tryLoadNext();
-                };
-                
-                document.head.appendChild(script);
-            }
-            
-            tryLoadNext();
-            
-            setTimeout(function() {
-                if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-                    console.warn('[SDK] Timeout reached, trying next CDN...');
-                    if (currentIndex < CDN_URLS.length - 1) {
-                        currentIndex++;
-                        tryLoadNext();
-                    }
-                }
-            }, 10000);
-        })();
-    </script>
+    <!-- Local Supabase SDK -->
+    <script src="/js/supabase.min.js"></script>
     
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
+    
     <style>
         /* ──────────── RESET & BASE ──────────── */
         * {
@@ -1543,8 +1480,8 @@
     </div>
 
     <script>
-        // ──────────────────── VERSION CONTROL ────────────────────
-        const APP_VERSION = '2.0.4';
+        // ─── VERSION CONTROL ───
+        const APP_VERSION = '2.0.5';
         const CACHE_KEY = 'easemed_app_version';
         
         const storedVersion = localStorage.getItem(CACHE_KEY);
@@ -1558,7 +1495,7 @@
             localStorage.setItem(CACHE_KEY, APP_VERSION);
         }
 
-        // ──────────────────── REMEMBER ME ────────────────────
+        // ─── REMEMBER ME ───
         function loadSavedEmail() {
             const savedEmail = localStorage.getItem('easemed_remembered_email');
             const rememberMe = localStorage.getItem('easemed_remember_me') === 'true';
@@ -1569,7 +1506,7 @@
             }
         }
 
-        // ──────────────────── FATAL ERROR UI ────────────────────
+        // ─── FATAL ERROR UI ───
         function showFatalError(message) {
             console.error('[Fatal]', message);
             
@@ -1610,17 +1547,10 @@
             }
         }
 
-        // ──────────────────── SUPABASE CONFIG ────────────────────
+        // ─── SUPABASE CONFIG ───
         function initSupabase() {
             if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-                console.warn('[Supabase] initSupabase called but SDK not available. Retrying...');
-                setTimeout(function() {
-                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-                        initSupabase();
-                    } else {
-                        showFatalError('Supabase SDK failed to load. Please refresh the page.');
-                    }
-                }, 2000);
+                showFatalError('Supabase SDK failed to load. Please refresh the page.');
                 return;
             }
 
@@ -1642,7 +1572,7 @@
             }
         }
 
-        // ──────────────────── DATA ────────────────────
+        // ─── DATA ───
         const ROTATIONS = [
             "Internal Medicine — Week 4",
             "General Surgery — Week 2",
@@ -1651,12 +1581,12 @@
             "Psychiatry — Week 5",
         ];
 
-        // ──────────────────── STATE ────────────────────
+        // ─── STATE ───
         let currentView = 'login';
         let rotationIndex = 0;
         let rotationInterval = null;
 
-        // ──────────────────── VIEW SWITCHING ────────────────────
+        // ─── VIEW SWITCHING ───
         function switchToLogin() {
             currentView = 'login';
             document.getElementById('loginView').style.display = 'block';
@@ -1680,7 +1610,7 @@
             document.getElementById('forgotView').style.display = 'block';
         }
 
-        // ──────────────────── PWA INSTALL ────────────────────
+        // ─── PWA INSTALL ───
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -1709,7 +1639,7 @@
             document.getElementById('installBtn').style.display = 'none';
         });
 
-        // ──────────────────── UTILITY ────────────────────
+        // ─── UTILITY ───
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
             if (input.type === 'password') {
@@ -2111,8 +2041,14 @@
 
         // ─── DOM CONTENT LOADED ───
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('[App] DOM ready, waiting for SDK...');
-            // The SDK loading is handled by the inline script at the top
+            console.log('[App] DOM ready, initializing...');
+            
+            // Check if Supabase SDK is available
+            if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                initSupabase();
+            } else {
+                showFatalError('Supabase SDK failed to load. Please refresh the page.');
+            }
         });
     </script>
 </body>
