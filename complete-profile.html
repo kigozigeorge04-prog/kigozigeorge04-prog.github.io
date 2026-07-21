@@ -6,77 +6,15 @@
     <title>Complete Your Profile - EaseMed</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#E8F4FD">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-    <!-- Dynamic Supabase SDK Loader - Multiple CDN Fallbacks -->
-    <script>
-        (function loadSupabaseSDK() {
-            console.log('[SDK] Attempting to load Supabase SDK for Profile page...');
-            
-            const CDN_URLS = [
-                'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-                'https://unpkg.com/@supabase/supabase-js@2',
-                'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.47.10/umd/supabase.min.js'
-            ];
-            
-            let currentIndex = 0;
-            
-            function tryLoadNext() {
-                if (currentIndex >= CDN_URLS.length) {
-                    console.error('[SDK] All CDN sources failed');
-                    document.getElementById('userNameDisplay').textContent = 'Guest';
-                    showAlert('❌ Unable to load authentication services. Please check your internet connection and refresh the page.', 'error');
-                    return;
-                }
-                
-                const url = CDN_URLS[currentIndex];
-                console.log(`[SDK] Trying CDN #${currentIndex + 1}: ${url}`);
-                
-                const script = document.createElement('script');
-                script.src = url;
-                script.type = 'text/javascript';
-                script.async = false;
-                script.crossOrigin = 'anonymous';
-                
-                script.onload = function() {
-                    console.log(`[SDK] Successfully loaded from ${url}`);
-                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-                        console.log('[SDK] Supabase SDK is ready!');
-                        initApp();
-                    } else {
-                        console.warn('[SDK] Script loaded but supabase object not found');
-                        currentIndex++;
-                        tryLoadNext();
-                    }
-                };
-                
-                script.onerror = function() {
-                    console.warn(`[SDK] Failed to load from ${url}`);
-                    currentIndex++;
-                    tryLoadNext();
-                };
-                
-                document.head.appendChild(script);
-            }
-            
-            tryLoadNext();
-            
-            setTimeout(function() {
-                if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-                    console.warn('[SDK] Timeout reached, trying next CDN...');
-                    if (currentIndex < CDN_URLS.length - 1) {
-                        currentIndex++;
-                        tryLoadNext();
-                    }
-                }
-            }, 10000);
-        })();
-    </script>
+    <!-- Local Supabase SDK -->
+    <script src="/js/supabase.min.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -634,7 +572,7 @@
 // ================================================================
 
 // ─── VERSION CONTROL ───
-const APP_VERSION = '2.0.4';
+const APP_VERSION = '2.0.5';
 const CACHE_KEY = 'easemed_app_version';
 
 const storedVersion = localStorage.getItem(CACHE_KEY);
@@ -673,8 +611,7 @@ function setLoading(loading, label) {
 // ── Init App ─────────────────────────────────────────────────
 function initApp() {
     if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-        console.warn('[App] Supabase SDK not available, retrying...');
-        setTimeout(initApp, 1000);
+        showAlert('❌ Supabase SDK failed to load. Please refresh the page.', 'error');
         return;
     }
 
@@ -891,13 +828,14 @@ document.getElementById('yearOfStudy').addEventListener('keypress', e => {
 
 // ── DOM Ready ──────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('[App] DOM ready, waiting for SDK...');
-    // The SDK loading is handled by the inline script at the top
-    // initApp() will be called when the SDK loads
+    console.log('[App] DOM ready, initializing...');
+    
+    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+        initApp();
+    } else {
+        showAlert('❌ Supabase SDK failed to load. Please refresh the page.', 'error');
+    }
 });
-
-// ── Global handler for SDK load failure ────────────────────
-window.initApp = initApp;
 </script>
 
 </body>
