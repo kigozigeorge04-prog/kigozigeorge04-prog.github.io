@@ -1118,17 +1118,23 @@
     }
 
     // ─── TRACK USER ACTIVITY ───
-    async function trackUserActivity(userId) {
-        try {
-            await window.sb
-                .from('profiles')
-                .update({ last_activity: new Date().toISOString() })
-                .eq('id', userId);
-        } catch (error) {
-            console.warn('[Activity] Failed to track:', error);
+   async function trackUserActivity(userId) {
+    try {
+        // Try to update, but don't fail if it doesn't work
+        const { error } = await window.sb
+            .from('profiles')
+            .update({ last_activity: new Date().toISOString() })
+            .eq('id', userId);
+        
+        if (error) {
+            // Silently ignore - non-critical
+            console.log('[Activity] Update skipped:', error.message);
         }
+    } catch (error) {
+        // Silently ignore all errors
+        console.log('[Activity] Tracking not available');
     }
-
+}
     // ─── HANDLE LOGOUT ───
     async function handleLogout() {
         try {
@@ -1186,78 +1192,77 @@
     }
 
     // ─── TRACKING ───
-    (function tracking() {
-        let currentLogId = null;
-        let startTime = null;
-        let flushed = false;
+   // ─── TRACKING ───
+(function tracking() {
+    let currentLogId = null;
+    let startTime = null;
+    let flushed = false;
+    let trackingEnabled = false;
 
-        async function startTracking() {
-            try {
-                if (!window.sb) {
-                    console.warn('[Tracking] Supabase not available');
-                    return;
-                }
-                const { data: { user } } = await window.sb.auth.getUser();
-                if (!user) return;
+    async function startTracking() {
+        try {
+            if (!window.sb) return;
+            
+            const { data: { user } } = await window.sb.auth.getUser();
+            if (!user) return;
 
-                const moduleName = window.EASEMED_MODULE_NAME || document.title || location.pathname;
-                startTime = Date.now();
+            // Check if we can insert first
+            const moduleName = window.EASEMED_MODULE_NAME || document.title || location.pathname;
+            startTime = Date.now();
 
-                const { data, error } = await window.sb.from('activity_logs').insert({
-                    user_id: user.id,
-                    event_type: 'module_view',
-                    module_name: moduleName,
-                    page_path: location.pathname,
-                    started_at: new Date(startTime).toISOString(),
-                }).select('id').single();
+            const { data, error } = await window.sb.from('activity_logs').insert({
+                user_id: user.id,
+                event_type: 'module_view',
+                module_name: moduleName,
+                page_path: location.pathname,
+                started_at: new Date(startTime).toISOString(),
+            }).select('id').single();
 
-                if (!error && data) {
-                    currentLogId = data.id;
-                }
-            } catch (e) {
-                console.warn('[Tracking] Failed to start:', e.message);
+            if (!error && data) {
+                currentLogId = data.id;
+                trackingEnabled = true;
+            } else {
+                // Tracking not available - disable it
+                console.log('[Tracking] Disabled - insert failed');
+                trackingEnabled = false;
             }
+        } catch (e) {
+            // Tracking not available
+            trackingEnabled = false;
+            console.log('[Tracking] Disabled');
         }
+    }
 
-        async function flushTracking() {
-            if (!currentLogId || flushed || !startTime) return;
-            flushed = true;
+    async function flushTracking() {
+        if (!trackingEnabled || !currentLogId || flushed || !startTime) return;
+        flushed = true;
 
-            const durationSeconds = Math.round((Date.now() - startTime) / 1000);
-            if (durationSeconds < 1) return;
+        const durationSeconds = Math.round((Date.now() - startTime) / 1000);
+        if (durationSeconds < 1) return;
 
-            try {
-                if (!window.sb) return;
-                await window.sb.from('activity_logs')
-                    .update({
-                        duration_seconds: durationSeconds,
-                        ended_at: new Date().toISOString(),
-                    })
-                    .eq('id', currentLogId);
-            } catch (e) {
-                console.warn('[Tracking] Failed to flush:', e.message);
-            }
+        try {
+            if (!window.sb) return;
+            await window.sb.from('activity_logs')
+                .update({
+                    duration_seconds: durationSeconds,
+                    ended_at: new Date().toISOString(),
+                })
+                .eq('id', currentLogId);
+        } catch (e) {
+            // Silently fail
         }
+    }
 
-        if (window.sb) {
-            startTracking();
-        } else {
-            const waitInterval = setInterval(() => {
-                if (window.sb) {
-                    clearInterval(waitInterval);
-                    startTracking();
-                }
-            }, 200);
-            setTimeout(() => clearInterval(waitInterval), 5000);
-        }
+    // Start tracking with a small delay
+    setTimeout(startTracking, 1000);
 
-        window.addEventListener('beforeunload', flushTracking);
-        window.addEventListener('pagehide', flushTracking);
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') flushTracking();
-        });
-    })();
-
+    window.addEventListener('beforeunload', flushTracking);
+    window.addEventListener('pagehide', flushTracking);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flushTracking();
+    });
+})();
+    
     // ─── PWA INSTALL ───
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
