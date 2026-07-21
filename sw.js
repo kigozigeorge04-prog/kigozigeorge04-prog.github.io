@@ -12,11 +12,9 @@ const STATIC_FILES = [
     '/modules.html',
     '/complete-profile.html',
     '/js/supabase.min.js',
-    '/js/supabase.min.js.map',
     '/manifest.json',
     '/_vercel/insights/script.js',
-    '/_vercel/speed-insights/script.js',
-    'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap'
+    '/_vercel/speed-insights/script.js'
 ];
 
 // ─── INSTALL ──────────────────────────────────────────────────────
@@ -59,6 +57,12 @@ self.addEventListener('fetch', (event) => {
     const request = event.request;
     const url = new URL(request.url);
 
+    // Skip POST, PUT, DELETE requests (only cache GET)
+    if (request.method !== 'GET') {
+        event.respondWith(fetch(request));
+        return;
+    }
+
     // Skip cross-origin requests except for allowed CDNs
     if (url.origin !== self.location.origin) {
         // Allow font requests to proceed normally
@@ -79,7 +83,8 @@ self.addEventListener('fetch', (event) => {
                     caches.open(DYNAMIC_CACHE)
                         .then((cache) => {
                             cache.put(request, clonedResponse);
-                        });
+                        })
+                        .catch(err => console.warn('[SW] Cache put error:', err));
                     return response;
                 })
                 .catch(() => {
@@ -108,12 +113,18 @@ self.addEventListener('fetch', (event) => {
                     }
                     return fetch(request)
                         .then((response) => {
-                            const clonedResponse = response.clone();
-                            caches.open(STATIC_CACHE)
-                                .then((cache) => {
-                                    cache.put(request, clonedResponse);
-                                });
+                            if (response.ok) {
+                                const clonedResponse = response.clone();
+                                caches.open(STATIC_CACHE)
+                                    .then((cache) => {
+                                        cache.put(request, clonedResponse);
+                                    })
+                                    .catch(err => console.warn('[SW] Cache put error:', err));
+                            }
                             return response;
+                        })
+                        .catch(() => {
+                            return caches.match(request);
                         });
                 })
         );
@@ -124,11 +135,14 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         fetch(request)
             .then((response) => {
-                const clonedResponse = response.clone();
-                caches.open(DYNAMIC_CACHE)
-                    .then((cache) => {
-                        cache.put(request, clonedResponse);
-                    });
+                if (response.ok) {
+                    const clonedResponse = response.clone();
+                    caches.open(DYNAMIC_CACHE)
+                        .then((cache) => {
+                            cache.put(request, clonedResponse);
+                        })
+                        .catch(err => console.warn('[SW] Cache put error:', err));
+                }
                 return response;
             })
             .catch(() => {
@@ -152,7 +166,6 @@ self.addEventListener('message', (event) => {
 });
 
 // ─── OFFLINE PAGE ────────────────────────────────────────────────
-// Create offline page if needed
 const offlinePage = `
 <!DOCTYPE html>
 <html>
