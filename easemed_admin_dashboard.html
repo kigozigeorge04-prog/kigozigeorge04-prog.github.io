@@ -3,1242 +3,746 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EaseMed Admin Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>EaseMed — Admin Dashboard</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#E8F4FD">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="EaseMed">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Local Supabase SDK -->
+    <script src="/js/supabase.min.js"></script>
+    
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+
     <style>
-        /* (all your existing styles – kept unchanged, background section updated) */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: "Segoe UI", Arial, sans-serif; color: #20313f; background: linear-gradient(160deg, #E8F4FD 0%, #B8D8F0 40%, #8EC4E8 100%); padding: 22px; position: relative; overflow-x: hidden; }
+        /* ──────────── RESET & BASE ──────────── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        .bg-grid { position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(11,26,46,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(11,26,46,0.06) 1px, transparent 1px); background-size: 48px 48px; opacity: 0.5; }
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(160deg, #E8F4FD 0%, #B8D8F0 40%, #8EC4E8 100%);
+            color: #0B1A2E;
+        }
 
-        .clinical-glow { position: fixed; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.12), transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; filter: blur(60px); }
+        /* ──────────── BACKGROUND ──────────── */
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(59, 130, 246, 0.10) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                linear-gradient(180deg, #E8F4FD 0%, #B8D8F0 50%, #8EC4E8 100%);
+        }
 
-        .blobs { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
-        .blob { position: absolute; border-radius: 9999px; filter: blur(90px); opacity: 0.15; }
-        .blob-1 { top: -10%; left: -8%; width: 480px; height: 480px; background: #3B82F6; }
-        .blob-2 { bottom: -15%; left: 20%; width: 420px; height: 420px; background: #2A9D8F; opacity: 0.10; }
-        .blob-3 { top: 20%; right: -10%; width: 520px; height: 520px; background: #1D4ED8; opacity: 0.12; }
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(11, 26, 46, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(11, 26, 46, 0.06) 1px, transparent 1px);
+            background-size: 48px 48px;
+            opacity: 0.5;
+        }
 
-        .shell { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: 270px 1fr; gap: 22px; position: relative; z-index: 10; }
-        .sidebar, .main-panel, .card, .table-panel { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 8px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.3); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); position: relative; z-index: 10; }
-        .sidebar { border-radius: 20px; padding: 22px; min-height: calc(100vh - 44px); position: sticky; top: 22px; }
-        .brand { display: flex; align-items: center; gap: 12px; padding-bottom: 22px; border-bottom: 1px solid #dbe7ef; }
-        .brand-mark { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: #fff; font-weight: 900; background: linear-gradient(135deg,#1e3c72,#2a9d8f); box-shadow: 0 10px 20px rgba(30,60,114,0.25); }
-        .brand h1 { font-size: 1.08rem; color: #17324d; }
-        .brand span { display: block; color: #718096; font-size: 0.78rem; margin-top: 2px; }
-        .nav { margin-top: 22px; display: grid; gap: 8px; }
-        .nav button { border: 0; border-radius: 12px; padding: 12px 14px; text-align: left; color: #40566a; background: transparent; font-weight: 700; cursor: pointer; transition: 0.22s ease; }
-        .nav button:hover, .nav button.active { color: #1e3c72; background: #e8f4f8; transform: translateX(3px); }
-        .sidebar-note { margin-top: 28px; border-radius: 16px; padding: 16px; background: linear-gradient(135deg,#f7fbfd,#eef8f4); border: 1px solid #dbe7ef; color: #496173; font-size: 0.86rem; line-height: 1.55; }
-        .main { display: grid; gap: 20px; }
-        .main-panel { border-radius: 22px; overflow: hidden; }
-        .hero { position: relative; overflow: hidden; color: #fff; padding: 26px 30px; background: linear-gradient(135deg,#1e3c72 0%,#2a5298 48%,#2a9d8f 100%); }
-        .hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: linear-gradient(90deg,#2a9d8f,#f4d35e,#e74c3c); }
-        .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; position: relative; z-index: 1; }
-        .hero h2 { font-size: 1.75rem; margin-bottom: 7px; }
-        .hero p { opacity: 0.9; max-width: 720px; line-height: 1.55; }
-        .admin-pill { white-space: nowrap; border-radius: 999px; padding: 9px 13px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28); font-weight: 800; font-size: 0.84rem; }
-        .auth-bar { max-width: 1500px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; color: #fff; background: rgba(15,32,39,0.74); border: 1px solid rgba(255,255,255,0.18); border-radius: 16px; padding: 12px 16px; backdrop-filter: blur(12px); box-shadow: 0 12px 28px rgba(0,0,0,0.18); position: relative; z-index: 10; }
-        .auth-bar strong { color: #90cdf4; }
-        .auth-actions button { border: 0; border-radius: 10px; padding: 9px 12px; color: #fff; background: linear-gradient(135deg,#e53e3e,#c53030); cursor: pointer; font-weight: 800; }
-        .access-lock { max-width: 720px; margin: 90px auto; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.4); border-radius: 22px; padding: 28px; text-align: center; box-shadow: 0 22px 55px rgba(15,32,39,0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); position: relative; z-index: 10; }
-        .access-lock h2 { color: #1e3c72; margin-bottom: 10px; }
-        .access-lock p { color: #496173; line-height: 1.6; }
-        .access-lock button { margin-top: 18px; border: 0; border-radius: 12px; padding: 12px 16px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); cursor: pointer; font-weight: 800; }
-        .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 20px; }
-        .card { border-radius: 16px; padding: 18px; transition: 0.25s ease; }
-        .card:hover, .table-panel:hover { transform: translateY(-3px); box-shadow: 0 26px 60px rgba(15,32,39,0.15), inset 0 1px 0 rgba(255,255,255,0.4); }
-        .metric-label { color: #718096; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
-        .metric-value { font-size: 2rem; color: #17324d; font-weight: 900; margin-top: 8px; }
-        .metric-sub { margin-top: 8px; font-size: 0.84rem; color: #496173; }
-        .accent-teal { border-left: 5px solid #2a9d8f; }
-        .accent-gold { border-left: 5px solid #f4d35e; }
-        .accent-red  { border-left: 5px solid #e74c3c; }
-        .accent-blue { border-left: 5px solid #2a5298; }
-        .content-grid { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 20px; }
-        .table-panel { border-radius: 20px; overflow: hidden; }
-        .panel-title { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; gap: 14px; border-bottom: 1px solid #e2e8f0; }
-        .panel-title h3 { color: #17324d; font-size: 1.05rem; }
-        .panel-title button { border: 0; border-radius: 10px; padding: 9px 12px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); cursor: pointer; font-weight: 800; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #edf2f7; font-size: 0.9rem; }
-        th { color: #718096; background: rgba(248,250,252,0.6); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em; }
-        tr:hover td { background: rgba(248,252,253,0.6); }
-        .status { display: inline-flex; border-radius: 999px; padding: 5px 9px; font-size: 0.76rem; font-weight: 900; }
-        .status.good { color: #1e7d5a; background: #e8f7ef; }
-        .status.warn { color: #936900; background: #fff6d8; }
-        .status.risk { color: #b73128; background: #fdecea; }
-        .status.pending { color: #7f8c8d; background: #ecf0f1; }
-        .activity-list { padding: 16px 18px 20px; display: grid; gap: 12px; }
-        .activity { display: grid; grid-template-columns: 12px 1fr; gap: 12px; align-items: start; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; background: #2a9d8f; box-shadow: 0 0 0 5px rgba(42,157,143,0.12); }
-        .activity strong { color: #20313f; display: block; margin-bottom: 3px; }
-        .activity span { color: #718096; font-size: 0.84rem; }
-        .quick-actions { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
-        .action { border: 1px solid rgba(255,255,255,0.4); border-radius: 16px; padding: 16px; background: rgba(255,255,255,0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); cursor: pointer; transition: 0.25s ease; position: relative; z-index: 10; }
-        .action:hover { border-color: #2a9d8f; transform: translateY(-3px); box-shadow: 0 15px 30px rgba(15,32,39,0.10); }
-        .action span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #fff; background: linear-gradient(135deg,#1e3c72,#2a9d8f); font-weight: 900; margin-bottom: 12px; }
-        .action strong { color: #17324d; display: block; margin-bottom: 5px; }
-        .action p { color: #718096; font-size: 0.84rem; line-height: 1.45; }
-        .tabs { display: flex; gap: 12px; padding: 0 20px; margin-top: 8px; margin-bottom: 8px; }
-        .admin-tab { background: rgba(255,255,255,0.6); border: none; padding: 8px 18px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #1e3c72; }
-        .admin-tab.active { background: #2a9d8f; color: white; box-shadow: 0 4px 12px rgba(42,157,143,0.3); }
-        .alert-info { background: #e6f7ff; color: #0c5460; border-left: 5px solid #17a2b8; padding: 15px; border-radius: 12px; margin: 15px 20px; font-size: 0.9rem; }
-        .alert-error { background: #f8d7da; color: #721c24; border-left: 5px solid #e53e3e; padding: 15px; border-radius: 12px; margin: 15px 20px; font-size: 0.9rem; }
-        .session-ip { font-family: monospace; font-size: 0.85rem; color: #718096; }
-        .session-device { font-size: 0.8rem; color: #718096; }
-        .live-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #2ecc71; margin-right: 6px; animation: pulse-dot 2s infinite; }
-        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        /* ──────────── CONTAINER ──────────── */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
 
-        .toggle-btn { border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .toggle-btn.activate { background: linear-gradient(135deg, #1e7d5a, #2a9d8f); color: #fff; }
-        .toggle-btn.deactivate { background: linear-gradient(135deg, #c0392b, #e74c3c); color: #fff; }
-        .toggle-btn.create { background: linear-gradient(135deg, #2980b9, #3498db); color: #fff; }
-        .expire-input { border: 1.5px solid #dbe7ef; border-radius: 8px; padding: 5px 8px; font-size: 0.82rem; outline: none; width: 140px; }
-        #activationSection, #analyticsSection { display: none; }
-        .user-count-badge { background: #2a9d8f; color: white; border-radius: 20px; padding: 2px 12px; font-size: 0.75rem; margin-left: 8px; }
+        /* ──────────── TOP BAR ──────────── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
 
-        @media (max-width:1050px){ .shell, .content-grid { grid-template-columns:1fr; } .sidebar { position: static; min-height: auto; } .metrics, .quick-actions { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-        @media (max-width:640px){ body { padding:14px; } .metrics, .quick-actions { grid-template-columns:1fr; } .hero-top, .panel-title { align-items:flex-start; flex-direction: column; } table { min-width:680px; } .table-scroll { overflow-x: auto; } }
+        .topbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar .crest {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .topbar .brand-name {
+            font-family: 'Lora', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0B1A2E;
+        }
+
+        .topbar .brand-tag {
+            font-size: 0.7rem;
+            color: rgba(11, 26, 46, 0.4);
+            font-weight: 400;
+        }
+
+        .topbar .right-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(11, 26, 46, 0.12);
+            color: #0B1A2E;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(11, 26, 46, 0.12);
+            color: #0B1A2E;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        /* ──────────── ACCESS LOCK ──────────── */
+        #accessLock {
+            display: none;
+            text-align: center;
+            padding: 60px 24px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            max-width: 500px;
+            margin: 40px auto;
+        }
+        #accessLock h2 {
+            font-family: 'Lora', serif;
+            font-size: 1.8rem;
+            color: #DC2626;
+            margin-bottom: 12px;
+        }
+        #accessLock p {
+            color: rgba(11, 26, 46, 0.6);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        #accessLock button {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #accessLock button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+        }
+
+        /* ──────────── ADMIN CONTENT ──────────── */
+        #adminContent {
+            display: none;
+        }
+
+        .admin-header {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 24px 28px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 24px;
+        }
+
+        .admin-header h1 {
+            font-family: 'Lora', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0B1A2E;
+        }
+        .admin-header p {
+            color: rgba(11, 26, 46, 0.5);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        /* ──────────── STATS GRID ──────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 20px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            text-align: center;
+        }
+        .stat-card .number {
+            font-family: 'Lora', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #0B1A2E;
+        }
+        .stat-card .label {
+            font-size: 0.75rem;
+            color: rgba(11, 26, 46, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        /* ──────────── TABLE ──────────── */
+        .table-wrap {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+        }
+
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .table-wrap th {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 14px 18px;
+            text-align: left;
+            font-weight: 600;
+            color: rgba(11, 26, 46, 0.6);
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .table-wrap td {
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #0B1A2E;
+        }
+        .table-wrap tr:last-child td {
+            border-bottom: none;
+        }
+        .table-wrap tr:hover td {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .status-badge.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #065F46;
+        }
+        .status-badge.inactive {
+            background: rgba(239, 68, 68, 0.15);
+            color: #991B1B;
+        }
+        .status-badge.pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: #92400E;
+        }
+
+        /* ──────────── LOADING ──────────── */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(59, 130, 246, 0.1);
+            border-top-color: #3B82F6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: rgba(11, 26, 46, 0.6);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* ──────────── RESPONSIVE ──────────── */
+        @media (max-width: 768px) {
+            .container { padding: 16px; }
+            .topbar { padding: 14px 18px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .table-wrap { overflow-x: auto; }
+            .table-wrap table { font-size: 0.75rem; }
+            .table-wrap th, .table-wrap td { padding: 10px 12px; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .topbar .brand-name { font-size: 1rem; }
+            .admin-header h1 { font-size: 1.3rem; }
+            .topbar { flex-direction: column; align-items: stretch; gap: 8px; }
+            .topbar .right-group { justify-content: flex-end; }
+        }
+
+        ::selection {
+            background: rgba(59, 130, 246, 0.15);
+            color: #0B1A2E;
+        }
     </style>
 </head>
 <body>
-    <div class="bg-grid"></div>
-    <div class="clinical-glow"></div>
-    <div class="blobs" aria-hidden="true">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-    </div>
 
-    <div class="auth-bar" id="adminAuthBar" style="display:none;">
-        <div>Signed in as <strong id="adminUserName">Admin</strong></div>
-        <div class="auth-actions">
-            <button onclick="handleAdminLogout()">Logout</button>
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+
+    <div class="container">
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-spinner">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading admin dashboard...</div>
+        </div>
+
+        <!-- Access Lock -->
+        <div id="accessLock">
+            <h2>🔒 Access Denied</h2>
+            <p>You do not have permission to view this page. This area is restricted to EaseMed administrators only.</p>
+            <button onclick="window.location.href='modules.html'">Return to Modules</button>
+        </div>
+
+        <!-- Admin Content -->
+        <div id="adminContent">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="brand">
+                    <div class="crest">⚙️</div>
+                    <div>
+                        <span class="brand-name">EaseMed Admin</span>
+                        <span class="brand-tag">· Dashboard</span>
+                    </div>
+                </div>
+                <div class="right-group">
+                    <a href="modules.html" class="btn-back">← Modules</a>
+                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
+                </div>
+            </div>
+
+            <!-- Admin Header -->
+            <div class="admin-header">
+                <h1>👋 Welcome, <span id="adminName">Admin</span></h1>
+                <p>Manage users and monitor platform activity.</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="number" id="totalUsers">—</div>
+                    <div class="label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="activeUsers">—</div>
+                    <div class="label">Active Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="totalPatients">—</div>
+                    <div class="label">Patients Clerked</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="totalClerkings">—</div>
+                    <div class="label">Total Clerkings</div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding:32px; color:rgba(11,26,46,0.4);">
+                                Loading users...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div class="access-lock" id="accessLock">
-        <h2>Checking admin access…</h2>
-        <p>Please wait while EaseMed verifies that this account has permission to view the admin dashboard.</p>
-    </div>
-
-    <div class="shell" id="adminShell" style="display:none;">
-        <aside class="sidebar">
-            <div class="brand">
-                <div class="brand-mark">EM</div>
-                <div>
-                    <h1>EaseMed Admin</h1>
-                    <span>Clinical clerkship control center</span>
-                </div>
-            </div>
-            <nav class="nav">
-                <button class="active" onclick="showSection(event, 'dashboard')">Dashboard Overview</button>
-                <button onclick="showSection(event, 'students')">Students</button>
-                <button onclick="showSection(event, 'records')">Patient Records</button>
-                <button onclick="showSection(event, 'rounds')">Ward Round Reviews</button>
-                <button onclick="showSection(event, 'supervisors')">Supervisors</button>
-                <button onclick="showSection(event, 'settings')">Settings</button>
-                <button onclick="showSection(event, 'activation')">🔑 User Activation</button>
-                <button onclick="showSection(event, 'analytics')">📊 Engagement Analytics</button>
-            </nav>
-            <div class="sidebar-note">Monitor clerked patients, review completion quality, and identify students who need feedback before ward rounds.</div>
-        </aside>
-
-        <main class="main">
-            <!-- DASHBOARD SECTION -->
-            <section id="dashboardSection">
-                <section class="main-panel">
-                    <div class="hero">
-                        <div class="hero-top">
-                            <div>
-                                <h2>Admin Dashboard</h2>
-                                <p>Track medical clerkship activity, review patient documentation quality, and monitor user sessions.</p>
-                            </div>
-                            <div class="admin-pill" id="adminRolePill">Admin Access</div>
-                        </div>
-                    </div>
-
-                    <div class="tabs">
-                        <button id="tabPediatric" class="admin-tab active" onclick="switchTable('pediatric')">👶 Pediatric</button>
-                        <button id="tabAdult" class="admin-tab" onclick="switchTable('adult')">🧑 Adult</button>
-                    </div>
-
-                    <div id="dashboardMessage" class="alert-info" style="display:none;"></div>
-
-                    <div class="metrics">
-                        <div class="card accent-teal">
-                            <div class="metric-label">Clerked Patients</div>
-                            <div class="metric-value" id="totalPatientsValue">--</div>
-                            <div class="metric-sub">Total encounters</div>
-                        </div>
-                        <div class="card accent-blue">
-                            <div class="metric-label">Active Students</div>
-                            <div class="metric-value" id="activeStudentsValue">--</div>
-                            <div class="metric-sub">Students who clerked</div>
-                        </div>
-                        <div class="card accent-gold">
-                            <div class="metric-label">Ward Round Ready</div>
-                            <div class="metric-value" id="completePercentValue">--%</div>
-                            <div class="metric-sub">With management plan</div>
-                        </div>
-                        <div class="card accent-red">
-                            <div class="metric-label">Needs Review</div>
-                            <div class="metric-value" id="needsReviewValue">--</div>
-                            <div class="metric-sub">Missing HPC/exam</div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="content-grid" style="margin-top:8px;">
-                    <div class="table-panel">
-                        <div class="panel-title">
-                            <h3><span class="live-dot"></span> Currently Active Users</h3>
-                            <button onclick="loadActiveUsers()">Refresh</button>
-                        </div>
-                        <div class="table-scroll">
-                            <table>
-                                <thead><tr><th>User</th><th>Email</th><th>IP Address</th><th>Device</th><th>Last Seen</th></tr></thead>
-                                <tbody id="activeUsersBody"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="table-panel">
-                        <div class="panel-title">
-                            <h3>📋 Recent Logins</h3>
-                            <button onclick="loadRecentLogins()">Refresh</button>
-                        </div>
-                        <div class="table-scroll">
-                            <table>
-                                <thead><tr><th>User</th><th>Email</th><th>IP Address</th><th>Device</th><th>Login Time</th></tr></thead>
-                                <tbody id="recentLoginsBody"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="quick-actions">
-                    <div class="action"><span>+</span><strong>Add Student</strong><p>Create a student profile and assign a clerkship rotation.</p></div>
-                    <div class="action"><span>R</span><strong>Review Cases</strong><p>Open pending patient records that need supervisor feedback.</p></div>
-                    <div class="action"><span>B</span><strong>Backup Records</strong><p>Download or restore saved clerkship records securely.</p></div>
-                </section>
-
-                <section class="content-grid">
-                    <div class="table-panel">
-                        <div class="panel-title">
-                            <h3>Recent Clerked Patients</h3>
-                            <button onclick="loadRecentPatients()">Refresh</button>
-                        </div>
-                        <div class="table-scroll">
-                            <table>
-                                <thead><tr><th>Patient</th><th>Student</th><th>Complaint</th><th>Plan</th><th>Status</th></tr></thead>
-                                <tbody id="recentPatientsBody"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="table-panel">
-                        <div class="panel-title">
-                            <h3>Admin Activity</h3>
-                            <button onclick="loadRecentActivity()">Refresh</button>
-                        </div>
-                        <div class="activity-list" id="activityList">
-                            <div class="activity"><div class="dot"></div><div><strong>Loading activity...</strong><span>Please wait</span></div></div>
-                        </div>
-                    </div>
-                </section>
-            </section>
-
-            <!-- USER ACTIVATION SECTION -->
-            <section id="activationSection">
-                <div class="table-panel">
-                    <div class="panel-title">
-                        <h3>🔑 User Activation <span class="user-count-badge" id="userCountBadge">0</span></h3>
-                        <button onclick="loadAllUsers()">Refresh</button>
-                    </div>
-
-                    <div style="padding:16px 20px; background:rgba(248,250,252,0.6); border-bottom:1px solid #e2e8f0; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-                        <input id="userSearchInput" type="text" placeholder="Search by email or name..."
-                            oninput="filterUsers()"
-                            style="flex:1; min-width:200px; padding:10px 14px; border:1.5px solid #dbe7ef; border-radius:10px; font-size:0.9rem; outline:none;" />
-                        <select id="statusFilter" onchange="filterUsers()" style="padding:10px 14px; border:1.5px solid #dbe7ef; border-radius:10px; font-size:0.9rem; outline:none; background:white;">
-                            <option value="all">All Users</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="pending">Pending Profile</option>
-                            <option value="expired">Expired</option>
-                        </select>
-                        <button onclick="loadAllUsers()" style="padding:10px 20px; border:none; border-radius:10px; background:linear-gradient(135deg,#1e3c72,#2a9d8f); color:white; font-weight:700; cursor:pointer;">
-                            🔄 Refresh
-                        </button>
-                    </div>
-
-                    <div class="table-scroll">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Email</th>
-                                    <th>Full Name</th>
-                                    <th>Status</th>
-                                    <th>Expires</th>
-                                    <th>Joined</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="allUsersBody">
-                                <tr><td colspan="6" style="text-align:center;">Click Refresh to load users</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ENGAGEMENT ANALYTICS SECTION -->
-            <section id="analyticsSection">
-                <div class="main-panel">
-                    <div class="hero">
-                        <div class="hero-top">
-                            <div>
-                                <h2>Engagement Analytics</h2>
-                                <p>See how long students spend in EaseMed and which modules get the most attention.</p>
-                            </div>
-                            <div class="admin-pill">Live from activity_logs</div>
-                        </div>
-                    </div>
-
-                    <div id="analyticsMessage" class="alert-info" style="display:none;"></div>
-
-                    <div class="metrics">
-                        <div class="card accent-teal">
-                            <div class="metric-label">Sessions Tracked</div>
-                            <div class="metric-value" id="totalSessionsValue">--</div>
-                            <div class="metric-sub">All-time module views</div>
-                        </div>
-                        <div class="card accent-blue">
-                            <div class="metric-label">Avg. Session Length</div>
-                            <div class="metric-value" id="avgSessionValue">--</div>
-                            <div class="metric-sub">Minutes per module view</div>
-                        </div>
-                        <div class="card accent-gold">
-                            <div class="metric-label">Total Engagement</div>
-                            <div class="metric-value" id="totalHoursValue">--</div>
-                            <div class="metric-sub">Hours across all students</div>
-                        </div>
-                        <div class="card accent-red">
-                            <div class="metric-label">Top Module</div>
-                            <div class="metric-value" id="topModuleValue" style="font-size:1.1rem;">--</div>
-                            <div class="metric-sub">Highest avg. time spent</div>
-                        </div>
-                    </div>
-                </div>
-
-                <section class="content-grid" style="margin-top:8px;">
-                    <div class="table-panel">
-                        <div class="panel-title">
-                            <h3>⏱️ Avg. Time Spent per Module</h3>
-                            <button onclick="loadModuleEngagementChart()">Refresh</button>
-                        </div>
-                        <div style="padding:20px;">
-                            <canvas id="moduleEngagementChart" height="110"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="table-panel">
-                        <div class="panel-title">
-                            <h3>🏆 Most Engaged Students</h3>
-                            <button onclick="loadTopEngagedStudents()">Refresh</button>
-                        </div>
-                        <div class="table-scroll">
-                            <table>
-                                <thead><tr><th>Student</th><th>University</th><th>Sessions</th><th>Total Time</th></tr></thead>
-                                <tbody id="topStudentsBody"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="content-grid" style="margin-top:8px;">
-                    <div class="table-panel">
-                        <div class="panel-title">
-                            <h3>⚠️ Low-Engagement Modules</h3>
-                            <button onclick="loadLowEngagementModules()">Refresh</button>
-                        </div>
-                        <div class="table-scroll">
-                            <table>
-                                <thead><tr><th>Module</th><th>Avg. Time</th><th>Views</th><th>Signal</th></tr></thead>
-                                <tbody id="lowEngagementBody"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-            </section>
-        </main>
-    </div>
-
     <script>
-        // ==================== Configuration ====================
+        // ─── VERSION CONTROL ───
+        const APP_VERSION = '2.0.5';
+        const CACHE_KEY = 'easemed_app_version';
+        
+        const storedVersion = localStorage.getItem(CACHE_KEY);
+        if (storedVersion !== APP_VERSION) {
+            console.log('[Cache] New version detected, clearing cache...');
+            if ('caches' in window) {
+                caches.keys().then(keys => {
+                    keys.forEach(key => caches.delete(key));
+                });
+            }
+            localStorage.setItem(CACHE_KEY, APP_VERSION);
+        }
+
+        // ─── CONFIGURATION ───
         const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
-        const ADMIN_EMAILS = ['kigozigeorge04@gmail.com'];
+        // ─── GLOBALS ───
         let supabaseClient = null;
-        let currentTable = 'pediatric';
-        let refreshInterval = null;
-        let allUsersCache = [];
-        let moduleChartInstance = null;
+        let currentUser = null;
 
-        // ==================== Initialize Supabase ====================
+        // ─── INIT ───
         function initSupabase() {
+            if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                console.warn('[Admin] Supabase SDK not available. Retrying...');
+                setTimeout(initSupabase, 1000);
+                return;
+            }
+
             try {
-                const { createClient } = supabase;
-                supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON);
-                console.log('✅ Supabase client initialized successfully');
-                return true;
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+                console.log('[Admin] Supabase client initialized.');
+                checkAuth();
             } catch (error) {
-                console.error('❌ Failed to initialize Supabase:', error);
-                return false;
-            }
-        }
-
-        // ==================== Helper Functions ====================
-        function showMessage(msg, isError = false) {
-            const el = document.getElementById('dashboardMessage');
-            if (!el) return;
-            el.style.display = 'block';
-            el.className = isError ? 'alert-error' : 'alert-info';
-            el.innerHTML = msg;
-        }
-
-        function showAnalyticsMessage(msg, isError = false) {
-            const el = document.getElementById('analyticsMessage');
-            if (!el) return;
-            el.style.display = 'block';
-            el.className = isError ? 'alert-error' : 'alert-info';
-            el.innerHTML = msg;
-        }
-
-        function showToastAdmin(msg) {
-            const toast = document.createElement('div');
-            toast.style.cssText = 'position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#1e3c72; color:#fff; padding:12px 28px; border-radius:30px; font-size:0.9rem; font-weight:700; z-index:99999; box-shadow:0 8px 24px rgba(0,0,0,0.2);';
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        async function tableExists(tableName) {
-            try {
-                const { error } = await supabaseClient.from(tableName).select('id', { count: 'exact', head: true });
-                if (error && error.message && error.message.includes('relation') && error.message.includes('does not exist')) {
-                    return false;
-                }
-                return true;
-            } catch (e) {
-                console.error('Table exists check error:', e);
-                return false;
-            }
-        }
-
-        function getDefaultExpiry() {
-            const d = new Date();
-            d.setFullYear(d.getFullYear() + 1);
-            return d.toISOString().split('T')[0];
-        }
-
-        // ==================== Navigation ====================
-        function showSection(event, section) {
-            document.querySelectorAll('.main > section').forEach(s => s.style.display = 'none');
-
-            if (section === 'activation') {
-                document.getElementById('activationSection').style.display = 'block';
-                loadAllUsers();
-            } else if (section === 'analytics') {
-                document.getElementById('analyticsSection').style.display = 'block';
-                loadEngagementOverview();
-                loadModuleEngagementChart();
-                loadTopEngagedStudents();
-                loadLowEngagementModules();
-            } else {
-                document.getElementById('dashboardSection').style.display = 'block';
-            }
-
-            document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-            if (event && event.target) {
-                event.target.classList.add('active');
-            }
-        }
-
-        // ==================== Dashboard Functions ====================
-        async function loadDashboardStats() {
-            const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
-
-            if (!supabaseClient) {
-                showMessage('❌ Supabase not initialized', true);
-                return;
-            }
-
-            const exists = await tableExists(tableName);
-            if (!exists) {
-                showMessage(`⚠️ Table <strong>${tableName}</strong> does not exist. Please create it first.`, true);
-                document.getElementById('totalPatientsValue').innerText = '0';
-                document.getElementById('activeStudentsValue').innerText = '0';
-                document.getElementById('completePercentValue').innerHTML = '0%';
-                document.getElementById('needsReviewValue').innerText = '0';
-                return;
-            }
-
-            try {
-                const { count: total, error: totalErr } = await supabaseClient
-                    .from(tableName)
-                    .select('id', { count: 'exact', head: true });
-                if (totalErr) throw totalErr;
-
-                const { data: studentsData, error: studentsErr } = await supabaseClient
-                    .from(tableName)
-                    .select('user_id');
-                let activeStudents = 0;
-                if (!studentsErr && studentsData) {
-                    activeStudents = new Set(studentsData.map(s => s.user_id)).size;
-                }
-
-                let complete = 0;
-                try {
-                    const { count: c, error: ce } = await supabaseClient
-                        .from(tableName)
-                        .select('id', { count: 'exact', head: true })
-                        .not('management_plan', 'is', null)
-                        .not('management_plan', 'eq', '');
-                    if (!ce) complete = c || 0;
-                } catch (e) { /* ignore */ }
-
-                const percentReady = total ? Math.round((complete / total) * 100) : 0;
-
-                let missing = 0;
-                try {
-                    const { count: m, error: me } = await supabaseClient
-                        .from(tableName)
-                        .select('id', { count: 'exact', head: true })
-                        .or('hpc.is.null,hpc.eq.,exam_data.is.null');
-                    if (!me) missing = m || 0;
-                } catch (e) { missing = 0; }
-
-                document.getElementById('totalPatientsValue').innerText = total || 0;
-                document.getElementById('activeStudentsValue').innerText = activeStudents;
-                document.getElementById('completePercentValue').innerHTML = `${percentReady}%`;
-                document.getElementById('needsReviewValue').innerText = missing;
-                showMessage('', false);
-            } catch (err) {
-                console.error('Error loading dashboard stats:', err);
-                showMessage(`❌ Error loading stats: ${err.message}`, true);
-                document.getElementById('totalPatientsValue').innerText = 'Error';
-                document.getElementById('activeStudentsValue').innerText = 'Error';
-                document.getElementById('completePercentValue').innerHTML = 'Error';
-                document.getElementById('needsReviewValue').innerText = 'Error';
-            }
-        }
-
-        async function loadActiveUsers() {
-            const tbody = document.getElementById('activeUsersBody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
-
-            if (!supabaseClient) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">❌ Supabase not initialized</td></tr>';
-                return;
-            }
-
-            try {
-                const exists = await tableExists('user_sessions');
-                if (!exists) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">⚠️ Table user_sessions does not exist.</td></tr>';
-                    return;
-                }
-
-                const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-                const { data: sessions, error } = await supabaseClient
-                    .from('user_sessions')
-                    .select('id, user_id, email, ip_address, user_agent, login_time')
-                    .gte('login_time', tenMinAgo)
-                    .order('login_time', { ascending: false });
-
-                if (error) {
-                    console.error('Error fetching sessions:', error);
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ Error: ${error.message}</td></tr>`;
-                    return;
-                }
-
-                if (!sessions || sessions.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No active users in last 10 min</td></tr>';
-                    return;
-                }
-
-                const userIds = [...new Set(sessions.map(s => s.user_id))];
-                const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, email').in('id', userIds);
-                const userMap = new Map();
-                if (profiles) profiles.forEach(p => userMap.set(p.id, p.full_name || p.email || 'Unknown'));
-
-                tbody.innerHTML = '';
-                for (let s of sessions) {
-                    const row = tbody.insertRow();
-                    const displayName = userMap.get(s.user_id) || s.email || 'Unknown';
-                    row.insertCell(0).innerText = displayName;
-                    row.insertCell(1).innerText = s.email || '—';
-                    row.insertCell(2).innerHTML = `<span class="session-ip">${s.ip_address || '—'}</span>`;
-                    row.insertCell(3).innerHTML = `<span class="session-device">${s.user_agent ? s.user_agent.slice(0,40) + '…' : '—'}</span>`;
-                    row.insertCell(4).innerText = s.login_time ? new Date(s.login_time).toLocaleString() : '—';
-                }
-            } catch (err) {
-                console.error('loadActiveUsers error:', err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ ${err.message}</td></tr>`;
-            }
-        }
-
-        async function loadRecentLogins() {
-            const tbody = document.getElementById('recentLoginsBody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
-
-            if (!supabaseClient) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">❌ Supabase not initialized</td></tr>';
-                return;
-            }
-
-            try {
-                const exists = await tableExists('user_sessions');
-                if (!exists) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">⚠️ Table user_sessions does not exist.</td></tr>';
-                    return;
-                }
-
-                const { data: logins, error } = await supabaseClient
-                    .from('user_sessions')
-                    .select('id, user_id, email, ip_address, user_agent, login_time')
-                    .order('login_time', { ascending: false })
-                    .limit(20);
-
-                if (error) {
-                    console.error('Error fetching recent logins:', error);
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ Error: ${error.message}</td></tr>`;
-                    return;
-                }
-
-                if (!logins || logins.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No login records found</td></tr>';
-                    return;
-                }
-
-                const userIds = [...new Set(logins.map(s => s.user_id))];
-                const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, email').in('id', userIds);
-                const userMap = new Map();
-                if (profiles) profiles.forEach(p => userMap.set(p.id, p.full_name || p.email || 'Unknown'));
-
-                tbody.innerHTML = '';
-                for (let s of logins) {
-                    const row = tbody.insertRow();
-                    const displayName = userMap.get(s.user_id) || s.email || 'Unknown';
-                    row.insertCell(0).innerText = displayName;
-                    row.insertCell(1).innerText = s.email || '—';
-                    row.insertCell(2).innerHTML = `<span class="session-ip">${s.ip_address || '—'}</span>`;
-                    row.insertCell(3).innerHTML = `<span class="session-device">${s.user_agent ? s.user_agent.slice(0,40) + '…' : '—'}</span>`;
-                    row.insertCell(4).innerText = s.login_time ? new Date(s.login_time).toLocaleString() : '—';
-                }
-            } catch (err) {
-                console.error('loadRecentLogins error:', err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">❌ ${err.message}</td></tr>`;
-            }
-        }
-
-        async function loadRecentPatients() {
-            const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
-            const tbody = document.getElementById('recentPatientsBody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
-
-            if (!supabaseClient) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">❌ Supabase not initialized</td></tr>';
-                return;
-            }
-
-            const exists = await tableExists(tableName);
-            if (!exists) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">⚠️ Table not created yet.</td></tr>';
-                return;
-            }
-
-            try {
-                let selectFields = currentTable === 'pediatric' ? 'child_name, user_id, current_symptom, management_plan, created_at' : 'full_name, user_id, current_symptom, management_plan, created_at';
-
-                const { data: records, error } = await supabaseClient
-                    .from(tableName)
-                    .select(selectFields)
-                    .order('created_at', { ascending: false })
-                    .limit(10);
-
-                if (error) throw error;
-
-                if (!records || records.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No records found</td></tr>';
-                    return;
-                }
-
-                const userIds = [...new Set(records.map(r => r.user_id))];
-                const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, email').in('id', userIds);
-                const userMap = new Map();
-                if (profiles) profiles.forEach(p => userMap.set(p.id, p.full_name || p.email || 'Unknown'));
-
-                tbody.innerHTML = '';
-                for (let rec of records) {
-                    const row = tbody.insertRow();
-                    const patientName = currentTable === 'pediatric' ? rec.child_name : rec.full_name;
-                    row.insertCell(0).innerText = patientName || '—';
-                    row.insertCell(1).innerText = userMap.get(rec.user_id) || 'Unknown';
-                    row.insertCell(2).innerText = rec.current_symptom || '—';
-                    const hasPlan = rec.management_plan && rec.management_plan.trim() !== '';
-                    row.insertCell(3).innerText = hasPlan ? 'Yes' : 'No';
-                    const statusClass = hasPlan ? 'good' : 'warn';
-                    const statusText = hasPlan ? 'Ready' : 'Pending';
-                    row.insertCell(4).innerHTML = `<span class="status ${statusClass}">${statusText}</span>`;
-                }
-            } catch (err) {
-                console.error('Error loading recent patients:', err);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Error: ${err.message}</td></tr>`;
-            }
-        }
-
-        async function loadRecentActivity() {
-            const tableName = currentTable === 'pediatric' ? 'pediatric_encounters' : 'adult_encounters';
-            const activityContainer = document.getElementById('activityList');
-            activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Loading activity...</strong><span>Please wait</span></div></div>';
-
-            if (!supabaseClient) {
-                activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>❌ Supabase not initialized</strong><span>Please refresh</span></div></div>';
-                return;
-            }
-
-            const exists = await tableExists(tableName);
-            if (!exists) {
-                activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>⚠️ Table not created yet</strong><span>No activity to show</span></div></div>';
-                return;
-            }
-
-            try {
-                let selectFields = currentTable === 'pediatric' ? 'child_name, created_at, user_id' : 'full_name, created_at, user_id';
-                const { data: activities, error } = await supabaseClient
-                    .from(tableName)
-                    .select(selectFields)
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-
-                if (error) throw error;
-
-                if (!activities || activities.length === 0) {
-                    activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>No recent activity</strong><span>No records have been saved yet</span></div></div>';
-                    return;
-                }
-
-                const userIds = [...new Set(activities.map(a => a.user_id))];
-                const { data: profiles } = await supabaseClient.from('profiles').select('id, full_name, email').in('id', userIds);
-                const userMap = new Map();
-                if (profiles) profiles.forEach(p => userMap.set(p.id, p.full_name || p.email || 'Unknown'));
-
-                activityContainer.innerHTML = '';
-                for (let act of activities) {
-                    const date = new Date(act.created_at).toLocaleString();
-                    const studentName = userMap.get(act.user_id) || act.user_id?.slice(0,8) || 'Unknown';
-                    const patientName = currentTable === 'pediatric' ? act.child_name : act.full_name;
-                    const div = document.createElement('div');
-                    div.className = 'activity';
-                    div.innerHTML = `<div class="dot"></div><div><strong>New patient record</strong><span>${patientName || 'Unnamed'} clerked by ${studentName} on ${date}</span></div>`;
-                    activityContainer.appendChild(div);
-                }
-            } catch (err) {
-                console.error('Error loading activity:', err);
-                activityContainer.innerHTML = '<div class="activity"><div class="dot"></div><div><strong>Could not load activity</strong><span>Please refresh the page</span></div></div>';
-            }
-        }
-
-        function switchTable(table) {
-            currentTable = table;
-            document.getElementById('tabPediatric').classList.toggle('active', table === 'pediatric');
-            document.getElementById('tabAdult').classList.toggle('active', table === 'adult');
-            loadDashboardStats();
-            loadRecentPatients();
-            loadRecentActivity();
-        }
-
-        function startAutoRefresh() {
-            if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(() => {
-                loadActiveUsers();
-                loadRecentLogins();
-            }, 30000);
-        }
-
-        // ==================== USER ACTIVATION FUNCTIONS ====================
-        async function loadAllUsers() {
-            const tbody = document.getElementById('allUsersBody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
-
-            if (!supabaseClient) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">❌ Supabase not initialized</td></tr>';
-                return;
-            }
-
-            try {
-                const { data: profiles, error: profilesError } = await supabaseClient
-                    .from('profiles')
-                    .select('id, is_active, expires_at, created_at, email, full_name')
-                    .order('created_at', { ascending: false });
-
-                if (profilesError) throw profilesError;
-
-                let allUsers = [];
-
-                if (profiles && profiles.length > 0) {
-                    allUsers = profiles.map(p => ({
-                        id: p.id,
-                        email: p.email || 'No email',
-                        full_name: p.full_name || 'No name',
-                        is_active: p.is_active || false,
-                        expires_at: p.expires_at,
-                        created_at: p.created_at,
-                        has_profile: true,
-                        is_pending: false
-                    }));
-                }
-
-                const { data: sessions, error: sessionsError } = await supabaseClient
-                    .from('user_sessions')
-                    .select('user_id, email')
-                    .order('login_time', { ascending: false });
-
-                if (!sessionsError && sessions) {
-                    const sessionUsers = new Map();
-                    sessions.forEach(s => {
-                        if (s.user_id && s.email) {
-                            sessionUsers.set(s.user_id, s.email);
-                        }
-                    });
-
-                    const profileIds = new Set(allUsers.map(u => u.id));
-                    for (let [userId, email] of sessionUsers) {
-                        if (!profileIds.has(userId)) {
-                            allUsers.push({
-                                id: userId,
-                                email: email || 'Unknown email',
-                                full_name: 'Pending Profile',
-                                is_active: false,
-                                expires_at: null,
-                                created_at: null,
-                                has_profile: false,
-                                is_pending: true
-                            });
-                        }
-                    }
-                }
-
-                const userMap = new Map();
-                allUsers.forEach(u => {
-                    if (!userMap.has(u.id)) {
-                        userMap.set(u.id, u);
-                    }
-                });
-                allUsers = Array.from(userMap.values());
-
-                allUsers.sort((a, b) => {
-                    if (a.created_at && b.created_at) {
-                        return new Date(b.created_at) - new Date(a.created_at);
-                    }
-                    return 0;
-                });
-
-                allUsersCache = allUsers;
-                document.getElementById('userCountBadge').textContent = allUsers.length;
-                renderUsersTable(allUsers);
-
-            } catch (err) {
-                console.error('loadAllUsers error:', err);
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#c0392b;">❌ ${err.message}</td></tr>`;
-            }
-        }
-
-        function renderUsersTable(users) {
-            const tbody = document.getElementById('allUsersBody');
-            tbody.innerHTML = '';
-
-            if (!users || users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No users found</td></tr>';
-                return;
-            }
-
-            for (let u of users) {
-                const isActive = u.is_active;
-                const expires = u.expires_at ? new Date(u.expires_at).toLocaleDateString() : '—';
-                const joined = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
-                const isExpired = u.expires_at && new Date(u.expires_at) < new Date();
-                const isPending = u.is_pending || !u.has_profile;
-
-                let statusHtml;
-                if (isPending) {
-                    statusHtml = '<span class="status pending">⏳ Pending Profile</span>';
-                } else if (isActive && !isExpired) {
-                    statusHtml = '<span class="status good">✅ Active</span>';
-                } else if (isActive && isExpired) {
-                    statusHtml = '<span class="status risk">⏰ Expired</span>';
-                } else {
-                    statusHtml = '<span class="status warn">⛔ Inactive</span>';
-                }
-
-                const row = tbody.insertRow();
-
-                let actionsHtml = '';
-                if (isPending) {
-                    actionsHtml = `
-                        <button class="toggle-btn create" onclick="createUserProfile('${u.id}', '${u.email}')">
-                            ✨ Create Profile
-                        </button>
-                    `;
-                } else {
-                    const expiryInput = `
-                        <input type="date" class="expire-input" id="exp-${u.id}"
-                            value="${u.expires_at ? u.expires_at.split('T')[0] : getDefaultExpiry()}" />
-                    `;
-                    actionsHtml = `
-                        ${expiryInput}
-                        ${isActive && !isExpired
-                            ? `<button class="toggle-btn deactivate" onclick="deactivateUser('${u.id}')">🔒 Deactivate</button>`
-                            : `<button class="toggle-btn activate" onclick="activateUser('${u.id}')">🔓 Activate</button>`
-                        }
-                    `;
-                }
-
-                row.innerHTML = `
-                    <td>${u.email || '—'}</td>
-                    <td>${u.full_name || '—'}</td>
-                    <td>${statusHtml}</td>
-                    <td>${expires}</td>
-                    <td>${joined}</td>
-                    <td style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">${actionsHtml}</td>
+                console.error('[Admin] Init error:', error);
+                document.getElementById('loadingSpinner').innerHTML = `
+                    <div class="spinner"></div>
+                    <div class="loading-text" style="color:#DC2626;">Failed to initialize. Please refresh.</div>
                 `;
             }
         }
 
-        async function createUserProfile(userId, email) {
-            if (!confirm(`Create a profile for ${email}? This will allow them to access the system.`)) return;
+        // ─── CHECK AUTH ───
+        async function checkAuth() {
+            const spinner = document.getElementById('loadingSpinner');
+            const lock = document.getElementById('accessLock');
+            const content = document.getElementById('adminContent');
 
             if (!supabaseClient) {
-                alert('❌ Supabase not initialized');
+                console.warn('[Admin] Supabase client not available');
                 return;
             }
 
             try {
-                const { data, error } = await supabaseClient
-                    .from('profiles')
-                    .insert({
-                        id: userId,
-                        email: email,
-                        full_name: email.split('@')[0],
-                        is_active: true,
-                        expires_at: new Date(getDefaultExpiry()).toISOString()
-                    });
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
 
-                if (error) throw error;
-
-                showToastAdmin('✅ Profile created and user activated successfully!');
-                loadAllUsers();
-            } catch (err) {
-                alert('❌ Failed to create profile: ' + err.message);
-            }
-        }
-
-        async function activateUser(userId) {
-            const expiryInput = document.getElementById(`exp-${userId}`);
-            const expiryVal = expiryInput?.value;
-            if (!expiryVal) {
-                alert('Please set an expiry date first.');
-                return;
-            }
-
-            if (!supabaseClient) {
-                alert('❌ Supabase not initialized');
-                return;
-            }
-
-            const { error } = await supabaseClient
-                .from('profiles')
-                .update({
-                    is_active: true,
-                    expires_at: new Date(expiryVal).toISOString()
-                })
-                .eq('id', userId);
-
-            if (error) {
-                alert('❌ Failed to activate: ' + error.message);
-                return;
-            }
-
-            showToastAdmin('✅ User activated successfully');
-            loadAllUsers();
-        }
-
-        async function deactivateUser(userId) {
-            if (!confirm('Deactivate this user? They will lose access immediately.')) return;
-
-            if (!supabaseClient) {
-                alert('❌ Supabase not initialized');
-                return;
-            }
-
-            const { error } = await supabaseClient
-                .from('profiles')
-                .update({ is_active: false })
-                .eq('id', userId);
-
-            if (error) {
-                alert('❌ Failed to deactivate: ' + error.message);
-                return;
-            }
-
-            showToastAdmin('⚠️ User deactivated');
-            loadAllUsers();
-        }
-
-        function filterUsers() {
-            const query = document.getElementById('userSearchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-
-            let filtered = allUsersCache.filter(u => {
-                const emailMatch = (u.email || '').toLowerCase().includes(query);
-                const nameMatch = (u.full_name || '').toLowerCase().includes(query);
-
-                if (!emailMatch && !nameMatch) return false;
-
-                if (statusFilter === 'all') return true;
-
-                const isActive = u.is_active;
-                const isExpired = u.expires_at && new Date(u.expires_at) < new Date();
-                const isPending = u.is_pending || !u.has_profile;
-
-                switch(statusFilter) {
-                    case 'active': return isActive && !isExpired && !isPending;
-                    case 'inactive': return !isActive && !isPending;
-                    case 'pending': return isPending;
-                    case 'expired': return isActive && isExpired;
-                    default: return true;
-                }
-            });
-
-            renderUsersTable(filtered);
-        }
-
-        // ==================== ENGAGEMENT ANALYTICS ====================
-        // These call Postgres RPC functions (see accompanying SQL) so the
-        // grouping/aggregation happens in the database, not by pulling every
-        // activity_logs row into the browser and reducing it client-side.
-        // Requires: admin RLS policy on activity_logs (see SQL) + the four
-        // get_* RPC functions created in Supabase.
-
-        async function loadEngagementOverview() {
-            if (!supabaseClient) return;
-
-            try {
-                const { data, error } = await supabaseClient.rpc('get_engagement_overview');
-                if (error) throw error;
-
-                const row = Array.isArray(data) ? data[0] : data;
-
-                if (!row || !row.total_sessions) {
-                    document.getElementById('totalSessionsValue').innerText = '0';
-                    document.getElementById('avgSessionValue').innerText = '0 min';
-                    document.getElementById('totalHoursValue').innerText = '0 hrs';
-                    document.getElementById('topModuleValue').innerText = 'No data yet';
+                if (error) {
+                    console.error('[Admin] Session error:', error);
+                    showAccessDenied('Unable to verify session. Please sign in again.');
                     return;
                 }
-
-                document.getElementById('totalSessionsValue').innerText = row.total_sessions;
-                document.getElementById('avgSessionValue').innerText = `${row.avg_minutes ?? 0} min`;
-                document.getElementById('totalHoursValue').innerText = `${row.total_hours ?? 0} hrs`;
-                document.getElementById('topModuleValue').innerText = row.top_module || '--';
-            } catch (err) {
-                console.error('loadEngagementOverview error:', err);
-                showAnalyticsMessage(`⚠️ Could not load overview: ${err.message}. Make sure the get_engagement_overview RPC and admin RLS policy are set up in Supabase.`, true);
-            }
-        }
-
-        async function loadModuleEngagementChart() {
-            if (!supabaseClient) return;
-
-            try {
-                const { data, error } = await supabaseClient.rpc('get_module_engagement');
-                if (error) throw error;
-
-                if (!data || data.length === 0) return;
-
-                const labels = data.map(r => r.module_name || 'Unnamed');
-                const avgMinutes = data.map(r => r.avg_minutes || 0);
-
-                const ctx = document.getElementById('moduleEngagementChart');
-                if (moduleChartInstance) moduleChartInstance.destroy();
-
-                moduleChartInstance = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Avg. minutes per view',
-                            data: avgMinutes,
-                            backgroundColor: '#2a9d8f',
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Minutes' } } }
-                    }
-                });
-            } catch (err) {
-                console.error('loadModuleEngagementChart error:', err);
-                showAnalyticsMessage(`⚠️ Could not load module chart: ${err.message}`, true);
-            }
-        }
-
-        async function loadTopEngagedStudents() {
-            const tbody = document.getElementById('topStudentsBody');
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
-
-            if (!supabaseClient) return;
-
-            try {
-                const { data, error } = await supabaseClient.rpc('get_top_engaged_students', { limit_count: 15 });
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No engagement data yet</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = '';
-                data.forEach(u => {
-                    const row = tbody.insertRow();
-                    row.insertCell(0).innerText = u.full_name || 'Unknown';
-                    row.insertCell(1).innerText = u.university || '—';
-                    row.insertCell(2).innerText = u.sessions;
-                    row.insertCell(3).innerText = `${u.total_minutes} min`;
-                });
-            } catch (err) {
-                console.error('loadTopEngagedStudents error:', err);
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">❌ ${err.message}</td></tr>`;
-            }
-        }
-
-        async function loadLowEngagementModules() {
-            const tbody = document.getElementById('lowEngagementBody');
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
-
-            if (!supabaseClient) return;
-
-            try {
-                const { data, error } = await supabaseClient.rpc('get_low_engagement_modules');
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">✅ No modules flagged — all healthy engagement</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = '';
-                data.forEach(m => {
-                    const row = tbody.insertRow();
-                    row.insertCell(0).innerText = m.module_name || 'Unnamed';
-                    row.insertCell(1).innerText = `${Math.round(m.avg_seconds)}s`;
-                    row.insertCell(2).innerText = m.views;
-                    row.insertCell(3).innerHTML = '<span class="status warn">⚠️ Possible bounce</span>';
-                });
-            } catch (err) {
-                console.error('loadLowEngagementModules error:', err);
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">❌ ${err.message}</td></tr>`;
-            }
-        }
-
-        // ==================== Admin Authentication ====================
-        function isAdminUser(user) {
-            const email = (user.email || '').toLowerCase();
-            const appRole = user.app_metadata?.role || user.app_metadata?.user_role;
-            const userRole = user.user_metadata?.role || user.user_metadata?.user_role;
-            const isAdminFlag = user.user_metadata?.is_admin || user.app_metadata?.is_admin;
-            return ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email) || appRole === 'admin' || userRole === 'admin' || isAdminFlag === true;
-        }
-
-        function showAdmin(user) {
-            const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email;
-            document.getElementById('adminUserName').textContent = displayName;
-            document.getElementById('adminRolePill').textContent = `Admin: ${displayName}`;
-            document.getElementById('accessLock').style.display = 'none';
-            document.getElementById('adminAuthBar').style.display = 'flex';
-            document.getElementById('adminShell').style.display = 'grid';
-
-            loadDashboardStats();
-            loadRecentPatients();
-            loadRecentActivity();
-            loadActiveUsers();
-            loadRecentLogins();
-            startAutoRefresh();
-        }
-
-        function showAccessDenied() {
-            document.getElementById('adminShell').style.display = 'none';
-            document.getElementById('adminAuthBar').style.display = 'none';
-            document.getElementById('accessLock').innerHTML = `
-                <h2>Admin access required</h2>
-                <p>This account is signed in but has not been granted EaseMed admin access.
-                   Ask the system owner to add an admin role or include this email in the admin list.</p>
-                <button onclick="handleAdminLogout()">Use another account</button>
-            `;
-            document.getElementById('accessLock').style.display = 'block';
-        }
-
-        async function handleAdminLogout() {
-            if (supabaseClient) await supabaseClient.auth.signOut();
-            localStorage.removeItem('easemed_user');
-            localStorage.removeItem('easemed_user_name');
-            window.location.href = 'easemed_login.html';
-        }
-
-        // ==================== Initialize ====================
-        (async function checkAdminAccess() {
-            try {
-                if (!initSupabase()) {
-                    document.getElementById('accessLock').innerHTML = `
-                        <h2>⚠️ Configuration Error</h2>
-                        <p>Failed to initialize Supabase. Please check your API keys.</p>
-                        <button onclick="window.location.reload()">Retry</button>
-                    `;
-                    return;
-                }
-
-                const { data: { session } } = await supabaseClient.auth.getSession();
 
                 if (!session) {
                     window.location.href = 'easemed_login.html';
                     return;
                 }
 
-                if (!isAdminUser(session.user)) {
-                    showAccessDenied();
+                currentUser = session.user;
+
+                // Check if user is admin
+                const { data: profile, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('role, full_name')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (profileError) {
+                    console.error('[Admin] Profile error:', profileError);
+                    showAccessDenied('Unable to verify your profile.');
                     return;
                 }
 
-                showAdmin(session.user);
+                const isAdmin = profile?.role === 'Admin' || profile?.role === 'admin' || 
+                               profile?.role === 'Administrator' || currentUser.email?.includes('admin');
+
+                if (!isAdmin) {
+                    showAccessDenied('You do not have administrator privileges.');
+                    return;
+                }
+
+                // Show admin dashboard
+                document.getElementById('adminName').textContent = profile?.full_name || 'Admin';
+                spinner.style.display = 'none';
+                content.style.display = 'block';
+
+                loadDashboardData();
+
             } catch (error) {
-                console.error('Authentication error:', error);
-                document.getElementById('accessLock').innerHTML = `
-                    <h2>Unable to verify access</h2>
-                    <p>Error: ${error.message}</p>
-                    <p>Please check your Supabase connection and try signing in again.</p>
-                    <button onclick="window.location.href='easemed_login.html'">Go to login</button>
+                console.error('[Admin] Auth error:', error);
+                showAccessDenied('Authentication error: ' + error.message);
+            }
+        }
+
+        // ─── SHOW ACCESS DENIED ───
+        function showAccessDenied(message) {
+            const spinner = document.getElementById('loadingSpinner');
+            const lock = document.getElementById('accessLock');
+            
+            spinner.style.display = 'none';
+            lock.style.display = 'block';
+            
+            if (message) {
+                const p = lock.querySelector('p');
+                if (p) p.textContent = message;
+            }
+        }
+
+        // ─── LOAD DASHBOARD DATA ───
+        async function loadDashboardData() {
+            if (!supabaseClient) return;
+
+            try {
+                // Get total users
+                const { count: totalUsers, error: usersError } = await supabaseClient
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true });
+
+                if (!usersError) {
+                    document.getElementById('totalUsers').textContent = totalUsers || 0;
+                }
+
+                // Get active users (last 7 days)
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                
+                const { count: activeUsers, error: activeError } = await supabaseClient
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('last_activity', weekAgo.toISOString());
+
+                if (!activeError) {
+                    document.getElementById('activeUsers').textContent = activeUsers || 0;
+                }
+
+                // Get total patients
+                const { count: totalPatients, error: patientsError } = await supabaseClient
+                    .from('patients')
+                    .select('*', { count: 'exact', head: true });
+
+                if (!patientsError) {
+                    document.getElementById('totalPatients').textContent = totalPatients || 0;
+                }
+
+                // Get total clerkings
+                const { count: totalClerkings, error: clerkingsError } = await supabaseClient
+                    .from('clerking_records')
+                    .select('*', { count: 'exact', head: true });
+
+                if (!clerkingsError) {
+                    document.getElementById('totalClerkings').textContent = totalClerkings || 0;
+                }
+
+                // Load users table
+                await loadUsersTable();
+
+            } catch (error) {
+                console.error('[Admin] Load data error:', error);
+            }
+        }
+
+        // ─── LOAD USERS TABLE ───
+        async function loadUsersTable() {
+            if (!supabaseClient) return;
+
+            try {
+                const { data: users, error } = await supabaseClient
+                    .from('profiles')
+                    .select('id, full_name, email, role, is_active, created_at, last_activity')
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('usersTableBody');
+                
+                if (!users || users.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding:32px; color:rgba(11,26,46,0.4);">
+                                No users found.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = users.map(user => `
+                    <tr>
+                        <td><strong>${user.full_name || 'Unnamed'}</strong></td>
+                        <td>${user.email || '—'}</td>
+                        <td>${user.role || 'User'}</td>
+                        <td>
+                            <span class="status-badge ${user.is_active !== false ? 'active' : 'inactive'}">
+                                ${user.is_active !== false ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td>
+                            <button onclick="toggleUserStatus('${user.id}', ${!user.is_active})" 
+                                    style="padding:4px 12px; border-radius:6px; border:1px solid rgba(11,26,46,0.15); background:rgba(255,255,255,0.1); cursor:pointer; font-size:0.7rem; font-family:'Inter',sans-serif; transition:background 0.2s;"
+                                    onmouseover="this.style.background='rgba(255,255,255,0.2)'" 
+                                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                                ${user.is_active !== false ? 'Deactivate' : 'Activate'}
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error('[Admin] Load users error:', error);
+                document.getElementById('usersTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding:32px; color:#DC2626;">
+                            Failed to load users: ${error.message}
+                        </td>
+                    </tr>
                 `;
             }
-        })();
+        }
+
+        // ─── TOGGLE USER STATUS ───
+        async function toggleUserStatus(userId, activate) {
+            if (!supabaseClient) return;
+            
+            if (!confirm(`Are you sure you want to ${activate ? 'activate' : 'deactivate'} this user?`)) {
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .update({ 
+                        is_active: activate,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', userId);
+
+                if (error) throw error;
+
+                // Reload users table
+                await loadUsersTable();
+
+            } catch (error) {
+                console.error('[Admin] Toggle status error:', error);
+                alert('Failed to update user status: ' + error.message);
+            }
+        }
+
+        // ─── HANDLE LOGOUT ───
+        async function handleLogout() {
+            try {
+                if (supabaseClient) {
+                    await supabaseClient.auth.signOut();
+                }
+                localStorage.removeItem('easemed_user');
+                window.location.href = 'easemed_login.html';
+            } catch (error) {
+                console.error('[Admin] Logout error:', error);
+                window.location.href = 'easemed_login.html';
+            }
+        }
+
+        // ─── DOM CONTENT LOADED ───
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[Admin] DOM ready, initializing...');
+            
+            if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                initSupabase();
+            } else {
+                document.getElementById('loadingSpinner').innerHTML = `
+                    <div class="spinner"></div>
+                    <div class="loading-text" style="color:#DC2626;">Supabase SDK failed to load. Please refresh.</div>
+                `;
+                // Retry after a moment
+                setTimeout(() => {
+                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                        initSupabase();
+                    }
+                }, 3000);
+            }
+        });
     </script>
+
 </body>
 </html>
