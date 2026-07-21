@@ -5,16 +5,14 @@ const CACHE_NAME = 'easemed-v2.0.5';
 const STATIC_CACHE = 'easemed-static-v2.0.5';
 const DYNAMIC_CACHE = 'easemed-dynamic-v2.0.5';
 
-// Files to cache on install (core assets)
+// Files to cache on install
 const STATIC_FILES = [
     '/',
     '/easemed_login.html',
     '/modules.html',
     '/complete-profile.html',
     '/js/supabase.min.js',
-    '/manifest.json',
-    '/_vercel/insights/script.js',
-    '/_vercel/speed-insights/script.js'
+    '/manifest.json'
 ];
 
 // ─── INSTALL ──────────────────────────────────────────────────────
@@ -57,20 +55,29 @@ self.addEventListener('fetch', (event) => {
     const request = event.request;
     const url = new URL(request.url);
 
-    // Skip POST, PUT, DELETE requests (only cache GET)
+    // Skip non-GET requests
     if (request.method !== 'GET') {
+        event.respondWith(fetch(request));
+        return;
+    }
+
+    // Handle Google Fonts - Always network first, don't cache
+    if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
         event.respondWith(fetch(request));
         return;
     }
 
     // Skip cross-origin requests except for allowed CDNs
     if (url.origin !== self.location.origin) {
-        // Allow font requests to proceed normally
-        if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+        // Allow Sentry and Vercel scripts
+        if (url.hostname === 'js.sentry-cdn.com' || 
+            url.hostname === 'browser.sentry-cdn.com' ||
+            url.hostname === '_vercel' ||
+            url.hostname === 'vercel.com') {
             event.respondWith(fetch(request));
             return;
         }
-        // Don't cache cross-origin requests
+        // Don't cache other cross-origin requests
         return;
     }
 
@@ -98,7 +105,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Static assets (JS, CSS, fonts) - cache first
+    // Static assets - cache first
     if (
         request.url.includes('/js/') ||
         request.url.includes('/css/') ||
@@ -131,7 +138,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Images and other assets - network first, fallback to cache
+    // All other requests - network first
     event.respondWith(
         fetch(request)
             .then((response) => {
