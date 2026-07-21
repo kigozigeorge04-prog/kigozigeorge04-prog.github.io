@@ -520,11 +520,12 @@
                 currentUser = session.user;
 
                 // Check if user is admin
-                const { data: profile, error: profileError } = await supabaseClient
-                    .from('profiles')
-                    .select('role, full_name')
-                    .eq('id', currentUser.id)
-                    .single();
+                const role = profile?.role?.toLowerCase();
+
+const isAdmin =
+    profile?.is_admin === true ||
+    role === 'admin' ||
+    role === 'superadmin';
 
                 if (profileError) {
                     console.error('[Admin] Profile error:', profileError);
