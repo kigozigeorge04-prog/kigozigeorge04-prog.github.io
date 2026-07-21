@@ -307,6 +307,17 @@
             background: rgba(245, 158, 11, 0.15);
             color: #92400E;
         }
+        .expiry-control { display: flex; align-items: center; gap: 6px; }
+        .expiry-control input {
+            padding: 5px 7px; border: 1px solid rgba(11,26,46,0.18);
+            border-radius: 6px; background: rgba(255,255,255,0.7); color: #0B1A2E; font: inherit;
+        }
+        .table-action {
+            padding: 5px 9px; border-radius: 6px; border: 1px solid rgba(11,26,46,0.15);
+            background: rgba(255,255,255,0.18); color: #0B1A2E; cursor: pointer;
+            font-size: 0.7rem; font-family: inherit;
+        }
+        .table-action:hover { background: rgba(255,255,255,0.5); }
 
         /* ──────────── LOADING ──────────── */
         .loading-spinner {
@@ -432,12 +443,13 @@
                             <th>Email</th>
                             <th>Role</th>
                             <th>Status</th>
+                            <th>Access Expires</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="usersTableBody">
                         <tr>
-                            <td colspan="5" style="text-align:center; padding:32px; color:rgba(11,26,46,0.4);">
+                            <td colspan="6" style="text-align:center; padding:32px; color:rgba(11,26,46,0.4);">
                                 Loading users...
                             </td>
                         </tr>
@@ -633,7 +645,7 @@
             try {
                 const { data: users, error } = await supabaseClient
                     .from('profiles')
-                    .select('id, full_name, email, role, is_active, created_at, last_activity')
+                    .select('id, full_name, email, role, is_active, access_expires_at, created_at, last_activity')
                     .order('created_at', { ascending: false })
                     .limit(50);
 
@@ -644,7 +656,7 @@
                 if (!users || users.length === 0) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="5" style="text-align:center; padding:32px; color:rgba(11,26,46,0.4);">
+                            <td colspan="6" style="text-align:center; padding:32px; color:rgba(11,26,46,0.4);">
                                 No users found.
                             </td>
                         </tr>
@@ -652,32 +664,42 @@
                     return;
                 }
 
-                tbody.innerHTML = users.map(user => `
+                tbody.innerHTML = users.map(user => {
+                    const expired = isUserExpired(user.access_expires_at);
+                    const expiryDate = user.access_expires_at ? user.access_expires_at.slice(0, 10) : '';
+                    const status = expired ? 'Expired' : (user.is_active !== false ? 'Active' : 'Inactive');
+                    const statusClass = expired || user.is_active === false ? 'inactive' : 'active';
+                    return `
                     <tr>
                         <td><strong>${user.full_name || 'Unnamed'}</strong></td>
                         <td>${user.email || '—'}</td>
                         <td>${user.role || 'User'}</td>
                         <td>
-                            <span class="status-badge ${user.is_active !== false ? 'active' : 'inactive'}">
-                                ${user.is_active !== false ? 'Active' : 'Inactive'}
+                            <span class="status-badge ${statusClass}">
+                                ${status}
                             </span>
                         </td>
                         <td>
-                            <button onclick="toggleUserStatus('${user.id}', ${!user.is_active})" 
-                                    style="padding:4px 12px; border-radius:6px; border:1px solid rgba(11,26,46,0.15); background:rgba(255,255,255,0.1); cursor:pointer; font-size:0.7rem; font-family:'Inter',sans-serif; transition:background 0.2s;"
-                                    onmouseover="this.style.background='rgba(255,255,255,0.2)'" 
-                                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                            <div class="expiry-control">
+                                <input id="expiry-${user.id}" type="date" value="${expiryDate}" aria-label="Access expiry date">
+                                <button class="table-action" onclick="setUserExpiry('${user.id}')">Save</button>
+                                ${user.access_expires_at ? `<button class="table-action" onclick="clearUserExpiry('${user.id}')">Clear</button>` : ''}
+                            </div>
+                        </td>
+                        <td>
+                            <button class="table-action" onclick="toggleUserStatus('${user.id}', ${user.is_active === false})">
                                 ${user.is_active !== false ? 'Deactivate' : 'Activate'}
                             </button>
                         </td>
                     </tr>
-                `).join('');
+                    `;
+                }).join('');
 
             } catch (error) {
                 console.error('[Admin] Load users error:', error);
                 document.getElementById('usersTableBody').innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align:center; padding:32px; color:#DC2626;">
+                            <td colspan="6" style="text-align:center; padding:32px; color:#DC2626;">
                             Failed to load users: ${error.message}
                         </td>
                     </tr>
@@ -710,6 +732,50 @@
             } catch (error) {
                 console.error('[Admin] Toggle status error:', error);
                 alert('Failed to update user status: ' + error.message);
+            }
+        }
+
+        // ─── ACCESS EXPIRY ───
+        function isUserExpired(expiresAt) {
+            return Boolean(expiresAt) && new Date(expiresAt).getTime() < Date.now();
+        }
+
+        async function setUserExpiry(userId) {
+            const input = document.getElementById(`expiry-${userId}`);
+            if (!input?.value) {
+                alert('Choose an expiry date, or use Clear to remove an existing expiry date.');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .update({
+                        access_expires_at: `${input.value}T23:59:59.999Z`,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', userId);
+                if (error) throw error;
+                await loadUsersTable();
+            } catch (error) {
+                console.error('[Admin] Set expiry error:', error);
+                alert('Failed to set access expiry: ' + error.message);
+            }
+        }
+
+        async function clearUserExpiry(userId) {
+            if (!confirm('Remove this user\'s access expiry date?')) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .update({ access_expires_at: null, updated_at: new Date().toISOString() })
+                    .eq('id', userId);
+                if (error) throw error;
+                await loadUsersTable();
+            } catch (error) {
+                console.error('[Admin] Clear expiry error:', error);
+                alert('Failed to clear access expiry: ' + error.message);
             }
         }
 
