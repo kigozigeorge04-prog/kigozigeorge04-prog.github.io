@@ -1,23 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Security Headers -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://js.sentry-cdn.com https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
-<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-<meta http-equiv="X-XSS-Protection" content="1; mode=block">
+ 
     <meta charset="UTF-8" />
-    <script 
-  src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js" 
-  crossorigin="anonymous" 
-></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EaseMed – Pediatric Clerkship</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"> 
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
-    </script> 
+    <script src="/js/supabase.min.js"></script>
     <script>window.EASEMED_MODULE_NAME = 'Pediatric Clerking Module';</script>
 <script src="tracking.js"></script>
     <script src="who-growth-tables.js"></script>
@@ -3107,59 +3095,128 @@
     JAVASCRIPT
     ============================================================ -->
     <script>
-        // ============================================================
-        // SUPABASE CONSTANTS
-        // ============================================================
-        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-        const SUPABASE_ANON_KEY =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+       // ─── VERSION CONTROL ───
+        const APP_VERSION = '2.0.5';
+        const CACHE_KEY = 'easemed_app_version';
+        
+        const storedVersion = localStorage.getItem(CACHE_KEY);
+        if (storedVersion !== APP_VERSION) {
+            console.log('[Cache] New version detected, clearing cache...');
+            if ('caches' in window) {
+                caches.keys().then(keys => {
+                    keys.forEach(key => caches.delete(key));
+                });
+            }
+            localStorage.setItem(CACHE_KEY, APP_VERSION);
+        }
 
-        // ============================================================
-        // AUTH
-        // ============================================================
+        // ─── SUPABASE CONFIG ───
+        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
         let currentUser = null;
-        (async function authCheck() {
+        let supabaseClient = null;
+
+        // ─── AUTH CHECK ───
+        async function checkAuth() {
+            // Wait for Supabase SDK to be available
+            if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                console.warn('[Auth] Supabase SDK not available, retrying...');
+                setTimeout(checkAuth, 500);
+                return;
+            }
+
             try {
-                const { createClient } = supabase;
-                const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                const { data: { session } } = await sb.auth.getSession();
-                if (!session) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('[Auth] Supabase client initialized.');
+
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                
+                if (error) {
+                    console.error('[Auth] Session error:', error);
                     window.location.href = 'easemed_login.html';
                     return;
                 }
-                const { data: profile } = await sb
-                    .from('profiles')
-                    .select('is_active, expires_at')
-                    .eq('id', session.user.id)
-                    .single();
-                if (!profile || !profile.is_active) {
-                    window.location.href = 'easemed_payment.html';
+
+                if (!session) {
+                    console.warn('[Auth] No session found, redirecting to login');
+                    window.location.href = 'easemed_login.html';
                     return;
                 }
-                if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
-                    await sb.from('profiles').update({ is_active: false }).eq('id', session.user.id);
-                    window.location.href = 'easemed_payment.html?reason=expired';
-                    return;
-                }
+
                 currentUser = session.user;
-                const displayName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser
-                    .email;
-                document.getElementById('userGreeting').textContent = '👤 ' + displayName;
-                localStorage.setItem('easemed_user', currentUser.email);
-                window._sb = sb;
-                window._currentUser = currentUser;
-                renderRecords();
-            } catch (e) {
-                console.error('Auth error:', e);
+                console.log('[Auth] User authenticated:', currentUser.email);
+
+                // Check if profile is active
+                const { data: profile, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('is_active, expires_at, full_name')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (profileError) {
+                    console.warn('[Auth] Profile fetch warning:', profileError);
+                }
+
+                if (profile) {
+                    if (!profile.is_active) {
+                        window.location.href = 'easemed_payment.html';
+                        return;
+                    }
+                    if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
+                        await supabaseClient.from('profiles').update({ is_active: false }).eq('id', currentUser.id);
+                        window.location.href = 'easemed_payment.html?reason=expired';
+                        return;
+                    }
+                    
+                    const displayName = profile.full_name || currentUser.user_metadata?.full_name || 
+                                       currentUser.user_metadata?.name || currentUser.email;
+                    const greetingEl = document.getElementById('userGreeting');
+                    if (greetingEl) greetingEl.textContent = '👤 ' + displayName;
+                }
+
+                // Show the page content
+                document.body.style.display = 'block';
+                
+                // Initialize the page - call your existing init functions
+                if (typeof buildTogglePills === 'function') buildTogglePills();
+                if (typeof buildImmunizationGrid === 'function') buildImmunizationGrid();
+                if (typeof buildROS === 'function') buildROS();
+                if (typeof buildExamCards === 'function') buildExamCards();
+                if (typeof renderGallery === 'function') renderGallery();
+                if (typeof updateImageCount === 'function') updateImageCount();
+                if (typeof updateProgress === 'function') updateProgress();
+
+            } catch (error) {
+                console.error('[Auth] Fatal error:', error);
                 window.location.href = 'easemed_login.html';
             }
-        })();
-
-        async function handleLogout() {
-            if (window._sb) await window._sb.auth.signOut();
-            localStorage.removeItem('easemed_user');
-            window.location.href = 'easemed_login.html';
         }
+
+        // ─── HANDLE LOGOUT ───
+        async function handleLogout() {
+            try {
+                if (supabaseClient) {
+                    await supabaseClient.auth.signOut();
+                }
+                localStorage.removeItem('easemed_user');
+                window.location.href = 'easemed_login.html';
+            } catch (error) {
+                console.error('[Logout] Error:', error);
+                window.location.href = 'easemed_login.html';
+            }
+        }
+
+        // ─── DOM CONTENT LOADED ───
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[Page] DOM ready, checking auth...');
+            
+            // Hide body initially
+            document.body.style.display = 'none';
+            
+            // Check authentication
+            checkAuth();
+        });
 // ================================================================
 
         // ============================================================
@@ -7447,8 +7504,6 @@ for (const [symptom, answers] of Object.entries(pcAnswers)) {
             console.log('🕵️ Detective Mode loaded with', Object.keys(det.complaintData).length, 'complaint cases');
         })();
     </script>
-    <!-- Session validation -->
-<script src="session-check.js"></script>
 
 <!-- Your page's own script -->
 <script>
