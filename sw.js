@@ -1,9 +1,9 @@
 // ─── EaseMed Service Worker ──────────────────────────────────────
-// Version: 2.0.5
+// Version: 2.0.6
 
-const CACHE_NAME = 'easemed-v2.0.5';
-const STATIC_CACHE = 'easemed-static-v2.0.5';
-const DYNAMIC_CACHE = 'easemed-dynamic-v2.0.5';
+const CACHE_NAME = 'easemed-v2.0.6';
+const STATIC_CACHE = 'easemed-static-v2.0.6';
+const DYNAMIC_CACHE = 'easemed-dynamic-v2.0.6';
 
 // Files to cache on install
 const STATIC_FILES = [
@@ -17,7 +17,7 @@ const STATIC_FILES = [
 
 // ─── INSTALL ──────────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
-    console.log('[SW] Installing version 2.0.5');
+    console.log('[SW] Installing version 2.0.6');
     event.waitUntil(
         caches.open(STATIC_CACHE)
             .then((cache) => {
@@ -31,7 +31,7 @@ self.addEventListener('install', (event) => {
 
 // ─── ACTIVATE ────────────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activating version 2.0.5');
+    console.log('[SW] Activating version 2.0.6');
     event.waitUntil(
         caches.keys()
             .then((cacheNames) => {
@@ -61,23 +61,10 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Handle Google Fonts - Always network first, don't cache
-    if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-        event.respondWith(fetch(request));
-        return;
-    }
-
-    // Skip cross-origin requests except for allowed CDNs
+    // Do not intercept cross-origin requests. Their CSP permissions belong to
+    // the page, and responding here can turn a blocked request into an
+    // unhandled service-worker promise rejection.
     if (url.origin !== self.location.origin) {
-        // Allow Sentry and Vercel scripts
-        if (url.hostname === 'js.sentry-cdn.com' || 
-            url.hostname === 'browser.sentry-cdn.com' ||
-            url.hostname === '_vercel' ||
-            url.hostname === 'vercel.com') {
-            event.respondWith(fetch(request));
-            return;
-        }
-        // Don't cache other cross-origin requests
         return;
     }
 
