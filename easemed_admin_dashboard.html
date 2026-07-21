@@ -519,19 +519,27 @@
 
                 currentUser = session.user;
 
-                // Check if user is admin
-                const role = profile?.role?.toLowerCase();
-
-const isAdmin =
-    profile?.is_admin === true ||
-    role === 'admin' ||
-    role === 'superadmin';
+                // Load the signed-in user's profile before checking their role.
+                const { data: profile, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('full_name, role, is_admin')
+                    .eq('id', currentUser.id)
+                    .single();
 
                 if (profileError) {
                     console.error('[Admin] Profile error:', profileError);
                     showAccessDenied('Unable to verify your profile.');
                     return;
                 }
+
+                // Check if user is an administrator.
+                const role = profile?.role?.toLowerCase();
+
+                const isAdmin =
+                    profile?.is_admin === true ||
+                    role === 'admin' ||
+                    role === 'superadmin' ||
+                    role === 'administrator';
 
                 if (!isAdmin) {
                     showAccessDenied('You do not have administrator privileges.');
