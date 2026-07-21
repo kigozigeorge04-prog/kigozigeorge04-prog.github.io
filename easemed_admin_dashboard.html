@@ -318,6 +318,17 @@
             font-size: 0.7rem; font-family: inherit;
         }
         .table-action:hover { background: rgba(255,255,255,0.5); }
+        .users-toolbar {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; margin-bottom: 14px;
+        }
+        .users-toolbar h2 { margin: 0; font-size: 1rem; }
+        .users-toolbar p { margin: 4px 0 0; font-size: 0.78rem; color: rgba(11,26,46,0.58); }
+        .users-search {
+            width: min(320px, 100%); padding: 10px 12px; border-radius: 9px;
+            border: 1px solid rgba(11,26,46,0.18); background: rgba(255,255,255,0.76);
+            color: #0B1A2E; font: inherit;
+        }
 
         /* ──────────── LOADING ──────────── */
         .loading-spinner {
@@ -435,6 +446,13 @@
             </div>
 
             <!-- Users Table -->
+            <div class="users-toolbar">
+                <div>
+                    <h2>User access</h2>
+                    <p id="usersCount">Loading users…</p>
+                </div>
+                <input id="userSearch" class="users-search" type="search" placeholder="Search name, email, or role" oninput="filterUsers()" aria-label="Search users">
+            </div>
             <div class="table-wrap">
                 <table>
                     <thead>
@@ -482,6 +500,7 @@
         // ─── GLOBALS ───
         let supabaseClient = null;
         let currentUser = null;
+        let allUsers = [];
 
         // ─── INIT ───
         function initSupabase() {
@@ -643,57 +662,8 @@
             if (!supabaseClient) return;
 
             try {
-                const { data: users, error } = await supabaseClient
-                    .from('profiles')
-                    .select('id, full_name, email, role, is_active, access_expires_at, created_at, last_activity')
-                    .order('created_at', { ascending: false })
-                    .limit(50);
-
-                if (error) throw error;
-
-                const tbody = document.getElementById('usersTableBody');
-                
-                if (!users || users.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="6" style="text-align:center; padding:32px; color:rgba(11,26,46,0.4);">
-                                No users found.
-                            </td>
-                        </tr>
-                    `;
-                    return;
-                }
-
-                tbody.innerHTML = users.map(user => {
-                    const expired = isUserExpired(user.access_expires_at);
-                    const expiryDate = user.access_expires_at ? user.access_expires_at.slice(0, 10) : '';
-                    const status = expired ? 'Expired' : (user.is_active !== false ? 'Active' : 'Inactive');
-                    const statusClass = expired || user.is_active === false ? 'inactive' : 'active';
-                    return `
-                    <tr>
-                        <td><strong>${user.full_name || 'Unnamed'}</strong></td>
-                        <td>${user.email || '—'}</td>
-                        <td>${user.role || 'User'}</td>
-                        <td>
-                            <span class="status-badge ${statusClass}">
-                                ${status}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="expiry-control">
-                                <input id="expiry-${user.id}" type="date" value="${expiryDate}" aria-label="Access expiry date">
-                                <button class="table-action" onclick="setUserExpiry('${user.id}')">Save</button>
-                                ${user.access_expires_at ? `<button class="table-action" onclick="clearUserExpiry('${user.id}')">Clear</button>` : ''}
-                            </div>
-                        </td>
-                        <td>
-                            <button class="table-action" onclick="toggleUserStatus('${user.id}', ${user.is_active === false})">
-                                ${user.is_active !== false ? 'Deactivate' : 'Activate'}
-                            </button>
-                        </td>
-                    </tr>
-                    `;
-                }).join('');
+                allUsers = await fetchAllUsers();
+                filterUsers();
 
             } catch (error) {
                 console.error('[Admin] Load users error:', error);
@@ -733,6 +703,70 @@
                 console.error('[Admin] Toggle status error:', error);
                 alert('Failed to update user status: ' + error.message);
             }
+        }
+
+        // Fetch in batches so the table is not limited to the first 50 or 1,000 users.
+        async function fetchAllUsers() {
+            const batchSize = 1000;
+            const users = [];
+            let from = 0;
+
+            while (true) {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('id, full_name, email, role, is_active, access_expires_at, created_at, last_activity')
+                    .order('created_at', { ascending: false })
+                    .range(from, from + batchSize - 1);
+
+                if (error) throw error;
+                users.push(...(data || []));
+                if (!data || data.length < batchSize) return users;
+                from += batchSize;
+            }
+        }
+
+        function filterUsers() {
+            const query = document.getElementById('userSearch')?.value.trim().toLowerCase() || '';
+            const users = !query ? allUsers : allUsers.filter(user =>
+                [user.full_name, user.email, user.role].some(value => String(value || '').toLowerCase().includes(query))
+            );
+            document.getElementById('usersCount').textContent = query
+                ? `${users.length} of ${allUsers.length} users shown`
+                : `${allUsers.length} users`;
+            renderUsersTable(users);
+        }
+
+        function renderUsersTable(users) {
+            const tbody = document.getElementById('usersTableBody');
+            if (!users.length) {
+                tbody.innerHTML = `
+                    <tr><td colspan="6" style="text-align:center; padding:32px; color:rgba(11,26,46,0.4);">
+                        No users match your search.
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = users.map(user => {
+                const expired = isUserExpired(user.access_expires_at);
+                const expiryDate = user.access_expires_at ? user.access_expires_at.slice(0, 10) : '';
+                const status = expired ? 'Expired' : (user.is_active !== false ? 'Active' : 'Inactive');
+                const statusClass = expired || user.is_active === false ? 'inactive' : 'active';
+                return `
+                    <tr>
+                        <td><strong>${user.full_name || 'Unnamed'}</strong></td>
+                        <td>${user.email || '—'}</td>
+                        <td>${user.role || 'User'}</td>
+                        <td><span class="status-badge ${statusClass}">${status}</span></td>
+                        <td><div class="expiry-control">
+                            <input id="expiry-${user.id}" type="date" value="${expiryDate}" aria-label="Access expiry date">
+                            <button class="table-action" onclick="setUserExpiry('${user.id}')">Save</button>
+                            ${user.access_expires_at ? `<button class="table-action" onclick="clearUserExpiry('${user.id}')">Clear</button>` : ''}
+                        </div></td>
+                        <td><button class="table-action" onclick="toggleUserStatus('${user.id}', ${user.is_active === false})">
+                            ${user.is_active !== false ? 'Deactivate' : 'Activate'}
+                        </button></td>
+                    </tr>`;
+            }).join('');
         }
 
         // ─── ACCESS EXPIRY ───
