@@ -10,13 +10,13 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
+
     <!-- Local Supabase SDK -->
     <script src="/js/supabase.min.js"></script>
-    
+
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
-    
+
     <style>
         /* ──────────── RESET & BASE ──────────── */
         * {
@@ -1285,7 +1285,7 @@
                                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                                 <path d="M7 11V7a5 5 0 0110 0v4"/>
                                             </svg>
-                                            <input type="password" id="signupPassword" class="input-field has-right-icon" placeholder="Min. 6 characters" oninput="updateStrength(this.value)">
+                                            <input type="password" id="signupPassword" class="input-field has-right-icon" placeholder="Min. 8 characters" oninput="updateStrength(this.value)">
                                             <button type="button" class="input-right-icon" onclick="togglePassword('signupPassword', this)" aria-label="Toggle password visibility">
                                                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -1481,9 +1481,9 @@
 
     <script>
         // ─── VERSION CONTROL ───
-        const APP_VERSION = '2.0.5';
+        const APP_VERSION = '2.0.6';
         const CACHE_KEY = 'easemed_app_version';
-        
+
         const storedVersion = localStorage.getItem(CACHE_KEY);
         if (storedVersion !== APP_VERSION) {
             console.log('[Cache] New version detected, clearing cache...');
@@ -1499,7 +1499,7 @@
         function loadSavedEmail() {
             const savedEmail = localStorage.getItem('easemed_remembered_email');
             const rememberMe = localStorage.getItem('easemed_remember_me') === 'true';
-            
+
             if (savedEmail && rememberMe) {
                 document.getElementById('loginEmail').value = savedEmail;
                 document.getElementById('loginRemember').checked = true;
@@ -1509,7 +1509,7 @@
         // ─── FATAL ERROR UI ───
         function showFatalError(message) {
             console.error('[Fatal]', message);
-            
+
             const forms = document.querySelectorAll('form');
             forms.forEach(form => {
                 const btns = form.querySelectorAll('button[type="submit"]');
@@ -1527,23 +1527,49 @@
 
             const loginNotice = document.getElementById('loginNotice');
             if (loginNotice) {
-                loginNotice.innerHTML = `
-                    <div class="notice notice-error" style="border-color: #DC2626; background: rgba(220,38,38,0.08);">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                        <div>
-                            <strong style="display:block; margin-bottom:4px;">⚠️ Service Unavailable</strong>
-                            <span style="font-weight:400; opacity:0.9;">${message}</span>
-                            <br><br>
-                            <button onclick="location.reload()" style="padding:8px 20px; background:#3B82F6; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600; margin-top:8px;">
-                                Retry
-                            </button>
-                        </div>
-                    </div>
-                `;
+                // FIX #1: build with DOM nodes / textContent instead of interpolated innerHTML
+                loginNotice.innerHTML = '';
+                const wrap = document.createElement('div');
+                wrap.className = 'notice notice-error';
+                wrap.style.borderColor = '#DC2626';
+                wrap.style.background = 'rgba(220,38,38,0.08)';
+
+                const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                icon.setAttribute('width', '20');
+                icon.setAttribute('height', '20');
+                icon.setAttribute('viewBox', '0 0 24 24');
+                icon.setAttribute('fill', 'none');
+                icon.setAttribute('stroke', '#DC2626');
+                icon.setAttribute('stroke-width', '2');
+                icon.setAttribute('stroke-linecap', 'round');
+                icon.setAttribute('stroke-linejoin', 'round');
+                icon.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+
+                const textBlock = document.createElement('div');
+                const strong = document.createElement('strong');
+                strong.style.display = 'block';
+                strong.style.marginBottom = '4px';
+                strong.textContent = '⚠️ Service Unavailable';
+
+                const span = document.createElement('span');
+                span.style.fontWeight = '400';
+                span.style.opacity = '0.9';
+                span.textContent = message; // safe: textContent, not innerHTML
+
+                const retryBtn = document.createElement('button');
+                retryBtn.textContent = 'Retry';
+                retryBtn.style.cssText = 'padding:8px 20px; background:#3B82F6; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600; margin-top:8px;';
+                retryBtn.addEventListener('click', () => location.reload());
+
+                textBlock.appendChild(strong);
+                textBlock.appendChild(span);
+                textBlock.appendChild(document.createElement('br'));
+                textBlock.appendChild(document.createElement('br'));
+                textBlock.appendChild(retryBtn);
+
+                wrap.appendChild(icon);
+                wrap.appendChild(textBlock);
+                loginNotice.appendChild(wrap);
             }
         }
 
@@ -1560,7 +1586,7 @@
 
                 window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 console.log('[Supabase] Client initialized successfully.');
-                
+
                 loadSavedEmail();
                 startApp();
             } catch (error) {
@@ -1657,10 +1683,11 @@
             }
         }
 
+        // FIX #4: raised floor to 8 chars; strength tiers unchanged in shape but recalibrated
         function getStrength(value) {
             let score = 0;
-            if (value.length >= 6) score++;
-            if (value.length >= 10) score++;
+            if (value.length >= 8) score++;
+            if (value.length >= 12) score++;
             if (/[A-Z]/.test(value)) score++;
             if (/[0-9]/.test(value)) score++;
             if (/[^A-Za-z0-9]/.test(value)) score++;
@@ -1671,7 +1698,9 @@
                 { pct: 85, color: '#10B981', label: 'Strong' },
                 { pct: 100, color: '#10B981', label: 'Very strong' },
             ];
-            return value.length ? tiers[Math.max(0, score - 1)] : { pct: 0, color: 'rgba(11,26,46,0.06)', label: '' };
+            if (!value.length) return { pct: 0, color: 'rgba(11,26,46,0.06)', label: '', score: 0 };
+            const tier = tiers[Math.max(0, score - 1)];
+            return { ...tier, score };
         }
 
         function updateStrength(value) {
@@ -1688,29 +1717,106 @@
             }
         }
 
+        // FIX #1: showNotice now builds nodes via textContent — no innerHTML interpolation
+        // of any value that could contain user input (email, error messages, etc.)
         function showNotice(containerId, type, message) {
             const container = document.getElementById(containerId);
             if (!container) return;
+            container.innerHTML = '';
+
             const className = type === 'success' ? 'notice-success' : 'notice-error';
-            container.innerHTML = `
-                <div class="notice ${className}">
-                    ${type === 'success' 
-                        ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
-                        : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
-                    }
-                    ${message}
-                </div>
-            `;
+            const wrap = document.createElement('div');
+            wrap.className = `notice ${className}`;
+
+            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            icon.setAttribute('width', '15');
+            icon.setAttribute('height', '15');
+            icon.setAttribute('viewBox', '0 0 24 24');
+            icon.setAttribute('fill', 'none');
+            icon.setAttribute('stroke', 'currentColor');
+            icon.setAttribute('stroke-width', '2');
+            icon.setAttribute('stroke-linecap', 'round');
+            icon.setAttribute('stroke-linejoin', 'round');
+            // Static, hardcoded SVG paths only — never derived from user input.
+            icon.innerHTML = type === 'success'
+                ? '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'
+                : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+
+            const textNode = document.createElement('span');
+            textNode.textContent = message; // safe — never parsed as HTML
+
+            wrap.appendChild(icon);
+            wrap.appendChild(textNode);
+            container.appendChild(wrap);
+        }
+
+        // ─── FIX #8: CLIENT-SIDE RATE LIMITING ───
+        const RATE_LIMIT = {
+            maxAttempts: 5,
+            baseCooldownMs: 60 * 1000, // 60s
+        };
+
+        function getAttemptState(key) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : { count: 0, lockUntil: 0, strikes: 0 };
+            } catch {
+                return { count: 0, lockUntil: 0, strikes: 0 };
+            }
+        }
+
+        function setAttemptState(key, state) {
+            localStorage.setItem(key, JSON.stringify(state));
+        }
+
+        function isLocked(key) {
+            const state = getAttemptState(key);
+            return state.lockUntil && Date.now() < state.lockUntil;
+        }
+
+        function remainingLockSeconds(key) {
+            const state = getAttemptState(key);
+            return Math.max(0, Math.ceil((state.lockUntil - Date.now()) / 1000));
+        }
+
+        function registerFailedAttempt(key) {
+            const state = getAttemptState(key);
+            state.count = (state.count || 0) + 1;
+            if (state.count >= RATE_LIMIT.maxAttempts) {
+                state.strikes = (state.strikes || 0) + 1;
+                // Cooldown doubles with each additional lockout: 60s, 120s, 240s...
+                const cooldown = RATE_LIMIT.baseCooldownMs * Math.pow(2, state.strikes - 1);
+                state.lockUntil = Date.now() + cooldown;
+                state.count = 0;
+            }
+            setAttemptState(key, state);
+        }
+
+        function resetAttempts(key) {
+            setAttemptState(key, { count: 0, lockUntil: 0, strikes: 0 });
+        }
+
+        function guardRateLimit(key, noticeContainerId, actionLabel) {
+            if (isLocked(key)) {
+                const secs = remainingLockSeconds(key);
+                showNotice(noticeContainerId, 'error',
+                    `Too many attempts. Please wait ${secs}s before trying to ${actionLabel} again.`);
+                return false;
+            }
+            return true;
         }
 
         // ─── LOGIN ───
         async function handleLogin(e) {
             e.preventDefault();
-            
+
             if (!window.supabaseClient) {
                 showNotice('loginNotice', 'error', 'Service is unavailable. Please refresh the page.');
                 return false;
             }
+
+            const RL_KEY = 'easemed_rl_login';
+            if (!guardRateLimit(RL_KEY, 'loginNotice', 'sign in')) return false;
 
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
@@ -1750,7 +1856,12 @@
                     password: password
                 });
 
-                if (error) throw error;
+                if (error) {
+                    registerFailedAttempt(RL_KEY);
+                    throw error;
+                }
+
+                resetAttempts(RL_KEY);
 
                 if (rememberMe) {
                     localStorage.setItem('easemed_remembered_email', email);
@@ -1762,13 +1873,19 @@
 
                 showNotice('loginNotice', 'success', 'Welcome back! Redirecting…');
                 localStorage.setItem('easemed_user', JSON.stringify(data.user));
-                
+
                 setTimeout(() => {
                     window.location.href = '/modules.html';
                 }, 1200);
 
             } catch (error) {
-                showNotice('loginNotice', 'error', error.message || 'Invalid email or password.');
+                if (isLocked(RL_KEY)) {
+                    const secs = remainingLockSeconds(RL_KEY);
+                    showNotice('loginNotice', 'error',
+                        `Too many failed attempts. Please wait ${secs}s before trying again.`);
+                } else {
+                    showNotice('loginNotice', 'error', error.message || 'Invalid email or password.');
+                }
                 btn.disabled = false;
                 btn.innerHTML = 'Sign in';
             }
@@ -1777,13 +1894,49 @@
         }
 
         // ─── SIGNUP ───
+        // FIX #2: no longer performs a second client-side insert into `profiles`.
+        // All signup metadata is passed via options.data (raw_user_meta_data) and
+        // MUST be consumed atomically by a Postgres trigger on auth.users, e.g.:
+        //
+        //   create or replace function public.handle_new_user()
+        //   returns trigger as $$
+        //   begin
+        //     insert into public.profiles (
+        //       id, full_name, email, role, year, university, phone, license, location, created_at
+        //     )
+        //     values (
+        //       new.id,
+        //       new.raw_user_meta_data->>'full_name',
+        //       new.email,
+        //       new.raw_user_meta_data->>'role',
+        //       new.raw_user_meta_data->>'year',
+        //       new.raw_user_meta_data->>'university',
+        //       new.raw_user_meta_data->>'phone',
+        //       new.raw_user_meta_data->>'license',
+        //       new.raw_user_meta_data->>'location',
+        //       now()
+        //     );
+        //     return new;
+        //   end;
+        //   $$ language plpgsql security definer;
+        //
+        //   create trigger on_auth_user_created
+        //     after insert on auth.users
+        //     for each row execute procedure public.handle_new_user();
+        //
+        // This guarantees the profile row is created in the same transaction as the
+        // user, closing the race window that previously caused blank/incomplete
+        // profiles (the upsertProfile bug).
         async function handleSignup(e) {
             e.preventDefault();
-            
+
             if (!window.supabaseClient) {
                 showNotice('signupNotice', 'error', 'Service is unavailable. Please refresh the page.');
                 return false;
             }
+
+            const RL_KEY = 'easemed_rl_signup';
+            if (!guardRateLimit(RL_KEY, 'signupNotice', 'sign up')) return false;
 
             const name = document.getElementById('signupName').value.trim();
             const email = document.getElementById('signupEmail').value.trim();
@@ -1802,8 +1955,13 @@
             if (!name) errors.name = 'Enter your full name.';
             if (!email) errors.email = 'Enter your email address.';
             else if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = 'Please enter a valid email address.';
+
+            // FIX #4: 8-char minimum, and block weak passwords outright
+            const strength = getStrength(password);
             if (!password) errors.password = 'Choose a password.';
-            else if (password.length < 6) errors.password = 'Password must be at least 6 characters.';
+            else if (password.length < 8) errors.password = 'Password must be at least 8 characters.';
+            else if (strength.label === 'Weak') errors.password = 'Password is too weak. Add numbers, symbols, or a mix of cases.';
+
             if (confirm !== password) errors.confirm = 'Passwords do not match.';
             if (!role) errors.role = 'Select your role.';
             if (!university) errors.university = 'Enter your institution.';
@@ -1863,44 +2021,39 @@
                     }
                 });
 
-                if (error) throw error;
-
-                if (data.user) {
-                    try {
-                        await window.supabaseClient
-                            .from('profiles')
-                            .insert([{
-                                id: data.user.id,
-                                full_name: name,
-                                email: email,
-                                role: role,
-                                year: year,
-                                university: university,
-                                phone: phone,
-                                license: license,
-                                location: location,
-                                created_at: new Date().toISOString()
-                            }]);
-                    } catch (profileErr) {
-                        console.warn('Profile creation skipped:', profileErr);
-                    }
-
-                    showNotice('signupNotice', 'success', 
-                        `Account created! Check ${email} for confirmation.`
-                    );
-                    
-                    btn.disabled = false;
-                    btn.innerHTML = 'Create account';
-                    
-                    setTimeout(() => {
-                        switchToLogin();
-                        document.getElementById('loginEmail').value = email;
-                        showNotice('loginNotice', 'success', 'Please confirm your email and sign in.');
-                    }, 2000);
+                if (error) {
+                    registerFailedAttempt(RL_KEY);
+                    throw error;
                 }
 
+                resetAttempts(RL_KEY);
+
+                // Profile creation is now handled entirely server-side by a DB
+                // trigger consuming raw_user_meta_data (see comment above).
+                // We no longer insert from the client, and no longer silently
+                // swallow a failed insert here.
+
+                showNotice('signupNotice', 'success',
+                    `Account created! Check ${email} for confirmation.`
+                );
+
+                btn.disabled = false;
+                btn.innerHTML = 'Create account';
+
+                setTimeout(() => {
+                    switchToLogin();
+                    document.getElementById('loginEmail').value = email;
+                    showNotice('loginNotice', 'success', 'Please confirm your email and sign in.');
+                }, 2000);
+
             } catch (error) {
-                showNotice('signupNotice', 'error', error.message || 'Signup failed. Please try again.');
+                if (isLocked(RL_KEY)) {
+                    const secs = remainingLockSeconds(RL_KEY);
+                    showNotice('signupNotice', 'error',
+                        `Too many attempts. Please wait ${secs}s before trying again.`);
+                } else {
+                    showNotice('signupNotice', 'error', error.message || 'Signup failed. Please try again.');
+                }
                 btn.disabled = false;
                 btn.innerHTML = 'Create account';
             }
@@ -1911,11 +2064,14 @@
         // ─── FORGOT ───
         async function handleForgot(e) {
             e.preventDefault();
-            
+
             if (!window.supabaseClient) {
                 showNotice('forgotNotice', 'error', 'Service is unavailable. Please refresh the page.');
                 return false;
             }
+
+            const RL_KEY = 'easemed_rl_forgot';
+            if (!guardRateLimit(RL_KEY, 'forgotNotice', 'request a reset')) return false;
 
             const email = document.getElementById('forgotEmail').value.trim();
             const err = document.getElementById('forgotEmailError');
@@ -1937,15 +2093,26 @@
                     redirectTo: window.location.origin + '/reset-password.html',
                 });
 
-                if (error) throw error;
+                if (error) {
+                    registerFailedAttempt(RL_KEY);
+                    throw error;
+                }
+
+                resetAttempts(RL_KEY);
 
                 document.getElementById('forgotForm').style.display = 'none';
                 document.getElementById('forgotSuccess').classList.remove('hidden');
-                document.getElementById('forgotSuccessText').textContent = 
+                document.getElementById('forgotSuccessText').textContent =
                     `Password reset email sent to ${email}! Check your inbox.`;
 
             } catch (error) {
-                showNotice('forgotNotice', 'error', error.message || 'Failed to send reset email.');
+                if (isLocked(RL_KEY)) {
+                    const secs = remainingLockSeconds(RL_KEY);
+                    showNotice('forgotNotice', 'error',
+                        `Too many requests. Please wait ${secs}s before trying again.`);
+                } else {
+                    showNotice('forgotNotice', 'error', error.message || 'Failed to send reset email.');
+                }
                 btn.disabled = false;
                 btn.innerHTML = 'Send reset link';
             }
@@ -2042,7 +2209,7 @@
         // ─── DOM CONTENT LOADED ───
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[App] DOM ready, initializing...');
-            
+
             // Check if Supabase SDK is available
             if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
                 initSupabase();
