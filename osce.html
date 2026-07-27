@@ -140,7 +140,9 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- ✅ FIXED: Use local Supabase SDK instead of CDN -->
+<script src="/js/supabase.min.js"></script>
+
 <script>
 // ─── CONFIG ───
 const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
@@ -172,7 +174,9 @@ const currentModule = getModuleFromUrl();
 
 async function init() {
   try {
-    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    // ✅ FIXED: Use window.supabase (loaded from local file)
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
       window.location.href = 'easemed_login.html';
@@ -437,7 +441,8 @@ async function showFinalSummary() {
   `;
 }
 
-init();
+// ✅ Ensure init runs when DOM is ready
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
