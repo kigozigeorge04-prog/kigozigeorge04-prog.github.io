@@ -1111,15 +1111,150 @@ const ddxDatabase = {
 
 const genericDdx = {
     'malnutrition': {
-        'Severe Acute Malnutrition (SAM)': {
-            likelihood: function(data) { let score = 30; if (data.muac && parseFloat(data.muac) < 11.5)
-                    score += 20; if (data.associatedSymptoms.includes('oedema')) score += 15; if (data
-                    .associatedSymptoms.includes('wasting')) score += 10; if (data.examData?.general
-                    ?.pills?.includes('Malnourished')) score += 15; return Math.min(score, 100); },
-            description: "Severe acute malnutrition is a life-threatening condition. Presents with wasting, oedema, and MUAC <11.5 cm.",
-            distinguishingFeatures: ["MUAC <11.5 cm", "Wasting", "Oedema", "Weight loss"],
-            investigations: ["MUAC", "Weight-for-height", "FBC", "Albumin", "Electrolytes"],
-            treatment: "WHO F-75/F-100; treat infections; micronutrients."
+        'Marasmus (Non-oedematous SAM)': {
+            likelihood: function(data) { 
+                let score = 0;
+                // Check for oedema - if present, significantly reduce score
+                let oedemaPresent = false;
+                if (data.oedemaPresent) oedemaPresent = true;
+                if (data.associatedSymptoms && data.associatedSymptoms.includes('oedema')) oedemaPresent = true;
+                if (data.examData?.general?.pills?.includes('Oedematous')) oedemaPresent = true;
+                
+                // Base score from MUAC
+                if (data.muac && parseFloat(data.muac) < 11.5) score += 25;
+                else if (data.muac) score += 5;
+                
+                // Wasting features (non-oedematous)
+                if (data.examData?.general?.pills?.includes('Malnourished')) score += 10;
+                if (data.examData?.general?.pills?.includes('Wasted')) score += 15;
+                if (data.examData?.general?.pills?.includes('Severe wasting')) score += 20;
+                
+                // Visible ribs / "old man" facies features captured in exam
+                if (data.examData?.general?.pills?.includes('Rib visible')) score += 10;
+                if (data.examData?.general?.pills?.includes('Loose skin folds')) score += 10;
+                
+                // MUAC-specific contributions
+                if (data.muac && parseFloat(data.muac) < 11.0) score += 5;
+                if (data.muac && parseFloat(data.muac) < 10.5) score += 5;
+                
+                // WHZ if available (Z-score < -3)
+                if (data.whz && parseFloat(data.whz) < -3) score += 20;
+                else if (data.whz && parseFloat(data.whz) < -2) score += 10;
+                
+                // Age factor (younger children more likely to have SAM)
+                if (data.ageMonths !== null && data.ageMonths < 60) score += 5;
+                
+                // Penalize if oedema present (differentiates from Kwashiorkor)
+                if (oedemaPresent) score = Math.max(0, score - 30);
+                
+                // Also check for absence of dermatosis/hair changes
+                let hasDermatosis = false;
+                if (data.associatedSymptoms && data.associatedSymptoms.includes('flaky paint dermatosis')) hasDermatosis = true;
+                if (data.rosData?.skin?.present?.includes('Flaky paint dermatosis')) hasDermatosis = true;
+                if (data.examData?.skin?.pills?.includes('Flaky paint dermatosis')) hasDermatosis = true;
+                if (hasDermatosis) score -= 10; // Marasmus typically lacks dermatosis
+                
+                return Math.min(Math.max(score, 0), 100); 
+            },
+            description: "Marasmus is a form of severe acute malnutrition characterised by severe wasting, visible ribs, 'old man' facies, and loose skin folds ('baggy pants'). Unlike kwashiorkor, there is no oedema, dermatosis, or hair changes. Children are often alert but irritable.",
+            distinguishingFeatures: ["Severe wasting (MUAC <11.5 cm)", "'Old man' / monkey facies", "Visible ribs", "Loose skin folds ('baggy pants')", "No oedema", "No dermatosis", "No hair changes", "Alert but irritable"],
+            investigations: ["MUAC", "Weight-for-height Z-score (WHZ)", "FBC", "Blood glucose", "Electrolytes", "Albumin"],
+            treatment: "WHO F-75 (stabilisation phase) then F-100 (rehabilitation phase); treat underlying infections; avoid overfeeding in phase 1; monitor for refeeding syndrome."
+        },
+        'Severe Acute Malnutrition (SAM) — Oedematous / Mixed': {
+            likelihood: function(data) { 
+                let score = 0;
+                // Check for oedema - this is the key differentiator
+                let oedemaPresent = false;
+                if (data.oedemaPresent) oedemaPresent = true;
+                if (data.associatedSymptoms && data.associatedSymptoms.includes('oedema')) oedemaPresent = true;
+                if (data.associatedSymptoms && data.associatedSymptoms.includes('bilateral pitting oedema')) oedemaPresent = true;
+                if (data.examData?.general?.pills?.includes('Oedematous')) oedemaPresent = true;
+                
+                // Score heavily on oedema presence
+                if (oedemaPresent) score += 35;
+                
+                // MUAC contribution
+                if (data.muac && parseFloat(data.muac) < 11.5) score += 20;
+                else if (data.muac && parseFloat(data.muac) < 12.5) score += 10;
+                
+                // Kwashiorkor features
+                if (data.associatedSymptoms && data.associatedSymptoms.includes('flaky paint dermatosis')) score += 15;
+                if (data.associatedSymptoms && data.associatedSymptoms.includes('hair changes')) score += 10;
+                if (data.associatedSymptoms && data.associatedSymptoms.includes('irritability')) score += 5;
+                if (data.rosData?.skin?.present?.includes('Flaky paint dermatosis (kwashiorkor)')) score += 15;
+                if (data.rosData?.skin?.present?.includes('Dry skin / Xerosis')) score += 5;
+                if (data.examData?.skin?.pills?.includes('Flaky paint dermatosis')) score += 15;
+                
+                // General malnutrition evidence
+                if (data.examData?.general?.pills?.includes('Malnourished')) score += 10;
+                if (data.examData?.general?.pills?.includes('Ill-looking')) score += 5;
+                
+                // WHZ if available (Z-score < -3)
+                if (data.whz && parseFloat(data.whz) < -3) score += 15;
+                else if (data.whz && parseFloat(data.whz) < -2) score += 8;
+                
+                // Age factor
+                if (data.ageMonths !== null && data.ageMonths < 60) score += 5;
+                
+                // This is a catch-all for oedematous cases; reduce score if no oedema
+                if (!oedemaPresent) score = Math.max(0, score - 20);
+                
+                return Math.min(Math.max(score, 0), 100); 
+            },
+            description: "Severe acute malnutrition with oedema (kwashiorkor or marasmic-kwashiorkor). Presents with bilateral pitting oedema, flaky paint dermatosis, hair changes, and irritability. Mixed cases also have wasting.",
+            distinguishingFeatures: ["Bilateral pitting oedema", "Flaky paint dermatosis", "Hair changes (sparse, thin, reddish)", "Irritability", "MUAC <11.5 cm (may be masked by oedema)", "Mixed wasting and oedema possible"],
+            investigations: ["MUAC", "Weight-for-height Z-score", "FBC", "Albumin", "Electrolytes", "Chest X-ray (exclude TB)", "HIV test"],
+            treatment: "WHO F-75 milk (phase 1) then F-100 (phase 2); treat infections; meticulous fluid and electrolyte management; vitamin A supplementation."
+        },
+        'Moderate Acute Malnutrition (MAM)': {
+            likelihood: function(data) { 
+                let score = 0;
+                // Check for oedema - if present, this suggests SAM not MAM
+                let oedemaPresent = false;
+                if (data.oedemaPresent) oedemaPresent = true;
+                if (data.associatedSymptoms && data.associatedSymptoms.includes('oedema')) oedemaPresent = true;
+                if (data.examData?.general?.pills?.includes('Oedematous')) oedemaPresent = true;
+                
+                // MUAC criteria for MAM (11.5-12.4 cm)
+                if (data.muac) {
+                    const muac = parseFloat(data.muac);
+                    if (muac >= 11.5 && muac < 12.5) score += 25;
+                    else if (muac >= 12.5 && muac < 13.5) score += 10; // borderline
+                    else if (muac < 11.5) score += 5; // SAM would be more likely
+                }
+                
+                // WHZ criteria (-3 to -2 SD)
+                if (data.whz) {
+                    const whz = parseFloat(data.whz);
+                    if (whz >= -3 && whz < -2) score += 20;
+                    else if (whz < -3) score += 5; // SAM would be more likely
+                    else if (whz >= -2 && whz < -1.5) score += 8; // at risk
+                }
+                
+                // Mild-moderate wasting on exam
+                if (data.examData?.general?.pills?.includes('Malnourished')) score += 10;
+                if (data.examData?.general?.pills?.includes('Wasted')) score += 5;
+                
+                // Usually asymptomatic - but check for growth faltering
+                if (data.associatedSymptoms && data.associatedSymptoms.includes('failure to thrive')) score += 5;
+                if (data.associatedSymptoms && data.associatedSymptoms.includes('poor weight gain')) score += 5;
+                
+                // Penalize if oedema present (MAM is non-oedematous)
+                if (oedemaPresent) score = Math.max(0, score - 25);
+                
+                // Penalize if severe wasting features present
+                if (data.examData?.general?.pills?.includes('Severe wasting')) score -= 10;
+                
+                // Age factor (MAM common in under-5s)
+                if (data.ageMonths !== null && data.ageMonths < 60) score += 5;
+                
+                return Math.min(Math.max(score, 0), 100); 
+            },
+            description: "Moderate acute malnutrition (MAM) is a nutritional state between normal and severe acute malnutrition. Presents with MUAC 11.5–12.4 cm and/or WHZ between -3 and -2 SD, without oedema. Often asymptomatic other than growth faltering, with increased susceptibility to infections.",
+            distinguishingFeatures: ["MUAC 11.5–12.4 cm", "WHZ between -3 and -2 SD", "No oedema", "Mild-moderate wasting", "Often asymptomatic", "Growth faltering", "Increased infection risk"],
+            investigations: ["MUAC", "Weight-for-height Z-score", "Growth chart review", "FBC (exclude anaemia)", "Nutritional assessment"],
+            treatment: "Ready-to-use supplementary food (RUSF) or fortified blended flour per WFP supplementary feeding program guidance; outpatient follow-up; nutrition counselling; routine vitamin A supplementation; deworming; treat underlying infections."
         }
     },
     'abdominal distension': {
@@ -1147,3 +1282,89 @@ const genericDdx = {
         }
     }
 };
+
+// ============================================================
+// DDX ENGINE — Main function
+// ============================================================
+
+function runDdxEngine(complaint, patientData) {
+    // Determine which categories to search
+    const categories = [];
+    
+    // Always include the primary complaint if it exists in the database
+    if (complaint && ddxDatabase[complaint]) {
+        categories.push(complaint);
+    }
+    
+    // Supplementary trigger for malnutrition: fire if MUAC < 12.5 cm or oedema is documented
+    const hasMalnutritionTrigger = (
+        patientData.muac && parseFloat(patientData.muac) < 12.5 ||
+        patientData.oedemaPresent ||
+        patientData.examData?.general?.pills?.includes('Oedematous') ||
+        patientData.examData?.general?.pills?.includes('Malnourished') ||
+        patientData.examData?.general?.pills?.includes('Wasted') ||
+        patientData.examData?.general?.pills?.includes('Severe wasting') ||
+        patientData.associatedSymptoms?.includes('oedema') ||
+        patientData.associatedSymptoms?.includes('bilateral pitting oedema')
+    );
+    
+    if (hasMalnutritionTrigger && !categories.includes('malnutrition')) {
+        categories.push('malnutrition');
+    }
+    
+    // Also trigger for 'failure to thrive' if present
+    if (patientData.associatedSymptoms && patientData.associatedSymptoms.includes('failure to thrive')) {
+        if (!categories.includes('malnutrition')) categories.push('malnutrition');
+    }
+    
+    // If no matching categories, return empty results
+    if (categories.length === 0) {
+        return [];
+    }
+    
+    // Collect results from all relevant categories
+    let allResults = [];
+    
+    categories.forEach(category => {
+        let ddxList = {};
+        
+        // Get primary DDx if available
+        if (ddxDatabase[category]) {
+            ddxList = ddxDatabase[category];
+        }
+        
+        // Add generic DDx if applicable
+        if (genericDdx[category]) {
+            Object.assign(ddxList, genericDdx[category]);
+        }
+        
+        // Calculate scores for each diagnosis
+        Object.keys(ddxList).forEach(diagnosis => {
+            const entry = ddxList[diagnosis];
+            if (typeof entry.likelihood === 'function') {
+                const score = entry.likelihood(patientData);
+                if (score > 0) {
+                    allResults.push({
+                        diagnosis: diagnosis,
+                        score: score,
+                        description: entry.description,
+                        distinguishingFeatures: entry.distinguishingFeatures || [],
+                        investigations: entry.investigations || [],
+                        treatment: entry.treatment || ''
+                    });
+                }
+            }
+        });
+    });
+    
+    // Sort by score descending and return
+    return allResults.sort((a, b) => b.score - a.score);
+}
+
+// ============================================================
+// EXPORT (for Node.js modules; adjust for browser as needed)
+// ============================================================
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { ddxDatabase, genericDdx, runDdxEngine };
+}
