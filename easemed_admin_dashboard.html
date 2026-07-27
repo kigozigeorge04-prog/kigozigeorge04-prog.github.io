@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>EaseMed — Admin Dashboard</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>">
     <meta name="theme-color" content="#E8F4FD">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     <!-- Use system fonts so the dashboard remains usable under a restrictive CSP. -->
@@ -23,9 +24,19 @@
             box-sizing: border-box;
         }
 
+        html {
+            height: 100%;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            min-height: 100vh;
+            min-height: 100%;
             background: linear-gradient(160deg, #E8F4FD 0%, #B8D8F0 40%, #8EC4E8 100%);
             color: #0B1A2E;
         }
@@ -35,6 +46,7 @@
             position: fixed;
             inset: 0;
             z-index: 0;
+            pointer-events: none;
             background: 
                 radial-gradient(ellipse at 20% 30%, rgba(59, 130, 246, 0.10) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
@@ -60,6 +72,7 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 24px;
+            padding-bottom: calc(24px + env(safe-area-inset-bottom));
         }
 
         /* ──────────── TOP BAR ──────────── */
