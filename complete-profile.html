@@ -631,13 +631,6 @@ function initApp() {
 }
 
 // ── Load user data ──────────────────────────────────────────
-// FIX: the live Supabase session is now always the source of truth for who
-// the current user is. localStorage's "pending" values are only ever used
-// as a last-resort fallback if there's genuinely no session — and are
-// always overwritten to match the current session when one exists. This
-// closes a bug where a stale pending user id left behind by a previous,
-// uncompleted visit (e.g. on a shared device) could get a *different*
-// signed-in user's profile updated under someone else's id.
 async function loadUserData() {
     if (!sb) {
         showAlert('❌ Service not available. Please refresh.', 'error');
@@ -645,28 +638,25 @@ async function loadUserData() {
     }
 
     try {
-        let userId, email, name;
+        // Check if we have pending user data from Google sign-in
+        let userId = localStorage.getItem('easemed_pending_user_id');
+        let email = localStorage.getItem('easemed_pending_email');
+        let name = localStorage.getItem('easemed_pending_name');
 
-        const { data: { session } } = await sb.auth.getSession();
-
-        if (session?.user) {
-            userId = session.user.id;
-            email = session.user.email;
-            name = session.user.user_metadata?.full_name ||
-                   session.user.user_metadata?.name ||
-                   session.user.email || 'User';
-
-            // Always sync localStorage to the current session, overwriting
-            // anything left behind by a different, previous user.
-            localStorage.setItem('easemed_pending_user_id', userId);
-            localStorage.setItem('easemed_pending_email', email);
-            localStorage.setItem('easemed_pending_name', name);
-        } else {
-            // No live session — fall back to whatever was previously stashed,
-            // purely so a mid-flow refresh doesn't lose context.
-            userId = localStorage.getItem('easemed_pending_user_id');
-            email = localStorage.getItem('easemed_pending_email');
-            name = localStorage.getItem('easemed_pending_name');
+        // If no pending data, try to get current session
+        if (!userId) {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session?.user) {
+                userId = session.user.id;
+                email = session.user.email;
+                name = session.user.user_metadata?.full_name || 
+                       session.user.user_metadata?.name || 
+                       session.user.email || 'User';
+                
+                localStorage.setItem('easemed_pending_user_id', userId);
+                localStorage.setItem('easemed_pending_email', email);
+                localStorage.setItem('easemed_pending_name', name);
+            }
         }
 
         if (!userId) {
@@ -755,10 +745,7 @@ async function submitProfile() {
     }
 
     // ── Get user ID ──────────────────────────────────────────
-    // FIX: re-check the live session here too, rather than trusting
-    // whatever is sitting in localStorage at submit time.
-    const { data: { session } } = await sb.auth.getSession();
-    const userId = session?.user?.id || localStorage.getItem('easemed_pending_user_id');
+    const userId = localStorage.getItem('easemed_pending_user_id');
     if (!userId) {
         showAlert('❌ No user ID found. Please log in again.', 'error');
         setTimeout(() => { window.location.href = 'easemed_login.html'; }, 2000);
