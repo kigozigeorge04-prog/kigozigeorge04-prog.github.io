@@ -11,7 +11,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EaseMed">
-    <!-- Use system fonts so the dashboard remains usable under a restrictive CSP. -->
     
     <!-- Local Supabase SDK -->
     <script src="/js/supabase.min.js"></script>
@@ -41,7 +40,6 @@
             color: #0B1A2E;
         }
 
-        /* ──────────── BACKGROUND ──────────── */
         .bg-gradient {
             position: fixed;
             inset: 0;
@@ -65,7 +63,6 @@
             opacity: 0.5;
         }
 
-        /* ──────────── CONTAINER ──────────── */
         .container {
             position: relative;
             z-index: 1;
@@ -162,6 +159,45 @@
         .btn-back:hover {
             background: rgba(255, 255, 255, 0.25);
             border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary {
+            padding: 8px 20px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-danger {
+            padding: 8px 20px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(220, 38, 38, 0.3);
         }
 
         /* ──────────── ACCESS LOCK ──────────── */
@@ -320,7 +356,7 @@
             background: rgba(245, 158, 11, 0.15);
             color: #92400E;
         }
-        .expiry-control { display: flex; align-items: center; gap: 6px; }
+        .expiry-control { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .expiry-control input {
             padding: 5px 7px; border: 1px solid rgba(11,26,46,0.18);
             border-radius: 6px; background: rgba(255,255,255,0.7); color: #0B1A2E; font: inherit;
@@ -333,7 +369,7 @@
         .table-action:hover { background: rgba(255,255,255,0.5); }
         .users-toolbar {
             display: flex; align-items: center; justify-content: space-between;
-            gap: 16px; margin-bottom: 14px;
+            gap: 16px; margin-bottom: 14px; flex-wrap: wrap;
         }
         .users-toolbar h2 { margin: 0; font-size: 1rem; }
         .users-toolbar p { margin: 4px 0 0; font-size: 0.78rem; color: rgba(11,26,46,0.58); }
@@ -341,6 +377,155 @@
             width: min(320px, 100%); padding: 10px 12px; border-radius: 9px;
             border: 1px solid rgba(11,26,46,0.18); background: rgba(255,255,255,0.76);
             color: #0B1A2E; font: inherit;
+        }
+
+        /* ──────────── OSCE IMAGE MANAGER ──────────── */
+        .osce-section {
+            margin-top: 32px;
+        }
+        .osce-section .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .osce-section .section-sub {
+            color: rgba(11, 26, 46, 0.5);
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+        .osce-controls {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin-bottom: 16px;
+        }
+        .osce-controls .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .osce-controls .field label {
+            font-size: 0.75rem;
+            color: rgba(11, 26, 46, 0.5);
+            font-weight: 600;
+        }
+        .osce-controls .field select,
+        .osce-controls .field input[type="file"] {
+            padding: 8px 12px;
+            border-radius: 9px;
+            border: 1px solid rgba(11, 26, 46, 0.18);
+            background: rgba(255, 255, 255, 0.76);
+            color: #0B1A2E;
+            font: inherit;
+            min-width: 180px;
+        }
+        .osce-controls .field input[type="file"] {
+            padding: 6px 8px;
+            min-width: 200px;
+        }
+        .osce-preview {
+            margin-top: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px dashed rgba(11, 26, 46, 0.1);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .osce-preview img {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+        .osce-preview .placeholder {
+            color: rgba(11, 26, 46, 0.3);
+            font-size: 0.85rem;
+        }
+        .osce-status {
+            font-size: 0.85rem;
+            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        .osce-status.success {
+            color: #065F46;
+            background: rgba(16, 185, 129, 0.08);
+        }
+        .osce-status.error {
+            color: #991B1B;
+            background: rgba(220, 38, 38, 0.08);
+        }
+        .osce-status.loading {
+            color: #2563EB;
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .station-list-compact {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .station-item-compact {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .station-item-compact .thumb-small {
+            width: 50px;
+            height: 50px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        .station-item-compact .thumb-small.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: rgba(11, 26, 46, 0.3);
+        }
+        .station-item-compact .info {
+            flex: 1;
+            min-width: 0;
+        }
+        .station-item-compact .info .title {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .station-item-compact .info .meta {
+            font-size: 0.7rem;
+            color: rgba(11, 26, 46, 0.4);
+        }
+        .station-item-compact .actions {
+            display: flex;
+            gap: 6px;
+        }
+        .station-item-compact .actions button {
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+        .station-item-compact .actions .upload-btn {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+        }
+        .station-item-compact .actions .remove-btn {
+            background: rgba(239, 68, 68, 0.15);
+            color: #991B1B;
         }
 
         /* ──────────── LOADING ──────────── */
@@ -372,6 +557,22 @@
             font-weight: 500;
         }
 
+        .notice {
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .notice-success { color: #065F46; border-color: rgba(52, 211, 153, 0.2); background: rgba(52, 211, 153, 0.06); }
+        .notice-error { color: #991B1B; border-color: rgba(220, 38, 38, 0.2); background: rgba(220, 38, 38, 0.06); }
+        .notice-info { color: #1E40AF; border-color: rgba(59, 130, 246, 0.2); background: rgba(59, 130, 246, 0.06); }
+
         /* ──────────── RESPONSIVE ──────────── */
         @media (max-width: 768px) {
             .container { padding: 16px; }
@@ -380,6 +581,10 @@
             .table-wrap { overflow-x: auto; }
             .table-wrap table { font-size: 0.75rem; }
             .table-wrap th, .table-wrap td { padding: 10px 12px; }
+            .osce-controls { flex-direction: column; align-items: stretch; }
+            .osce-controls .field select,
+            .osce-controls .field input[type="file"] { min-width: unset; width: 100%; }
+            .station-list-compact { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 480px) {
@@ -428,6 +633,7 @@
                 </div>
                 <div class="right-group">
                     <a href="modules.html" class="btn-back">← Modules</a>
+                    <a href="osce-practice.html" class="btn-back">Practice</a>
                     <button class="btn-logout" onclick="handleLogout()">Logout</button>
                 </div>
             </div>
@@ -435,8 +641,10 @@
             <!-- Admin Header -->
             <div class="admin-header">
                 <h1>👋 Welcome, <span id="adminName">Admin</span></h1>
-                <p>Manage users and monitor platform activity.</p>
+                <p>Manage users, monitor activity, and upload OSCE station images.</p>
             </div>
+
+            <div id="notice"></div>
 
             <!-- Stats -->
             <div class="stats-grid" id="statsGrid">
@@ -487,43 +695,60 @@
                     </tbody>
                 </table>
             </div>
-        </div> 
-        <!-- ═══════════ OSCE STATION IMAGE MANAGER ═══════════ -->
-<div class="users-toolbar" style="margin-top:32px;">
-    <div>
-        <h2>OSCE station images</h2>
-        <p id="osceImageStatus">Select a module and station, then upload an image.</p>
-    </div>
-</div>
-<div class="table-wrap" style="padding:24px;">
-    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px;">
-        <div>
-            <label style="display:block; font-size:0.75rem; color:rgba(11,26,46,0.5); margin-bottom:4px;">Module</label>
-            <select id="osceModuleSelect" class="users-search" style="width:180px;" onchange="loadOsceStations()">
-                <option value="peds">Pediatrics</option>
-                <option value="imed">Internal Medicine</option>
-                <option value="obgyn">OB/GYN</option>
-                <option value="surgery">Surgery</option>
-            </select>
+
+            <!-- ═══════════ OSCE STATION IMAGE MANAGER ═══════════ -->
+            <div class="osce-section">
+                <div class="users-toolbar">
+                    <div>
+                        <h2 class="section-title">🖼️ OSCE Image Manager</h2>
+                        <p class="section-sub">Upload images to Supabase Storage and attach them to instrument/X-ray stations.</p>
+                    </div>
+                    <button class="btn-primary" onclick="loadAllOsceStations()">🔄 Refresh Stations</button>
+                </div>
+
+                <!-- Upload Controls -->
+                <div class="osce-controls">
+                    <div class="field">
+                        <label for="osceModuleSelect">Module</label>
+                        <select id="osceModuleSelect" onchange="loadOsceStations()">
+                            <option value="peds">Pediatrics</option>
+                            <option value="imed">Internal Medicine</option>
+                            <option value="obgyn">OB/GYN</option>
+                            <option value="surgery">Surgery</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="osceStationSelect">Station</label>
+                        <select id="osceStationSelect">
+                            <option value="">Loading stations…</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="stationImageInput">Image file (JPG, PNG, WebP)</label>
+                        <input type="file" id="stationImageInput" accept="image/jpeg,image/png,image/webp" onchange="handleStationImageUpload(event)">
+                    </div>
+                </div>
+
+                <div id="osceStatus" class="osce-status" style="display:none;"></div>
+
+                <div class="osce-preview" id="stationImagePreview">
+                    <span class="placeholder">Select a station to preview its image</span>
+                </div>
+
+                <!-- Station List -->
+                <div style="margin-top:20px;">
+                    <h3 style="font-size:0.9rem; font-weight:600; margin-bottom:10px;">All Image Stations</h3>
+                    <div id="allStationsList" class="station-list-compact">
+                        <div style="color:rgba(11,26,46,0.4); padding:20px; text-align:center;">Loading stations...</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div>
-            <label style="display:block; font-size:0.75rem; color:rgba(11,26,46,0.5); margin-bottom:4px;">Station</label>
-            <select id="osceStationSelect" class="users-search" style="width:300px;">
-                <option value="">Loading stations…</option>
-            </select>
-        </div>
-        <div>
-            <label style="display:block; font-size:0.75rem; color:rgba(11,26,46,0.5); margin-bottom:4px;">Image file</label>
-            <input type="file" id="stationImageInput" accept="image/jpeg,image/png,image/webp">
-        </div>
-    </div>
-    <div id="stationImagePreview"></div>
-</div>
     </div>
 
     <script>
         // ─── VERSION CONTROL ───
-        const APP_VERSION = '2.0.5';
+        const APP_VERSION = '2.1.0';
         const CACHE_KEY = 'easemed_app_version';
         
         const storedVersion = localStorage.getItem(CACHE_KEY);
@@ -540,11 +765,14 @@
         // ─── CONFIGURATION ───
         const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+        const STORAGE_BUCKET = 'osce-station-images';
 
         // ─── GLOBALS ───
         let supabaseClient = null;
         let currentUser = null;
         let allUsers = [];
+        let allOsceStations = [];
+        let currentOsceStations = [];
 
         // ─── INIT ───
         function initSupabase() {
@@ -594,7 +822,6 @@
 
                 currentUser = session.user;
 
-                // Load the signed-in user's profile before checking their role.
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('full_name, role, is_admin')
@@ -607,21 +834,14 @@
                     return;
                 }
 
-                // Check if user is an administrator.
                 const role = profile?.role?.toLowerCase();
-
-                const isAdmin =
-                    profile?.is_admin === true ||
-                    role === 'admin' ||
-                    role === 'superadmin' ||
-                    role === 'administrator';
+                const isAdmin = profile?.is_admin === true || role === 'admin' || role === 'superadmin' || role === 'administrator';
 
                 if (!isAdmin) {
                     showAccessDenied('You do not have administrator privileges.');
                     return;
                 }
 
-                // Show admin dashboard
                 document.getElementById('adminName').textContent = profile?.full_name || 'Admin';
                 spinner.style.display = 'none';
                 content.style.display = 'block';
@@ -634,14 +854,11 @@
             }
         }
 
-        // ─── SHOW ACCESS DENIED ───
         function showAccessDenied(message) {
             const spinner = document.getElementById('loadingSpinner');
             const lock = document.getElementById('accessLock');
-            
             spinner.style.display = 'none';
             lock.style.display = 'block';
-            
             if (message) {
                 const p = lock.querySelector('p');
                 if (p) p.textContent = message;
@@ -653,115 +870,54 @@
             if (!supabaseClient) return;
 
             try {
-                // Get total users
-                const { count: totalUsers, error: usersError } = await supabaseClient
-                    .from('profiles')
-                    .select('*', { count: 'exact', head: true });
+                const { count: totalUsers } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
+                document.getElementById('totalUsers').textContent = totalUsers || 0;
 
-                if (!usersError) {
-                    document.getElementById('totalUsers').textContent = totalUsers || 0;
-                }
-
-                // Get active users (last 7 days)
                 const weekAgo = new Date();
                 weekAgo.setDate(weekAgo.getDate() - 7);
-                
-                const { count: activeUsers, error: activeError } = await supabaseClient
+                const { count: activeUsers } = await supabaseClient
                     .from('profiles')
                     .select('*', { count: 'exact', head: true })
                     .gte('last_activity', weekAgo.toISOString());
+                document.getElementById('activeUsers').textContent = activeUsers || 0;
 
-                if (!activeError) {
-                    document.getElementById('activeUsers').textContent = activeUsers || 0;
-                }
+                const { count: totalPatients } = await supabaseClient.from('patients').select('*', { count: 'exact', head: true });
+                document.getElementById('totalPatients').textContent = totalPatients || 0;
 
-                // Get total patients
-                const { count: totalPatients, error: patientsError } = await supabaseClient
-                    .from('patients')
-                    .select('*', { count: 'exact', head: true });
+                const { count: totalClerkings } = await supabaseClient.from('clerking_records').select('*', { count: 'exact', head: true });
+                document.getElementById('totalClerkings').textContent = totalClerkings || 0;
 
-                if (!patientsError) {
-                    document.getElementById('totalPatients').textContent = totalPatients || 0;
-                }
-
-                // Get total clerkings
-                const { count: totalClerkings, error: clerkingsError } = await supabaseClient
-                    .from('clerking_records')
-                    .select('*', { count: 'exact', head: true });
-
-                if (!clerkingsError) {
-                    document.getElementById('totalClerkings').textContent = totalClerkings || 0;
-                }
-
-                // Load users table
                 await loadUsersTable();
+                await loadAllOsceStations();
 
             } catch (error) {
                 console.error('[Admin] Load data error:', error);
             }
         }
 
-        // ─── LOAD USERS TABLE ───
+        // ─── USERS TABLE ───
         async function loadUsersTable() {
             if (!supabaseClient) return;
-
             try {
                 allUsers = await fetchAllUsers();
                 filterUsers();
-
             } catch (error) {
                 console.error('[Admin] Load users error:', error);
                 document.getElementById('usersTableBody').innerHTML = `
-                    <tr>
-                            <td colspan="6" style="text-align:center; padding:32px; color:#DC2626;">
-                            Failed to load users: ${error.message}
-                        </td>
-                    </tr>
-                `;
+                    <tr><td colspan="6" style="text-align:center; padding:32px; color:#DC2626;">Failed to load users: ${error.message}</td></tr>`;
             }
         }
 
-        // ─── TOGGLE USER STATUS ───
-        async function toggleUserStatus(userId, activate) {
-            if (!supabaseClient) return;
-            
-            if (!confirm(`Are you sure you want to ${activate ? 'activate' : 'deactivate'} this user?`)) {
-                return;
-            }
-
-            try {
-                const { error } = await supabaseClient
-                    .from('profiles')
-                    .update({ 
-                        is_active: activate,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', userId);
-
-                if (error) throw error;
-
-                // Reload users table
-                await loadUsersTable();
-
-            } catch (error) {
-                console.error('[Admin] Toggle status error:', error);
-                alert('Failed to update user status: ' + error.message);
-            }
-        }
-
-        // Fetch in batches so the table is not limited to the first 50 or 1,000 users.
         async function fetchAllUsers() {
             const batchSize = 1000;
             const users = [];
             let from = 0;
-
             while (true) {
                 const { data, error } = await supabaseClient
                     .from('profiles')
                     .select('id, full_name, email, role, is_active, access_expires_at, created_at, last_activity')
                     .order('created_at', { ascending: false })
                     .range(from, from + batchSize - 1);
-
                 if (error) throw error;
                 users.push(...(data || []));
                 if (!data || data.length < batchSize) return users;
@@ -783,13 +939,9 @@
         function renderUsersTable(users) {
             const tbody = document.getElementById('usersTableBody');
             if (!users.length) {
-                tbody.innerHTML = `
-                    <tr><td colspan="6" style="text-align:center; padding:32px; color:rgba(11,26,46,0.4);">
-                        No users match your search.
-                    </td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:32px; color:rgba(11,26,46,0.4);">No users match your search.</td></tr>`;
                 return;
             }
-
             tbody.innerHTML = users.map(user => {
                 const expired = isUserExpired(user.access_expires_at);
                 const expiryDate = user.access_expires_at ? user.access_expires_at.slice(0, 10) : '';
@@ -802,7 +954,7 @@
                         <td>${user.role || 'User'}</td>
                         <td><span class="status-badge ${statusClass}">${status}</span></td>
                         <td><div class="expiry-control">
-                            <input id="expiry-${user.id}" type="date" value="${expiryDate}" aria-label="Access expiry date">
+                            <input id="expiry-${user.id}" type="date" value="${expiryDate}">
                             <button class="table-action" onclick="setUserExpiry('${user.id}')">Save</button>
                             ${user.access_expires_at ? `<button class="table-action" onclick="clearUserExpiry('${user.id}')">Clear</button>` : ''}
                         </div></td>
@@ -813,7 +965,6 @@
             }).join('');
         }
 
-        // ─── ACCESS EXPIRY ───
         function isUserExpired(expiresAt) {
             return Boolean(expiresAt) && new Date(expiresAt).getTime() < Date.now();
         }
@@ -821,186 +972,344 @@
         async function setUserExpiry(userId) {
             const input = document.getElementById(`expiry-${userId}`);
             if (!input?.value) {
-                alert('Choose an expiry date, or use Clear to remove an existing expiry date.');
+                alert('Choose an expiry date.');
                 return;
             }
-
             try {
-                const { error } = await supabaseClient
+                await supabaseClient
                     .from('profiles')
-                    .update({
-                        access_expires_at: `${input.value}T23:59:59.999Z`,
-                        updated_at: new Date().toISOString()
-                    })
+                    .update({ access_expires_at: `${input.value}T23:59:59.999Z`, updated_at: new Date().toISOString() })
                     .eq('id', userId);
-                if (error) throw error;
                 await loadUsersTable();
             } catch (error) {
-                console.error('[Admin] Set expiry error:', error);
                 alert('Failed to set access expiry: ' + error.message);
             }
         }
 
         async function clearUserExpiry(userId) {
             if (!confirm('Remove this user\'s access expiry date?')) return;
-
             try {
-                const { error } = await supabaseClient
+                await supabaseClient
                     .from('profiles')
                     .update({ access_expires_at: null, updated_at: new Date().toISOString() })
                     .eq('id', userId);
-                if (error) throw error;
                 await loadUsersTable();
             } catch (error) {
-                console.error('[Admin] Clear expiry error:', error);
                 alert('Failed to clear access expiry: ' + error.message);
             }
+        }
+
+        async function toggleUserStatus(userId, activate) {
+            if (!confirm(`Are you sure you want to ${activate ? 'activate' : 'deactivate'} this user?`)) return;
+            try {
+                await supabaseClient
+                    .from('profiles')
+                    .update({ is_active: activate, updated_at: new Date().toISOString() })
+                    .eq('id', userId);
+                await loadUsersTable();
+            } catch (error) {
+                alert('Failed to update user status: ' + error.message);
+            }
+        }
+
+        // ─── OSCE STATION IMAGE MANAGER ───
+        async function loadAllOsceStations() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('osce_stations')
+                    .select('id, module, station_type, title, image_url, display_order')
+                    .in('station_type', ['instrument', 'xray'])
+                    .order('module', { ascending: true })
+                    .order('display_order', { ascending: true });
+
+                if (error) throw error;
+
+                allOsceStations = data || [];
+                renderAllStations();
+
+                // Load first module's stations into dropdown
+                const moduleSelect = document.getElementById('osceModuleSelect');
+                if (moduleSelect.value) {
+                    loadOsceStations();
+                }
+
+            } catch (error) {
+                console.error('[Admin] Load OSCE stations error:', error);
+                document.getElementById('allStationsList').innerHTML = 
+                    `<div style="color:#DC2626; padding:20px;">Failed to load stations: ${error.message}</div>`;
+            }
+        }
+
+        function renderAllStations() {
+            const container = document.getElementById('allStationsList');
+            if (!allOsceStations.length) {
+                container.innerHTML = `<div style="color:rgba(11,26,46,0.4); padding:20px; text-align:center;">No instrument or X-ray stations found.</div>`;
+                return;
+            }
+
+            const moduleLabels = { peds: 'Pediatrics', imed: 'Internal Medicine', obgyn: 'ObGyn', surgery: 'Surgery' };
+            const typeLabels = { instrument: 'Instrument', xray: 'X-Ray' };
+
+            container.innerHTML = allOsceStations.map(s => `
+                <div class="station-item-compact" id="station-item-${s.id}">
+                    ${s.image_url 
+                        ? `<img class="thumb-small" src="${s.image_url}" alt="${s.title}" onerror="this.className='thumb-small empty'; this.textContent='❌'" />`
+                        : `<div class="thumb-small empty">No image</div>`
+                    }
+                    <div class="info">
+                        <div class="title">${s.title}</div>
+                        <div class="meta">${moduleLabels[s.module] || s.module} · ${typeLabels[s.station_type] || s.station_type}</div>
+                    </div>
+                    <div class="actions">
+                        <button class="upload-btn" onclick="document.getElementById('osceModuleSelect').value='${s.module}'; loadOsceStations(); setTimeout(() => { document.getElementById('osceStationSelect').value='${s.id}'; renderCurrentStationPreview(); }, 300);">Upload</button>
+                        ${s.image_url ? `<button class="remove-btn" onclick="removeStationImage('${s.id}')">Remove</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadOsceStations() {
+            const moduleSelect = document.getElementById('osceModuleSelect');
+            const stationSelect = document.getElementById('osceStationSelect');
+            const module = moduleSelect.value;
+
+            stationSelect.innerHTML = '<option value="">Loading stations…</option>';
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('osce_stations')
+                    .select('id, station_type, title, image_url, display_order')
+                    .eq('module', module)
+                    .in('station_type', ['instrument', 'xray'])
+                    .order('display_order', { ascending: true });
+
+                if (error) throw error;
+
+                currentOsceStations = data || [];
+
+                if (!currentOsceStations.length) {
+                    stationSelect.innerHTML = '<option value="">No stations found</option>';
+                    return;
+                }
+
+                stationSelect.innerHTML = currentOsceStations.map(s =>
+                    `<option value="${s.id}">${s.display_order}. [${s.station_type}] ${s.title}${s.image_url ? ' ✓' : ''}</option>`
+                ).join('');
+
+                renderCurrentStationPreview();
+
+            } catch (error) {
+                console.error('[Admin] Load OSCE stations error:', error);
+                stationSelect.innerHTML = '<option value="">Failed to load stations</option>';
+            }
+        }
+
+        function renderCurrentStationPreview() {
+            const stationSelect = document.getElementById('osceStationSelect');
+            const preview = document.getElementById('stationImagePreview');
+            const selected = currentOsceStations.find(s => String(s.id) === stationSelect.value);
+
+            if (!preview) return;
+
+            if (selected && selected.image_url) {
+                preview.innerHTML = `<img src="${selected.image_url}" alt="${selected.title}" />`;
+            } else if (selected) {
+                preview.innerHTML = `<span class="placeholder">No image uploaded yet for "${selected.title}"</span>`;
+            } else {
+                preview.innerHTML = `<span class="placeholder">Select a station to preview its image</span>`;
+            }
+        }
+
+        function showOsceStatus(message, type) {
+            const el = document.getElementById('osceStatus');
+            if (!el) return;
+            el.style.display = 'block';
+            el.textContent = message;
+            el.className = 'osce-status ' + (type || 'info');
+            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        }
+
+        async function handleStationImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const stationSelect = document.getElementById('osceStationSelect');
+            const stationId = stationSelect.value;
+            const moduleSelect = document.getElementById('osceModuleSelect');
+            const module = moduleSelect.value;
+
+            if (!stationId) {
+                showOsceStatus('Please select a station first.', 'error');
+                return;
+            }
+
+            const selected = currentOsceStations.find(s => String(s.id) === stationId);
+            if (!selected) {
+                showOsceStatus('Station not found. Please refresh.', 'error');
+                return;
+            }
+
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                showOsceStatus('Please upload a JPG, PNG, or WebP image.', 'error');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showOsceStatus('Image too large. Max 5MB.', 'error');
+                return;
+            }
+
+            showOsceStatus('Uploading…', 'loading');
+
+            try {
+                const ext = file.name.split('.').pop();
+                const path = `${module}/${selected.station_type}/${stationId}.${ext}`;
+
+                console.log('[Upload] Uploading to:', path);
+
+                // Check if bucket exists first
+                const { data: buckets, error: bucketsError } = await supabaseClient.storage.listBuckets();
+                const bucketExists = buckets?.some(b => b.name === STORAGE_BUCKET);
+
+                if (!bucketExists) {
+                    // Try to create the bucket
+                    const { error: createError } = await supabaseClient.storage.createBucket(STORAGE_BUCKET, { public: true });
+                    if (createError) {
+                        console.error('[Upload] Create bucket error:', createError);
+                        // If we can't create, try a different path approach
+                    }
+                }
+
+                const { error: uploadError } = await supabaseClient.storage
+                    .from(STORAGE_BUCKET)
+                    .upload(path, file, { upsert: true, cacheControl: '3600' });
+
+                if (uploadError) {
+                    // If upload fails with bucket error, try to create the bucket
+                    if (uploadError.message && uploadError.message.includes('bucket')) {
+                        const { error: createError } = await supabaseClient.storage.createBucket(STORAGE_BUCKET, { public: true });
+                        if (createError) {
+                            showOsceStatus('Failed to create storage bucket: ' + createError.message, 'error');
+                            return;
+                        }
+                        // Retry upload
+                        const { error: retryError } = await supabaseClient.storage
+                            .from(STORAGE_BUCKET)
+                            .upload(path, file, { upsert: true, cacheControl: '3600' });
+                        if (retryError) throw retryError;
+                    } else {
+                        throw uploadError;
+                    }
+                }
+
+                const { data: urlData } = supabaseClient.storage
+                    .from(STORAGE_BUCKET)
+                    .getPublicUrl(path);
+
+                const publicUrl = urlData.publicUrl;
+                console.log('[Upload] Public URL:', publicUrl);
+
+                const { error: updateError } = await supabaseClient
+                    .from('osce_stations')
+                    .update({ image_url: publicUrl })
+                    .eq('id', stationId);
+
+                if (updateError) throw updateError;
+
+                // Update local data
+                const station = allOsceStations.find(s => s.id === stationId);
+                if (station) station.image_url = publicUrl;
+                const currentStation = currentOsceStations.find(s => s.id === stationId);
+                if (currentStation) currentStation.image_url = publicUrl;
+
+                renderAllStations();
+                renderCurrentStationPreview();
+                showOsceStatus('✅ Image uploaded and attached successfully!', 'success');
+
+                // Reset file input
+                event.target.value = '';
+
+            } catch (error) {
+                console.error('[Upload] Error:', error);
+                showOsceStatus('❌ Upload failed: ' + error.message, 'error');
+            }
+        }
+
+        async function removeStationImage(stationId) {
+            if (!confirm('Remove the image from this station?')) return;
+
+            try {
+                const station = allOsceStations.find(s => s.id === stationId);
+                if (!station) return;
+
+                const url = station.image_url;
+                if (url) {
+                    const path = url.split('/').pop();
+                    if (path) {
+                        await supabaseClient.storage.from(STORAGE_BUCKET).remove([path]);
+                    }
+                }
+
+                await supabaseClient
+                    .from('osce_stations')
+                    .update({ image_url: null })
+                    .eq('id', stationId);
+
+                station.image_url = null;
+                const currentStation = currentOsceStations.find(s => s.id === stationId);
+                if (currentStation) currentStation.image_url = null;
+
+                renderAllStations();
+                renderCurrentStationPreview();
+                showOsceStatus('✅ Image removed successfully.', 'success');
+
+            } catch (error) {
+                console.error('[Remove] Error:', error);
+                showOsceStatus('❌ Failed to remove image: ' + error.message, 'error');
+            }
+        }
+
+        // ─── NOTICE ───
+        function showNotice(type, message) {
+            const container = document.getElementById('notice');
+            container.innerHTML = '';
+            const wrap = document.createElement('div');
+            wrap.className = `notice notice-${type}`;
+            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            icon.setAttribute('width', '16');
+            icon.setAttribute('height', '16');
+            icon.setAttribute('viewBox', '0 0 24 24');
+            icon.setAttribute('fill', 'none');
+            icon.setAttribute('stroke', 'currentColor');
+            icon.setAttribute('stroke-width', '2');
+            icon.setAttribute('stroke-linecap', 'round');
+            icon.setAttribute('stroke-linejoin', 'round');
+            icon.innerHTML = type === 'success' 
+                ? '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'
+                : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+            const text = document.createElement('span');
+            text.textContent = message;
+            wrap.appendChild(icon);
+            wrap.appendChild(text);
+            container.appendChild(wrap);
+            setTimeout(() => { if (container.firstChild) container.innerHTML = ''; }, 5000);
         }
 
         // ─── HANDLE LOGOUT ───
         async function handleLogout() {
             try {
-                if (supabaseClient) {
-                    await supabaseClient.auth.signOut();
-                }
+                if (supabaseClient) await supabaseClient.auth.signOut();
                 localStorage.removeItem('easemed_user');
                 window.location.href = 'easemed_login.html';
             } catch (error) {
-                console.error('[Admin] Logout error:', error);
                 window.location.href = 'easemed_login.html';
             }
         }
-// ─── OSCE STATION IMAGE MANAGER ───
-let osceStations = [];
 
-async function loadOsceStations() {
-    const moduleSelect = document.getElementById('osceModuleSelect');
-    const stationSelect = document.getElementById('osceStationSelect');
-    const module = moduleSelect.value;
-
-    stationSelect.innerHTML = '<option value="">Loading stations…</option>';
-
-    try {
-        const { data, error } = await supabaseClient
-            .from('osce_stations')
-            .select('id, station_type, title, image_url, display_order')
-            .eq('module', module)
-            .order('display_order', { ascending: true });
-
-        if (error) throw error;
-
-        osceStations = data || [];
-
-        if (!osceStations.length) {
-            stationSelect.innerHTML = '<option value="">No stations found for this module</option>';
-            return;
-        }
-
-        stationSelect.innerHTML = osceStations.map(s =>
-            `<option value="${s.id}">${s.display_order}. [${s.station_type}] ${s.title}${s.image_url ? ' ✓' : ''}</option>`
-        ).join('');
-
-        renderCurrentStationPreview();
-        stationSelect.onchange = renderCurrentStationPreview;
-
-    } catch (error) {
-        console.error('[Admin] Load OSCE stations error:', error);
-        stationSelect.innerHTML = '<option value="">Failed to load stations</option>';
-    }
-}
-
-function renderCurrentStationPreview() {
-    const stationSelect = document.getElementById('osceStationSelect');
-    const preview = document.getElementById('stationImagePreview');
-    const selected = osceStations.find(s => String(s.id) === stationSelect.value);
-
-    if (!preview) return;
-
-    if (selected && selected.image_url) {
-        preview.innerHTML = `<img src="${selected.image_url}" alt="${selected.title}" style="max-width:280px; border-radius:8px; display:block; margin-top:8px;">`;
-    } else {
-        preview.innerHTML = `<div style="color:rgba(11,26,46,0.4); font-size:0.85rem; margin-top:8px;">No image uploaded yet for this station.</div>`;
-    }
-}
-
-function showOsceStatus(message, isError) {
-    const el = document.getElementById('osceImageStatus');
-    if (!el) return;
-    el.textContent = message;
-    el.style.color = isError ? '#DC2626' : '#065F46';
-}
-
-async function handleStationImageUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const moduleSelect = document.getElementById('osceModuleSelect');
-    const stationSelect = document.getElementById('osceStationSelect');
-    const stationId = stationSelect.value;
-    const module = moduleSelect.value;
-
-    if (!stationId) {
-        showOsceStatus('Select a station before choosing a file.', true);
-        return;
-    }
-
-    const selected = osceStations.find(s => String(s.id) === stationId);
-    if (!selected) {
-        showOsceStatus('Could not find the selected station — try reloading.', true);
-        return;
-    }
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-        showOsceStatus('Please upload a JPG, PNG, or WebP image.', true);
-        return;
-    }
-    const maxSizeMB = 5;
-    if (file.size > maxSizeMB * 1024 * 1024) {
-        showOsceStatus(`Image too large — keep it under ${maxSizeMB}MB.`, true);
-        return;
-    }
-
-    showOsceStatus('Uploading…', false);
-
-    try {
-        const ext = file.name.split('.').pop();
-        const path = `${module}/${selected.station_type}/${stationId}.${ext}`;
-
-        const { error: uploadError } = await supabaseClient.storage
-            .from('osce-station-images')
-            .upload(path, file, { upsert: true, cacheControl: '3600' });
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabaseClient.storage
-            .from('osce-station-images')
-            .getPublicUrl(path);
-
-        const publicUrl = urlData.publicUrl;
-
-        const { error: updateError } = await supabaseClient
-            .from('osce_stations')
-            .update({ image_url: publicUrl })
-            .eq('id', stationId);
-
-        if (updateError) throw updateError;
-
-        showOsceStatus('Image uploaded and linked ✓', false);
-        await loadOsceStations();
-        stationSelect.value = stationId;
-        renderCurrentStationPreview();
-
-    } catch (error) {
-        console.error('[Admin] Station image upload error:', error);
-        showOsceStatus('Upload failed: ' + error.message, true);
-    }
-}
-        
         // ─── DOM CONTENT LOADED ───
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[Admin] DOM ready, initializing...');
-            
             if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
                 initSupabase();
             } else {
@@ -1008,7 +1317,6 @@ async function handleStationImageUpload(event) {
                     <div class="spinner"></div>
                     <div class="loading-text" style="color:#DC2626;">Supabase SDK failed to load. Please refresh.</div>
                 `;
-                // Retry after a moment
                 setTimeout(() => {
                     if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
                         initSupabase();
