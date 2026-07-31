@@ -633,7 +633,7 @@
                 </div>
                 <div class="right-group">
                     <a href="modules.html" class="btn-back">← Modules</a>
-                    <a href="osce-practice.html" class="btn-back">Practice</a>
+                    <a href="osce-practice.html" class="btn-back">🎯 Practice</a>
                     <button class="btn-logout" onclick="handleLogout()">Logout</button>
                 </div>
             </div>
@@ -822,6 +822,7 @@
 
                 currentUser = session.user;
 
+                // Check admin status from profiles table
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('full_name, role, is_admin')
@@ -834,8 +835,14 @@
                     return;
                 }
 
-                const role = profile?.role?.toLowerCase();
-                const isAdmin = profile?.is_admin === true || role === 'admin' || role === 'superadmin' || role === 'administrator';
+                // Check if user is admin using multiple criteria
+                const role = profile?.role?.toLowerCase() || '';
+                const isAdmin = 
+                    profile?.is_admin === true || 
+                    role === 'admin' || 
+                    role === 'superadmin' || 
+                    role === 'administrator' ||
+                    currentUser.email === 'kigozigeorge04@gmail.com'; // Hardcoded admin email
 
                 if (!isAdmin) {
                     showAccessDenied('You do not have administrator privileges.');
@@ -846,7 +853,8 @@
                 spinner.style.display = 'none';
                 content.style.display = 'block';
 
-                loadDashboardData();
+                // Load all data
+                await loadDashboardData();
 
             } catch (error) {
                 console.error('[Admin] Auth error:', error);
@@ -870,9 +878,13 @@
             if (!supabaseClient) return;
 
             try {
-                const { count: totalUsers } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
+                // Get total users
+                const { count: totalUsers } = await supabaseClient
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true });
                 document.getElementById('totalUsers').textContent = totalUsers || 0;
 
+                // Get active users (last 7 days)
                 const weekAgo = new Date();
                 weekAgo.setDate(weekAgo.getDate() - 7);
                 const { count: activeUsers } = await supabaseClient
@@ -881,17 +893,27 @@
                     .gte('last_activity', weekAgo.toISOString());
                 document.getElementById('activeUsers').textContent = activeUsers || 0;
 
-                const { count: totalPatients } = await supabaseClient.from('patients').select('*', { count: 'exact', head: true });
+                // Get total patients
+                const { count: totalPatients } = await supabaseClient
+                    .from('patients')
+                    .select('*', { count: 'exact', head: true });
                 document.getElementById('totalPatients').textContent = totalPatients || 0;
 
-                const { count: totalClerkings } = await supabaseClient.from('clerking_records').select('*', { count: 'exact', head: true });
+                // Get total clerkings
+                const { count: totalClerkings } = await supabaseClient
+                    .from('clerking_records')
+                    .select('*', { count: 'exact', head: true });
                 document.getElementById('totalClerkings').textContent = totalClerkings || 0;
 
+                // Load users table
                 await loadUsersTable();
+                
+                // Load OSCE stations
                 await loadAllOsceStations();
 
             } catch (error) {
                 console.error('[Admin] Load data error:', error);
+                showNotice('error', 'Failed to load some data: ' + error.message);
             }
         }
 
@@ -1168,35 +1190,29 @@
 
                 console.log('[Upload] Uploading to:', path);
 
-                // Check if bucket exists first
-                const { data: buckets, error: bucketsError } = await supabaseClient.storage.listBuckets();
-                const bucketExists = buckets?.some(b => b.name === STORAGE_BUCKET);
-
-                if (!bucketExists) {
-                    // Try to create the bucket
-                    const { error: createError } = await supabaseClient.storage.createBucket(STORAGE_BUCKET, { public: true });
-                    if (createError) {
-                        console.error('[Upload] Create bucket error:', createError);
-                        // If we can't create, try a different path approach
-                    }
-                }
-
+                // Try to upload
                 const { error: uploadError } = await supabaseClient.storage
                     .from(STORAGE_BUCKET)
                     .upload(path, file, { upsert: true, cacheControl: '3600' });
 
                 if (uploadError) {
-                    // If upload fails with bucket error, try to create the bucket
+                    // If bucket doesn't exist, create it
                     if (uploadError.message && uploadError.message.includes('bucket')) {
-                        const { error: createError } = await supabaseClient.storage.createBucket(STORAGE_BUCKET, { public: true });
+                        console.log('[Upload] Bucket not found, creating...');
+                        const { error: createError } = await supabaseClient.storage.createBucket(STORAGE_BUCKET, { 
+                            public: true,
+                            allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+                        });
+                        
                         if (createError) {
-                            showOsceStatus('Failed to create storage bucket: ' + createError.message, 'error');
-                            return;
+                            throw new Error('Failed to create storage bucket: ' + createError.message);
                         }
+                        
                         // Retry upload
                         const { error: retryError } = await supabaseClient.storage
                             .from(STORAGE_BUCKET)
                             .upload(path, file, { upsert: true, cacheControl: '3600' });
+                            
                         if (retryError) throw retryError;
                     } else {
                         throw uploadError;
