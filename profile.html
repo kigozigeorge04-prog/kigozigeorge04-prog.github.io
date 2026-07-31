@@ -513,7 +513,7 @@
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             Back to Modules
                         </a>
-                        <button class="btn-outline" onclick="handleSignOut()">Sign out</button>
+                        <button class="btn-outline" onclick="handleLogout()">Sign out</button>
                     </div>
                 </div>
 
@@ -621,11 +621,27 @@
     </div>
 
     <script>
-        // ─── SUPABASE CONFIG ───
-        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+        // ─── VERSION CONTROL ───
+        const APP_VERSION = '2.1.0';
+        const CACHE_KEY = 'easemed_app_version';
+        
+        const storedVersion = localStorage.getItem(CACHE_KEY);
+        if (storedVersion !== APP_VERSION) {
+            console.log('[Cache] New version detected, clearing cache...');
+            if ('caches' in window) {
+                caches.keys().then(keys => {
+                    keys.forEach(key => caches.delete(key));
+                });
+            }
+            localStorage.setItem(CACHE_KEY, APP_VERSION);
+        }
 
-        let supabase = null;
+        // ─── CONFIGURATION ───
+        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+        // ─── GLOBALS ───
+        let supabaseClient = null;
         let currentUser = null;
         let profileData = {};
         let isEditing = false;
@@ -637,56 +653,44 @@
         const loadingState = document.getElementById('loadingState');
         const profileContent = document.getElementById('profileContent');
 
-        // ─── WAIT FOR SUPABASE SDK TO LOAD ───
-        function waitForSupabase(maxAttempts = 30) {
-            return new Promise((resolve) => {
-                let attempts = 0;
-                const checkInterval = setInterval(() => {
-                    attempts++;
-                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-                        clearInterval(checkInterval);
-                        resolve(true);
-                    } else if (attempts >= maxAttempts) {
-                        clearInterval(checkInterval);
-                        resolve(false);
-                    }
-                }, 200);
-            });
-        }
-
         // ─── INIT SUPABASE ───
-        async function initSupabase() {
-            try {
-                // Wait for SDK to load
-                const sdkLoaded = await waitForSupabase(30);
-                
-                if (!sdkLoaded) {
-                    console.error('[Supabase] SDK failed to load from /js/supabase.min.js');
-                    showNotice('error', 'Supabase SDK failed to load. Please check the file path and refresh.');
-                    loadingState.style.display = 'none';
-                    profileContent.style.display = 'block';
-                    return false;
-                }
+        function initSupabase() {
+            if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                console.warn('[Profile] Supabase SDK not available. Retrying...');
+                setTimeout(initSupabase, 1000);
+                return;
+            }
 
-                console.log('[Supabase] SDK loaded successfully from /js/supabase.min.js');
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('[Supabase] Client initialized successfully');
-                return true;
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+                console.log('[Profile] Supabase client initialized.');
+                checkAuth();
             } catch (error) {
-                console.error('[Supabase] Init error:', error);
-                showNotice('error', 'Failed to connect to database: ' + error.message);
-                loadingState.style.display = 'none';
-                profileContent.style.display = 'block';
-                return false;
+                console.error('[Profile] Init error:', error);
+                loadingState.innerHTML = `
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text" style="color:#DC2626;">Failed to initialize. Please refresh.</div>
+                `;
             }
         }
 
-        // ─── LOAD PROFILE ───
-        async function loadProfile() {
+        // ─── CHECK AUTH ───
+        async function checkAuth() {
+            if (!supabaseClient) {
+                console.warn('[Profile] Supabase client not available');
+                return;
+            }
+
             try {
-                // Get current session
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                if (sessionError) throw sessionError;
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+                if (error) {
+                    console.error('[Profile] Session error:', error);
+                    showNotice('error', 'Unable to verify session. Please sign in again.');
+                    loadingState.style.display = 'none';
+                    profileContent.style.display = 'block';
+                    return;
+                }
 
                 if (!session) {
                     window.location.href = 'easemed_login.html';
@@ -694,9 +698,23 @@
                 }
 
                 currentUser = session.user;
+                await loadProfile();
 
+            } catch (error) {
+                console.error('[Profile] Auth error:', error);
+                showNotice('error', 'Authentication error: ' + error.message);
+                loadingState.style.display = 'none';
+                profileContent.style.display = 'block';
+            }
+        }
+
+        // ─── LOAD PROFILE ───
+        async function loadProfile() {
+            if (!supabaseClient || !currentUser) return;
+
+            try {
                 // Fetch profile from Supabase
-                const { data: profile, error: profileError } = await supabase
+                const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', currentUser.id)
@@ -704,7 +722,7 @@
 
                 if (profileError && profileError.code !== 'PGRST116') {
                     console.error('[Profile] Fetch error:', profileError);
-                    // If profile doesn't exist, use user metadata
+                    // Use user metadata as fallback
                     const meta = currentUser.user_metadata || {};
                     profileData = {
                         name: meta.full_name || currentUser.email?.split('@')[0] || 'User',
@@ -864,7 +882,7 @@
 
             try {
                 // Update profile in Supabase
-                const { error: updateError } = await supabase
+                const { error: updateError } = await supabaseClient
                     .from('profiles')
                     .update({
                         full_name: newData.full_name,
@@ -881,7 +899,7 @@
                 if (updateError) throw updateError;
 
                 // Update user metadata (for auth)
-                await supabase.auth.updateUser({
+                await supabaseClient.auth.updateUser({
                     data: {
                         full_name: newData.full_name,
                         role: newData.role,
@@ -920,10 +938,13 @@
         }
 
         // ─── SIGN OUT ───
-        async function handleSignOut() {
+        async function handleLogout() {
             if (confirm('Sign out from EaseMed?')) {
                 try {
-                    await supabase.auth.signOut();
+                    if (supabaseClient) {
+                        await supabaseClient.auth.signOut();
+                    }
+                    localStorage.removeItem('easemed_user');
                     window.location.href = 'easemed_login.html';
                 } catch (error) {
                     console.error('[SignOut] Error:', error);
@@ -932,19 +953,23 @@
             }
         }
 
-        // ─── INIT ───
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('[Profile] Initializing...');
-
-            // Initialize Supabase
-            const initialized = await initSupabase();
+        // ─── DOM CONTENT LOADED ───
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[Profile] DOM ready, initializing...');
             
-            if (initialized) {
-                await loadProfile();
+            if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                initSupabase();
             } else {
-                // Error already shown in initSupabase
-                loadingState.style.display = 'none';
-                profileContent.style.display = 'block';
+                loadingState.innerHTML = `
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text" style="color:#DC2626;">Supabase SDK failed to load. Please refresh.</div>
+                `;
+                // Retry after a moment
+                setTimeout(() => {
+                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                        initSupabase();
+                    }
+                }, 3000);
             }
         });
     </script>
