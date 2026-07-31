@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <script
-  src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js"
-  crossorigin="anonymous"
-></script>
+    <script src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js" crossorigin="anonymous"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EaseMed – Activate Your Account</title>
+    <!-- Local Supabase SDK -->
+    <script src="/js/supabase.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -86,7 +85,6 @@
             100% { transform: translate(40px, 30px) scale(1.08); }
         }
 
-        /* Floating particles */
         .particles {
             position: absolute;
             inset: 0;
@@ -121,6 +119,7 @@
         .brand { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.3px; color: #fff; }
         .brand span { color: #9fd8f0; }
         .topbar-sub { font-size: 0.76rem; opacity: 0.6; margin-top: 2px; color: #fff; }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
         .btn-logout {
             background: rgba(255,255,255,0.08);
             border: 1.5px solid rgba(255,255,255,0.2);
@@ -134,6 +133,18 @@
             transition: background 0.15s;
         }
         .btn-logout:hover { background: rgba(255,255,255,0.15); }
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .status-badge.active { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+        .status-badge.pending { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+        .status-badge.inactive { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
 
         /* ── MAIN ── */
         .main {
@@ -146,26 +157,41 @@
             padding: 2.5rem 1rem 4rem;
         }
 
-        /* ── DEACTIVATED BANNER ── */
-        .deactivated-banner {
+        /* ── NOTICE / BANNER ── */
+        .notice-banner {
             display: none;
-            background: rgba(231,0,43,0.12);
-            border: 1.5px solid rgba(231,0,43,0.5);
             border-radius: var(--radius);
             padding: 1rem 1.25rem;
             margin-bottom: 1.5rem;
             width: 100%;
             max-width: 540px;
-            text-align: center;
             backdrop-filter: blur(8px);
         }
-        .deactivated-banner.visible { display: block; animation: slide-down 0.4s ease; }
+        .notice-banner.visible { display: block; animation: slide-down 0.4s ease; }
         @keyframes slide-down {
             from { opacity: 0; transform: translateY(-12px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-        .deactivated-banner strong { color: #ff6b7a; font-size: 0.95rem; }
-        .deactivated-banner p { color: #ffb3bc; font-size: 0.84rem; margin-top: 0.3rem; }
+        .notice-banner.warning {
+            background: rgba(231,0,43,0.12);
+            border: 1.5px solid rgba(231,0,43,0.5);
+        }
+        .notice-banner.success {
+            background: rgba(16,185,129,0.12);
+            border: 1.5px solid rgba(16,185,129,0.5);
+        }
+        .notice-banner.info {
+            background: rgba(59,130,246,0.12);
+            border: 1.5px solid rgba(59,130,246,0.4);
+        }
+        .notice-banner strong { display: block; font-size: 0.95rem; }
+        .notice-banner p { font-size: 0.84rem; margin-top: 0.3rem; opacity: 0.85; }
+        .notice-banner.warning strong { color: #ff6b7a; }
+        .notice-banner.warning p { color: #ffb3bc; }
+        .notice-banner.success strong { color: #34d399; }
+        .notice-banner.success p { color: #6ee7b7; }
+        .notice-banner.info strong { color: #60a5fa; }
+        .notice-banner.info p { color: #93bbfc; }
 
         /* ── HERO ── */
         .hero {
@@ -209,7 +235,6 @@
             line-height: 1.7;
         }
 
-        /* PRICE BADGE */
         .price-badge {
             display: inline-flex;
             align-items: baseline;
@@ -278,7 +303,7 @@
         }
         .step-label { font-size: 0.72rem; color: rgba(255,255,255,0.45); line-height: 1.4; max-width: 76px; }
 
-        /* ── PAYMENT CARD (single Airtel) ── */
+        /* ── PAYMENT CARD ── */
         .card-wrap {
             width: 100%;
             max-width: 540px;
@@ -312,7 +337,6 @@
             0%   { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
-        /* decorative circle */
         .payment-card::after {
             content: '';
             position: absolute;
@@ -356,7 +380,6 @@
             justify-content: space-between;
             gap: 1rem;
         }
-        .number-info {}
         .number-label {
             font-size: 0.7rem;
             color: rgba(255,255,255,0.4);
@@ -513,6 +536,17 @@
         }
         .note strong { color: #ffd966; }
 
+        /* ── FOOTER ── */
+        .footer {
+            width: 100%;
+            max-width: 540px;
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.2);
+            letter-spacing: 0.5px;
+        }
+
         /* ── TOAST ── */
         .toast {
             position: fixed;
@@ -536,6 +570,21 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 600px) {
+            .topbar { flex-wrap: wrap; gap: 8px; }
+            .topbar-right { width: 100%; justify-content: flex-end; }
+            .hero h1 { font-size: 1.4rem; }
+            .payment-card { padding: 1.5rem; }
+            .card-number-display { flex-direction: column; align-items: stretch; }
+            .btn-copy { width: 100%; justify-content: center; }
+            .whatsapp-cta { flex-wrap: wrap; }
+            .btn-whatsapp { width: 100%; text-align: center; }
+            .steps { flex-wrap: wrap; gap: 1rem; }
+            .step { flex: 0 0 45%; }
+            .step:not(:last-child)::after { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -553,15 +602,21 @@
             <div class="brand">Ease<span>Med</span></div>
             <div class="topbar-sub">Account Activation</div>
         </div>
-        <button class="btn-logout" onclick="logout()">Sign Out</button>
+        <div class="topbar-right">
+            <div id="statusBadge" class="status-badge inactive" style="display:none;">
+                <span id="statusDot">●</span>
+                <span id="statusText">Inactive</span>
+            </div>
+            <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+        </div>
     </nav>
 
     <div class="main">
 
-        <!-- Deactivated banner -->
-        <div class="deactivated-banner" id="deactivatedBanner">
-            <strong>⚠️ Your subscription has expired</strong>
-            <p>Renew below to continue accessing EaseMed modules.</p>
+        <!-- Notice Banner -->
+        <div class="notice-banner" id="noticeBanner">
+            <strong id="bannerTitle">⚠️ Your subscription has expired</strong>
+            <p id="bannerMessage">Renew below to continue accessing EaseMed modules.</p>
         </div>
 
         <!-- Hero -->
@@ -658,16 +713,27 @@
             <strong>Already paid?</strong> If it's been more than 24 hours and your account isn't active, send a follow-up WhatsApp with your email and Airtel transaction ID.
         </div>
 
+        <!-- Footer -->
+        <div class="footer">
+            EaseMed v2.1 · Secure & Encrypted
+        </div>
+
     </div>
 
     <div class="toast" id="toast"></div>
 
     <script>
+        // ─── CONFIGURATION ───
         const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
-        const WHATSAPP_NUMBER = '256756418723'; // Airtel number in international format
+        const WHATSAPP_NUMBER = '256756418723';
+        const STORAGE_BUCKET = 'osce-station-images';
 
-        // ── PARTICLES ──────────────────────────────────────────
+        let supabaseClient = null;
+        let currentUser = null;
+        let currentProfile = null;
+
+        // ─── PARTICLES ──────────────────────────────────────────
         (function spawnParticles() {
             const container = document.getElementById('particles');
             for (let i = 0; i < 28; i++) {
@@ -686,7 +752,129 @@
             }
         })();
 
-        // ── TOAST ──────────────────────────────────────────────
+        // ─── INIT SUPABASE ──────────────────────────────────────
+        function initSupabase() {
+            if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                console.warn('[Activation] Supabase SDK not available. Retrying...');
+                setTimeout(initSupabase, 1000);
+                return;
+            }
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('[Activation] Supabase client initialized.');
+                checkAuth();
+            } catch (error) {
+                console.error('[Activation] Init error:', error);
+                showToast('Failed to initialize. Please refresh.', true);
+            }
+        }
+
+        // ─── CHECK AUTH ─────────────────────────────────────────
+        async function checkAuth() {
+            if (!supabaseClient) return;
+
+            try {
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                if (error) throw error;
+
+                if (!session) {
+                    window.location.href = 'easemed_login.html';
+                    return;
+                }
+
+                currentUser = session.user;
+                await loadUserProfile();
+                await checkSubscriptionStatus();
+
+            } catch (error) {
+                console.error('[Activation] Auth error:', error);
+                showToast('Authentication error: ' + error.message, true);
+            }
+        }
+
+        // ─── LOAD USER PROFILE ──────────────────────────────────
+        async function loadUserProfile() {
+            if (!supabaseClient || !currentUser) return;
+
+            try {
+                const { data: profile, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') {
+                    console.error('[Activation] Profile error:', error);
+                    return;
+                }
+
+                currentProfile = profile;
+
+                // Update WhatsApp link with email
+                const email = currentUser.email || '';
+                const msg = encodeURIComponent(
+                    `Hello, I have paid for EaseMed access via Airtel Money.\n\nEmail: ${email}\n\n[Please attach your payment screenshot to this message]`
+                );
+                document.getElementById('whatsappLink').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+
+            } catch (error) {
+                console.error('[Activation] Load profile error:', error);
+            }
+        }
+
+        // ─── CHECK SUBSCRIPTION STATUS ──────────────────────────
+        async function checkSubscriptionStatus() {
+            if (!currentProfile) return;
+
+            const statusBadge = document.getElementById('statusBadge');
+            const statusText = document.getElementById('statusText');
+            const statusDot = document.getElementById('statusDot');
+            const banner = document.getElementById('noticeBanner');
+            const bannerTitle = document.getElementById('bannerTitle');
+            const bannerMessage = document.getElementById('bannerMessage');
+
+            const isActive = currentProfile.is_active !== false;
+            const expiresAt = currentProfile.access_expires_at;
+            const isExpired = expiresAt && new Date(expiresAt).getTime() < Date.now();
+
+            statusBadge.style.display = 'flex';
+
+            if (isActive && !isExpired) {
+                // Active subscription
+                statusBadge.className = 'status-badge active';
+                statusText.textContent = 'Active';
+                statusDot.textContent = '●';
+                banner.className = 'notice-banner success visible';
+                bannerTitle.textContent = '✅ Your account is active!';
+                const expiryDate = expiresAt ? new Date(expiresAt).toLocaleDateString() : 'Never';
+                bannerMessage.textContent = `Your access is valid until ${expiryDate}. Enjoy all EaseMed modules.`;
+                // Show success banner briefly, then hide after 5s
+                setTimeout(() => {
+                    banner.className = 'notice-banner success';
+                    setTimeout(() => {
+                        banner.classList.remove('visible');
+                    }, 3000);
+                }, 5000);
+            } else if (isExpired) {
+                // Expired
+                statusBadge.className = 'status-badge inactive';
+                statusText.textContent = 'Expired';
+                statusDot.textContent = '●';
+                banner.className = 'notice-banner warning visible';
+                bannerTitle.textContent = '⚠️ Your subscription has expired';
+                bannerMessage.textContent = 'Renew below to continue accessing EaseMed modules.';
+            } else {
+                // Inactive / not activated
+                statusBadge.className = 'status-badge inactive';
+                statusText.textContent = 'Inactive';
+                statusDot.textContent = '●';
+                banner.className = 'notice-banner warning visible';
+                bannerTitle.textContent = '⚠️ Your account is not activated';
+                bannerMessage.textContent = 'Complete the payment process below to activate your account.';
+            }
+        }
+
+        // ─── TOAST ──────────────────────────────────────────────
         function showToast(msg, isError = false) {
             const t = document.getElementById('toast');
             t.textContent = msg;
@@ -697,7 +885,7 @@
             setTimeout(() => t.classList.remove('show'), 2800);
         }
 
-        // ── COPY NUMBER ────────────────────────────────────────
+        // ─── COPY NUMBER ────────────────────────────────────────
         function copyNumber() {
             const number = '0756418723';
             const btn = document.getElementById('copyBtn');
@@ -710,50 +898,67 @@
                     btn.classList.remove('copied');
                 }, 2500);
             }).catch(() => {
-                showToast('Could not copy — number is 0756418723', true);
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = number;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    btn.textContent = '✅ Copied!';
+                    btn.classList.add('copied');
+                    showToast('✅ Number copied — open Airtel Money and paste');
+                    setTimeout(() => {
+                        btn.textContent = '📋 Copy';
+                        btn.classList.remove('copied');
+                    }, 2500);
+                } catch (err) {
+                    showToast('Could not copy — number is 0756418723', true);
+                }
+                document.body.removeChild(textarea);
             });
         }
 
-        // ── INIT ───────────────────────────────────────────────
-        async function initPage() {
-            const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-            const { data: { session } } = await supabase.auth.getSession();
-            const email = session?.user?.email || '';
-
-            // Show expired banner if redirected with ?reason=expired
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('reason') === 'expired') {
-                document.getElementById('deactivatedBanner').classList.add('visible');
+        // ─── HANDLE LOGOUT ──────────────────────────────────────
+        async function handleLogout() {
+            try {
+                if (supabaseClient) {
+                    await supabaseClient.auth.signOut();
+                }
+                localStorage.clear();
+                window.location.href = 'easemed_login.html';
+            } catch (error) {
+                console.error('[Logout] Error:', error);
+                window.location.href = 'easemed_login.html';
             }
-
-            // Prefill WhatsApp message
-            const msg = encodeURIComponent(
-                `Hello, I have paid for EaseMed access via Airtel Money.\n\nEmail: ${email}\n\n[Please attach your payment screenshot to this message]`
-            );
-            document.getElementById('whatsappLink').href =
-                `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
         }
 
-        // ── LOGOUT ─────────────────────────────────────────────
-        async function logout() {
-            const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            await supabase.auth.signOut();
-            window.location.replace('easemed_login.html');
-        }
+        // ─── DOM CONTENT LOADED ─────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[Activation] DOM ready, initializing...');
 
-        initPage();
+            if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                initSupabase();
+            } else {
+                console.warn('[Activation] Supabase SDK not found, waiting...');
+                setTimeout(() => {
+                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                        initSupabase();
+                    } else {
+                        showToast('Supabase SDK failed to load. Please refresh.', true);
+                    }
+                }, 3000);
+            }
+        });
     </script>
     <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('✅ Service Worker registered'))
-                .catch(err => console.warn('❌ SW registration failed:', err));
-        });
-    }
-</script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('✅ Service Worker registered'))
+                    .catch(err => console.warn('❌ SW registration failed:', err));
+            });
+        }
+    </script>
 </body>
 </html>
