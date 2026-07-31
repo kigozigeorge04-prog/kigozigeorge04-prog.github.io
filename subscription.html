@@ -144,6 +144,17 @@
         .plan-card .features li::before {
             content: '✓'; color: #10B981; font-weight: 700;
         }
+        .plan-card .cancel-anytime {
+            display: inline-block;
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: rgba(11,26,46,0.4);
+            font-weight: 500;
+            background: rgba(255,255,255,0.05);
+            padding: 4px 12px;
+            border-radius: 99px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
         .plan-card .btn-select {
             width: 100%; padding: 12px; border: none; border-radius: 12px;
             font-size: 1rem; font-weight: 700; cursor: pointer;
@@ -214,6 +225,11 @@
             font-family: 'JetBrains Mono', monospace;
             letter-spacing: 2px;
             display: inline-block;
+            margin-bottom: 8px;
+        }
+        .payment-cta .number-name {
+            font-size: 0.9rem;
+            color: rgba(11,26,46,0.5);
             margin-bottom: 12px;
         }
         .btn-whatsapp-pay {
@@ -311,12 +327,13 @@
             </div>
         </div>
 
-        <!-- WhatsApp Payment CTA (shows when user selects a paid plan) -->
+        <!-- WhatsApp Payment CTA -->
         <div id="paymentCTA" class="payment-cta" style="display:none;">
             <div class="icon">💬</div>
             <h3>Complete Your Payment via WhatsApp</h3>
             <p>Send the payment amount to this Airtel Money number, then send the confirmation via WhatsApp.</p>
             <div class="number-box">📱 0756 418 723</div>
+            <div class="number-name">👤 Kigozi George</div>
             <br>
             <a href="#" id="whatsappPaymentLink" class="btn-whatsapp-pay" target="_blank">
                 💬 Send Payment Confirmation on WhatsApp
@@ -335,6 +352,7 @@
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
         const WHATSAPP_NUMBER = '256756418723';
         const AIRTEL_NUMBER = '0756418723';
+        const ACCOUNT_NAME = 'Kigozi George';
 
         let supabaseClient = null;
         let currentUser = null;
@@ -483,7 +501,7 @@
 
             const icons = {
                 'free-trial': '🎁',
-                'basic': '🩺',
+                'basic': '📋',
                 'premium': '⭐'
             };
 
@@ -532,6 +550,7 @@
                         <ul class="features">
                             ${plan.features && Array.isArray(plan.features) ? plan.features.map(f => `<li>${f}</li>`).join('') : ''}
                         </ul>
+                        <span class="cancel-anytime">🔄 Cancel anytime</span>
                         ${isCurrent ? `<div class="current-badge">✅ Current Plan</div>` : ''}
                         ${isFreeTrial && hasUsedTrial ? `<div class="current-badge" style="background:rgba(239,68,68,0.15);color:#991B1B;">⚠️ Trial Used</div>` : ''}
                         <button class="btn-select ${btnClass}" 
