@@ -827,7 +827,19 @@
         <div class="right-group">
             <span id="userGreeting"></span>
             <span class="edition">Hutchison's, 25th Ed.</span>
-            
+
+            <!-- Add this to the right-group in modules.html -->
+<span id="planBadge" style="display:none; background: rgba(16,185,129,0.15); color: #065F46; padding: 4px 14px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; border: 1px solid rgba(16,185,129,0.2);">
+    <!-- Populated by JS -->
+</span>
+            <!-- Add this to the right-group in modules.html -->
+<a href="subscription.html" class="btn-admin-top" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9);" title="Subscription">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+        <path d="M12 2v4M12 22v-4M4 4l2 2M20 20l-2-2M4 20l2-2M20 4l-2 2"/>
+        <circle cx="12" cy="12" r="4"/>
+    </svg>
+    Plans
+</a>
             <!-- PROFILE LINK - NEW -->
             <a href="profile.html" class="btn-profile" title="My Profile">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1125,7 +1137,44 @@
             }
         }, 30000);
     }
+// ─── LOAD SUBSCRIPTION STATUS FOR DISPLAY ───
+async function loadPlanBadge() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('subscriptions')
+            .select('plan_type, expiry_date')
+            .eq('user_id', currentUser.id)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
 
+        if (error) throw error;
+        
+        const badge = document.getElementById('planBadge');
+        if (data) {
+            badge.style.display = 'inline';
+            const planNames = {
+                'free_trial': '🎁 Free Trial',
+                'basic': '🩺 Basic',
+                'premium': '⭐ Premium'
+            };
+            badge.textContent = planNames[data.plan_type] || data.plan_type;
+            
+            if (data.plan_type === 'premium') {
+                badge.style.background = 'rgba(16,185,129,0.15)';
+                badge.style.color = '#065F46';
+            } else if (data.plan_type === 'basic') {
+                badge.style.background = 'rgba(59,130,246,0.15)';
+                badge.style.color = '#1E40AF';
+            }
+        }
+    } catch (error) {
+        console.log('[Plan Badge] Not available');
+    }
+}
+
+// Call this after loading modules
     // ─── CHECK SUBSCRIPTION STATUS ───
     async function checkSubscriptionStatus(userId) {
         try {
