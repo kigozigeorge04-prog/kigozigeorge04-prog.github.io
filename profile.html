@@ -11,6 +11,9 @@
     <meta name="apple-mobile-web-app-title" content="EaseMed" />
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
+    <!-- Local Supabase SDK -->
+    <script src="/js/supabase.min.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -400,6 +403,24 @@
             }
         }
 
+        /* ---- LOADING OVERLAY ---- */
+        .loading-overlay {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            gap: 20px;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(59, 130, 246, 0.15);
+            border-top-color: #3B82F6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
         /* ---- RESPONSIVE ---- */
         @media (max-width: 768px) {
             body {
@@ -460,200 +481,243 @@
                 width: 100%;
             }
         }
-
-        /* ---- DEMO BADGE ---- */
-        .demo-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(245, 158, 11, 0.12);
-            padding: 3px 12px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 600;
-            color: #D97706;
-            border: 1px solid rgba(245, 158, 11, 0.15);
-        }
-
-        /* small helper */
-        .mt-2 {
-            margin-top: 8px;
-        }
-        .text-muted {
-            color: rgba(11, 26, 46, 0.4);
-            font-size: 13px;
-        }
-
-        /* Back link styling */
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: #3B82F6;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-        .back-link:hover {
-            color: #2563EB;
-            transform: translateX(-4px);
-        }
-        .back-link svg {
-            width: 16px;
-            height: 16px;
-            stroke: currentColor;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="profile-card">
-            <!-- HEADER -->
-            <div class="profile-header">
-                <div class="avatar-wrapper">
-                    <div class="avatar" id="userAvatar">JD</div>
-                    <button class="avatar-edit-btn" onclick="alert('📷 Change avatar (demo)')">✎</button>
-                </div>
-                <div class="profile-title">
-                    <h1 id="userFullName">Dr. Jordan Achieng</h1>
-                    <div class="sub">
-                        <span id="userRole">Medical Student</span>
-                        <span class="badge" id="userYear">Year 5</span>
-                        <span id="userUniversity">Makerere University</span>
-                        <span class="demo-badge">⚡ Demo</span>
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <div style="color: rgba(11,26,46,0.6); font-weight: 500;">Loading your profile...</div>
+        </div>
+
+        <!-- Profile Content -->
+        <div id="profileContent" style="display:none;">
+            <div class="profile-card">
+                <!-- HEADER -->
+                <div class="profile-header">
+                    <div class="avatar-wrapper">
+                        <div class="avatar" id="userAvatar">JD</div>
+                        <button class="avatar-edit-btn" onclick="alert('📷 Change avatar coming soon!')">✎</button>
+                    </div>
+                    <div class="profile-title">
+                        <h1 id="userFullName">Loading...</h1>
+                        <div class="sub">
+                            <span id="userRole">—</span>
+                            <span class="badge" id="userYear">—</span>
+                            <span id="userUniversity">—</span>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <a href="modules.html" class="btn-outline" style="text-decoration:none;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            Back to Modules
+                        </a>
+                        <button class="btn-outline" onclick="handleSignOut()">Sign out</button>
                     </div>
                 </div>
-                <div class="profile-actions">
-                    <a href="modules.html" class="btn-outline" style="text-decoration:none;">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                        Back to Modules
-                    </a>
-                    <button class="btn-outline" onclick="handleSignOut()">Sign out</button>
-                </div>
-            </div>
 
-            <!-- NOTICE -->
-            <div id="profileNotice"></div>
+                <!-- NOTICE -->
+                <div id="profileNotice"></div>
 
-            <!-- PROFILE CONTENT -->
-            <div class="profile-grid">
-                <!-- PERSONAL INFORMATION -->
-                <div class="section">
-                    <div class="section-header">
-                        <h3>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            Personal Information
-                        </h3>
-                        <button class="edit-toggle" id="toggleEditBtn" onclick="toggleEdit()">✎ Edit</button>
-                    </div>
+                <!-- PROFILE CONTENT -->
+                <div class="profile-grid">
+                    <!-- PERSONAL INFORMATION -->
+                    <div class="section">
+                        <div class="section-header">
+                            <h3>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                Personal Information
+                            </h3>
+                            <button class="edit-toggle" id="toggleEditBtn" onclick="toggleEdit()">✎ Edit</button>
+                        </div>
 
-                    <!-- VIEW MODE -->
-                    <div id="viewMode">
-                        <div class="info-row"><span class="key">Full name</span><span class="value" id="infoName">Dr. Jordan Achieng</span></div>
-                        <div class="info-row"><span class="key">Email</span><span class="value" id="infoEmail">jordan.achieng@medschool.edu</span></div>
-                        <div class="info-row"><span class="key">Phone</span><span class="value" id="infoPhone">+256 701 234 567</span></div>
-                        <div class="info-row"><span class="key">Role</span><span class="value" id="infoRole">Medical Student</span></div>
-                        <div class="info-row"><span class="key">Year of study</span><span class="value" id="infoYearDisplay">Year 5</span></div>
-                        <div class="info-row"><span class="key">University</span><span class="value" id="infoUniversityDisplay">Makerere University</span></div>
-                        <div class="info-row"><span class="key">License</span><span class="value" id="infoLicense">UMC-2024-0456</span></div>
-                        <div class="info-row"><span class="key">Practice location</span><span class="value" id="infoLocation">Mulago National Referral Hospital</span></div>
-                        <div class="info-row"><span class="key">Member since</span><span class="value" id="infoJoined">Jan 15, 2025</span></div>
-                    </div>
+                        <!-- VIEW MODE -->
+                        <div id="viewMode">
+                            <div class="info-row"><span class="key">Full name</span><span class="value" id="infoName">—</span></div>
+                            <div class="info-row"><span class="key">Email</span><span class="value" id="infoEmail">—</span></div>
+                            <div class="info-row"><span class="key">Phone</span><span class="value" id="infoPhone">—</span></div>
+                            <div class="info-row"><span class="key">Role</span><span class="value" id="infoRole">—</span></div>
+                            <div class="info-row"><span class="key">Year of study</span><span class="value" id="infoYearDisplay">—</span></div>
+                            <div class="info-row"><span class="key">University</span><span class="value" id="infoUniversityDisplay">—</span></div>
+                            <div class="info-row"><span class="key">License</span><span class="value" id="infoLicense">—</span></div>
+                            <div class="info-row"><span class="key">Practice location</span><span class="value" id="infoLocation">—</span></div>
+                            <div class="info-row"><span class="key">Member since</span><span class="value" id="infoJoined">—</span></div>
+                        </div>
 
-                    <!-- EDIT MODE -->
-                    <div id="editMode" class="edit-form">
-                        <form id="profileForm" onsubmit="return saveProfile(event)">
-                            <div class="form-group">
-                                <label for="editName">Full name</label>
-                                <input type="text" id="editName" value="Dr. Jordan Achieng" />
-                            </div>
-                            <div class="form-group">
-                                <label for="editEmail">Email address</label>
-                                <input type="email" id="editEmail" value="jordan.achieng@medschool.edu" />
-                            </div>
-                            <div class="form-group">
-                                <label for="editPhone">Phone number</label>
-                                <input type="tel" id="editPhone" value="+256 701 234 567" />
-                            </div>
-                            <div class="form-group">
-                                <label for="editRole">Role</label>
-                                <select id="editRole">
-                                    <option value="Medical Student" selected>Medical Student</option>
-                                    <option value="Intern Doctor">Intern Doctor</option>
-                                    <option value="Resident Doctor">Resident Doctor</option>
-                                    <option value="Consultant">Consultant</option>
-                                    <option value="Clinical Officer">Clinical Officer</option>
-                                    <option value="Nurse">Nurse</option>
-                                    <option value="Medical Educator">Medical Educator</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="editYear">Year of study</label>
-                                <select id="editYear">
-                                    <option value="Year 1">Year 1</option>
-                                    <option value="Year 2">Year 2</option>
-                                    <option value="Year 3">Year 3</option>
-                                    <option value="Year 4">Year 4</option>
-                                    <option value="Year 5" selected>Year 5</option>
-                                    <option value="Year 6">Year 6</option>
-                                    <option value="Postgraduate Year 1">PGY1</option>
-                                    <option value="Postgraduate Year 2">PGY2</option>
-                                    <option value="Postgraduate Year 3">PGY3</option>
-                                    <option value="Graduated / Professional">Graduated / Professional</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="editUniversity">University / institution</label>
-                                <input type="text" id="editUniversity" value="Makerere University" />
-                            </div>
-                            <div class="form-group">
-                                <label for="editLicense">License number</label>
-                                <input type="text" id="editLicense" value="UMC-2024-0456" />
-                            </div>
-                            <div class="form-group">
-                                <label for="editLocation">Practice location</label>
-                                <input type="text" id="editLocation" value="Mulago National Referral Hospital" />
-                            </div>
+                        <!-- EDIT MODE -->
+                        <div id="editMode" class="edit-form">
+                            <form id="profileForm" onsubmit="return saveProfile(event)">
+                                <div class="form-group">
+                                    <label for="editName">Full name</label>
+                                    <input type="text" id="editName" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="editEmail">Email address</label>
+                                    <input type="email" id="editEmail" disabled />
+                                    <small style="color: rgba(11,26,46,0.4); font-size: 11px;">Email cannot be changed</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editPhone">Phone number</label>
+                                    <input type="tel" id="editPhone" placeholder="+256 701 234 567" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="editRole">Role</label>
+                                    <select id="editRole">
+                                        <option value="Medical Student">Medical Student</option>
+                                        <option value="Intern Doctor">Intern Doctor</option>
+                                        <option value="Resident Doctor">Resident Doctor</option>
+                                        <option value="Consultant">Consultant</option>
+                                        <option value="Clinical Officer">Clinical Officer</option>
+                                        <option value="Nurse">Nurse</option>
+                                        <option value="Medical Educator">Medical Educator</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editYear">Year of study</label>
+                                    <select id="editYear">
+                                        <option value="Year 1">Year 1</option>
+                                        <option value="Year 2">Year 2</option>
+                                        <option value="Year 3">Year 3</option>
+                                        <option value="Year 4">Year 4</option>
+                                        <option value="Year 5">Year 5</option>
+                                        <option value="Year 6">Year 6</option>
+                                        <option value="Postgraduate Year 1">PGY1</option>
+                                        <option value="Postgraduate Year 2">PGY2</option>
+                                        <option value="Postgraduate Year 3">PGY3</option>
+                                        <option value="Graduated / Professional">Graduated / Professional</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editUniversity">University / institution</label>
+                                    <input type="text" id="editUniversity" placeholder="e.g., Makerere University" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="editLicense">License number</label>
+                                    <input type="text" id="editLicense" placeholder="e.g., UMC-2024-XXXX" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="editLocation">Practice location</label>
+                                    <input type="text" id="editLocation" placeholder="e.g., Mulago Hospital" />
+                                </div>
 
-                            <div class="form-actions">
-                                <button type="submit" class="btn-save" id="saveBtn">💾 Save changes</button>
-                                <button type="button" class="btn-cancel" onclick="cancelEdit()">Cancel</button>
-                            </div>
-                        </form>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-save" id="saveBtn">💾 Save changes</button>
+                                    <button type="button" class="btn-cancel" onclick="cancelEdit()">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- FOOTER NOTE -->
-            <div style="margin-top: 28px; text-align: center; font-size: 12px; color: rgba(11,26,46,0.3); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
-                <span>EaseMed · Clinical Clerkship System</span>
-                <span style="margin: 0 12px;">·</span>
-                <span>v2.0.7</span>
+                <!-- FOOTER NOTE -->
+                <div style="margin-top: 28px; text-align: center; font-size: 12px; color: rgba(11,26,46,0.3); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
+                    <span>EaseMed · Clinical Clerkship System</span>
+                    <span style="margin: 0 12px;">·</span>
+                    <span>v2.1.0</span>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ─── DEMO DATA ───
-        let profileData = {
-            name: 'Dr. Jordan Achieng',
-            email: 'jordan.achieng@medschool.edu',
-            phone: '+256 701 234 567',
-            role: 'Medical Student',
-            year: 'Year 5',
-            university: 'Makerere University',
-            license: 'UMC-2024-0456',
-            location: 'Mulago National Referral Hospital',
-            joined: 'Jan 15, 2025'
-        };
+        // ─── SUPABASE CONFIG ───
+        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
+        let supabase = null;
+        let currentUser = null;
+        let profileData = {};
         let isEditing = false;
 
         // ─── DOM REFS ───
         const viewMode = document.getElementById('viewMode');
         const editMode = document.getElementById('editMode');
         const toggleBtn = document.getElementById('toggleEditBtn');
+        const loadingState = document.getElementById('loadingState');
+        const profileContent = document.getElementById('profileContent');
+
+        // ─── INIT SUPABASE ───
+        function initSupabase() {
+            try {
+                // Check if Supabase SDK is available (loaded from local /js/supabase.min.js)
+                if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                    console.error('[Supabase] SDK not loaded from /js/supabase.min.js');
+                    showNotice('error', 'Supabase SDK failed to load. Please refresh the page.');
+                    return false;
+                }
+
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('[Supabase] Client initialized successfully from local SDK');
+                return true;
+            } catch (error) {
+                console.error('[Supabase] Init error:', error);
+                showNotice('error', 'Failed to connect to database: ' + error.message);
+                return false;
+            }
+        }
+
+        // ─── LOAD PROFILE ───
+        async function loadProfile() {
+            try {
+                // Get current session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                if (sessionError) throw sessionError;
+
+                if (!session) {
+                    window.location.href = 'easemed_login.html';
+                    return;
+                }
+
+                currentUser = session.user;
+
+                // Fetch profile from Supabase
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (profileError && profileError.code !== 'PGRST116') {
+                    console.error('[Profile] Fetch error:', profileError);
+                    // If profile doesn't exist, use user metadata
+                    const meta = currentUser.user_metadata || {};
+                    profileData = {
+                        name: meta.full_name || currentUser.email?.split('@')[0] || 'User',
+                        email: currentUser.email || '—',
+                        phone: meta.phone || '—',
+                        role: meta.role || 'Medical Student',
+                        year: meta.year || 'Year 1',
+                        university: meta.university || '—',
+                        license: meta.license || '—',
+                        location: meta.location || '—',
+                        joined: currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : '—'
+                    };
+                } else if (profile) {
+                    profileData = {
+                        name: profile.full_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User',
+                        email: currentUser.email || '—',
+                        phone: profile.phone || '—',
+                        role: profile.role || 'Medical Student',
+                        year: profile.year || 'Year 1',
+                        university: profile.university || '—',
+                        license: profile.license || '—',
+                        location: profile.location || '—',
+                        joined: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '—'
+                    };
+                }
+
+                renderView();
+                loadingState.style.display = 'none';
+                profileContent.style.display = 'block';
+
+            } catch (error) {
+                console.error('[Profile] Load error:', error);
+                showNotice('error', 'Failed to load profile: ' + error.message);
+                loadingState.style.display = 'none';
+                profileContent.style.display = 'block';
+            }
+        }
 
         // ─── RENDER VIEW ───
         function renderView() {
@@ -673,7 +737,7 @@
             document.getElementById('infoLocation').textContent = profileData.location;
             document.getElementById('infoJoined').textContent = profileData.joined;
 
-            // Populate edit form with current values
+            // Populate edit form
             document.getElementById('editName').value = profileData.name;
             document.getElementById('editEmail').value = profileData.email;
             document.getElementById('editPhone').value = profileData.phone;
@@ -717,7 +781,7 @@
 
             setTimeout(() => {
                 if (container.firstChild) container.innerHTML = '';
-            }, 4000);
+            }, 5000);
         }
 
         // ─── TOGGLE EDIT ───
@@ -749,68 +813,122 @@
             document.getElementById('profileNotice').innerHTML = '';
         }
 
-        // ─── SAVE PROFILE ───
+        // ─── SAVE PROFILE TO SUPABASE ───
         async function saveProfile(e) {
             e.preventDefault();
             const btn = document.getElementById('saveBtn');
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span> Saving…';
 
-            await new Promise(resolve => setTimeout(resolve, 800));
-
             const newData = {
-                name: document.getElementById('editName').value.trim(),
-                email: document.getElementById('editEmail').value.trim(),
+                full_name: document.getElementById('editName').value.trim(),
                 phone: document.getElementById('editPhone').value.trim(),
                 role: document.getElementById('editRole').value,
                 year: document.getElementById('editYear').value,
                 university: document.getElementById('editUniversity').value.trim(),
                 license: document.getElementById('editLicense').value.trim(),
                 location: document.getElementById('editLocation').value.trim(),
-                joined: profileData.joined
             };
 
-            if (!newData.name) {
+            // Validation
+            if (!newData.full_name) {
                 showNotice('error', 'Full name is required.');
                 btn.disabled = false;
                 btn.innerHTML = '💾 Save changes';
                 return;
             }
-            if (!newData.email || !newData.email.includes('@')) {
-                showNotice('error', 'Please enter a valid email address.');
-                btn.disabled = false;
-                btn.innerHTML = '💾 Save changes';
-                return;
-            }
 
-            profileData = newData;
-            localStorage.setItem('easemed_profile_demo', JSON.stringify(profileData));
-            renderView();
-            showNotice('success', '✅ Profile updated successfully!');
-            cancelEdit();
+            try {
+                // Update profile in Supabase
+                const { error: updateError } = await supabase
+                    .from('profiles')
+                    .update({
+                        full_name: newData.full_name,
+                        phone: newData.phone,
+                        role: newData.role,
+                        year: newData.year,
+                        university: newData.university,
+                        license: newData.license,
+                        location: newData.location,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id);
+
+                if (updateError) throw updateError;
+
+                // Update user metadata (for auth)
+                await supabase.auth.updateUser({
+                    data: {
+                        full_name: newData.full_name,
+                        role: newData.role,
+                        year: newData.year,
+                        university: newData.university,
+                        phone: newData.phone,
+                        license: newData.license,
+                        location: newData.location
+                    }
+                });
+
+                // Update local data
+                profileData = {
+                    name: newData.full_name,
+                    email: currentUser.email || '—',
+                    phone: newData.phone,
+                    role: newData.role,
+                    year: newData.year,
+                    university: newData.university,
+                    license: newData.license,
+                    location: newData.location,
+                    joined: profileData.joined
+                };
+
+                renderView();
+                showNotice('success', '✅ Profile updated successfully in Supabase!');
+                cancelEdit();
+
+            } catch (error) {
+                console.error('[Profile] Save error:', error);
+                showNotice('error', 'Failed to save: ' + error.message);
+            }
 
             btn.disabled = false;
             btn.innerHTML = '💾 Save changes';
         }
 
         // ─── SIGN OUT ───
-        function handleSignOut() {
+        async function handleSignOut() {
             if (confirm('Sign out from EaseMed?')) {
-                localStorage.clear();
-                window.location.href = 'modules.html';
+                try {
+                    await supabase.auth.signOut();
+                    window.location.href = 'easemed_login.html';
+                } catch (error) {
+                    console.error('[SignOut] Error:', error);
+                    window.location.href = 'easemed_login.html';
+                }
             }
         }
 
         // ─── INIT ───
         document.addEventListener('DOMContentLoaded', function() {
-            const saved = localStorage.getItem('easemed_profile_demo');
-            if (saved) {
-                try {
-                    profileData = JSON.parse(saved);
-                } catch (e) { /* ignore */ }
+            console.log('[Profile] Initializing with local Supabase SDK...');
+
+            // Check if Supabase SDK is available (loaded from /js/supabase.min.js)
+            if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                loadingState.style.display = 'none';
+                profileContent.style.display = 'block';
+                showNotice('error', 'Supabase SDK failed to load from /js/supabase.min.js. Please check the file path.');
+                return;
             }
-            renderView();
-            console.log('[Profile] Demo mode ready');
+
+            console.log('[Profile] Supabase SDK loaded successfully from /js/supabase.min.js');
+
+            if (initSupabase()) {
+                loadProfile();
+            } else {
+                loadingState.style.display = 'none';
+                profileContent.style.display = 'block';
+                showNotice('error', 'Failed to initialize Supabase. Please check your configuration.');
+            }
         });
     </script>
 </body>
