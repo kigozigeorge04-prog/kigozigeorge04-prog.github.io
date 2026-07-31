@@ -8,7 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>">
     <meta name="theme-color" content="#E8F4FD">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes"> 
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     
@@ -254,6 +254,121 @@
             box-shadow: 0 8px 24px rgba(37,211,102,0.4);
         }
 
+        /* Module Selection Modal */
+        #moduleSelectionModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        #moduleSelectionModal.active { display: flex; }
+        .modal-content {
+            background: white;
+            max-width: 500px;
+            width: 100%;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-content .modal-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .modal-content .modal-title .icon { font-size: 2.5rem; margin-bottom: 8px; }
+        .modal-content .modal-title h2 {
+            font-family: 'Lora', serif;
+            font-size: 1.5rem;
+            color: #0B1A2E;
+        }
+        .modal-content .modal-title p {
+            color: rgba(11,26,46,0.6);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .module-option {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 2px solid rgba(11,26,46,0.08);
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(255,255,255,0.5);
+            margin-bottom: 12px;
+        }
+        .module-option:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .module-option.selected {
+            border-color: #3B82F6;
+            background: rgba(59,130,246,0.05);
+        }
+        .module-option .mod-icon { font-size: 2rem; flex-shrink: 0; }
+        .module-option .mod-info { flex: 1; }
+        .module-option .mod-info .mod-name { font-weight: 700; color: #0B1A2E; }
+        .module-option .mod-info .mod-desc { font-size: 0.8rem; color: rgba(11,26,46,0.5); }
+        .module-option .mod-check { color: #3B82F6; font-weight: 700; display: none; }
+        .module-option.selected .mod-check { display: block; }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .modal-actions .btn-confirm {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+        }
+        .modal-actions .btn-confirm:hover { transform: translateY(-2px); }
+        .modal-actions .btn-confirm:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .modal-actions .btn-cancel {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            color: #0B1A2E;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid rgba(11,26,46,0.1);
+        }
+        .modal-actions .btn-cancel:hover { background: rgba(0,0,0,0.05); }
+        .modal-footer-text {
+            text-align: center;
+            font-size: 0.7rem;
+            color: rgba(11,26,46,0.3);
+            margin-top: 12px;
+        }
+
         .loading-spinner {
             width: 40px; height: 40px;
             border: 4px solid rgba(59,130,246,0.1);
@@ -284,6 +399,7 @@
             .topbar .right-group { justify-content: flex-end; }
             .payment-cta { padding: 16px; }
             .payment-cta .number-box { font-size: 1rem; }
+            .modal-content { padding: 24px; margin: 16px; }
         }
     </style>
 </head>
@@ -344,6 +460,37 @@
         </div>
     </div>
 
+    <!-- Module Selection Modal -->
+    <div id="moduleSelectionModal">
+        <div class="modal-content">
+            <div class="modal-title">
+                <div class="icon">📚</div>
+                <h2>Choose Your Module</h2>
+                <p>Select the module you want to access with your Basic plan.</p>
+            </div>
+
+            <div id="moduleOptions">
+                <!-- Modules will be loaded here -->
+                <div style="text-align:center; padding:20px; color:rgba(11,26,46,0.4);">
+                    <div class="loading-spinner" style="width:30px; height:30px; margin:0 auto 12px;"></div>
+                    Loading modules...
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="confirmModuleSelection()" id="confirmModuleBtn" class="btn-confirm" disabled>
+                    ✅ Confirm Selection
+                </button>
+                <button onclick="closeModuleSelection()" class="btn-cancel">
+                    Cancel
+                </button>
+            </div>
+            <div class="modal-footer-text">
+                You can change your module later (3 times max)
+            </div>
+        </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <script>
@@ -354,10 +501,19 @@
         const AIRTEL_NUMBER = '0756418723';
         const ACCOUNT_NAME = 'Kigozi George';
 
+        const MODULES = [
+            { id: 'imed', name: 'Internal Medicine', icon: '📚', description: 'Full adult history and examination' },
+            { id: 'surgery', name: 'Surgery', icon: '🔪', description: 'Surgical history and assessment' },
+            { id: 'peds', name: 'Pediatrics', icon: '👶', description: 'Child health and development' },
+            { id: 'obgyn', name: 'OB/GYN', icon: '🤰', description: 'Obstetrics and gynaecology' }
+        ];
+
         let supabaseClient = null;
         let currentUser = null;
         let currentSubscription = null;
         let plans = [];
+        let selectedModule = null;
+        let pendingPlan = null;
 
         // ─── INIT ───
         async function init() {
@@ -563,6 +719,122 @@
             }).join('');
         }
 
+        // ─── SHOW MODULE SELECTION ───
+        function showModuleSelection(plan) {
+            pendingPlan = plan;
+            selectedModule = null;
+            
+            const modal = document.getElementById('moduleSelectionModal');
+            const options = document.getElementById('moduleOptions');
+            
+            // Render module options
+            options.innerHTML = MODULES.map(mod => `
+                <div onclick="selectModule('${mod.id}')" 
+                     id="module-${mod.id}"
+                     class="module-option">
+                    <div class="mod-icon">${mod.icon}</div>
+                    <div class="mod-info">
+                        <div class="mod-name">${mod.name}</div>
+                        <div class="mod-desc">${mod.description}</div>
+                    </div>
+                    <div class="mod-check">✓ Selected</div>
+                </div>
+            `).join('');
+            
+            // Enable confirm button
+            document.getElementById('confirmModuleBtn').disabled = true;
+            modal.classList.add('active');
+        }
+
+        // ─── SELECT MODULE ───
+        function selectModule(moduleId) {
+            selectedModule = moduleId;
+            
+            // Update UI
+            document.querySelectorAll('.module-option').forEach(el => {
+                const isSelected = el.id === `module-${moduleId}`;
+                el.classList.toggle('selected', isSelected);
+            });
+            
+            // Enable confirm button
+            document.getElementById('confirmModuleBtn').disabled = false;
+        }
+
+        // ─── CONFIRM MODULE SELECTION ───
+        async function confirmModuleSelection() {
+            if (!selectedModule) {
+                showToast('Please select a module first.', true);
+                return;
+            }
+
+            const btn = document.getElementById('confirmModuleBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Processing...';
+
+            try {
+                const plan = pendingPlan;
+                
+                // Create subscription with selected module
+                const { data, error } = await supabaseClient
+                    .from('subscriptions')
+                    .insert({
+                        user_id: currentUser.id,
+                        plan_id: plan.id,
+                        plan_type: plan.slug,
+                        status: 'pending',
+                        active_module: selectedModule,
+                        start_date: new Date().toISOString(),
+                        expiry_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
+                        payment_status: 'pending'
+                    })
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                // Close modal
+                closeModuleSelection();
+                
+                // Show WhatsApp payment CTA with module info
+                showPaymentCTA(plan, selectedModule);
+                
+                showToast(`✅ Basic plan selected! Please complete payment of UGX ${plan.price.toLocaleString()}`, false);
+
+            } catch (error) {
+                console.error('[Module Selection] Error:', error);
+                showToast('❌ Failed to select module: ' + error.message, true);
+                btn.disabled = false;
+                btn.textContent = '✅ Confirm Selection';
+            }
+        }
+
+        // ─── CLOSE MODULE SELECTION ───
+        function closeModuleSelection() {
+            document.getElementById('moduleSelectionModal').classList.remove('active');
+            pendingPlan = null;
+            selectedModule = null;
+        }
+
+        // ─── SHOW PAYMENT CTA ───
+        function showPaymentCTA(plan, moduleId) {
+            const cta = document.getElementById('paymentCTA');
+            const whatsappLink = document.getElementById('whatsappPaymentLink');
+            
+            const moduleName = MODULES.find(m => m.id === moduleId)?.name || moduleId || 'All Modules';
+            const email = currentUser?.email || '';
+            const msg = encodeURIComponent(
+                `Hello, I have paid for EaseMed ${plan.name} (UGX ${plan.price.toLocaleString()}) via Airtel Money.\n\nEmail: ${email}\nPlan: ${plan.name}\nModule: ${moduleName}\nAmount: UGX ${plan.price.toLocaleString()}\n\n[Please attach your payment screenshot to this message]`
+            );
+            whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+            
+            cta.style.display = 'block';
+            cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function hidePaymentCTA() {
+            document.getElementById('paymentCTA').style.display = 'none';
+        }
+
         // ─── SELECT PLAN ───
         async function selectPlan(slug) {
             console.log('[Subscription] Selecting plan:', slug);
@@ -582,9 +854,15 @@
                 }
             }
 
-            // For paid plans - show WhatsApp payment CTA
-            if (plan.price > 0) {
-                showPaymentCTA(plan);
+            // For Basic plan - show module selection first
+            if (slug === 'basic') {
+                showModuleSelection(plan);
+                return;
+            }
+
+            // For Premium - show WhatsApp payment CTA directly
+            if (slug === 'premium' && plan.price > 0) {
+                showPaymentCTA(plan, 'all');
                 return;
             }
 
@@ -624,28 +902,6 @@
                     btns.forEach(b => b.disabled = false);
                 }
             }
-        }
-
-        // ─── SHOW PAYMENT CTA ───
-        function showPaymentCTA(plan) {
-            const cta = document.getElementById('paymentCTA');
-            const whatsappLink = document.getElementById('whatsappPaymentLink');
-            
-            // Update WhatsApp link with plan details
-            const email = currentUser?.email || '';
-            const msg = encodeURIComponent(
-                `Hello, I have paid for EaseMed ${plan.name} (UGX ${plan.price.toLocaleString()}) via Airtel Money.\n\nEmail: ${email}\nPlan: ${plan.name}\nAmount: UGX ${plan.price.toLocaleString()}\n\n[Please attach your payment screenshot to this message]`
-            );
-            whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
-            
-            cta.style.display = 'block';
-            cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            showToast(`💬 Please complete payment of UGX ${plan.price.toLocaleString()} to activate ${plan.name}`, false);
-        }
-
-        function hidePaymentCTA() {
-            document.getElementById('paymentCTA').style.display = 'none';
         }
 
         // ─── TOAST ───
