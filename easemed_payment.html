@@ -5,10 +5,19 @@
     <script src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js" crossorigin="anonymous"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EaseMed – Activate Your Account</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>">
+    <meta name="theme-color" content="#E8F4FD">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="EaseMed">
+    
     <!-- Local Supabase SDK -->
     <script src="/js/supabase.min.js"></script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
         :root {
             --primary: #1a5f7a;
@@ -29,7 +38,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Inter', sans-serif;
             background: #0d1b2a;
             color: var(--text);
             min-height: 100vh;
@@ -116,9 +125,21 @@
             align-items: center;
             justify-content: space-between;
         }
-        .brand { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.3px; color: #fff; }
+        .brand { 
+            font-family: 'Lora', serif;
+            font-size: 1.3rem; 
+            font-weight: 700; 
+            letter-spacing: 0.3px; 
+            color: #fff; 
+        }
         .brand span { color: #9fd8f0; }
-        .topbar-sub { font-size: 0.76rem; opacity: 0.6; margin-top: 2px; color: #fff; }
+        .topbar-sub { 
+            font-size: 0.76rem; 
+            opacity: 0.6; 
+            margin-top: 2px; 
+            color: #fff; 
+            font-weight: 400;
+        }
         .topbar-right { display: flex; align-items: center; gap: 12px; }
         .btn-logout {
             background: rgba(255,255,255,0.08);
@@ -128,7 +149,7 @@
             border-radius: 8px;
             font-size: 0.8rem;
             cursor: pointer;
-            font-family: inherit;
+            font-family: 'Inter', sans-serif;
             font-weight: 500;
             transition: background 0.15s;
         }
@@ -141,6 +162,7 @@
             border-radius: 99px;
             font-size: 0.7rem;
             font-weight: 600;
+            font-family: 'Inter', sans-serif;
         }
         .status-badge.active { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
         .status-badge.pending { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
@@ -184,8 +206,8 @@
             background: rgba(59,130,246,0.12);
             border: 1.5px solid rgba(59,130,246,0.4);
         }
-        .notice-banner strong { display: block; font-size: 0.95rem; }
-        .notice-banner p { font-size: 0.84rem; margin-top: 0.3rem; opacity: 0.85; }
+        .notice-banner strong { display: block; font-size: 0.95rem; font-family: 'Inter', sans-serif; }
+        .notice-banner p { font-size: 0.84rem; margin-top: 0.3rem; opacity: 0.85; font-family: 'Inter', sans-serif; }
         .notice-banner.warning strong { color: #ff6b7a; }
         .notice-banner.warning p { color: #ffb3bc; }
         .notice-banner.success strong { color: #34d399; }
@@ -205,14 +227,15 @@
             to   { opacity: 1; transform: translateY(0); }
         }
         .hero-icon {
-            width: 72px; height: 72px;
+            width: 80px; 
+            height: 80px;
             background: linear-gradient(135deg, rgba(26,95,122,0.8), rgba(26,95,122,0.4));
             border: 2px solid rgba(159,216,240,0.3);
             border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 2.4rem;
             margin: 0 auto 1.25rem;
             box-shadow: 0 8px 32px rgba(26,95,122,0.4);
             animation: pulse-glow 3s ease-in-out infinite;
@@ -222,8 +245,9 @@
             50%       { box-shadow: 0 8px 48px rgba(26,95,122,0.7), 0 0 0 8px rgba(26,95,122,0.1); }
         }
         .hero h1 {
+            font-family: 'Lora', serif;
             font-size: 1.75rem;
-            font-weight: 800;
+            font-weight: 700;
             color: #ffffff;
             margin-bottom: 0.6rem;
             line-height: 1.2;
@@ -233,6 +257,8 @@
             font-size: 0.9rem;
             color: rgba(255,255,255,0.55);
             line-height: 1.7;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
         }
 
         .price-badge {
@@ -246,6 +272,7 @@
             margin: 1.25rem auto 0;
             box-shadow: 0 4px 20px rgba(228,0,43,0.4);
             animation: badge-pulse 2.5s ease-in-out infinite;
+            font-family: 'Inter', sans-serif;
         }
         @keyframes badge-pulse {
             0%, 100% { box-shadow: 0 4px 20px rgba(228,0,43,0.4); }
@@ -269,6 +296,7 @@
             color: rgba(255,255,255,0.4);
             margin-bottom: 1rem;
             text-align: center;
+            font-family: 'Inter', sans-serif;
         }
         .steps { display: flex; }
         .step {
@@ -300,8 +328,16 @@
             position: relative;
             z-index: 1;
             margin-bottom: 0.5rem;
+            font-family: 'Inter', sans-serif;
         }
-        .step-label { font-size: 0.72rem; color: rgba(255,255,255,0.45); line-height: 1.4; max-width: 76px; }
+        .step-label { 
+            font-size: 0.72rem; 
+            color: rgba(255,255,255,0.45); 
+            line-height: 1.4; 
+            max-width: 76px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
 
         /* ── PAYMENT CARD ── */
         .card-wrap {
@@ -362,11 +398,13 @@
             letter-spacing: 1.5px;
             padding: 0.25rem 0.75rem;
             border-radius: 99px;
+            font-family: 'Inter', sans-serif;
         }
         .card-label {
             font-size: 0.75rem;
             color: rgba(255,255,255,0.45);
             font-weight: 500;
+            font-family: 'Inter', sans-serif;
         }
 
         .card-number-display {
@@ -386,6 +424,7 @@
             text-transform: uppercase;
             letter-spacing: 0.8px;
             margin-bottom: 0.25rem;
+            font-family: 'Inter', sans-serif;
         }
         .number-value {
             font-size: 1.5rem;
@@ -393,11 +432,13 @@
             color: #ffffff;
             letter-spacing: 2px;
             font-variant-numeric: tabular-nums;
+            font-family: 'Inter', sans-serif;
         }
         .number-name {
             font-size: 0.78rem;
             color: rgba(255,255,255,0.45);
             margin-top: 0.2rem;
+            font-family: 'Inter', sans-serif;
         }
 
         .btn-copy {
@@ -410,7 +451,7 @@
             font-size: 0.88rem;
             font-weight: 700;
             cursor: pointer;
-            font-family: inherit;
+            font-family: 'Inter', sans-serif;
             transition: opacity 0.15s, transform 0.15s;
             white-space: nowrap;
             box-shadow: 0 4px 16px rgba(228,0,43,0.35);
@@ -427,8 +468,9 @@
             justify-content: space-between;
             font-size: 0.82rem;
             color: rgba(255,255,255,0.45);
+            font-family: 'Inter', sans-serif;
         }
-        .card-amount-row strong { color: rgba(255,255,255,0.85); font-size: 0.9rem; }
+        .card-amount-row strong { color: rgba(255,255,255,0.85); font-size: 0.9rem; font-weight: 600; }
 
         /* ── INSTRUCTIONS ── */
         .instructions {
@@ -451,6 +493,7 @@
             margin-bottom: 1.1rem;
             padding-bottom: 0.75rem;
             border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-family: 'Inter', sans-serif;
         }
         .instr-list { list-style: none; }
         .instr-list li {
@@ -461,6 +504,7 @@
             color: rgba(255,255,255,0.7);
             line-height: 1.6;
             margin-bottom: 0.85rem;
+            font-family: 'Inter', sans-serif;
         }
         .instr-list li:last-child { margin-bottom: 0; }
         .instr-num {
@@ -476,8 +520,9 @@
             align-items: center;
             justify-content: center;
             margin-top: 1px;
+            font-family: 'Inter', sans-serif;
         }
-        .instr-list li strong { color: #fff; }
+        .instr-list li strong { color: #fff; font-weight: 600; }
 
         /* ── WHATSAPP CTA ── */
         .whatsapp-cta {
@@ -500,8 +545,19 @@
         }
         .whatsapp-icon { font-size: 2rem; flex-shrink: 0; }
         .whatsapp-text { flex: 1; }
-        .whatsapp-text strong { font-size: 0.9rem; color: #5ef0a0; display: block; margin-bottom: 0.2rem; }
-        .whatsapp-text span { font-size: 0.82rem; color: rgba(255,255,255,0.45); }
+        .whatsapp-text strong { 
+            font-size: 0.9rem; 
+            color: #5ef0a0; 
+            display: block; 
+            margin-bottom: 0.2rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+        .whatsapp-text span { 
+            font-size: 0.82rem; 
+            color: rgba(255,255,255,0.45);
+            font-family: 'Inter', sans-serif;
+        }
         .btn-whatsapp {
             background: #25d366;
             color: #fff;
@@ -511,7 +567,7 @@
             font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
-            font-family: inherit;
+            font-family: 'Inter', sans-serif;
             white-space: nowrap;
             text-decoration: none;
             display: inline-block;
@@ -533,8 +589,9 @@
             text-align: center;
             line-height: 1.6;
             animation: fade-up 0.6s 0.5s ease both;
+            font-family: 'Inter', sans-serif;
         }
-        .note strong { color: #ffd966; }
+        .note strong { color: #ffd966; font-weight: 600; }
 
         /* ── FOOTER ── */
         .footer {
@@ -545,6 +602,7 @@
             font-size: 0.7rem;
             color: rgba(255,255,255,0.2);
             letter-spacing: 0.5px;
+            font-family: 'Inter', sans-serif;
         }
 
         /* ── TOAST ── */
@@ -565,6 +623,7 @@
             transition: opacity 0.25s, transform 0.25s;
             pointer-events: none;
             white-space: nowrap;
+            font-family: 'Inter', sans-serif;
         }
         .toast.show {
             opacity: 1;
@@ -621,7 +680,7 @@
 
         <!-- Hero -->
         <div class="hero">
-            <div class="hero-icon">🏥</div>
+            <div class="hero-icon">🩺</div>
             <h1>Activate <span>EaseMed</span> Access</h1>
             <p>Pay via Airtel Money to unlock all clinical clerking modules. Your account is activated within 24 hours of payment confirmation.</p>
             <div class="price-badge">
