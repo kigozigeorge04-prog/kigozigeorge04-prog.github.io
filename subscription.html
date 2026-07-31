@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EaseMed — Choose Your Plan</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>">
+    <meta name="theme-color" content="#E8F4FD">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="EaseMed">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Local Supabase SDK -->
+    <script src="/js/supabase.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(160deg, #E8F4FD 0%, #B8D8F0 40%, #8EC4E8 100%);
+            color: #0B1A2E;
+        }
+
+        .bg-gradient {
+            position: fixed; inset: 0; z-index: 0;
+            background: radial-gradient(ellipse at 20% 30%, rgba(59,130,246,0.10) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 70%, rgba(139,92,246,0.06) 0%, transparent 50%),
+                        linear-gradient(180deg, #E8F4FD 0%, #B8D8F0 50%, #8EC4E8 100%);
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0;
+            background-image: linear-gradient(rgba(11,26,46,0.06) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(11,26,46,0.06) 1px, transparent 1px);
+            background-size: 48px 48px; opacity: 0.5;
+        }
+
+        .container {
+            position: relative; z-index: 1; max-width: 1200px;
+            margin: 0 auto; padding: 24px;
+        }
+
+        /* Top Bar */
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 24px; background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 16px; margin-bottom: 32px; flex-wrap: wrap; gap: 12px;
+        }
+        .topbar .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .topbar .crest {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            border-radius: 10px; display: grid; place-items: center;
+            font-size: 16px; font-weight: 700; color: white;
+        }
+        .topbar .brand-name {
+            font-family: 'Lora', serif; font-size: 1.2rem; font-weight: 700; color: #0B1A2E;
+        }
+        .topbar .right-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .btn-outline {
+            padding: 8px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05); color: #0B1A2E; font-size: 13px;
+            font-weight: 500; cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-outline:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+
+        /* Hero */
+        .hero {
+            text-align: center; margin-bottom: 48px;
+            animation: fade-up 0.6s ease both;
+        }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hero h1 {
+            font-family: 'Lora', serif; font-size: 2.2rem; font-weight: 700;
+            color: #0B1A2E; margin-bottom: 8px;
+        }
+        .hero h1 span { color: #3B82F6; }
+        .hero p {
+            color: rgba(11,26,46,0.6); font-size: 1.05rem; max-width: 500px; margin: 0 auto;
+        }
+
+        /* Plans Grid */
+        .plans-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px; max-width: 900px; margin: 0 auto;
+        }
+        .plan-card {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+            padding: 32px 28px; text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .plan-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.08);
+        }
+        .plan-card.featured {
+            border-color: #3B82F6;
+            box-shadow: 0 8px 32px rgba(59,130,246,0.15);
+        }
+        .plan-card.featured::before {
+            content: '⭐ Most Popular';
+            position: absolute; top: 12px; right: 12px;
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: white; font-size: 0.65rem; font-weight: 700;
+            padding: 4px 12px; border-radius: 99px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .plan-card .icon { font-size: 3rem; margin-bottom: 12px; }
+        .plan-card .name {
+            font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 700;
+            margin-bottom: 4px; color: #0B1A2E;
+        }
+        .plan-card .description {
+            font-size: 0.9rem; color: rgba(11,26,46,0.6); margin-bottom: 16px;
+        }
+        .plan-card .price {
+            font-size: 2.2rem; font-weight: 800; color: #0B1A2E;
+            font-family: 'Lora', serif;
+        }
+        .plan-card .price-period {
+            font-size: 0.85rem; color: rgba(11,26,46,0.4); font-weight: 400;
+        }
+        .plan-card .features {
+            list-style: none; margin: 20px 0; text-align: left;
+        }
+        .plan-card .features li {
+            padding: 6px 0; font-size: 0.9rem; color: rgba(11,26,46,0.7);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .plan-card .features li::before {
+            content: '✓'; color: #10B981; font-weight: 700;
+        }
+        .plan-card .btn-select {
+            width: 100%; padding: 12px; border: none; border-radius: 12px;
+            font-size: 1rem; font-weight: 700; cursor: pointer;
+            font-family: 'Inter', sans-serif; transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .plan-card .btn-select:hover { transform: translateY(-2px); }
+        .plan-card .btn-select.primary {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white; box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+        }
+        .plan-card .btn-select.primary:hover { box-shadow: 0 8px 24px rgba(59,130,246,0.4); }
+        .plan-card .btn-select.success {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white; box-shadow: 0 4px 16px rgba(16,185,129,0.3);
+        }
+        .plan-card .btn-select.success:hover { box-shadow: 0 8px 24px rgba(16,185,129,0.4); }
+        .plan-card .btn-select.outline {
+            background: rgba(255,255,255,0.1);
+            color: #0B1A2E; border: 1px solid rgba(11,26,46,0.15);
+        }
+        .plan-card .btn-select.outline:hover { background: rgba(255,255,255,0.2); }
+        .plan-card .btn-select:disabled {
+            opacity: 0.5; cursor: not-allowed; transform: none !important;
+        }
+
+        .plan-card .current-badge {
+            display: inline-block; background: rgba(16,185,129,0.15);
+            color: #065F46; font-size: 0.7rem; font-weight: 700;
+            padding: 4px 12px; border-radius: 99px; margin-top: 12px;
+        }
+
+        /* Current Subscription Info */
+        .current-subscription {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px); border-radius: 16px;
+            padding: 20px 24px; margin: 32px auto;
+            max-width: 600px; text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .current-subscription .label { font-size: 0.75rem; color: rgba(11,26,46,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
+        .current-subscription .plan { font-size: 1.2rem; font-weight: 700; margin: 4px 0; }
+        .current-subscription .expiry { font-size: 0.85rem; color: rgba(11,26,46,0.5); }
+
+        .toast {
+            position: fixed; bottom: 2rem; left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(26,122,74,0.95); backdrop-filter: blur(10px);
+            color: #fff; padding: 0.75rem 1.5rem; border-radius: 99px;
+            font-size: 0.88rem; font-weight: 600; z-index: 9999;
+            opacity: 0; transition: opacity 0.25s, transform 0.25s;
+            pointer-events: none; white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: rgba(200,30,50,0.95); }
+
+        @media (max-width: 768px) {
+            .plans-grid { grid-template-columns: 1fr; max-width: 400px; }
+            .hero h1 { font-size: 1.6rem; }
+            .topbar { flex-direction: column; align-items: stretch; gap: 8px; }
+            .topbar .right-group { justify-content: flex-end; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+
+    <div class="container">
+        <!-- Top Bar -->
+        <div class="topbar">
+            <a href="modules.html" class="brand" style="text-decoration:none;">
+                <div class="crest">🩺</div>
+                <span class="brand-name">EaseMed</span>
+            </a>
+            <div class="right-group">
+                <a href="modules.html" class="btn-outline">← Modules</a>
+                <a href="profile.html" class="btn-outline">👤 Profile</a>
+                <button class="btn-outline" onclick="handleLogout()">Sign Out</button>
+            </div>
+        </div>
+
+        <!-- Hero -->
+        <div class="hero">
+            <h1>Choose the plan that fits your <span>clinical journey</span></h1>
+            <p>Start with a free trial, then pick the plan that matches your needs.</p>
+        </div>
+
+        <!-- Current Subscription -->
+        <div id="currentSubscription" class="current-subscription" style="display:none;">
+            <div class="label">Your current plan</div>
+            <div class="plan" id="currentPlan">Loading...</div>
+            <div class="expiry" id="currentExpiry"></div>
+        </div>
+
+        <!-- Plans Grid -->
+        <div class="plans-grid" id="plansGrid">
+            <!-- Plans will be loaded dynamically -->
+            <div style="text-align:center; padding:40px; color:rgba(11,26,46,0.4); grid-column:1/-1;">
+                <div class="loading-spinner" style="width:40px;height:40px;border:4px solid rgba(59,130,246,0.1);border-top-color:#3B82F6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;"></div>
+                Loading plans...
+            </div>
+        </div>
+
+        <style>
+            @keyframes spin { to { transform: rotate(360deg); } }
+        </style>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ─── CONFIG ───
+        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+        let supabaseClient = null;
+        let currentUser = null;
+        let currentSubscription = null;
+        let plans = [];
+
+        // ─── INIT ───
+        async function init() {
+            if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                setTimeout(init, 1000);
+                return;
+            }
+
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'easemed_login.html';
+                return;
+            }
+
+            currentUser = session.user;
+            await loadPlans();
+            await loadCurrentSubscription();
+        }
+
+        // ─── LOAD PLANS ───
+        async function loadPlans() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('subscription_plans')
+                    .select('*')
+                    .order('price', { ascending: true });
+
+                if (error) throw error;
+                plans = data || [];
+                renderPlans();
+
+            } catch (error) {
+                console.error('[Plans] Error:', error);
+                document.getElementById('plansGrid').innerHTML = `
+                    <div style="text-align:center; padding:40px; color:#DC2626; grid-column:1/-1;">
+                        Failed to load plans. Please refresh.
+                    </div>
+                `;
+            }
+        }
+
+        // ─── LOAD CURRENT SUBSCRIPTION ───
+        async function loadCurrentSubscription() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('subscriptions')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .eq('status', 'active')
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') throw error;
+
+                currentSubscription = data || null;
+                updateCurrentSubscriptionUI();
+
+            } catch (error) {
+                console.error('[Subscription] Error:', error);
+            }
+        }
+
+        // ─── UPDATE CURRENT SUBSCRIPTION UI ───
+        function updateCurrentSubscriptionUI() {
+            const container = document.getElementById('currentSubscription');
+            const planEl = document.getElementById('currentPlan');
+            const expiryEl = document.getElementById('currentExpiry');
+
+            if (!currentSubscription) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+
+            const plan = plans.find(p => p.slug === currentSubscription.plan_type);
+            const planName = plan ? plan.name : currentSubscription.plan_type;
+
+            planEl.textContent = planName;
+
+            if (currentSubscription.expiry_date) {
+                const expiry = new Date(currentSubscription.expiry_date);
+                const daysRemaining = Math.ceil((expiry - new Date()) / (1000 * 60 * 60 * 24));
+                if (daysRemaining > 0) {
+                    expiryEl.textContent = `Expires in ${daysRemaining} days (${expiry.toLocaleDateString()})`;
+                } else {
+                    expiryEl.textContent = `Expired on ${expiry.toLocaleDateString()}`;
+                }
+            } else {
+                expiryEl.textContent = 'Never expires';
+            }
+        }
+
+        // ─── RENDER PLANS ───
+        function renderPlans() {
+            const grid = document.getElementById('plansGrid');
+
+            const icons = {
+                'free-trial': '🎁',
+                'basic': '🩺',
+                'premium': '⭐'
+            };
+
+            const btnClasses = {
+                'free-trial': 'outline',
+                'basic': 'primary',
+                'premium': 'success'
+            };
+
+            const isFeatured = {
+                'free-trial': false,
+                'basic': false,
+                'premium': true
+            };
+
+            grid.innerHTML = plans.map(plan => {
+                const icon = icons[plan.slug] || '📋';
+                const btnClass = btnClasses[plan.slug] || 'primary';
+                const featured = isFeatured[plan.slug] || false;
+                const priceDisplay = plan.price === 0 ? 'Free' : `UGX ${plan.price.toLocaleString()}`;
+
+                // Check if this is the current plan
+                const isCurrent = currentSubscription && currentSubscription.plan_type === plan.slug && 
+                                 currentSubscription.status === 'active';
+
+                // Check if this plan is available (not expired)
+                const isAvailable = !isCurrent;
+
+                return `
+                    <div class="plan-card ${featured ? 'featured' : ''}">
+                        <div class="icon">${icon}</div>
+                        <div class="name">${plan.name}</div>
+                        <div class="description">${plan.description || ''}</div>
+                        <div class="price">${priceDisplay}</div>
+                        <div class="price-period">${plan.duration_days} days</div>
+                        <ul class="features">
+                            ${plan.features && Array.isArray(plan.features) ? plan.features.map(f => `<li>${f}</li>`).join('') : ''}
+                        </ul>
+                        ${isCurrent ? `<div class="current-badge">✅ Current Plan</div>` : ''}
+                        <button class="btn-select ${btnClass}" 
+                                onclick="selectPlan('${plan.slug}')" 
+                                ${!isAvailable ? 'disabled' : ''}>
+                            ${isCurrent ? 'Active' : plan.price === 0 ? 'Start Trial' : `Choose ${plan.name}`}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ─── SELECT PLAN ───
+        async function selectPlan(slug) {
+            const plan = plans.find(p => p.slug === slug);
+            if (!plan) return;
+
+            // If it's the free trial and they already have one
+            if (slug === 'free-trial') {
+                const hasTrial = currentSubscription && currentSubscription.plan_type === 'free-trial';
+                if (hasTrial) {
+                    showToast('You already have a free trial!', true);
+                    return;
+                }
+            }
+
+            // For paid plans, redirect to payment page
+            if (plan.price > 0) {
+                // Redirect to payment page with plan selection
+                window.location.href = `payment.html?plan=${slug}`;
+                return;
+            }
+
+            // For free trial, create subscription directly
+            if (plan.price === 0) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('subscriptions')
+                        .insert({
+                            user_id: currentUser.id,
+                            plan_id: plan.id,
+                            plan_type: slug,
+                            status: 'active',
+                            start_date: new Date().toISOString(),
+                            expiry_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
+                            payment_status: 'paid'
+                        });
+
+                    if (error) throw error;
+
+                    showToast('✅ Free trial started! You have 7 days of full access.');
+                    await loadCurrentSubscription();
+                    renderPlans();
+
+                } catch (error) {
+                    console.error('[Select Plan] Error:', error);
+                    showToast('❌ Failed to start trial: ' + error.message, true);
+                }
+            }
+        }
+
+        // ─── TOAST ───
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast' + (isError ? ' error' : '');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // ─── LOGOUT ───
+        async function handleLogout() {
+            try {
+                await supabaseClient.auth.signOut();
+                window.location.href = 'easemed_login.html';
+            } catch (error) {
+                window.location.href = 'easemed_login.html';
+            }
+        }
+
+        // ─── INIT ───
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
