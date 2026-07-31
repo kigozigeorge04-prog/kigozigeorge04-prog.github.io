@@ -1140,16 +1140,14 @@
             <div class="topbar-subtitle">Surgery Clerkship with AI Vision</div>
         </div>
         <div class="topbar-right">
-              <span id="planBadge" style="display:none; background: rgba(16,185,129,0.15); color: #065F46; padding: 4px 14px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; border: 1px solid rgba(16,185,129,0.2);">
             <button class="btn-outline-white" onclick="saveDraft()">💾 Save Draft</button>
             <button class="btn-outline-white" onclick="exitForm()">← Exit</button>
         </div>
     </nav>
-      
     <div class="progress-bar-wrap">
         <div class="progress-bar-fill" id="progressFill" style="width:45%"></div>
     </div>
-          <div id="moduleContent" style="display:none;">
+
     <div class="main-wrap">
 
         <!-- ============================================================
@@ -2382,6 +2380,32 @@
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+            (async function checkAuth() {
+                try {
+                    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+                    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) {
+                        window.location.replace('easemed_login.html');
+                        return;
+                    }
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('is_active, expires_at')
+                        .eq('id', session.user.id)
+                        .single();
+                    if (!profile || !profile.is_active) {
+                        window.location.replace('easemed_payment.html');
+                        return;
+                    }
+                    if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
+                        await supabase.from('profiles').update({ is_active: false }).eq('id', session.user.id);
+                        window.location.replace('easemed_payment.html?reason=expired');
+                        return;
+                    }
+                } catch (e) { console.warn('Auth check error:', e); }
+            })();
 
             // ================================================================
 
@@ -5338,68 +5362,27 @@
                 }
             });
         </script>
+        <!-- Session validation -->
+<script src="session-check.js"></script>
 
 <!-- Your page's own script -->
 <script>
     // ── PAGE INITIALIZATION ──
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('[Surgery Module] Initializing...');
-    
-    // The access guard handles all authentication and access checks
-    // If the page is visible, the user has access
-    const content = document.getElementById('moduleContent');
-    if (!content || content.style.display === 'none') {
-        console.log('[Surgery Module] Waiting for access guard...');
-        return;
-    }
-    
-    // Initialize page features
-    renderTags(1);
-    loadDraft();
-    checkAge();
-    calculateGCS();
-    updateProgress();
-    // ... your other init code
-});
-  
+    document.addEventListener('DOMContentLoaded', async function() {
+        // 1. Require authentication
+        const isAuthenticated = await requireAuth('easemed_login.html');
+        if (!isAuthenticated) return;
 
-</script> 
-          <!-- ─── UPGRADE MODAL ─── -->
-<div id="upgradeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:99999; align-items:center; justify-content:center; padding:24px;">
-    <div style="background:white; max-width:420px; width:100%; border-radius:20px; padding:32px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,0.2); animation:fadeIn 0.3s ease;">
-        <div style="font-size:3rem; margin-bottom:12px;">🔒</div>
-        <h2 style="font-family:'Lora',serif; font-size:1.5rem; margin-bottom:8px; color:#0B1A2E;">Access Restricted</h2>
-        <p style="color:rgba(11,26,46,0.6); margin-bottom:8px; font-size:0.95rem; line-height:1.6;" id="upgradeReason">
-            This module requires a subscription.
-        </p>
-        <div style="background:rgba(245,158,11,0.08); padding:14px; border-radius:12px; margin:16px 0; border:1px solid rgba(245,158,11,0.15);">
-            <strong style="color:#D97706; font-size:0.95rem;">⚡ Quick Upgrade</strong>
-            <p style="font-size:0.85rem; color:rgba(11,26,46,0.5); margin-top:4px;">
-                Get Premium Access for only <strong style="color:#0B1A2E;">UGX 10,000/month</strong>
-            </p>
-            <p style="font-size:0.75rem; color:rgba(11,26,46,0.3); margin-top:4px;">
-                🔄 Cancel anytime
-            </p>
-        </div>
-        <div style="display:flex; gap:12px; margin-top:8px;">
-            <button onclick="window.location.href='subscription.html'" style="flex:1; padding:12px; border:none; border-radius:12px; background:linear-gradient(135deg,#3B82F6,#2563EB); color:white; font-weight:700; font-size:0.95rem; cursor:pointer; font-family:'Inter',sans-serif; transition:transform 0.2s, box-shadow 0.2s;">
-                🚀 Upgrade Now
-            </button>
-            <button onclick="document.getElementById('upgradeModal').style.display='none'" style="flex:1; padding:12px; border:none; border-radius:12px; background:rgba(255,255,255,0.1); color:#0B1A2E; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:'Inter',sans-serif; border:1px solid rgba(11,26,46,0.1);">
-                Cancel
-            </button>
-        </div>
-        <p style="font-size:0.7rem; color:rgba(11,26,46,0.3); margin-top:14px;">
-            Already subscribed? <a href="#" onclick="location.reload()" style="color:#3B82F6; text-decoration:none; font-weight:600;">Refresh</a>
-        </p>
-    </div>
-</div>
+        // 2. Your page code here...
+        console.log('[EaseMed] Protected page loaded successfully');
+        console.log('Welcome, ' + localStorage.getItem('easemed_user_name'));
 
-<style>
-    @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-    }
-</style>
+        // 3. Add logout button handler (optional)
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => logoutUser('easemed_login.html'));
+        }
+    });
+</script>
     </body>
 </html>
