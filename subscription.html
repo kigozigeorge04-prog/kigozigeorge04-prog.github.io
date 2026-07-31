@@ -182,10 +182,21 @@
             padding: 20px 24px; margin: 32px auto;
             max-width: 600px; text-align: center;
             border: 1px solid rgba(255,255,255,0.1);
+            display: none;
         }
         .current-subscription .label { font-size: 0.75rem; color: rgba(11,26,46,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
         .current-subscription .plan { font-size: 1.2rem; font-weight: 700; margin: 4px 0; }
         .current-subscription .expiry { font-size: 0.85rem; color: rgba(11,26,46,0.5); }
+
+        .loading-spinner {
+            width: 40px; height: 40px;
+            border: 4px solid rgba(59,130,246,0.1);
+            border-top-color: #3B82F6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .toast {
             position: fixed; bottom: 2rem; left: 50%;
@@ -234,7 +245,7 @@
         </div>
 
         <!-- Current Subscription -->
-        <div id="currentSubscription" class="current-subscription" style="display:none;">
+        <div class="current-subscription" id="currentSubscription">
             <div class="label">Your current plan</div>
             <div class="plan" id="currentPlan">Loading...</div>
             <div class="expiry" id="currentExpiry"></div>
@@ -242,16 +253,11 @@
 
         <!-- Plans Grid -->
         <div class="plans-grid" id="plansGrid">
-            <!-- Plans will be loaded dynamically -->
             <div style="text-align:center; padding:40px; color:rgba(11,26,46,0.4); grid-column:1/-1;">
-                <div class="loading-spinner" style="width:40px;height:40px;border:4px solid rgba(59,130,246,0.1);border-top-color:#3B82F6;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;"></div>
-                Loading plans...
+                <div class="loading-spinner"></div>
+                <div>Loading plans...</div>
             </div>
         </div>
-
-        <style>
-            @keyframes spin { to { transform: rotate(360deg); } }
-        </style>
     </div>
 
     <div class="toast" id="toast"></div>
@@ -268,41 +274,83 @@
 
         // ─── INIT ───
         async function init() {
+            console.log('[Subscription] Initializing...');
+
+            // Check if Supabase SDK is available
             if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+                console.warn('[Subscription] Supabase SDK not available. Retrying...');
                 setTimeout(init, 1000);
                 return;
             }
 
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+                console.log('[Subscription] Supabase client initialized.');
 
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) {
-                window.location.href = 'easemed_login.html';
-                return;
+                // Check auth
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                if (error) throw error;
+
+                if (!session) {
+                    console.log('[Subscription] No session, redirecting to login');
+                    window.location.href = 'easemed_login.html';
+                    return;
+                }
+
+                currentUser = session.user;
+                console.log('[Subscription] User:', currentUser.email);
+
+                // Load plans and subscription
+                await loadPlans();
+                await loadCurrentSubscription();
+
+            } catch (error) {
+                console.error('[Subscription] Init error:', error);
+                document.getElementById('plansGrid').innerHTML = `
+                    <div style="text-align:center; padding:40px; color:#DC2626; grid-column:1/-1;">
+                        <h3>⚠️ Failed to load</h3>
+                        <p style="margin-top:8px;">${error.message}</p>
+                        <button onclick="location.reload()" style="margin-top:12px; padding:8px 24px; background:#3B82F6; color:white; border:none; border-radius:8px; cursor:pointer;">Retry</button>
+                    </div>
+                `;
             }
-
-            currentUser = session.user;
-            await loadPlans();
-            await loadCurrentSubscription();
         }
 
         // ─── LOAD PLANS ───
         async function loadPlans() {
             try {
+                console.log('[Subscription] Loading plans from subscription_plans table...');
+                
                 const { data, error } = await supabaseClient
                     .from('subscription_plans')
                     .select('*')
                     .order('price', { ascending: true });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('[Subscription] Plans error:', error);
+                    throw error;
+                }
+
                 plans = data || [];
+                console.log('[Subscription] Plans loaded:', plans.length);
+                console.log('[Subscription] Plans data:', plans);
+                
+                if (plans.length === 0) {
+                    throw new Error('No plans found in subscription_plans table. Please run the SQL setup.');
+                }
+                
                 renderPlans();
 
             } catch (error) {
                 console.error('[Plans] Error:', error);
                 document.getElementById('plansGrid').innerHTML = `
                     <div style="text-align:center; padding:40px; color:#DC2626; grid-column:1/-1;">
-                        Failed to load plans. Please refresh.
+                        <h3>⚠️ Could not load plans</h3>
+                        <p style="margin-top:8px; font-size:0.9rem;">${error.message}</p>
+                        <p style="margin-top:8px; font-size:0.8rem; color:rgba(11,26,46,0.4);">
+                            Please ensure the subscription_plans table exists and has data.
+                        </p>
+                        <button onclick="location.reload()" style="margin-top:12px; padding:8px 24px; background:#3B82F6; color:white; border:none; border-radius:8px; cursor:pointer;">Retry</button>
                     </div>
                 `;
             }
@@ -311,6 +359,8 @@
         // ─── LOAD CURRENT SUBSCRIPTION ───
         async function loadCurrentSubscription() {
             try {
+                console.log('[Subscription] Loading current subscription...');
+                
                 const { data, error } = await supabaseClient
                     .from('subscriptions')
                     .select('*')
@@ -318,15 +368,16 @@
                     .eq('status', 'active')
                     .order('created_at', { ascending: false })
                     .limit(1)
-                    .single();
+                    .maybeSingle();
 
-                if (error && error.code !== 'PGRST116') throw error;
+                if (error) throw error;
 
-                currentSubscription = data || null;
+                currentSubscription = data;
+                console.log('[Subscription] Current:', currentSubscription ? currentSubscription.plan_type : 'None');
                 updateCurrentSubscriptionUI();
 
             } catch (error) {
-                console.error('[Subscription] Error:', error);
+                console.error('[Subscription] Load error:', error);
             }
         }
 
@@ -350,15 +401,22 @@
 
             if (currentSubscription.expiry_date) {
                 const expiry = new Date(currentSubscription.expiry_date);
-                const daysRemaining = Math.ceil((expiry - new Date()) / (1000 * 60 * 60 * 24));
+                const now = new Date();
+                const daysRemaining = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+                
                 if (daysRemaining > 0) {
                     expiryEl.textContent = `Expires in ${daysRemaining} days (${expiry.toLocaleDateString()})`;
+                } else if (daysRemaining === 0) {
+                    expiryEl.textContent = `Expires today!`;
                 } else {
                     expiryEl.textContent = `Expired on ${expiry.toLocaleDateString()}`;
                 }
             } else {
                 expiryEl.textContent = 'Never expires';
             }
+            
+            // Re-render plans to update button states
+            renderPlans();
         }
 
         // ─── RENDER PLANS ───
@@ -383,6 +441,16 @@
                 'premium': true
             };
 
+            if (!plans || plans.length === 0) {
+                grid.innerHTML = `
+                    <div style="text-align:center; padding:40px; color:rgba(11,26,46,0.4); grid-column:1/-1;">
+                        <h3>No plans available</h3>
+                        <p>Please run the SQL setup to create subscription plans.</p>
+                    </div>
+                `;
+                return;
+            }
+
             grid.innerHTML = plans.map(plan => {
                 const icon = icons[plan.slug] || '📋';
                 const btnClass = btnClasses[plan.slug] || 'primary';
@@ -393,8 +461,12 @@
                 const isCurrent = currentSubscription && currentSubscription.plan_type === plan.slug && 
                                  currentSubscription.status === 'active';
 
-                // Check if this plan is available (not expired)
-                const isAvailable = !isCurrent;
+                // Check if free trial is already used
+                const hasUsedTrial = currentSubscription && currentSubscription.plan_type === 'free_trial';
+                const isFreeTrial = plan.slug === 'free-trial';
+
+                // Disable free trial if already used
+                const isDisabled = isCurrent || (isFreeTrial && hasUsedTrial);
 
                 return `
                     <div class="plan-card ${featured ? 'featured' : ''}">
@@ -407,10 +479,11 @@
                             ${plan.features && Array.isArray(plan.features) ? plan.features.map(f => `<li>${f}</li>`).join('') : ''}
                         </ul>
                         ${isCurrent ? `<div class="current-badge">✅ Current Plan</div>` : ''}
+                        ${isFreeTrial && hasUsedTrial ? `<div class="current-badge" style="background:rgba(239,68,68,0.15);color:#991B1B;">⚠️ Trial Used</div>` : ''}
                         <button class="btn-select ${btnClass}" 
                                 onclick="selectPlan('${plan.slug}')" 
-                                ${!isAvailable ? 'disabled' : ''}>
-                            ${isCurrent ? 'Active' : plan.price === 0 ? 'Start Trial' : `Choose ${plan.name}`}
+                                ${isDisabled ? 'disabled' : ''}>
+                            ${isCurrent ? '✅ Active' : plan.price === 0 ? '🎁 Start Trial' : `Choose ${plan.name}`}
                         </button>
                     </div>
                 `;
@@ -419,12 +492,17 @@
 
         // ─── SELECT PLAN ───
         async function selectPlan(slug) {
+            console.log('[Subscription] Selecting plan:', slug);
+            
             const plan = plans.find(p => p.slug === slug);
-            if (!plan) return;
+            if (!plan) {
+                showToast('Plan not found.', true);
+                return;
+            }
 
-            // If it's the free trial and they already have one
+            // Check if free trial already used
             if (slug === 'free-trial') {
-                const hasTrial = currentSubscription && currentSubscription.plan_type === 'free-trial';
+                const hasTrial = currentSubscription && currentSubscription.plan_type === 'free_trial';
                 if (hasTrial) {
                     showToast('You already have a free trial!', true);
                     return;
@@ -433,14 +511,20 @@
 
             // For paid plans, redirect to payment page
             if (plan.price > 0) {
-                // Redirect to payment page with plan selection
-                window.location.href = `payment.html?plan=${slug}`;
+                showToast('Payment integration coming soon!', false);
+                // window.location.href = `payment.html?plan=${slug}`;
                 return;
             }
 
             // For free trial, create subscription directly
             if (plan.price === 0) {
                 try {
+                    // Disable all buttons
+                    const btns = document.querySelectorAll('.btn-select');
+                    btns.forEach(b => b.disabled = true);
+
+                    showToast('Starting your free trial...', false);
+
                     const { data, error } = await supabaseClient
                         .from('subscriptions')
                         .insert({
@@ -451,17 +535,24 @@
                             start_date: new Date().toISOString(),
                             expiry_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
                             payment_status: 'paid'
-                        });
+                        })
+                        .select()
+                        .single();
 
                     if (error) throw error;
 
                     showToast('✅ Free trial started! You have 7 days of full access.');
+                    
+                    // Reload subscription
                     await loadCurrentSubscription();
                     renderPlans();
 
                 } catch (error) {
                     console.error('[Select Plan] Error:', error);
                     showToast('❌ Failed to start trial: ' + error.message, true);
+                    // Re-enable buttons
+                    const btns = document.querySelectorAll('.btn-select');
+                    btns.forEach(b => b.disabled = false);
                 }
             }
         }
@@ -478,7 +569,7 @@
         // ─── LOGOUT ───
         async function handleLogout() {
             try {
-                await supabaseClient.auth.signOut();
+                if (supabaseClient) await supabaseClient.auth.signOut();
                 window.location.href = 'easemed_login.html';
             } catch (error) {
                 window.location.href = 'easemed_login.html';
@@ -486,7 +577,36 @@
         }
 
         // ─── INIT ───
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[Subscription] DOM ready');
+            console.log('[Subscription] Supabase SDK available?', typeof window.supabase !== 'undefined');
+            
+            // Check if Supabase SDK is available
+            if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                init();
+            } else {
+                console.warn('[Subscription] Supabase SDK not found, waiting...');
+                document.getElementById('plansGrid').innerHTML = `
+                    <div style="text-align:center; padding:40px; color:rgba(11,26,46,0.4); grid-column:1/-1;">
+                        <div class="loading-spinner"></div>
+                        <div>Waiting for Supabase SDK to load...</div>
+                    </div>
+                `;
+                setTimeout(() => {
+                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                        init();
+                    } else {
+                        document.getElementById('plansGrid').innerHTML = `
+                            <div style="text-align:center; padding:40px; color:#DC2626; grid-column:1/-1;">
+                                <h3>⚠️ Supabase SDK failed to load</h3>
+                                <p style="margin-top:8px;">Please refresh the page or check your connection.</p>
+                                <button onclick="location.reload()" style="margin-top:12px; padding:8px 24px; background:#3B82F6; color:white; border:none; border-radius:8px; cursor:pointer;">Retry</button>
+                            </div>
+                        `;
+                    }
+                }, 3000);
+            }
+        });
     </script>
 </body>
 </html>
