@@ -637,22 +637,46 @@
         const loadingState = document.getElementById('loadingState');
         const profileContent = document.getElementById('profileContent');
 
+        // ─── WAIT FOR SUPABASE SDK TO LOAD ───
+        function waitForSupabase(maxAttempts = 30) {
+            return new Promise((resolve) => {
+                let attempts = 0;
+                const checkInterval = setInterval(() => {
+                    attempts++;
+                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                        clearInterval(checkInterval);
+                        resolve(true);
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(checkInterval);
+                        resolve(false);
+                    }
+                }, 200);
+            });
+        }
+
         // ─── INIT SUPABASE ───
-        function initSupabase() {
+        async function initSupabase() {
             try {
-                // Check if Supabase SDK is available (loaded from local /js/supabase.min.js)
-                if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-                    console.error('[Supabase] SDK not loaded from /js/supabase.min.js');
-                    showNotice('error', 'Supabase SDK failed to load. Please refresh the page.');
+                // Wait for SDK to load
+                const sdkLoaded = await waitForSupabase(30);
+                
+                if (!sdkLoaded) {
+                    console.error('[Supabase] SDK failed to load from /js/supabase.min.js');
+                    showNotice('error', 'Supabase SDK failed to load. Please check the file path and refresh.');
+                    loadingState.style.display = 'none';
+                    profileContent.style.display = 'block';
                     return false;
                 }
 
+                console.log('[Supabase] SDK loaded successfully from /js/supabase.min.js');
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('[Supabase] Client initialized successfully from local SDK');
+                console.log('[Supabase] Client initialized successfully');
                 return true;
             } catch (error) {
                 console.error('[Supabase] Init error:', error);
                 showNotice('error', 'Failed to connect to database: ' + error.message);
+                loadingState.style.display = 'none';
+                profileContent.style.display = 'block';
                 return false;
             }
         }
@@ -909,25 +933,18 @@
         }
 
         // ─── INIT ───
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('[Profile] Initializing with local Supabase SDK...');
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('[Profile] Initializing...');
 
-            // Check if Supabase SDK is available (loaded from /js/supabase.min.js)
-            if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-                loadingState.style.display = 'none';
-                profileContent.style.display = 'block';
-                showNotice('error', 'Supabase SDK failed to load from /js/supabase.min.js. Please check the file path.');
-                return;
-            }
-
-            console.log('[Profile] Supabase SDK loaded successfully from /js/supabase.min.js');
-
-            if (initSupabase()) {
-                loadProfile();
+            // Initialize Supabase
+            const initialized = await initSupabase();
+            
+            if (initialized) {
+                await loadProfile();
             } else {
+                // Error already shown in initSupabase
                 loadingState.style.display = 'none';
                 profileContent.style.display = 'block';
-                showNotice('error', 'Failed to initialize Supabase. Please check your configuration.');
             }
         });
     </script>
