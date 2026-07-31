@@ -540,8 +540,6 @@
                             <div class="info-row"><span class="key">Role</span><span class="value" id="infoRole">—</span></div>
                             <div class="info-row"><span class="key">Year of study</span><span class="value" id="infoYearDisplay">—</span></div>
                             <div class="info-row"><span class="key">University</span><span class="value" id="infoUniversityDisplay">—</span></div>
-                            <div class="info-row"><span class="key">License</span><span class="value" id="infoLicense">—</span></div>
-                            <div class="info-row"><span class="key">Practice location</span><span class="value" id="infoLocation">—</span></div>
                             <div class="info-row"><span class="key">Member since</span><span class="value" id="infoJoined">—</span></div>
                         </div>
 
@@ -564,41 +562,19 @@
                                 <div class="form-group">
                                     <label for="editRole">Role</label>
                                     <select id="editRole">
-                                        <option value="Medical Student">Medical Student</option>
-                                        <option value="Intern Doctor">Intern Doctor</option>
-                                        <option value="Resident Doctor">Resident Doctor</option>
-                                        <option value="Consultant">Consultant</option>
-                                        <option value="Clinical Officer">Clinical Officer</option>
-                                        <option value="Nurse">Nurse</option>
-                                        <option value="Medical Educator">Medical Educator</option>
+                                        <option value="student">Student</option>
+                                        <option value="doctor">Doctor</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="superadmin">Super Admin</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="editYear">Year of study</label>
-                                    <select id="editYear">
-                                        <option value="Year 1">Year 1</option>
-                                        <option value="Year 2">Year 2</option>
-                                        <option value="Year 3">Year 3</option>
-                                        <option value="Year 4">Year 4</option>
-                                        <option value="Year 5">Year 5</option>
-                                        <option value="Year 6">Year 6</option>
-                                        <option value="Postgraduate Year 1">PGY1</option>
-                                        <option value="Postgraduate Year 2">PGY2</option>
-                                        <option value="Postgraduate Year 3">PGY3</option>
-                                        <option value="Graduated / Professional">Graduated / Professional</option>
-                                    </select>
+                                    <input type="text" id="editYear" placeholder="e.g., Year 5" />
                                 </div>
                                 <div class="form-group">
                                     <label for="editUniversity">University / institution</label>
                                     <input type="text" id="editUniversity" placeholder="e.g., Makerere University" />
-                                </div>
-                                <div class="form-group">
-                                    <label for="editLicense">License number</label>
-                                    <input type="text" id="editLicense" placeholder="e.g., UMC-2024-XXXX" />
-                                </div>
-                                <div class="form-group">
-                                    <label for="editLocation">Practice location</label>
-                                    <input type="text" id="editLocation" placeholder="e.g., Mulago Hospital" />
                                 </div>
 
                                 <div class="form-actions">
@@ -728,11 +704,9 @@
                         name: meta.full_name || currentUser.email?.split('@')[0] || 'User',
                         email: currentUser.email || '—',
                         phone: meta.phone || '—',
-                        role: meta.role || 'Medical Student',
+                        role: meta.role || 'student',
                         year: meta.year || 'Year 1',
                         university: meta.university || '—',
-                        license: meta.license || '—',
-                        location: meta.location || '—',
                         joined: currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : '—'
                     };
                 } else if (profile) {
@@ -740,11 +714,9 @@
                         name: profile.full_name || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User',
                         email: currentUser.email || '—',
                         phone: profile.phone || '—',
-                        role: profile.role || 'Medical Student',
+                        role: profile.role || 'student',
                         year: profile.year || 'Year 1',
                         university: profile.university || '—',
-                        license: profile.license || '—',
-                        location: profile.location || '—',
                         joined: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '—'
                     };
                 }
@@ -765,29 +737,37 @@
         function renderView() {
             document.getElementById('userFullName').textContent = profileData.name;
             document.getElementById('userAvatar').textContent = getInitials(profileData.name);
-            document.getElementById('userRole').textContent = profileData.role;
+            document.getElementById('userRole').textContent = formatRole(profileData.role);
             document.getElementById('userYear').textContent = profileData.year;
             document.getElementById('userUniversity').textContent = profileData.university;
 
             document.getElementById('infoName').textContent = profileData.name;
             document.getElementById('infoEmail').textContent = profileData.email;
             document.getElementById('infoPhone').textContent = profileData.phone;
-            document.getElementById('infoRole').textContent = profileData.role;
+            document.getElementById('infoRole').textContent = formatRole(profileData.role);
             document.getElementById('infoYearDisplay').textContent = profileData.year;
             document.getElementById('infoUniversityDisplay').textContent = profileData.university;
-            document.getElementById('infoLicense').textContent = profileData.license;
-            document.getElementById('infoLocation').textContent = profileData.location;
             document.getElementById('infoJoined').textContent = profileData.joined;
 
             // Populate edit form
             document.getElementById('editName').value = profileData.name;
             document.getElementById('editEmail').value = profileData.email;
             document.getElementById('editPhone').value = profileData.phone;
-            document.getElementById('editRole').value = profileData.role;
+            document.getElementById('editRole').value = profileData.role || 'student';
             document.getElementById('editYear').value = profileData.year;
             document.getElementById('editUniversity').value = profileData.university;
-            document.getElementById('editLicense').value = profileData.license;
-            document.getElementById('editLocation').value = profileData.location;
+        }
+
+        // ─── FORMAT ROLE FOR DISPLAY ───
+        function formatRole(role) {
+            if (!role) return 'Student';
+            const roleMap = {
+                'student': 'Student',
+                'doctor': 'Doctor',
+                'admin': 'Admin',
+                'superadmin': 'Super Admin'
+            };
+            return roleMap[role] || role.charAt(0).toUpperCase() + role.slice(1);
         }
 
         // ─── UTILITY ───
@@ -836,11 +816,9 @@
                 document.getElementById('editName').value = profileData.name;
                 document.getElementById('editEmail').value = profileData.email;
                 document.getElementById('editPhone').value = profileData.phone;
-                document.getElementById('editRole').value = profileData.role;
+                document.getElementById('editRole').value = profileData.role || 'student';
                 document.getElementById('editYear').value = profileData.year;
                 document.getElementById('editUniversity').value = profileData.university;
-                document.getElementById('editLicense').value = profileData.license;
-                document.getElementById('editLocation').value = profileData.location;
                 document.getElementById('profileNotice').innerHTML = '';
             } else {
                 cancelEdit();
@@ -866,10 +844,8 @@
                 full_name: document.getElementById('editName').value.trim(),
                 phone: document.getElementById('editPhone').value.trim(),
                 role: document.getElementById('editRole').value,
-                year: document.getElementById('editYear').value,
+                year: document.getElementById('editYear').value.trim(),
                 university: document.getElementById('editUniversity').value.trim(),
-                license: document.getElementById('editLicense').value.trim(),
-                location: document.getElementById('editLocation').value.trim(),
             };
 
             // Validation
@@ -881,19 +857,22 @@
             }
 
             try {
+                // Build update object
+                const updateData = {
+                    full_name: newData.full_name,
+                    phone: newData.phone,
+                    role: newData.role,
+                    year: newData.year,
+                    university: newData.university,
+                    updated_at: new Date().toISOString()
+                };
+
+                console.log('[Profile] Updating with data:', updateData);
+
                 // Update profile in Supabase
                 const { error: updateError } = await supabaseClient
                     .from('profiles')
-                    .update({
-                        full_name: newData.full_name,
-                        phone: newData.phone,
-                        role: newData.role,
-                        year: newData.year,
-                        university: newData.university,
-                        license: newData.license,
-                        location: newData.location,
-                        updated_at: new Date().toISOString()
-                    })
+                    .update(updateData)
                     .eq('id', currentUser.id);
 
                 if (updateError) throw updateError;
@@ -905,9 +884,7 @@
                         role: newData.role,
                         year: newData.year,
                         university: newData.university,
-                        phone: newData.phone,
-                        license: newData.license,
-                        location: newData.location
+                        phone: newData.phone
                     }
                 });
 
@@ -919,8 +896,6 @@
                     role: newData.role,
                     year: newData.year,
                     university: newData.university,
-                    license: newData.license,
-                    location: newData.location,
                     joined: profileData.joined
                 };
 
