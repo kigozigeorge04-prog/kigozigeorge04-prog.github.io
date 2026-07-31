@@ -96,6 +96,14 @@
         }
         .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(220,38,38,0.3); }
 
+        .btn-warning {
+            padding: 8px 20px; border-radius: 10px; border: none;
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: white; font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .btn-warning:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(245,158,11,0.3); }
+
         #accessLock {
             display: none; text-align: center; padding: 60px 24px;
             background: rgba(255,255,255,0.08); backdrop-filter: blur(20px);
@@ -122,7 +130,7 @@
         .admin-header p { color: rgba(11,26,46,0.5); font-size: 0.9rem; margin-top: 4px; }
 
         .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px; margin-bottom: 24px;
         }
         .stat-card {
@@ -168,6 +176,8 @@
             font-size: 0.7rem; font-family: inherit;
         }
         .table-action:hover { background: rgba(255,255,255,0.5); }
+        .table-action.activate-btn { background: rgba(16,185,129,0.15); color: #065F46; border-color: rgba(16,185,129,0.2); }
+        .table-action.activate-btn:hover { background: rgba(16,185,129,0.25); }
 
         .users-toolbar {
             display: flex; align-items: center; justify-content: space-between;
@@ -181,7 +191,7 @@
             color: #0B1A2E; font: inherit;
         }
 
-        /* ─── PAYMENT VERIFICATION SECTION ─── */
+        /* ─── PAYMENT VERIFICATION ─── */
         .payments-section { margin-top: 32px; }
         .payments-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -235,6 +245,70 @@
         .filter-bar button:hover { background: rgba(255,255,255,0.2); }
         .filter-bar button.active { background: #3B82F6; color: white; border-color: #3B82F6; }
 
+        .osce-section { margin-top: 32px; }
+        .osce-section .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+        .osce-section .section-sub { color: rgba(11,26,46,0.5); font-size: 0.85rem; margin-bottom: 16px; }
+        .osce-controls {
+            display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px;
+        }
+        .osce-controls .field { display: flex; flex-direction: column; gap: 4px; }
+        .osce-controls .field label { font-size: 0.75rem; color: rgba(11,26,46,0.5); font-weight: 600; }
+        .osce-controls .field select,
+        .osce-controls .field input[type="file"] {
+            padding: 8px 12px; border-radius: 9px;
+            border: 1px solid rgba(11,26,46,0.18);
+            background: rgba(255,255,255,0.76);
+            color: #0B1A2E; font: inherit; min-width: 180px;
+        }
+        .osce-controls .field input[type="file"] { padding: 6px 8px; min-width: 200px; }
+
+        .osce-preview {
+            margin-top: 12px; padding: 16px;
+            background: rgba(255,255,255,0.05); border-radius: 12px;
+            border: 1px dashed rgba(11,26,46,0.1);
+            min-height: 80px; display: flex; align-items: center; justify-content: center;
+        }
+        .osce-preview img { max-width: 100%; max-height: 250px; border-radius: 8px; object-fit: contain; }
+        .osce-preview .placeholder { color: rgba(11,26,46,0.3); font-size: 0.85rem; }
+        .osce-status {
+            font-size: 0.85rem; margin-top: 8px; padding: 8px 12px; border-radius: 8px;
+        }
+        .osce-status.success { color: #065F46; background: rgba(16,185,129,0.08); }
+        .osce-status.error { color: #991B1B; background: rgba(220,38,38,0.08); }
+        .osce-status.loading { color: #2563EB; background: rgba(59,130,246,0.08); }
+
+        .station-list-compact {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px; margin-top: 16px;
+        }
+        .station-item-compact {
+            background: rgba(255,255,255,0.05); border-radius: 10px;
+            padding: 12px 16px; border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .station-item-compact .thumb-small {
+            width: 50px; height: 50px; border-radius: 6px; object-fit: cover;
+            background: rgba(255,255,255,0.1); flex-shrink: 0;
+        }
+        .station-item-compact .thumb-small.empty {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; color: rgba(11,26,46,0.3);
+        }
+        .station-item-compact .info { flex: 1; min-width: 0; }
+        .station-item-compact .info .title { font-weight: 600; font-size: 0.85rem; }
+        .station-item-compact .info .meta { font-size: 0.7rem; color: rgba(11,26,46,0.4); }
+        .station-item-compact .actions { display: flex; gap: 6px; }
+        .station-item-compact .actions button {
+            padding: 4px 12px; border-radius: 6px; border: none;
+            font-size: 0.7rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif;
+        }
+        .station-item-compact .actions .upload-btn {
+            background: linear-gradient(135deg, #3B82F6, #2563EB); color: white;
+        }
+        .station-item-compact .actions .remove-btn {
+            background: rgba(239,68,68,0.15); color: #991B1B;
+        }
+
         .loading-spinner {
             display: flex; justify-content: center; align-items: center;
             min-height: 60vh; flex-direction: column; gap: 20px;
@@ -257,6 +331,7 @@
         .notice-error { color: #991B1B; border-color: rgba(220,38,38,0.2); background: rgba(220,38,38,0.06); }
         .notice-info { color: #1E40AF; border-color: rgba(59,130,246,0.2); background: rgba(59,130,246,0.06); }
 
+        /* Modal for image preview */
         .modal-overlay {
             display: none; position: fixed; inset: 0;
             background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
@@ -296,6 +371,10 @@
             .table-wrap { overflow-x: auto; }
             .table-wrap table { font-size: 0.75rem; }
             .table-wrap th, .table-wrap td { padding: 10px 12px; }
+            .osce-controls { flex-direction: column; align-items: stretch; }
+            .osce-controls .field select,
+            .osce-controls .field input[type="file"] { min-width: unset; width: 100%; }
+            .station-list-compact { grid-template-columns: 1fr; }
             .payments-grid { grid-template-columns: 1fr; }
         }
         @media (max-width:480px) {
@@ -343,7 +422,7 @@
 
             <div class="admin-header">
                 <h1>👋 Welcome, <span id="adminName">Admin</span></h1>
-                <p>Manage users, monitor activity, and verify payments.</p>
+                <p>Manage users, verify payments, and activate accounts manually.</p>
             </div>
 
             <div id="notice"></div>
@@ -400,6 +479,50 @@
                     </div>
                 </div>
             </div>
+
+            <!-- OSCE Image Manager -->
+            <div class="osce-section">
+                <div class="users-toolbar">
+                    <div>
+                        <h2 class="section-title">🖼️ OSCE Image Manager</h2>
+                        <p class="section-sub">Upload images to Supabase Storage and attach them to instrument/X-ray stations.</p>
+                    </div>
+                    <button class="btn-primary" onclick="loadAllOsceStations()">🔄 Refresh Stations</button>
+                </div>
+
+                <div class="osce-controls">
+                    <div class="field">
+                        <label for="osceModuleSelect">Module</label>
+                        <select id="osceModuleSelect" onchange="loadOsceStations()">
+                            <option value="peds">Pediatrics</option>
+                            <option value="imed">Internal Medicine</option>
+                            <option value="obgyn">OB/GYN</option>
+                            <option value="surgery">Surgery</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="osceStationSelect">Station</label>
+                        <select id="osceStationSelect"><option value="">Loading stations…</option></select>
+                    </div>
+                    <div class="field">
+                        <label for="stationImageInput">Image file (JPG, PNG, WebP)</label>
+                        <input type="file" id="stationImageInput" accept="image/jpeg,image/png,image/webp" onchange="handleStationImageUpload(event)">
+                    </div>
+                </div>
+
+                <div id="osceStatus" class="osce-status" style="display:none;"></div>
+
+                <div class="osce-preview" id="stationImagePreview">
+                    <span class="placeholder">Select a station to preview its image</span>
+                </div>
+
+                <div style="margin-top:20px;">
+                    <h3 style="font-size:0.9rem; font-weight:600; margin-bottom:10px;">All Image Stations</h3>
+                    <div id="allStationsList" class="station-list-compact">
+                        <div style="color:rgba(11,26,46,0.4); padding:20px; text-align:center;">Loading stations...</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -415,25 +538,40 @@
     <div class="toast" id="toast"></div>
 
     <script>
+        // ─── VERSION CONTROL ───
+        const APP_VERSION = '2.2.0';
+        const CACHE_KEY = 'easemed_app_version';
+        const storedVersion = localStorage.getItem(CACHE_KEY);
+        if (storedVersion !== APP_VERSION) {
+            console.log('[Cache] New version detected, clearing cache...');
+            if ('caches' in window) {
+                caches.keys().then(keys => { keys.forEach(key => caches.delete(key)); });
+            }
+            localStorage.setItem(CACHE_KEY, APP_VERSION);
+        }
+
         // ─── CONFIGURATION ───
         const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+        const STORAGE_BUCKET = 'osce-station-images';
         const PAYMENTS_BUCKET = 'payment-screenshots';
 
+        // ─── GLOBALS ───
         let supabaseClient = null;
         let currentUser = null;
+        let allUsers = [];
         let allPayments = [];
         let currentPaymentFilter = 'pending';
-        let allUsers = [];
+        let allOsceStations = [];
+        let currentOsceStations = [];
 
-        // ─── INIT SUPABASE ───
+        // ─── INIT ───
         function initSupabase() {
             if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
                 console.warn('[Admin] Supabase SDK not available. Retrying...');
                 setTimeout(initSupabase, 1000);
                 return;
             }
-
             try {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
                 console.log('[Admin] Supabase client initialized.');
@@ -457,12 +595,12 @@
             try {
                 const { data: { session }, error } = await supabaseClient.auth.getSession();
                 if (error) throw error;
-                if (!session) { 
-                    window.location.href = 'easemed_login.html'; 
-                    return; 
-                }
+                if (!session) { window.location.href = 'easemed_login.html'; return; }
 
                 currentUser = session.user;
+
+                let isAdmin = false;
+                let adminName = 'Admin';
 
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
@@ -470,25 +608,25 @@
                     .eq('id', currentUser.id)
                     .single();
 
-                if (profileError) {
-                    console.error('[Admin] Profile error:', profileError);
-                    showAccessDenied('Unable to verify your profile.');
-                    return;
+                if (!profileError && profile) {
+                    adminName = profile.full_name || 'Admin';
+                    const role = profile?.role?.toLowerCase() || '';
+                    isAdmin = profile?.is_admin === true || 
+                             role === 'admin' || 
+                             role === 'superadmin' || 
+                             role === 'administrator';
                 }
 
-                const role = profile?.role?.toLowerCase() || '';
-                const isAdmin = profile?.is_admin === true || 
-                               role === 'admin' || 
-                               role === 'superadmin' || 
-                               role === 'administrator' ||
-                               currentUser.email === 'kigozigeorge04@gmail.com';
+                if (!isAdmin && currentUser.email === 'kigozigeorge04@gmail.com') {
+                    isAdmin = true;
+                }
 
                 if (!isAdmin) {
                     showAccessDenied('You do not have administrator privileges.');
                     return;
                 }
 
-                document.getElementById('adminName').textContent = profile?.full_name || 'Admin';
+                document.getElementById('adminName').textContent = adminName;
                 spinner.style.display = 'none';
                 content.style.display = 'block';
 
@@ -519,8 +657,7 @@
                 const { count: totalUsers } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
                 document.getElementById('totalUsers').textContent = totalUsers || 0;
 
-                const weekAgo = new Date(); 
-                weekAgo.setDate(weekAgo.getDate() - 7);
+                const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
                 const { count: activeUsers } = await supabaseClient
                     .from('profiles')
                     .select('*', { count: 'exact', head: true })
@@ -528,6 +665,7 @@
                 document.getElementById('activeUsers').textContent = activeUsers || 0;
 
                 await loadUsersTable();
+                await loadAllOsceStations();
 
             } catch (error) {
                 console.error('[Admin] Load data error:', error);
@@ -535,7 +673,7 @@
             }
         }
 
-        // ─── LOAD USERS TABLE ───
+        // ─── USERS TABLE ───
         async function loadUsersTable() {
             if (!supabaseClient) return;
             try {
@@ -579,6 +717,7 @@
                 const expiryDate = user.access_expires_at ? user.access_expires_at.slice(0, 10) : '';
                 const status = expired ? 'Expired' : (user.is_active !== false ? 'Active' : 'Inactive');
                 const statusClass = expired || user.is_active === false ? 'inactive' : 'active';
+                const isActive = user.is_active !== false && !expired;
                 return `
                     <tr>
                         <td><strong>${user.full_name || 'Unnamed'}</strong></td>
@@ -590,15 +729,87 @@
                             <button class="table-action" onclick="setUserExpiry('${user.id}')">Save</button>
                             ${user.access_expires_at ? `<button class="table-action" onclick="clearUserExpiry('${user.id}')">Clear</button>` : ''}
                         </div></td>
-                        <td><button class="table-action" onclick="toggleUserStatus('${user.id}', ${user.is_active === false})">
-                            ${user.is_active !== false ? 'Deactivate' : 'Activate'}
-                        </button></td>
+                        <td>
+                            ${!isActive ? 
+                                `<button class="table-action activate-btn" onclick="manualActivateUser('${user.id}')">✅ Activate</button>` :
+                                `<button class="table-action" onclick="toggleUserStatus('${user.id}', false)" style="background:rgba(239,68,68,0.15);color:#991B1B;border-color:rgba(239,68,68,0.2);">Deactivate</button>`
+                            }
+                        </td>
                     </tr>
                 `;
             }).join('');
         }
 
-        // ─── USER MANAGEMENT HELPERS ───
+        // ─── MANUAL ACTIVATE USER (PAID OR NOT) ───
+        async function manualActivateUser(userId) {
+            if (!confirm('✅ Activate this user manually?\n\nThis will:\n- Activate the account immediately\n- Give 30 days access\n- No payment required')) {
+                return;
+            }
+
+            try {
+                // Get user details first
+                const { data: user, error: userError } = await supabaseClient
+                    .from('profiles')
+                    .select('email, full_name')
+                    .eq('id', userId)
+                    .single();
+
+                if (userError) throw userError;
+
+                // Activate user profile
+                const { error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .update({
+                        is_active: true,
+                        access_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', userId);
+
+                if (profileError) throw profileError;
+
+                // Get premium plan
+                const { data: plan, error: planError } = await supabaseClient
+                    .from('subscription_plans')
+                    .select('id')
+                    .eq('slug', 'premium')
+                    .single();
+
+                if (!planError && plan) {
+                    // Check if user already has a subscription
+                    const { data: existingSub, error: subCheckError } = await supabaseClient
+                        .from('subscriptions')
+                        .select('id')
+                        .eq('user_id', userId)
+                        .eq('status', 'active')
+                        .maybeSingle();
+
+                    if (!subCheckError && !existingSub) {
+                        // Create subscription
+                        await supabaseClient
+                            .from('subscriptions')
+                            .insert({
+                                user_id: userId,
+                                plan_id: plan.id,
+                                plan_type: 'premium',
+                                status: 'active',
+                                start_date: new Date().toISOString(),
+                                expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                                payment_status: 'paid'
+                            });
+                    }
+                }
+
+                showToast(`✅ ${user.full_name || 'User'} activated manually! 30 days access granted.`);
+                await loadUsersTable();
+                await loadDashboardData();
+
+            } catch (error) {
+                console.error('[Manual Activate] Error:', error);
+                showToast('❌ Activation failed: ' + error.message, true);
+            }
+        }
+
         async function setUserExpiry(userId) {
             const input = document.getElementById(`expiry-${userId}`);
             if (!input?.value) { alert('Choose an expiry date.'); return; }
@@ -783,7 +994,6 @@
             try {
                 console.log('[Admin] Verifying payment:', paymentId);
                 
-                // Update payment status
                 const { error: updateError } = await supabaseClient
                     .from('payments')
                     .update({
@@ -796,7 +1006,6 @@
 
                 if (updateError) throw updateError;
 
-                // Get payment details
                 const { data: payment, error: fetchError } = await supabaseClient
                     .from('payments')
                     .select('user_id, user_email, user_name')
@@ -805,7 +1014,6 @@
 
                 if (fetchError) throw fetchError;
 
-                // Activate user profile
                 const { error: profileError } = await supabaseClient
                     .from('profiles')
                     .update({
@@ -817,7 +1025,6 @@
 
                 if (profileError) throw profileError;
 
-                // Get premium plan
                 const { data: plan, error: planError } = await supabaseClient
                     .from('subscription_plans')
                     .select('id')
@@ -887,6 +1094,247 @@
             }
         }
 
+        // ─── OSCE STATION IMAGE MANAGER ───
+        async function loadAllOsceStations() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('osce_stations')
+                    .select('id, module, station_type, title, image_url, display_order')
+                    .in('station_type', ['instrument', 'xray'])
+                    .order('module', { ascending: true })
+                    .order('display_order', { ascending: true });
+
+                if (error) throw error;
+
+                allOsceStations = data || [];
+                renderAllStations();
+
+                const moduleSelect = document.getElementById('osceModuleSelect');
+                if (moduleSelect.value) loadOsceStations();
+
+            } catch (error) {
+                console.error('[Admin] Load OSCE stations error:', error);
+                document.getElementById('allStationsList').innerHTML = 
+                    `<div style="color:#DC2626; padding:20px;">Failed to load stations: ${error.message}</div>`;
+            }
+        }
+
+        function renderAllStations() {
+            const container = document.getElementById('allStationsList');
+            if (!allOsceStations.length) {
+                container.innerHTML = `<div style="color:rgba(11,26,46,0.4); padding:20px; text-align:center;">No instrument or X-ray stations found.</div>`;
+                return;
+            }
+
+            const moduleLabels = { peds: 'Pediatrics', imed: 'Internal Medicine', obgyn: 'ObGyn', surgery: 'Surgery' };
+            const typeLabels = { instrument: 'Instrument', xray: 'X-Ray' };
+
+            container.innerHTML = allOsceStations.map(s => `
+                <div class="station-item-compact" id="station-item-${s.id}">
+                    ${s.image_url 
+                        ? `<img class="thumb-small" src="${s.image_url}" alt="${s.title}" onerror="this.className='thumb-small empty'; this.textContent='❌'" />`
+                        : `<div class="thumb-small empty">No image</div>`
+                    }
+                    <div class="info">
+                        <div class="title">${s.title}</div>
+                        <div class="meta">${moduleLabels[s.module] || s.module} · ${typeLabels[s.station_type] || s.station_type}</div>
+                    </div>
+                    <div class="actions">
+                        <button class="upload-btn" onclick="document.getElementById('osceModuleSelect').value='${s.module}'; loadOsceStations(); setTimeout(() => { document.getElementById('osceStationSelect').value='${s.id}'; renderCurrentStationPreview(); }, 300);">Upload</button>
+                        ${s.image_url ? `<button class="remove-btn" onclick="removeStationImage('${s.id}')">Remove</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadOsceStations() {
+            const moduleSelect = document.getElementById('osceModuleSelect');
+            const stationSelect = document.getElementById('osceStationSelect');
+            const module = moduleSelect.value;
+
+            stationSelect.innerHTML = '<option value="">Loading stations…</option>';
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('osce_stations')
+                    .select('id, station_type, title, image_url, display_order')
+                    .eq('module', module)
+                    .in('station_type', ['instrument', 'xray'])
+                    .order('display_order', { ascending: true });
+
+                if (error) throw error;
+
+                currentOsceStations = data || [];
+
+                if (!currentOsceStations.length) {
+                    stationSelect.innerHTML = '<option value="">No stations found</option>';
+                    return;
+                }
+
+                stationSelect.innerHTML = currentOsceStations.map(s =>
+                    `<option value="${s.id}">${s.display_order}. [${s.station_type}] ${s.title}${s.image_url ? ' ✓' : ''}</option>`
+                ).join('');
+
+                renderCurrentStationPreview();
+
+            } catch (error) {
+                console.error('[Admin] Load OSCE stations error:', error);
+                stationSelect.innerHTML = '<option value="">Failed to load stations</option>';
+            }
+        }
+
+        function renderCurrentStationPreview() {
+            const stationSelect = document.getElementById('osceStationSelect');
+            const preview = document.getElementById('stationImagePreview');
+            const selected = currentOsceStations.find(s => String(s.id) === stationSelect.value);
+
+            if (!preview) return;
+
+            if (selected && selected.image_url) {
+                preview.innerHTML = `<img src="${selected.image_url}" alt="${selected.title}" />`;
+            } else if (selected) {
+                preview.innerHTML = `<span class="placeholder">No image uploaded yet for "${selected.title}"</span>`;
+            } else {
+                preview.innerHTML = `<span class="placeholder">Select a station to preview its image</span>`;
+            }
+        }
+
+        function showOsceStatus(message, type) {
+            const el = document.getElementById('osceStatus');
+            if (!el) return;
+            el.style.display = 'block';
+            el.textContent = message;
+            el.className = 'osce-status ' + (type || 'info');
+            setTimeout(() => { el.style.display = 'none'; }, 5000);
+        }
+
+        async function handleStationImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const stationSelect = document.getElementById('osceStationSelect');
+            const stationId = stationSelect.value;
+            const moduleSelect = document.getElementById('osceModuleSelect');
+            const module = moduleSelect.value;
+
+            if (!stationId) {
+                showOsceStatus('Please select a station first.', 'error');
+                return;
+            }
+
+            const selected = currentOsceStations.find(s => String(s.id) === stationId);
+            if (!selected) {
+                showOsceStatus('Station not found. Please refresh.', 'error');
+                return;
+            }
+
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                showOsceStatus('Please upload a JPG, PNG, or WebP image.', 'error');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showOsceStatus('Image too large. Max 5MB.', 'error');
+                return;
+            }
+
+            showOsceStatus('Uploading…', 'loading');
+
+            try {
+                const ext = file.name.split('.').pop();
+                const path = `${module}/${selected.station_type}/${stationId}.${ext}`;
+
+                console.log('[Upload] Uploading to:', path);
+
+                const { error: uploadError } = await supabaseClient.storage
+                    .from(STORAGE_BUCKET)
+                    .upload(path, file, { upsert: true, cacheControl: '3600' });
+
+                if (uploadError) {
+                    if (uploadError.message && uploadError.message.includes('bucket')) {
+                        console.log('[Upload] Bucket not found, creating...');
+                        const { error: createError } = await supabaseClient.storage.createBucket(STORAGE_BUCKET, { 
+                            public: true,
+                            allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+                        });
+                        if (createError) {
+                            throw new Error('Failed to create storage bucket: ' + createError.message);
+                        }
+                        const { error: retryError } = await supabaseClient.storage
+                            .from(STORAGE_BUCKET)
+                            .upload(path, file, { upsert: true, cacheControl: '3600' });
+                        if (retryError) throw retryError;
+                    } else {
+                        throw uploadError;
+                    }
+                }
+
+                const { data: urlData } = supabaseClient.storage
+                    .from(STORAGE_BUCKET)
+                    .getPublicUrl(path);
+
+                const publicUrl = urlData.publicUrl;
+                console.log('[Upload] Public URL:', publicUrl);
+
+                const { error: updateError } = await supabaseClient
+                    .from('osce_stations')
+                    .update({ image_url: publicUrl })
+                    .eq('id', stationId);
+
+                if (updateError) throw updateError;
+
+                const station = allOsceStations.find(s => s.id === stationId);
+                if (station) station.image_url = publicUrl;
+                const currentStation = currentOsceStations.find(s => s.id === stationId);
+                if (currentStation) currentStation.image_url = publicUrl;
+
+                renderAllStations();
+                renderCurrentStationPreview();
+                showOsceStatus('✅ Image uploaded and attached successfully!', 'success');
+
+                event.target.value = '';
+
+            } catch (error) {
+                console.error('[Upload] Error:', error);
+                showOsceStatus('❌ Upload failed: ' + error.message, 'error');
+            }
+        }
+
+        async function removeStationImage(stationId) {
+            if (!confirm('Remove the image from this station?')) return;
+
+            try {
+                const station = allOsceStations.find(s => s.id === stationId);
+                if (!station) return;
+
+                const url = station.image_url;
+                if (url) {
+                    const path = url.split('/').pop();
+                    if (path) {
+                        await supabaseClient.storage.from(STORAGE_BUCKET).remove([path]);
+                    }
+                }
+
+                await supabaseClient
+                    .from('osce_stations')
+                    .update({ image_url: null })
+                    .eq('id', stationId);
+
+                station.image_url = null;
+                const currentStation = currentOsceStations.find(s => s.id === stationId);
+                if (currentStation) currentStation.image_url = null;
+
+                renderAllStations();
+                renderCurrentStationPreview();
+                showOsceStatus('✅ Image removed successfully.', 'success');
+
+            } catch (error) {
+                console.error('[Remove] Error:', error);
+                showOsceStatus('❌ Failed to remove image: ' + error.message, 'error');
+            }
+        }
+
         // ─── NOTICE ───
         function showNotice(type, message) {
             const container = document.getElementById('notice');
@@ -936,11 +1384,9 @@
         // ─── DOM CONTENT LOADED ───
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[Admin] DOM ready, initializing...');
-            
             if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
                 initSupabase();
             } else {
-                console.warn('[Admin] Supabase SDK not found, waiting...');
                 document.getElementById('loadingSpinner').innerHTML = `
                     <div class="spinner"></div>
                     <div class="loading-text" style="color:#DC2626;">Supabase SDK failed to load. Please refresh.</div>`;
