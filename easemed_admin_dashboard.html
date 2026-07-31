@@ -17,22 +17,9 @@
 
     <style>
         /* ──────────── RESET & BASE ──────────── */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            height: 100%;
-        }
-
-        html, body {
-            overflow-x: hidden;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { height: 100%; }
+        html, body { overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         body {
             font-family: 'Inter', sans-serif;
             min-height: 100%;
@@ -40,43 +27,32 @@
             color: #0B1A2E;
         }
 
+        /* ──────────── BACKGROUND ──────────── */
         .bg-gradient {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
             background: 
                 radial-gradient(ellipse at 20% 30%, rgba(59, 130, 246, 0.10) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
                 linear-gradient(180deg, #E8F4FD 0%, #B8D8F0 50%, #8EC4E8 100%);
         }
-
         .bg-grid {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
             background-image:
                 linear-gradient(rgba(11, 26, 46, 0.06) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(11, 26, 46, 0.06) 1px, transparent 1px);
-            background-size: 48px 48px;
-            opacity: 0.5;
+            background-size: 48px 48px; opacity: 0.5;
         }
 
+        /* ──────────── CONTAINER ──────────── */
         .container {
-            position: relative;
-            z-index: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 24px;
-            padding-bottom: calc(24px + env(safe-area-inset-bottom));
+            position: relative; z-index: 1;
+            max-width: 1200px; margin: 0 auto;
+            padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom));
         }
 
         /* ──────────── TOP BAR ──────────── */
         .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px;
             background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(24px);
@@ -87,63 +63,31 @@
             flex-wrap: wrap;
             gap: 12px;
         }
-
-        .topbar .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
+        .topbar .brand { display: flex; align-items: center; gap: 10px; }
         .topbar .crest {
-            width: 36px;
-            height: 36px;
+            width: 36px; height: 36px;
             background: linear-gradient(135deg, #3B82F6, #8B5CF6);
             border-radius: 10px;
-            display: grid;
-            place-items: center;
-            font-size: 16px;
-            font-weight: 700;
-            color: white;
+            display: grid; place-items: center;
+            font-size: 16px; font-weight: 700; color: white;
         }
-
         .topbar .brand-name {
             font-family: 'Lora', serif;
-            font-size: 1.2rem;
-            font-weight: 700;
+            font-size: 1.2rem; font-weight: 700;
             color: #0B1A2E;
         }
-
         .topbar .brand-tag {
             font-size: 0.7rem;
             color: rgba(11, 26, 46, 0.4);
             font-weight: 400;
         }
-
         .topbar .right-group {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
+            display: flex; align-items: center;
+            gap: 16px; flex-wrap: wrap;
         }
 
-        .btn-logout {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(11, 26, 46, 0.12);
-            color: #0B1A2E;
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            transition: background 0.2s, border-color 0.2s;
-        }
-        .btn-logout:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-back {
+        /* ──────────── BUTTONS ──────────── */
+        .btn-logout, .btn-back {
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(11, 26, 46, 0.12);
             color: #0B1A2E;
@@ -155,12 +99,14 @@
             font-family: 'Inter', sans-serif;
             text-decoration: none;
             transition: background 0.2s, border-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        .btn-back:hover {
+        .btn-logout:hover, .btn-back:hover {
             background: rgba(255, 255, 255, 0.25);
             border-color: rgba(59, 130, 246, 0.3);
         }
-
         .btn-primary {
             padding: 8px 20px;
             border-radius: 10px;
@@ -173,16 +119,8 @@
             transition: transform 0.2s, box-shadow 0.2s;
             font-family: 'Inter', sans-serif;
         }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
-        }
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
         .btn-danger {
             padding: 8px 20px;
             border-radius: 10px;
@@ -195,10 +133,7 @@
             transition: transform 0.2s, box-shadow 0.2s;
             font-family: 'Inter', sans-serif;
         }
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(220, 38, 38, 0.3);
-        }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(220, 38, 38, 0.3); }
 
         /* ──────────── ACCESS LOCK ──────────── */
         #accessLock {
@@ -236,16 +171,10 @@
             font-family: 'Inter', sans-serif;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        #accessLock button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
-        }
+        #accessLock button:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3); }
 
         /* ──────────── ADMIN CONTENT ──────────── */
-        #adminContent {
-            display: none;
-        }
-
+        #adminContent { display: none; }
         .admin-header {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(20px);
@@ -255,7 +184,6 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             margin-bottom: 24px;
         }
-
         .admin-header h1 {
             font-family: 'Lora', serif;
             font-size: 1.6rem;
@@ -275,7 +203,6 @@
             gap: 16px;
             margin-bottom: 24px;
         }
-
         .stat-card {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(20px);
@@ -308,7 +235,6 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             overflow: hidden;
         }
-
         .table-wrap table {
             width: 100%;
             border-collapse: collapse;
@@ -330,12 +256,8 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             color: #0B1A2E;
         }
-        .table-wrap tr:last-child td {
-            border-bottom: none;
-        }
-        .table-wrap tr:hover td {
-            background: rgba(255, 255, 255, 0.04);
-        }
+        .table-wrap tr:last-child td { border-bottom: none; }
+        .table-wrap tr:hover td { background: rgba(255, 255, 255, 0.04); }
 
         .status-badge {
             display: inline-block;
@@ -344,55 +266,55 @@
             font-size: 0.7rem;
             font-weight: 600;
         }
-        .status-badge.active {
-            background: rgba(16, 185, 129, 0.15);
-            color: #065F46;
-        }
-        .status-badge.inactive {
-            background: rgba(239, 68, 68, 0.15);
-            color: #991B1B;
-        }
-        .status-badge.pending {
-            background: rgba(245, 158, 11, 0.15);
-            color: #92400E;
-        }
+        .status-badge.active { background: rgba(16, 185, 129, 0.15); color: #065F46; }
+        .status-badge.inactive { background: rgba(239, 68, 68, 0.15); color: #991B1B; }
+        .status-badge.pending { background: rgba(245, 158, 11, 0.15); color: #92400E; }
+
         .expiry-control { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .expiry-control input {
-            padding: 5px 7px; border: 1px solid rgba(11,26,46,0.18);
-            border-radius: 6px; background: rgba(255,255,255,0.7); color: #0B1A2E; font: inherit;
+            padding: 5px 7px;
+            border: 1px solid rgba(11, 26, 46, 0.18);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.7);
+            color: #0B1A2E;
+            font: inherit;
         }
         .table-action {
-            padding: 5px 9px; border-radius: 6px; border: 1px solid rgba(11,26,46,0.15);
-            background: rgba(255,255,255,0.18); color: #0B1A2E; cursor: pointer;
-            font-size: 0.7rem; font-family: inherit;
+            padding: 5px 9px;
+            border-radius: 6px;
+            border: 1px solid rgba(11, 26, 46, 0.15);
+            background: rgba(255, 255, 255, 0.18);
+            color: #0B1A2E;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-family: inherit;
         }
-        .table-action:hover { background: rgba(255,255,255,0.5); }
+        .table-action:hover { background: rgba(255, 255, 255, 0.5); }
+
         .users-toolbar {
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 16px; margin-bottom: 14px; flex-wrap: wrap;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
         }
         .users-toolbar h2 { margin: 0; font-size: 1rem; }
-        .users-toolbar p { margin: 4px 0 0; font-size: 0.78rem; color: rgba(11,26,46,0.58); }
+        .users-toolbar p { margin: 4px 0 0; font-size: 0.78rem; color: rgba(11, 26, 46, 0.58); }
         .users-search {
-            width: min(320px, 100%); padding: 10px 12px; border-radius: 9px;
-            border: 1px solid rgba(11,26,46,0.18); background: rgba(255,255,255,0.76);
-            color: #0B1A2E; font: inherit;
+            width: min(320px, 100%);
+            padding: 10px 12px;
+            border-radius: 9px;
+            border: 1px solid rgba(11, 26, 46, 0.18);
+            background: rgba(255, 255, 255, 0.76);
+            color: #0B1A2E;
+            font: inherit;
         }
 
         /* ──────────── OSCE IMAGE MANAGER ──────────── */
-        .osce-section {
-            margin-top: 32px;
-        }
-        .osce-section .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .osce-section .section-sub {
-            color: rgba(11, 26, 46, 0.5);
-            font-size: 0.85rem;
-            margin-bottom: 16px;
-        }
+        .osce-section { margin-top: 32px; }
+        .osce-section .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+        .osce-section .section-sub { color: rgba(11, 26, 46, 0.5); font-size: 0.85rem; margin-bottom: 16px; }
         .osce-controls {
             display: flex;
             gap: 16px;
@@ -400,11 +322,7 @@
             align-items: flex-end;
             margin-bottom: 16px;
         }
-        .osce-controls .field {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+        .osce-controls .field { display: flex; flex-direction: column; gap: 4px; }
         .osce-controls .field label {
             font-size: 0.75rem;
             color: rgba(11, 26, 46, 0.5);
@@ -420,10 +338,8 @@
             font: inherit;
             min-width: 180px;
         }
-        .osce-controls .field input[type="file"] {
-            padding: 6px 8px;
-            min-width: 200px;
-        }
+        .osce-controls .field input[type="file"] { padding: 6px 8px; min-width: 200px; }
+
         .osce-preview {
             margin-top: 12px;
             padding: 16px;
@@ -435,34 +351,17 @@
             align-items: center;
             justify-content: center;
         }
-        .osce-preview img {
-            max-width: 100%;
-            max-height: 250px;
-            border-radius: 8px;
-            object-fit: contain;
-        }
-        .osce-preview .placeholder {
-            color: rgba(11, 26, 46, 0.3);
-            font-size: 0.85rem;
-        }
+        .osce-preview img { max-width: 100%; max-height: 250px; border-radius: 8px; object-fit: contain; }
+        .osce-preview .placeholder { color: rgba(11, 26, 46, 0.3); font-size: 0.85rem; }
         .osce-status {
             font-size: 0.85rem;
             margin-top: 8px;
             padding: 8px 12px;
             border-radius: 8px;
         }
-        .osce-status.success {
-            color: #065F46;
-            background: rgba(16, 185, 129, 0.08);
-        }
-        .osce-status.error {
-            color: #991B1B;
-            background: rgba(220, 38, 38, 0.08);
-        }
-        .osce-status.loading {
-            color: #2563EB;
-            background: rgba(59, 130, 246, 0.08);
-        }
+        .osce-status.success { color: #065F46; background: rgba(16, 185, 129, 0.08); }
+        .osce-status.error { color: #991B1B; background: rgba(220, 38, 38, 0.08); }
+        .osce-status.loading { color: #2563EB; background: rgba(59, 130, 246, 0.08); }
 
         .station-list-compact {
             display: grid;
@@ -494,22 +393,10 @@
             font-size: 10px;
             color: rgba(11, 26, 46, 0.3);
         }
-        .station-item-compact .info {
-            flex: 1;
-            min-width: 0;
-        }
-        .station-item-compact .info .title {
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-        .station-item-compact .info .meta {
-            font-size: 0.7rem;
-            color: rgba(11, 26, 46, 0.4);
-        }
-        .station-item-compact .actions {
-            display: flex;
-            gap: 6px;
-        }
+        .station-item-compact .info { flex: 1; min-width: 0; }
+        .station-item-compact .info .title { font-weight: 600; font-size: 0.85rem; }
+        .station-item-compact .info .meta { font-size: 0.7rem; color: rgba(11, 26, 46, 0.4); }
+        .station-item-compact .actions { display: flex; gap: 6px; }
         .station-item-compact .actions button {
             padding: 4px 12px;
             border-radius: 6px;
@@ -537,7 +424,6 @@
             flex-direction: column;
             gap: 20px;
         }
-
         .spinner {
             width: 50px;
             height: 50px;
@@ -546,16 +432,8 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            color: rgba(11, 26, 46, 0.6);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: rgba(11, 26, 46, 0.6); font-size: 0.9rem; font-weight: 500; }
 
         .notice {
             padding: 12px 18px;
@@ -586,7 +464,6 @@
             .osce-controls .field input[type="file"] { min-width: unset; width: 100%; }
             .station-list-compact { grid-template-columns: 1fr; }
         }
-
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr; }
             .topbar .brand-name { font-size: 1rem; }
@@ -594,11 +471,7 @@
             .topbar { flex-direction: column; align-items: stretch; gap: 8px; }
             .topbar .right-group { justify-content: flex-end; }
         }
-
-        ::selection {
-            background: rgba(59, 130, 246, 0.15);
-            color: #0B1A2E;
-        }
+        ::selection { background: rgba(59, 130, 246, 0.15); color: #0B1A2E; }
     </style>
 </head>
 <body>
@@ -696,7 +569,7 @@
                 </table>
             </div>
 
-            <!-- ═══════════ OSCE STATION IMAGE MANAGER ═══════════ -->
+            <!-- OSCE Image Manager -->
             <div class="osce-section">
                 <div class="users-toolbar">
                     <div>
@@ -706,7 +579,6 @@
                     <button class="btn-primary" onclick="loadAllOsceStations()">🔄 Refresh Stations</button>
                 </div>
 
-                <!-- Upload Controls -->
                 <div class="osce-controls">
                     <div class="field">
                         <label for="osceModuleSelect">Module</label>
@@ -735,7 +607,6 @@
                     <span class="placeholder">Select a station to preview its image</span>
                 </div>
 
-                <!-- Station List -->
                 <div style="margin-top:20px;">
                     <h3 style="font-size:0.9rem; font-weight:600; margin-bottom:10px;">All Image Stations</h3>
                     <div id="allStationsList" class="station-list-compact">
@@ -750,14 +621,11 @@
         // ─── VERSION CONTROL ───
         const APP_VERSION = '2.1.0';
         const CACHE_KEY = 'easemed_app_version';
-        
         const storedVersion = localStorage.getItem(CACHE_KEY);
         if (storedVersion !== APP_VERSION) {
             console.log('[Cache] New version detected, clearing cache...');
             if ('caches' in window) {
-                caches.keys().then(keys => {
-                    keys.forEach(key => caches.delete(key));
-                });
+                caches.keys().then(keys => { keys.forEach(key => caches.delete(key)); });
             }
             localStorage.setItem(CACHE_KEY, APP_VERSION);
         }
@@ -781,7 +649,6 @@
                 setTimeout(initSupabase, 1000);
                 return;
             }
-
             try {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
                 console.log('[Admin] Supabase client initialized.');
@@ -790,8 +657,7 @@
                 console.error('[Admin] Init error:', error);
                 document.getElementById('loadingSpinner').innerHTML = `
                     <div class="spinner"></div>
-                    <div class="loading-text" style="color:#DC2626;">Failed to initialize. Please refresh.</div>
-                `;
+                    <div class="loading-text" style="color:#DC2626;">Failed to initialize. Please refresh.</div>`;
             }
         }
 
@@ -801,28 +667,15 @@
             const lock = document.getElementById('accessLock');
             const content = document.getElementById('adminContent');
 
-            if (!supabaseClient) {
-                console.warn('[Admin] Supabase client not available');
-                return;
-            }
+            if (!supabaseClient) return;
 
             try {
                 const { data: { session }, error } = await supabaseClient.auth.getSession();
-
-                if (error) {
-                    console.error('[Admin] Session error:', error);
-                    showAccessDenied('Unable to verify session. Please sign in again.');
-                    return;
-                }
-
-                if (!session) {
-                    window.location.href = 'easemed_login.html';
-                    return;
-                }
+                if (error) throw error;
+                if (!session) { window.location.href = 'easemed_login.html'; return; }
 
                 currentUser = session.user;
 
-                // Check admin status from profiles table
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('full_name, role, is_admin')
@@ -835,14 +688,12 @@
                     return;
                 }
 
-                // Check if user is admin using multiple criteria
                 const role = profile?.role?.toLowerCase() || '';
-                const isAdmin = 
-                    profile?.is_admin === true || 
-                    role === 'admin' || 
-                    role === 'superadmin' || 
-                    role === 'administrator' ||
-                    currentUser.email === 'kigozigeorge04@gmail.com'; // Hardcoded admin email
+                const isAdmin = profile?.is_admin === true || 
+                               role === 'admin' || 
+                               role === 'superadmin' || 
+                               role === 'administrator' ||
+                               currentUser.email === 'kigozigeorge04@gmail.com';
 
                 if (!isAdmin) {
                     showAccessDenied('You do not have administrator privileges.');
@@ -853,7 +704,6 @@
                 spinner.style.display = 'none';
                 content.style.display = 'block';
 
-                // Load all data
                 await loadDashboardData();
 
             } catch (error) {
@@ -876,39 +726,24 @@
         // ─── LOAD DASHBOARD DATA ───
         async function loadDashboardData() {
             if (!supabaseClient) return;
-
             try {
-                // Get total users
-                const { count: totalUsers } = await supabaseClient
-                    .from('profiles')
-                    .select('*', { count: 'exact', head: true });
+                const { count: totalUsers } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
                 document.getElementById('totalUsers').textContent = totalUsers || 0;
 
-                // Get active users (last 7 days)
-                const weekAgo = new Date();
-                weekAgo.setDate(weekAgo.getDate() - 7);
+                const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
                 const { count: activeUsers } = await supabaseClient
                     .from('profiles')
                     .select('*', { count: 'exact', head: true })
                     .gte('last_activity', weekAgo.toISOString());
                 document.getElementById('activeUsers').textContent = activeUsers || 0;
 
-                // Get total patients
-                const { count: totalPatients } = await supabaseClient
-                    .from('patients')
-                    .select('*', { count: 'exact', head: true });
+                const { count: totalPatients } = await supabaseClient.from('patients').select('*', { count: 'exact', head: true });
                 document.getElementById('totalPatients').textContent = totalPatients || 0;
 
-                // Get total clerkings
-                const { count: totalClerkings } = await supabaseClient
-                    .from('clerking_records')
-                    .select('*', { count: 'exact', head: true });
+                const { count: totalClerkings } = await supabaseClient.from('clerking_records').select('*', { count: 'exact', head: true });
                 document.getElementById('totalClerkings').textContent = totalClerkings || 0;
 
-                // Load users table
                 await loadUsersTable();
-                
-                // Load OSCE stations
                 await loadAllOsceStations();
 
             } catch (error) {
@@ -965,7 +800,7 @@
                 return;
             }
             tbody.innerHTML = users.map(user => {
-                const expired = isUserExpired(user.access_expires_at);
+                const expired = Boolean(user.access_expires_at) && new Date(user.access_expires_at).getTime() < Date.now();
                 const expiryDate = user.access_expires_at ? user.access_expires_at.slice(0, 10) : '';
                 const status = expired ? 'Expired' : (user.is_active !== false ? 'Active' : 'Inactive');
                 const statusClass = expired || user.is_active === false ? 'inactive' : 'active';
@@ -987,25 +822,16 @@
             }).join('');
         }
 
-        function isUserExpired(expiresAt) {
-            return Boolean(expiresAt) && new Date(expiresAt).getTime() < Date.now();
-        }
-
         async function setUserExpiry(userId) {
             const input = document.getElementById(`expiry-${userId}`);
-            if (!input?.value) {
-                alert('Choose an expiry date.');
-                return;
-            }
+            if (!input?.value) { alert('Choose an expiry date.'); return; }
             try {
                 await supabaseClient
                     .from('profiles')
                     .update({ access_expires_at: `${input.value}T23:59:59.999Z`, updated_at: new Date().toISOString() })
                     .eq('id', userId);
                 await loadUsersTable();
-            } catch (error) {
-                alert('Failed to set access expiry: ' + error.message);
-            }
+            } catch (error) { alert('Failed: ' + error.message); }
         }
 
         async function clearUserExpiry(userId) {
@@ -1016,9 +842,7 @@
                     .update({ access_expires_at: null, updated_at: new Date().toISOString() })
                     .eq('id', userId);
                 await loadUsersTable();
-            } catch (error) {
-                alert('Failed to clear access expiry: ' + error.message);
-            }
+            } catch (error) { alert('Failed: ' + error.message); }
         }
 
         async function toggleUserStatus(userId, activate) {
@@ -1029,9 +853,7 @@
                     .update({ is_active: activate, updated_at: new Date().toISOString() })
                     .eq('id', userId);
                 await loadUsersTable();
-            } catch (error) {
-                alert('Failed to update user status: ' + error.message);
-            }
+            } catch (error) { alert('Failed: ' + error.message); }
         }
 
         // ─── OSCE STATION IMAGE MANAGER ───
@@ -1049,11 +871,8 @@
                 allOsceStations = data || [];
                 renderAllStations();
 
-                // Load first module's stations into dropdown
                 const moduleSelect = document.getElementById('osceModuleSelect');
-                if (moduleSelect.value) {
-                    loadOsceStations();
-                }
+                if (moduleSelect.value) loadOsceStations();
 
             } catch (error) {
                 console.error('[Admin] Load OSCE stations error:', error);
@@ -1243,7 +1062,6 @@
                 renderCurrentStationPreview();
                 showOsceStatus('✅ Image uploaded and attached successfully!', 'success');
 
-                // Reset file input
                 event.target.value = '';
 
             } catch (error) {
@@ -1331,8 +1149,7 @@
             } else {
                 document.getElementById('loadingSpinner').innerHTML = `
                     <div class="spinner"></div>
-                    <div class="loading-text" style="color:#DC2626;">Supabase SDK failed to load. Please refresh.</div>
-                `;
+                    <div class="loading-text" style="color:#DC2626;">Supabase SDK failed to load. Please refresh.</div>`;
                 setTimeout(() => {
                     if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
                         initSupabase();
