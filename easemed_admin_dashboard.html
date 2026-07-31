@@ -78,6 +78,13 @@
         }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(59,130,246,0.3); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+        .btn-success {
+            padding: 8px 20px; border-radius: 10px; border: none;
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white; font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(16,185,129,0.3); }
         .btn-danger {
             padding: 8px 20px; border-radius: 10px; border: none;
             background: linear-gradient(135deg, #EF4444, #DC2626);
@@ -144,6 +151,8 @@
         .status-badge.active { background: rgba(16,185,129,0.15); color: #065F46; }
         .status-badge.inactive { background: rgba(239,68,68,0.15); color: #991B1B; }
         .status-badge.pending { background: rgba(245,158,11,0.15); color: #92400E; }
+        .status-badge.verified { background: rgba(16,185,129,0.15); color: #059669; }
+        .status-badge.rejected { background: rgba(239,68,68,0.15); color: #DC2626; }
 
         .expiry-control { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .expiry-control input {
@@ -168,6 +177,45 @@
             border: 1px solid rgba(11,26,46,0.18); background: rgba(255,255,255,0.76);
             color: #0B1A2E; font: inherit;
         }
+
+        /* ─── PAYMENT VERIFICATION SECTION ─── */
+        .payments-section { margin-top: 32px; }
+        .payments-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px; margin-top: 16px;
+        }
+        .payment-card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px); border-radius: 12px;
+            padding: 16px 20px; border: 1px solid rgba(255,255,255,0.12);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .payment-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+        }
+        .payment-card .user { font-weight: 600; font-size: 1rem; }
+        .payment-card .email { font-size: 0.8rem; color: rgba(11,26,46,0.5); }
+        .payment-card .transaction {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem; background: rgba(255,255,255,0.05);
+            padding: 2px 8px; border-radius: 4px; margin: 4px 0;
+        }
+        .payment-card .screenshot {
+            margin: 8px 0; border-radius: 8px; overflow: hidden;
+            background: rgba(0,0,0,0.05); cursor: pointer;
+            min-height: 80px; display: flex; align-items: center; justify-content: center;
+        }
+        .payment-card .screenshot img { width: 100%; max-height: 150px; object-fit: cover; }
+        .payment-card .screenshot .no-image { color: rgba(11,26,46,0.3); font-size: 0.8rem; padding: 16px; }
+        .payment-card .meta {
+            display: flex; justify-content: space-between; font-size: 0.7rem;
+            color: rgba(11,26,46,0.4); margin: 4px 0;
+        }
+        .payment-card .actions { display: flex; gap: 8px; margin-top: 10px; }
+        .payment-card .actions button { flex: 1; padding: 8px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.8rem; transition: transform 0.2s; }
+        .payment-card .actions button:hover { transform: translateY(-2px); }
+        .payment-card .actions button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         .osce-section { margin-top: 32px; }
         .osce-section .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
@@ -255,6 +303,39 @@
         .notice-error { color: #991B1B; border-color: rgba(220,38,38,0.2); background: rgba(220,38,38,0.06); }
         .notice-info { color: #1E40AF; border-color: rgba(59,130,246,0.2); background: rgba(59,130,246,0.06); }
 
+        /* Modal for image preview */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+            z-index: 99999; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: white; border-radius: 16px; max-width: 600px;
+            width: 100%; max-height: 90vh; overflow-y: auto;
+            padding: 24px; position: relative;
+        }
+        .modal-content img { width: 100%; border-radius: 8px; }
+        .modal-close {
+            position: absolute; top: 12px; right: 16px;
+            background: none; border: none; font-size: 1.5rem;
+            cursor: pointer; color: rgba(11,26,46,0.4);
+        }
+
+        .toast {
+            position: fixed; bottom: 2rem; left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(26,122,74,0.95); backdrop-filter: blur(10px);
+            color: #fff; padding: 0.75rem 1.5rem; border-radius: 99px;
+            font-size: 0.88rem; font-weight: 600; z-index: 99999;
+            opacity: 0; transition: opacity 0.25s, transform 0.25s;
+            pointer-events: none; white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: rgba(200,30,50,0.95); }
+
         @media (max-width:768px) {
             .container { padding: 16px; }
             .topbar { padding: 14px 18px; }
@@ -266,6 +347,7 @@
             .osce-controls .field select,
             .osce-controls .field input[type="file"] { min-width: unset; width: 100%; }
             .station-list-compact { grid-template-columns: 1fr; }
+            .payments-grid { grid-template-columns: 1fr; }
         }
         @media (max-width:480px) {
             .stats-grid { grid-template-columns: 1fr; }
@@ -324,6 +406,7 @@
                 <div class="stat-card"><div class="number" id="totalClerkings">—</div><div class="label">Total Clerkings</div></div>
             </div>
 
+            <!-- ─── USERS TABLE ─── -->
             <div class="users-toolbar">
                 <div>
                     <h2>User access</h2>
@@ -344,7 +427,29 @@
                 </table>
             </div>
 
-            <!-- OSCE Image Manager -->
+            <!-- ─── PAYMENT VERIFICATION ─── -->
+            <div class="payments-section">
+                <div class="users-toolbar">
+                    <div>
+                        <h2>💰 Payment Verification</h2>
+                        <p id="paymentsCount">Loading payments…</p>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn-primary" onclick="filterPayments('pending')" id="filterPending" style="background:rgba(245,158,11,0.2); color:#D97706; border:1px solid rgba(245,158,11,0.3);">🟡 Pending</button>
+                        <button class="btn-primary" onclick="filterPayments('verified')" id="filterVerified" style="background:rgba(16,185,129,0.1); color:#059669; border:1px solid rgba(16,185,129,0.2);">🟢 Verified</button>
+                        <button class="btn-primary" onclick="filterPayments('all')" id="filterAll" style="background:rgba(255,255,255,0.1);">📋 All</button>
+                        <button class="btn-primary" onclick="loadPayments()">🔄 Refresh</button>
+                    </div>
+                </div>
+                <div id="paymentsContainer">
+                    <div style="text-align:center; padding:40px; color:rgba(11,26,46,0.4);">
+                        <div class="spinner" style="width:30px; height:30px; margin:0 auto 16px;"></div>
+                        Loading payments...
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── OSCE IMAGE MANAGER ─── -->
             <div class="osce-section">
                 <div class="users-toolbar">
                     <div>
@@ -390,9 +495,20 @@
         </div>
     </div>
 
+    <!-- Image Preview Modal -->
+    <div class="modal-overlay" id="imageModal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+            <img id="modalImage" src="" alt="Payment Screenshot" style="width:100%; border-radius:8px;" />
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
     <script>
         // ─── VERSION CONTROL ───
-        const APP_VERSION = '2.1.0';
+        const APP_VERSION = '2.2.0';
         const CACHE_KEY = 'easemed_app_version';
         const storedVersion = localStorage.getItem(CACHE_KEY);
         if (storedVersion !== APP_VERSION) {
@@ -407,6 +523,7 @@
         const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
         const STORAGE_BUCKET = 'osce-station-images';
+        const PAYMENTS_BUCKET = 'payment-screenshots';
 
         // ─── GLOBALS ───
         let supabaseClient = null;
@@ -414,6 +531,8 @@
         let allUsers = [];
         let allOsceStations = [];
         let currentOsceStations = [];
+        let allPayments = [];
+        let currentPaymentFilter = 'pending';
 
         // ─── INIT ───
         function initSupabase() {
@@ -449,11 +568,9 @@
 
                 currentUser = session.user;
 
-                // Check if user is admin using multiple sources
                 let isAdmin = false;
                 let adminName = 'Admin';
 
-                // 1. Check profiles table
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('full_name, role, is_admin')
@@ -469,20 +586,6 @@
                              role === 'administrator';
                 }
 
-                // 2. If not admin from profiles, check admin_users table
-                if (!isAdmin) {
-                    const { data: adminUser, error: adminError } = await supabaseClient
-                        .from('admin_users')
-                        .select('user_id')
-                        .eq('user_id', currentUser.id)
-                        .single();
-
-                    if (!adminError && adminUser) {
-                        isAdmin = true;
-                    }
-                }
-
-                // 3. Hardcoded admin email fallback
                 if (!isAdmin && currentUser.email === 'kigozigeorge04@gmail.com') {
                     isAdmin = true;
                 }
@@ -497,6 +600,7 @@
                 content.style.display = 'block';
 
                 await loadDashboardData();
+                await loadPayments();
 
             } catch (error) {
                 console.error('[Admin] Auth error:', error);
@@ -646,6 +750,196 @@
                     .eq('id', userId);
                 await loadUsersTable();
             } catch (error) { alert('Failed: ' + error.message); }
+        }
+
+        // ─── PAYMENT VERIFICATION ───
+        async function loadPayments() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('payments')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                allPayments = data || [];
+                document.getElementById('paymentsCount').textContent = 
+                    `${allPayments.filter(p => p.status === 'pending').length} pending · ${allPayments.length} total`;
+                renderPayments();
+
+            } catch (error) {
+                console.error('[Admin] Load payments error:', error);
+                document.getElementById('paymentsContainer').innerHTML = `
+                    <div style="text-align:center; padding:40px; color:#DC2626;">
+                        Failed to load payments: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function filterPayments(filter) {
+            currentPaymentFilter = filter;
+            
+            // Update button styles
+            ['pending', 'verified', 'all'].forEach(f => {
+                const btn = document.getElementById(`filter${f.charAt(0).toUpperCase() + f.slice(1)}`);
+                if (btn) {
+                    btn.style.opacity = f === filter ? '1' : '0.5';
+                    btn.style.transform = f === filter ? 'scale(1.05)' : 'scale(1)';
+                }
+            });
+            
+            renderPayments();
+        }
+
+        function renderPayments() {
+            const container = document.getElementById('paymentsContainer');
+            
+            let filtered = allPayments;
+            if (currentPaymentFilter !== 'all') {
+                filtered = allPayments.filter(p => p.status === currentPaymentFilter);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:40px; color:rgba(11,26,46,0.4);">
+                        <div style="font-size:2rem; margin-bottom:8px;">📭</div>
+                        <h3>No Payments Found</h3>
+                        <p>${currentPaymentFilter === 'pending' ? 'No pending payments to review.' : `No ${currentPaymentFilter} payments found.`}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `<div class="payments-grid">` + filtered.map(p => {
+                const statusColors = {
+                    pending: '🟡 Pending',
+                    verified: '🟢 Verified',
+                    rejected: '🔴 Rejected'
+                };
+                
+                const screenshotUrl = p.screenshot_storage_path ? 
+                    `${SUPABASE_URL}/storage/v1/object/public/${PAYMENTS_BUCKET}/${p.screenshot_storage_path}` :
+                    null;
+                
+                return `
+                    <div class="payment-card" id="payment-${p.id}">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <div class="user">${p.user_name || 'User'}</div>
+                                <div class="email">${p.user_email || 'No email'}</div>
+                            </div>
+                            <span class="status-badge ${p.status}">${statusColors[p.status] || p.status}</span>
+                        </div>
+                        <div class="transaction">📱 ${p.transaction_id || 'No transaction ID'}</div>
+                        <div class="meta">
+                            <span>💰 UGX ${p.amount || 5000}</span>
+                            <span>📅 ${new Date(p.created_at).toLocaleDateString()} ${new Date(p.created_at).toLocaleTimeString()}</span>
+                        </div>
+                        ${p.phone_number ? `<div style="font-size:0.75rem; color:rgba(11,26,46,0.4);">📞 ${p.phone_number}</div>` : ''}
+                        
+                        <div class="screenshot" onclick="${screenshotUrl ? `viewScreenshot('${screenshotUrl}')` : ''}">
+                            ${screenshotUrl ? 
+                                `<img src="${screenshotUrl}" alt="Payment Screenshot" />` :
+                                '<div class="no-image">📷 No screenshot uploaded</div>'
+                            }
+                        </div>
+                        
+                        ${p.notes ? `<div style="font-size:0.75rem; color:rgba(11,26,46,0.4); margin:4px 0;">📝 ${p.notes}</div>` : ''}
+                        
+                        ${p.status === 'pending' ? `
+                            <div class="actions">
+                                <button class="btn-success" onclick="verifyPayment('${p.id}')">
+                                    ✅ Verify & Activate
+                                </button>
+                                <button class="btn-danger" onclick="rejectPayment('${p.id}')">
+                                    ✕ Reject
+                                </button>
+                            </div>
+                        ` : p.status === 'verified' ? `
+                            <div style="font-size:0.75rem; color:rgba(11,26,46,0.3); margin-top:8px;">
+                                ✅ Verified · ${p.verified_at ? new Date(p.verified_at).toLocaleDateString() : ''}
+                            </div>
+                        ` : `
+                            <div style="font-size:0.75rem; color:rgba(11,26,46,0.3); margin-top:8px;">
+                                ❌ Rejected
+                            </div>
+                        `}
+                    </div>
+                `;
+            }).join('') + `</div>`;
+        }
+
+        function viewScreenshot(url) {
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('modalImage');
+            img.src = url;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        async function verifyPayment(paymentId) {
+            if (!confirm('Verify this payment and activate the user account?')) return;
+
+            const card = document.getElementById(`payment-${paymentId}`);
+            const btns = card.querySelectorAll('.actions button');
+            btns.forEach(b => b.disabled = true);
+
+            try {
+                const { error } = await supabaseClient
+                    .from('payments')
+                    .update({
+                        status: 'verified',
+                        verified_at: new Date().toISOString(),
+                        verified_by: currentUser.id,
+                        notes: 'Verified by admin'
+                    })
+                    .eq('id', paymentId);
+
+                if (error) throw error;
+
+                showToast('✅ Payment verified! User account activated.');
+                await loadPayments();
+                await loadDashboardData();
+
+            } catch (error) {
+                console.error('[Verify] Error:', error);
+                showToast('❌ Verification failed: ' + error.message, true);
+                btns.forEach(b => b.disabled = false);
+            }
+        }
+
+        async function rejectPayment(paymentId) {
+            if (!confirm('Reject this payment request?')) return;
+
+            const card = document.getElementById(`payment-${paymentId}`);
+            const btns = card.querySelectorAll('.actions button');
+            btns.forEach(b => b.disabled = true);
+
+            try {
+                const { error } = await supabaseClient
+                    .from('payments')
+                    .update({
+                        status: 'rejected',
+                        verified_at: new Date().toISOString(),
+                        verified_by: currentUser.id,
+                        notes: 'Rejected by admin'
+                    })
+                    .eq('id', paymentId);
+
+                if (error) throw error;
+
+                showToast('❌ Payment rejected.', true);
+                await loadPayments();
+
+            } catch (error) {
+                console.error('[Reject] Error:', error);
+                showToast('❌ Failed to reject: ' + error.message, true);
+                btns.forEach(b => b.disabled = false);
+            }
         }
 
         // ─── OSCE STATION IMAGE MANAGER ───
@@ -913,6 +1207,15 @@
             wrap.appendChild(text);
             container.appendChild(wrap);
             setTimeout(() => { if (container.firstChild) container.innerHTML = ''; }, 5000);
+        }
+
+        // ─── TOAST ───
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast' + (isError ? ' error' : '');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
         }
 
         // ─── HANDLE LOGOUT ───
