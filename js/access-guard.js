@@ -6,7 +6,6 @@
 
 // ─── CONFIG ───
 const MODULE_SLUG_CONFIG = {
-    // Map page URLs to module slugs
     'easemed_dashboard.html': 'imed',
     'surgery-clerking.html': 'surgery',
     'easemed_pediatrics.html': 'peds',
@@ -19,35 +18,70 @@ function getCurrentModuleSlug() {
     return MODULE_SLUG_CONFIG[pageName] || null;
 }
 
-// ─── HIDE PAGE UNTIL VERIFIED ───
+// ─── HIDE PAGE UNTIL VERIFIED (IMPROVED) ───
 (function hidePageUntilVerified() {
-    // Prevents a flash of the module content before an expired user is redirected.
-    // Requires this <script> tag to be placed in <head>, before the page body renders.
+    // 🔒 STRONG HIDE: Completely hide everything
     const style = document.createElement('style');
     style.id = 'access-guard-hide';
-    style.textContent = 'html { visibility: hidden; }';
+    style.textContent = `
+        html, body, #moduleContent, .main-wrap, .container, .content {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        /* Show nothing until guard completes */
+        body::before {
+            content: '';
+            display: block;
+        }
+    `;
     document.documentElement.appendChild(style);
-    // Safety net: if something goes wrong and the guard never finishes
-    // (e.g. Supabase SDK fails to load), don't leave the page hidden forever.
-    setTimeout(revealPage, 5000);
+    
+    // Also add an overlay to prevent any interaction
+    const overlay = document.createElement('div');
+    overlay.id = 'access-guard-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(13, 27, 42, 0.9);
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 20px;
+    `;
+    overlay.innerHTML = `
+        <div style="width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #3B82F6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <div style="color: rgba(255,255,255,0.6); font-family: 'Inter', sans-serif; font-size: 0.95rem;">Verifying access...</div>
+        <style>
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
+    `;
+    document.documentElement.appendChild(overlay);
+    
+    // Safety net: if something goes wrong, reveal after 8 seconds
+    setTimeout(revealPage, 8000);
 })();
 
 function revealPage() {
     document.getElementById('access-guard-hide')?.remove();
+    document.getElementById('access-guard-overlay')?.remove();
 }
 
-// ─── ACTIVITY PING (throttled, fire-and-forget) ───
+// ─── ACTIVITY PING ───
 const ACTIVITY_PING_KEY = 'easemed_last_activity_ping';
-const ACTIVITY_PING_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const ACTIVITY_PING_INTERVAL_MS = 5 * 60 * 1000;
 
 function pingActivity(client, userId) {
     try {
         const last = parseInt(sessionStorage.getItem(ACTIVITY_PING_KEY) || '0', 10);
         const now = Date.now();
-        if (now - last < ACTIVITY_PING_INTERVAL_MS) return; // throttled, skip
-
+        if (now - last < ACTIVITY_PING_INTERVAL_MS) return;
         sessionStorage.setItem(ACTIVITY_PING_KEY, String(now));
-
         client
             .from('profiles')
             .update({ last_activity: new Date().toISOString() })
@@ -62,13 +96,9 @@ function pingActivity(client, userId) {
 
 // ─── CHECK MODULE ACCESS ───
 async function checkModuleAccess(client, userId, moduleSlug) {
-    if (!moduleSlug) {
-        // If no module slug, assume it's not a module page (e.g., profile, subscription)
-        return true;
-    }
+    if (!moduleSlug) return true;
 
     try {
-        // First check if user has any active subscription
         const { data: subscription, error: subError } = await client
             .from('subscriptions')
             .select('plan_type, active_module, expiry_date, status')
@@ -83,9 +113,7 @@ async function checkModuleAccess(client, userId, moduleSlug) {
             return false;
         }
 
-        // If no subscription, check for free trial
         if (!subscription) {
-            // Check if user has ever had a free trial that's still valid
             const { data: freeTrial, error: trialError } = await client
                 .from('subscriptions')
                 .select('plan_type, expiry_date')
@@ -96,28 +124,19 @@ async function checkModuleAccess(client, userId, moduleSlug) {
                 .maybeSingle();
 
             if (!trialError && freeTrial && new Date(freeTrial.expiry_date).getTime() > Date.now()) {
-                return true; // Free trial active
+                return true;
             }
-
-            return false; // No active subscription
+            return false;
         }
 
-        // Check if subscription is expired
         if (subscription.expiry_date && new Date(subscription.expiry_date).getTime() < Date.now()) {
             return false;
         }
 
-        // Premium has access to all modules
-        if (subscription.plan_type === 'premium') {
+        if (subscription.plan_type === 'premium' || subscription.plan_type === 'free_trial') {
             return true;
         }
 
-        // Free trial has access to all modules
-        if (subscription.plan_type === 'free_trial') {
-            return true;
-        }
-
-        // Basic has access only to their active module
         if (subscription.plan_type === 'basic') {
             return subscription.active_module === moduleSlug;
         }
@@ -132,16 +151,27 @@ async function checkModuleAccess(client, userId, moduleSlug) {
 
 // ─── SHOW UPGRADE MODAL ───
 function showUpgradeModal(moduleName) {
+    // Remove any existing modal first
+    const existingModal = document.getElementById('upgradeModal');
+    if (existingModal) existingModal.remove();
+
     const modal = document.createElement('div');
     modal.id = 'upgradeModal';
     modal.style.cssText = `
-        position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-        backdrop-filter: blur(8px); z-index: 99999;
-        display: flex; align-items: center; justify-content: center;
-        padding: 24px; animation: fadeIn 0.3s ease;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        animation: fadeIn 0.3s ease;
     `;
     modal.innerHTML = `
-        <div style="background:white; max-width:420px; width:100%; border-radius:20px; padding:32px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,0.2);">
+        <div style="background:white; max-width:420px; width:100%; border-radius:20px; padding:32px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,0.3); position:relative;">
             <div style="font-size:3rem; margin-bottom:12px;">🔒</div>
             <h2 style="font-family:'Lora',serif; font-size:1.5rem; margin-bottom:8px; color:#0B1A2E;">Access Restricted</h2>
             <p style="color:rgba(11,26,46,0.6); margin-bottom:8px; font-size:0.95rem; line-height:1.6;">
@@ -168,10 +198,16 @@ function showUpgradeModal(moduleName) {
                 Already subscribed? <a href="#" onclick="location.reload()" style="color:#3B82F6; text-decoration:none; font-weight:600;">Refresh</a>
             </p>
         </div>
+        <style>
+            @keyframes fadeIn {
+                from { opacity: 0; transform: scale(0.95); }
+                to { opacity: 1; transform: scale(1); }
+            }
+        </style>
     `;
     document.body.appendChild(modal);
     
-    // Add close on overlay click
+    // Close on overlay click
     modal.addEventListener('click', function(e) {
         if (e.target === this) this.remove();
     });
@@ -195,6 +231,8 @@ function showUpgradeModal(moduleName) {
         revealPage();
     }
 
+    console.log('[Access guard] Starting verification...');
+
     try {
         // Check Supabase SDK
         if (!window.supabase?.createClient) {
@@ -204,15 +242,17 @@ function showUpgradeModal(moduleName) {
         }
 
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+        
+        // Get session
         const { data: { session } } = await client.auth.getSession();
+        console.log('[Access guard] Session:', session ? '✅ Valid' : '❌ None');
         
         if (!session?.user) {
-            // No session — leave enforcement to login guard
             revealPage();
             return;
         }
 
-        // Get user profile
+        // Get profile
         const { data: profile, error } = await client
             .from('profiles')
             .select('is_active, access_expires_at, role, is_admin')
@@ -225,10 +265,17 @@ function showUpgradeModal(moduleName) {
             return;
         }
 
+        console.log('[Access guard] Profile:', {
+            is_active: profile.is_active,
+            access_expires_at: profile.access_expires_at,
+            role: profile.role,
+            is_admin: profile.is_admin
+        });
+
         // Ping activity
         pingActivity(client, session.user.id);
 
-        // Check if admin (exempt from subscription checks)
+        // Check if admin
         const role = profile.role?.toLowerCase();
         const isAdmin = profile.is_admin === true ||
             role === 'admin' ||
@@ -236,28 +283,28 @@ function showUpgradeModal(moduleName) {
             role === 'administrator';
 
         if (isAdmin) {
+            console.log('[Access guard] Admin user - granting access');
             revealPage();
             return;
         }
 
-        // Check if subscription is expired or inactive
+        // Check subscription
         const isExpired = profile.access_expires_at && new Date(profile.access_expires_at).getTime() < Date.now();
         if (profile.is_active === false || isExpired) {
+            console.log('[Access guard] Subscription expired/inactive - redirecting to payment');
             redirectToPayment();
             return;
         }
 
         // ─── MODULE-SPECIFIC ACCESS CHECK ───
         const moduleSlug = getCurrentModuleSlug();
-        const pageName = location.pathname.split('/').pop();
         const isModulePage = moduleSlug !== null;
 
-        // Only check module access if it's a module page
         if (isModulePage) {
+            console.log('[Access guard] Checking module access for:', moduleSlug);
             const hasModuleAccess = await checkModuleAccess(client, session.user.id, moduleSlug);
             
             if (!hasModuleAccess) {
-                // Get module name for display
                 const moduleNames = {
                     'imed': 'Internal Medicine',
                     'surgery': 'Surgery',
@@ -266,34 +313,24 @@ function showUpgradeModal(moduleName) {
                 };
                 const moduleName = moduleNames[moduleSlug] || moduleSlug;
                 
+                console.log('[Access guard] ❌ Access denied for:', moduleName);
+                
                 // Show upgrade modal
                 showUpgradeModal(moduleName);
                 
-                // Hide page content
-                const style = document.createElement('style');
-                style.id = 'access-guard-hide-module';
-                style.textContent = '#moduleContent, .main-wrap { display: none !important; }';
-                document.head.appendChild(style);
-                
+                // Keep page hidden
                 return; // Don't reveal page
             }
+            
+            console.log('[Access guard] ✅ Access granted for:', moduleSlug);
         }
 
         // All checks passed - reveal the page
+        console.log('[Access guard] All checks passed, revealing page');
         revealPage();
 
     } catch (error) {
         console.error('[Access guard] Unable to verify access:', error);
-        revealPage(); // fail open rather than lock everyone out on a transient error
+        revealPage(); // fail open
     }
 })();
-
-// ─── ADD FADE IN ANIMATION ───
-const styleSheet = document.createElement('style');
-styleSheet.textContent = `
-    @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-    }
-`;
-document.head.appendChild(styleSheet);
