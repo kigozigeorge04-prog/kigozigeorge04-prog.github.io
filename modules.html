@@ -226,6 +226,33 @@
             flex-wrap: wrap;
         }
 
+        /* Profile button - NEW */
+        .btn-profile {
+            background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 16px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+        }
+        .btn-profile:hover {
+            transform: scale(1.04);
+            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+        }
+        .btn-profile svg {
+            width: 14px;
+            height: 14px;
+        }
+
         .btn-admin-top {
             background: linear-gradient(135deg, #3B82F6, #2563EB);
             color: #FFFFFF;
@@ -734,7 +761,7 @@
                 height: 30px;
                 font-size: 14px;
             }
-            .btn-admin-top, .btn-logout {
+            .btn-profile, .btn-admin-top, .btn-logout {
                 padding: 4px 10px;
                 font-size: 0.7rem;
             }
@@ -800,6 +827,16 @@
         <div class="right-group">
             <span id="userGreeting"></span>
             <span class="edition">Hutchison's, 25th Ed.</span>
+            
+            <!-- PROFILE LINK - NEW -->
+            <a href="profile.html" class="btn-profile" title="My Profile">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                Profile
+            </a>
+            
             <a href="easemed_admin_dashboard.html" class="btn-admin-top" title="Admin Dashboard">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"/>
@@ -907,7 +944,7 @@
 
 <script>
     // ─── VERSION CONTROL ───
-    const APP_VERSION = '2.0.5';
+    const APP_VERSION = '2.0.6';
     const CACHE_KEY = 'easemed_app_version';
     
     const storedVersion = localStorage.getItem(CACHE_KEY);
@@ -1192,76 +1229,71 @@
     }
 
     // ─── TRACKING ───
-   // ─── TRACKING ───
-(function tracking() {
-    let currentLogId = null;
-    let startTime = null;
-    let flushed = false;
-    let trackingEnabled = false;
+    (function tracking() {
+        let currentLogId = null;
+        let startTime = null;
+        let flushed = false;
+        let trackingEnabled = false;
 
-    async function startTracking() {
-        try {
-            if (!window.sb) return;
-            
-            const { data: { user } } = await window.sb.auth.getUser();
-            if (!user) return;
+        async function startTracking() {
+            try {
+                if (!window.sb) return;
+                
+                const { data: { user } } = await window.sb.auth.getUser();
+                if (!user) return;
 
-            // Check if we can insert first
-            const moduleName = window.EASEMED_MODULE_NAME || document.title || location.pathname;
-            startTime = Date.now();
+                const moduleName = window.EASEMED_MODULE_NAME || document.title || location.pathname;
+                startTime = Date.now();
 
-            const { data, error } = await window.sb.from('activity_logs').insert({
-                user_id: user.id,
-                event_type: 'module_view',
-                module_name: moduleName,
-                page_path: location.pathname,
-                started_at: new Date(startTime).toISOString(),
-            }).select('id').single();
+                const { data, error } = await window.sb.from('activity_logs').insert({
+                    user_id: user.id,
+                    event_type: 'module_view',
+                    module_name: moduleName,
+                    page_path: location.pathname,
+                    started_at: new Date(startTime).toISOString(),
+                }).select('id').single();
 
-            if (!error && data) {
-                currentLogId = data.id;
-                trackingEnabled = true;
-            } else {
-                // Tracking not available - disable it
-                console.log('[Tracking] Disabled - insert failed');
+                if (!error && data) {
+                    currentLogId = data.id;
+                    trackingEnabled = true;
+                } else {
+                    console.log('[Tracking] Disabled - insert failed');
+                    trackingEnabled = false;
+                }
+            } catch (e) {
                 trackingEnabled = false;
+                console.log('[Tracking] Disabled');
             }
-        } catch (e) {
-            // Tracking not available
-            trackingEnabled = false;
-            console.log('[Tracking] Disabled');
         }
-    }
 
-    async function flushTracking() {
-        if (!trackingEnabled || !currentLogId || flushed || !startTime) return;
-        flushed = true;
+        async function flushTracking() {
+            if (!trackingEnabled || !currentLogId || flushed || !startTime) return;
+            flushed = true;
 
-        const durationSeconds = Math.round((Date.now() - startTime) / 1000);
-        if (durationSeconds < 1) return;
+            const durationSeconds = Math.round((Date.now() - startTime) / 1000);
+            if (durationSeconds < 1) return;
 
-        try {
-            if (!window.sb) return;
-            await window.sb.from('activity_logs')
-                .update({
-                    duration_seconds: durationSeconds,
-                    ended_at: new Date().toISOString(),
-                })
-                .eq('id', currentLogId);
-        } catch (e) {
-            // Silently fail
+            try {
+                if (!window.sb) return;
+                await window.sb.from('activity_logs')
+                    .update({
+                        duration_seconds: durationSeconds,
+                        ended_at: new Date().toISOString(),
+                    })
+                    .eq('id', currentLogId);
+            } catch (e) {
+                // Silently fail
+            }
         }
-    }
 
-    // Start tracking with a small delay
-    setTimeout(startTracking, 1000);
+        setTimeout(startTracking, 1000);
 
-    window.addEventListener('beforeunload', flushTracking);
-    window.addEventListener('pagehide', flushTracking);
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') flushTracking();
-    });
-})();
+        window.addEventListener('beforeunload', flushTracking);
+        window.addEventListener('pagehide', flushTracking);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') flushTracking();
+        });
+    })();
     
     // ─── PWA INSTALL ───
     let deferredPrompt;
@@ -1294,7 +1326,6 @@
 
     // ─── ANNOUNCEMENT BANNER ───
     (async function loadEasemedAnnouncement() {
-        // Wait for SDK to be available
         let sdkTries = 0;
         while (typeof window.supabase === 'undefined' && sdkTries < 30) {
             await new Promise(r => setTimeout(r, 200));
