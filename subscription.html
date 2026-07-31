@@ -188,6 +188,56 @@
         .current-subscription .plan { font-size: 1.2rem; font-weight: 700; margin: 4px 0; }
         .current-subscription .expiry { font-size: 0.85rem; color: rgba(11,26,46,0.5); }
 
+        /* WhatsApp Payment CTA */
+        .payment-cta {
+            background: rgba(37,211,102,0.08);
+            border: 2px solid rgba(37,211,102,0.2);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 24px auto;
+            max-width: 600px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+        .payment-cta:hover {
+            border-color: rgba(37,211,102,0.5);
+        }
+        .payment-cta .icon { font-size: 2.5rem; margin-bottom: 8px; }
+        .payment-cta h3 { font-size: 1.2rem; margin-bottom: 4px; font-family: 'Lora', serif; }
+        .payment-cta p { color: rgba(11,26,46,0.6); font-size: 0.9rem; margin-bottom: 16px; }
+        .payment-cta .number-box {
+            background: rgba(0,0,0,0.05);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 2px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        .btn-whatsapp-pay {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 32px;
+            border: none;
+            border-radius: 12px;
+            background: #25D366;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            box-shadow: 0 4px 16px rgba(37,211,102,0.3);
+        }
+        .btn-whatsapp-pay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(37,211,102,0.4);
+        }
+
         .loading-spinner {
             width: 40px; height: 40px;
             border: 4px solid rgba(59,130,246,0.1);
@@ -216,6 +266,8 @@
             .hero h1 { font-size: 1.6rem; }
             .topbar { flex-direction: column; align-items: stretch; gap: 8px; }
             .topbar .right-group { justify-content: flex-end; }
+            .payment-cta { padding: 16px; }
+            .payment-cta .number-box { font-size: 1rem; }
         }
     </style>
 </head>
@@ -258,6 +310,21 @@
                 <div>Loading plans...</div>
             </div>
         </div>
+
+        <!-- WhatsApp Payment CTA (shows when user selects a paid plan) -->
+        <div id="paymentCTA" class="payment-cta" style="display:none;">
+            <div class="icon">💬</div>
+            <h3>Complete Your Payment via WhatsApp</h3>
+            <p>Send the payment amount to this Airtel Money number, then send the confirmation via WhatsApp.</p>
+            <div class="number-box">📱 0756 418 723</div>
+            <br>
+            <a href="#" id="whatsappPaymentLink" class="btn-whatsapp-pay" target="_blank">
+                💬 Send Payment Confirmation on WhatsApp
+            </a>
+            <p style="margin-top:12px; font-size:0.8rem; color:rgba(11,26,46,0.4);">
+                Your account will be activated within 24 hours after verification.
+            </p>
+        </div>
     </div>
 
     <div class="toast" id="toast"></div>
@@ -266,6 +333,8 @@
         // ─── CONFIG ───
         const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+        const WHATSAPP_NUMBER = '256756418723';
+        const AIRTEL_NUMBER = '0756418723';
 
         let supabaseClient = null;
         let currentUser = null;
@@ -276,7 +345,6 @@
         async function init() {
             console.log('[Subscription] Initializing...');
 
-            // Check if Supabase SDK is available
             if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
                 console.warn('[Subscription] Supabase SDK not available. Retrying...');
                 setTimeout(init, 1000);
@@ -287,7 +355,6 @@
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
                 console.log('[Subscription] Supabase client initialized.');
 
-                // Check auth
                 const { data: { session }, error } = await supabaseClient.auth.getSession();
                 if (error) throw error;
 
@@ -300,7 +367,6 @@
                 currentUser = session.user;
                 console.log('[Subscription] User:', currentUser.email);
 
-                // Load plans and subscription
                 await loadPlans();
                 await loadCurrentSubscription();
 
@@ -319,24 +385,20 @@
         // ─── LOAD PLANS ───
         async function loadPlans() {
             try {
-                console.log('[Subscription] Loading plans from subscription_plans table...');
+                console.log('[Subscription] Loading plans...');
                 
                 const { data, error } = await supabaseClient
                     .from('subscription_plans')
                     .select('*')
                     .order('price', { ascending: true });
 
-                if (error) {
-                    console.error('[Subscription] Plans error:', error);
-                    throw error;
-                }
+                if (error) throw error;
 
                 plans = data || [];
                 console.log('[Subscription] Plans loaded:', plans.length);
-                console.log('[Subscription] Plans data:', plans);
                 
                 if (plans.length === 0) {
-                    throw new Error('No plans found in subscription_plans table. Please run the SQL setup.');
+                    throw new Error('No plans found. Please run the SQL setup.');
                 }
                 
                 renderPlans();
@@ -346,10 +408,7 @@
                 document.getElementById('plansGrid').innerHTML = `
                     <div style="text-align:center; padding:40px; color:#DC2626; grid-column:1/-1;">
                         <h3>⚠️ Could not load plans</h3>
-                        <p style="margin-top:8px; font-size:0.9rem;">${error.message}</p>
-                        <p style="margin-top:8px; font-size:0.8rem; color:rgba(11,26,46,0.4);">
-                            Please ensure the subscription_plans table exists and has data.
-                        </p>
+                        <p style="margin-top:8px;">${error.message}</p>
                         <button onclick="location.reload()" style="margin-top:12px; padding:8px 24px; background:#3B82F6; color:white; border:none; border-radius:8px; cursor:pointer;">Retry</button>
                     </div>
                 `;
@@ -415,7 +474,6 @@
                 expiryEl.textContent = 'Never expires';
             }
             
-            // Re-render plans to update button states
             renderPlans();
         }
 
@@ -457,15 +515,11 @@
                 const featured = isFeatured[plan.slug] || false;
                 const priceDisplay = plan.price === 0 ? 'Free' : `UGX ${plan.price.toLocaleString()}`;
 
-                // Check if this is the current plan
                 const isCurrent = currentSubscription && currentSubscription.plan_type === plan.slug && 
                                  currentSubscription.status === 'active';
 
-                // Check if free trial is already used
                 const hasUsedTrial = currentSubscription && currentSubscription.plan_type === 'free_trial';
                 const isFreeTrial = plan.slug === 'free-trial';
-
-                // Disable free trial if already used
                 const isDisabled = isCurrent || (isFreeTrial && hasUsedTrial);
 
                 return `
@@ -509,17 +563,15 @@
                 }
             }
 
-            // For paid plans, redirect to payment page
+            // For paid plans - show WhatsApp payment CTA
             if (plan.price > 0) {
-                showToast('Payment integration coming soon!', false);
-                // window.location.href = `payment.html?plan=${slug}`;
+                showPaymentCTA(plan);
                 return;
             }
 
             // For free trial, create subscription directly
             if (plan.price === 0) {
                 try {
-                    // Disable all buttons
                     const btns = document.querySelectorAll('.btn-select');
                     btns.forEach(b => b.disabled = true);
 
@@ -542,19 +594,39 @@
                     if (error) throw error;
 
                     showToast('✅ Free trial started! You have 7 days of full access.');
-                    
-                    // Reload subscription
                     await loadCurrentSubscription();
                     renderPlans();
+                    hidePaymentCTA();
 
                 } catch (error) {
                     console.error('[Select Plan] Error:', error);
                     showToast('❌ Failed to start trial: ' + error.message, true);
-                    // Re-enable buttons
                     const btns = document.querySelectorAll('.btn-select');
                     btns.forEach(b => b.disabled = false);
                 }
             }
+        }
+
+        // ─── SHOW PAYMENT CTA ───
+        function showPaymentCTA(plan) {
+            const cta = document.getElementById('paymentCTA');
+            const whatsappLink = document.getElementById('whatsappPaymentLink');
+            
+            // Update WhatsApp link with plan details
+            const email = currentUser?.email || '';
+            const msg = encodeURIComponent(
+                `Hello, I have paid for EaseMed ${plan.name} (UGX ${plan.price.toLocaleString()}) via Airtel Money.\n\nEmail: ${email}\nPlan: ${plan.name}\nAmount: UGX ${plan.price.toLocaleString()}\n\n[Please attach your payment screenshot to this message]`
+            );
+            whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+            
+            cta.style.display = 'block';
+            cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            showToast(`💬 Please complete payment of UGX ${plan.price.toLocaleString()} to activate ${plan.name}`, false);
+        }
+
+        function hidePaymentCTA() {
+            document.getElementById('paymentCTA').style.display = 'none';
         }
 
         // ─── TOAST ───
@@ -563,7 +635,7 @@
             t.textContent = msg;
             t.className = 'toast' + (isError ? ' error' : '');
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
+            setTimeout(() => t.classList.remove('show'), 4000);
         }
 
         // ─── LOGOUT ───
@@ -579,9 +651,7 @@
         // ─── INIT ───
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[Subscription] DOM ready');
-            console.log('[Subscription] Supabase SDK available?', typeof window.supabase !== 'undefined');
             
-            // Check if Supabase SDK is available
             if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
                 init();
             } else {
