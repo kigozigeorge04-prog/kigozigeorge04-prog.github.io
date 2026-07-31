@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+is this it?<!DOCTYPE html>
 <html lang="en">
 <head>
       <meta charset="UTF-8" />
@@ -5342,33 +5342,27 @@
 <!-- Your page's own script -->
 <script>
     // ── PAGE INITIALIZATION ──
-    document.addEventListener('DOMContentLoaded', async function() {
-          console.log('[Surgery Module] Initializing...');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[Surgery Module] Initializing...');
     
-    // 1. Check module access FIRST
-    const moduleSlug = 'surgery'; // Change per module
-    const hasAccess = await checkModuleAccess(moduleSlug);
-    
-    if (!hasAccess) {
-        console.log('[Surgery Module] Access denied');
+    // The access guard handles all authentication and access checks
+    // If the page is visible, the user has access
+    const content = document.getElementById('moduleContent');
+    if (!content || content.style.display === 'none') {
+        console.log('[Surgery Module] Waiting for access guard...');
         return;
     }
     
-    console.log('[Surgery Module] Access granted, loading content...');
-        // 1. Require authentication
-        const isAuthenticated = await requireAuth('easemed_login.html');
-        if (!isAuthenticated) return;
+    // Initialize page features
+    renderTags(1);
+    loadDraft();
+    checkAge();
+    calculateGCS();
+    updateProgress();
+    // ... your other init code
+});
+  
 
-        // 2. Your page code here...
-        console.log('[EaseMed] Protected page loaded successfully');
-        console.log('Welcome, ' + localStorage.getItem('easemed_user_name'));
-
-        // 3. Add logout button handler (optional)
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => logoutUser('easemed_login.html'));
-        }
-    });
 </script> 
           <!-- ─── UPGRADE MODAL ─── -->
 <div id="upgradeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:99999; align-items:center; justify-content:center; padding:24px;">
