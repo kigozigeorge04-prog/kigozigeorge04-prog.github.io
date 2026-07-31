@@ -1140,14 +1140,16 @@
             <div class="topbar-subtitle">Surgery Clerkship with AI Vision</div>
         </div>
         <div class="topbar-right">
+              <span id="planBadge" style="display:none; background: rgba(16,185,129,0.15); color: #065F46; padding: 4px 14px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; border: 1px solid rgba(16,185,129,0.2);">
             <button class="btn-outline-white" onclick="saveDraft()">💾 Save Draft</button>
             <button class="btn-outline-white" onclick="exitForm()">← Exit</button>
         </div>
     </nav>
+      
     <div class="progress-bar-wrap">
         <div class="progress-bar-fill" id="progressFill" style="width:45%"></div>
     </div>
-
+          <div id="moduleContent" style="display:none;">
     <div class="main-wrap">
 
         <!-- ============================================================
@@ -5369,6 +5371,18 @@
 <script>
     // ── PAGE INITIALIZATION ──
     document.addEventListener('DOMContentLoaded', async function() {
+          console.log('[Surgery Module] Initializing...');
+    
+    // 1. Check module access FIRST
+    const moduleSlug = 'surgery'; // Change per module
+    const hasAccess = await checkModuleAccess(moduleSlug);
+    
+    if (!hasAccess) {
+        console.log('[Surgery Module] Access denied');
+        return;
+    }
+    
+    console.log('[Surgery Module] Access granted, loading content...');
         // 1. Require authentication
         const isAuthenticated = await requireAuth('easemed_login.html');
         if (!isAuthenticated) return;
