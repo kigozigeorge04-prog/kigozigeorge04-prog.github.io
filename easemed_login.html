@@ -990,6 +990,87 @@
         .mb-3 { margin-bottom: 12px; }
         .mb-4 { margin-bottom: 16px; }
 
+        /* Phone input styling */
+        .phone-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .phone-input-group .country-code-select {
+            width: 140px;
+            flex-shrink: 0;
+            padding: 11px 8px 11px 36px;
+            font-size: 13px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #0B1A2E;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(11,26,46,0.3)' stroke-width='1.4' fill='none' fill-rule='evenodd' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+        .phone-input-group .country-code-select:focus {
+            outline: none;
+            border-color: #3B82F6;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+        }
+        .phone-input-group .country-code-select option {
+            background: rgba(255, 255, 255, 0.95);
+            color: #0B1A2E;
+        }
+        .phone-input-group .phone-number-input {
+            flex: 1;
+            padding: 11px 14px 11px 14px;
+            font-size: 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #0B1A2E;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+        .phone-input-group .phone-number-input:focus {
+            outline: none;
+            border-color: #3B82F6;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+        }
+        .phone-input-group .phone-number-input::placeholder {
+            color: rgba(11, 26, 46, 0.3);
+            font-weight: 300;
+        }
+        .phone-input-group .country-flag {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            pointer-events: none;
+        }
+        .phone-input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+        .phone-input-wrapper .input-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(11, 26, 46, 0.3);
+            pointer-events: none;
+            width: 17px;
+            height: 17px;
+        }
+
         @media (max-width: 480px) {
             .login-panel {
                 padding: 16px 12px;
@@ -1028,6 +1109,13 @@
             .hero-panel {
                 margin: 0;
                 border-radius: 0;
+            }
+            .phone-input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .phone-input-group .country-code-select {
+                width: 100%;
             }
         }
 
@@ -1268,11 +1356,206 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="signupPhone">Phone (optional)</label>
-                                        <div class="input-wrapper">
-                                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0122 16.92z"/>
-                                            </svg>
-                                            <input type="tel" id="signupPhone" class="input-field" placeholder="+256…">
+                                        <div class="phone-input-group">
+                                            <select id="signupCountryCode" class="country-code-select">
+                                                <option value="+93">🇦🇫 +93 (Afghanistan)</option>
+                                                <option value="+355">🇦🇱 +355 (Albania)</option>
+                                                <option value="+213">🇩🇿 +213 (Algeria)</option>
+                                                <option value="+376">🇦🇩 +376 (Andorra)</option>
+                                                <option value="+244">🇦🇴 +244 (Angola)</option>
+                                                <option value="+1">🇦🇬 +1 (Antigua & Barbuda)</option>
+                                                <option value="+54">🇦🇷 +54 (Argentina)</option>
+                                                <option value="+374">🇦🇲 +374 (Armenia)</option>
+                                                <option value="+61">🇦🇺 +61 (Australia)</option>
+                                                <option value="+43">🇦🇹 +43 (Austria)</option>
+                                                <option value="+994">🇦🇿 +994 (Azerbaijan)</option>
+                                                <option value="+1">🇧🇸 +1 (Bahamas)</option>
+                                                <option value="+973">🇧🇭 +973 (Bahrain)</option>
+                                                <option value="+880">🇧🇩 +880 (Bangladesh)</option>
+                                                <option value="+1">🇧🇧 +1 (Barbados)</option>
+                                                <option value="+375">🇧🇾 +375 (Belarus)</option>
+                                                <option value="+32">🇧🇪 +32 (Belgium)</option>
+                                                <option value="+501">🇧🇿 +501 (Belize)</option>
+                                                <option value="+229">🇧🇯 +229 (Benin)</option>
+                                                <option value="+975">🇧🇹 +975 (Bhutan)</option>
+                                                <option value="+591">🇧🇴 +591 (Bolivia)</option>
+                                                <option value="+387">🇧🇦 +387 (Bosnia & Herzegovina)</option>
+                                                <option value="+267">🇧🇼 +267 (Botswana)</option>
+                                                <option value="+55">🇧🇷 +55 (Brazil)</option>
+                                                <option value="+673">🇧🇳 +673 (Brunei)</option>
+                                                <option value="+359">🇧🇬 +359 (Bulgaria)</option>
+                                                <option value="+226">🇧🇫 +226 (Burkina Faso)</option>
+                                                <option value="+257">🇧🇮 +257 (Burundi)</option>
+                                                <option value="+855">🇰🇭 +855 (Cambodia)</option>
+                                                <option value="+237">🇨🇲 +237 (Cameroon)</option>
+                                                <option value="+1">🇨🇦 +1 (Canada)</option>
+                                                <option value="+238">🇨🇻 +238 (Cape Verde)</option>
+                                                <option value="+236">🇨🇫 +236 (Central African Republic)</option>
+                                                <option value="+235">🇹🇩 +235 (Chad)</option>
+                                                <option value="+56">🇨🇱 +56 (Chile)</option>
+                                                <option value="+86">🇨🇳 +86 (China)</option>
+                                                <option value="+57">🇨🇴 +57 (Colombia)</option>
+                                                <option value="+269">🇰🇲 +269 (Comoros)</option>
+                                                <option value="+242">🇨🇬 +242 (Congo)</option>
+                                                <option value="+243">🇨🇩 +243 (DR Congo)</option>
+                                                <option value="+506">🇨🇷 +506 (Costa Rica)</option>
+                                                <option value="+385">🇭🇷 +385 (Croatia)</option>
+                                                <option value="+53">🇨🇺 +53 (Cuba)</option>
+                                                <option value="+357">🇨🇾 +357 (Cyprus)</option>
+                                                <option value="+420">🇨🇿 +420 (Czech Republic)</option>
+                                                <option value="+45">🇩🇰 +45 (Denmark)</option>
+                                                <option value="+253">🇩🇯 +253 (Djibouti)</option>
+                                                <option value="+1">🇩🇲 +1 (Dominica)</option>
+                                                <option value="+1">🇩🇴 +1 (Dominican Republic)</option>
+                                                <option value="+593">🇪🇨 +593 (Ecuador)</option>
+                                                <option value="+20">🇪🇬 +20 (Egypt)</option>
+                                                <option value="+503">🇸🇻 +503 (El Salvador)</option>
+                                                <option value="+240">🇬🇶 +240 (Equatorial Guinea)</option>
+                                                <option value="+291">🇪🇷 +291 (Eritrea)</option>
+                                                <option value="+372">🇪🇪 +372 (Estonia)</option>
+                                                <option value="+251">🇪🇹 +251 (Ethiopia)</option>
+                                                <option value="+679">🇫🇯 +679 (Fiji)</option>
+                                                <option value="+358">🇫🇮 +358 (Finland)</option>
+                                                <option value="+33">🇫🇷 +33 (France)</option>
+                                                <option value="+241">🇬🇦 +241 (Gabon)</option>
+                                                <option value="+220">🇬🇲 +220 (Gambia)</option>
+                                                <option value="+995">🇬🇪 +995 (Georgia)</option>
+                                                <option value="+49">🇩🇪 +49 (Germany)</option>
+                                                <option value="+233">🇬🇭 +233 (Ghana)</option>
+                                                <option value="+30">🇬🇷 +30 (Greece)</option>
+                                                <option value="+1">🇬🇩 +1 (Grenada)</option>
+                                                <option value="+502">🇬🇹 +502 (Guatemala)</option>
+                                                <option value="+224">🇬🇳 +224 (Guinea)</option>
+                                                <option value="+245">🇬🇼 +245 (Guinea-Bissau)</option>
+                                                <option value="+592">🇬🇾 +592 (Guyana)</option>
+                                                <option value="+509">🇭🇹 +509 (Haiti)</option>
+                                                <option value="+504">🇭🇳 +504 (Honduras)</option>
+                                                <option value="+36">🇭🇺 +36 (Hungary)</option>
+                                                <option value="+354">🇮🇸 +354 (Iceland)</option>
+                                                <option value="+91">🇮🇳 +91 (India)</option>
+                                                <option value="+62">🇮🇩 +62 (Indonesia)</option>
+                                                <option value="+98">🇮🇷 +98 (Iran)</option>
+                                                <option value="+964">🇮🇶 +964 (Iraq)</option>
+                                                <option value="+353">🇮🇪 +353 (Ireland)</option>
+                                                <option value="+972">🇮🇱 +972 (Israel)</option>
+                                                <option value="+39">🇮🇹 +39 (Italy)</option>
+                                                <option value="+1">🇯🇲 +1 (Jamaica)</option>
+                                                <option value="+81">🇯🇵 +81 (Japan)</option>
+                                                <option value="+962">🇯🇴 +962 (Jordan)</option>
+                                                <option value="+7">🇰🇿 +7 (Kazakhstan)</option>
+                                                <option value="+254">🇰🇪 +254 (Kenya)</option>
+                                                <option value="+686">🇰🇮 +686 (Kiribati)</option>
+                                                <option value="+383">🇽🇰 +383 (Kosovo)</option>
+                                                <option value="+965">🇰🇼 +965 (Kuwait)</option>
+                                                <option value="+996">🇰🇬 +996 (Kyrgyzstan)</option>
+                                                <option value="+856">🇱🇦 +856 (Laos)</option>
+                                                <option value="+371">🇱🇻 +371 (Latvia)</option>
+                                                <option value="+961">🇱🇧 +961 (Lebanon)</option>
+                                                <option value="+266">🇱🇸 +266 (Lesotho)</option>
+                                                <option value="+231">🇱🇷 +231 (Liberia)</option>
+                                                <option value="+218">🇱🇾 +218 (Libya)</option>
+                                                <option value="+423">🇱🇮 +423 (Liechtenstein)</option>
+                                                <option value="+370">🇱🇹 +370 (Lithuania)</option>
+                                                <option value="+352">🇱🇺 +352 (Luxembourg)</option>
+                                                <option value="+261">🇲🇬 +261 (Madagascar)</option>
+                                                <option value="+265">🇲🇼 +265 (Malawi)</option>
+                                                <option value="+60">🇲🇾 +60 (Malaysia)</option>
+                                                <option value="+960">🇲🇻 +960 (Maldives)</option>
+                                                <option value="+223">🇲🇱 +223 (Mali)</option>
+                                                <option value="+356">🇲🇹 +356 (Malta)</option>
+                                                <option value="+692">🇲🇭 +692 (Marshall Islands)</option>
+                                                <option value="+222">🇲🇷 +222 (Mauritania)</option>
+                                                <option value="+230">🇲🇺 +230 (Mauritius)</option>
+                                                <option value="+52">🇲🇽 +52 (Mexico)</option>
+                                                <option value="+691">🇫🇲 +691 (Micronesia)</option>
+                                                <option value="+373">🇲🇩 +373 (Moldova)</option>
+                                                <option value="+377">🇲🇨 +377 (Monaco)</option>
+                                                <option value="+976">🇲🇳 +976 (Mongolia)</option>
+                                                <option value="+382">🇲🇪 +382 (Montenegro)</option>
+                                                <option value="+212">🇲🇦 +212 (Morocco)</option>
+                                                <option value="+258">🇲🇿 +258 (Mozambique)</option>
+                                                <option value="+95">🇲🇲 +95 (Myanmar)</option>
+                                                <option value="+264">🇳🇦 +264 (Namibia)</option>
+                                                <option value="+674">🇳🇷 +674 (Nauru)</option>
+                                                <option value="+977">🇳🇵 +977 (Nepal)</option>
+                                                <option value="+31">🇳🇱 +31 (Netherlands)</option>
+                                                <option value="+64">🇳🇿 +64 (New Zealand)</option>
+                                                <option value="+505">🇳🇮 +505 (Nicaragua)</option>
+                                                <option value="+227">🇳🇪 +227 (Niger)</option>
+                                                <option value="+234">🇳🇬 +234 (Nigeria)</option>
+                                                <option value="+389">🇲🇰 +389 (North Macedonia)</option>
+                                                <option value="+47">🇳🇴 +47 (Norway)</option>
+                                                <option value="+968">🇴🇲 +968 (Oman)</option>
+                                                <option value="+92">🇵🇰 +92 (Pakistan)</option>
+                                                <option value="+680">🇵🇼 +680 (Palau)</option>
+                                                <option value="+970">🇵🇸 +970 (Palestine)</option>
+                                                <option value="+507">🇵🇦 +507 (Panama)</option>
+                                                <option value="+675">🇵🇬 +675 (Papua New Guinea)</option>
+                                                <option value="+595">🇵🇾 +595 (Paraguay)</option>
+                                                <option value="+51">🇵🇪 +51 (Peru)</option>
+                                                <option value="+63">🇵🇭 +63 (Philippines)</option>
+                                                <option value="+48">🇵🇱 +48 (Poland)</option>
+                                                <option value="+351">🇵🇹 +351 (Portugal)</option>
+                                                <option value="+974">🇶🇦 +974 (Qatar)</option>
+                                                <option value="+40">🇷🇴 +40 (Romania)</option>
+                                                <option value="+7">🇷🇺 +7 (Russia)</option>
+                                                <option value="+250">🇷🇼 +250 (Rwanda)</option>
+                                                <option value="+1">🇰🇳 +1 (St Kitts & Nevis)</option>
+                                                <option value="+1">🇱🇨 +1 (St Lucia)</option>
+                                                <option value="+1">🇻🇨 +1 (St Vincent)</option>
+                                                <option value="+685">🇼🇸 +685 (Samoa)</option>
+                                                <option value="+378">🇸🇲 +378 (San Marino)</option>
+                                                <option value="+239">🇸🇹 +239 (Sao Tome & Principe)</option>
+                                                <option value="+966">🇸🇦 +966 (Saudi Arabia)</option>
+                                                <option value="+221">🇸🇳 +221 (Senegal)</option>
+                                                <option value="+381">🇷🇸 +381 (Serbia)</option>
+                                                <option value="+248">🇸🇨 +248 (Seychelles)</option>
+                                                <option value="+232">🇸🇱 +232 (Sierra Leone)</option>
+                                                <option value="+65">🇸🇬 +65 (Singapore)</option>
+                                                <option value="+421">🇸🇰 +421 (Slovakia)</option>
+                                                <option value="+386">🇸🇮 +386 (Slovenia)</option>
+                                                <option value="+677">🇸🇧 +677 (Solomon Islands)</option>
+                                                <option value="+252">🇸🇴 +252 (Somalia)</option>
+                                                <option value="+27">🇿🇦 +27 (South Africa)</option>
+                                                <option value="+82">🇰🇷 +82 (South Korea)</option>
+                                                <option value="+211">🇸🇸 +211 (South Sudan)</option>
+                                                <option value="+34">🇪🇸 +34 (Spain)</option>
+                                                <option value="+94">🇱🇰 +94 (Sri Lanka)</option>
+                                                <option value="+249">🇸🇩 +249 (Sudan)</option>
+                                                <option value="+597">🇸🇷 +597 (Suriname)</option>
+                                                <option value="+268">🇸🇿 +268 (Eswatini)</option>
+                                                <option value="+46">🇸🇪 +46 (Sweden)</option>
+                                                <option value="+41">🇨🇭 +41 (Switzerland)</option>
+                                                <option value="+963">🇸🇾 +963 (Syria)</option>
+                                                <option value="+886">🇹🇼 +886 (Taiwan)</option>
+                                                <option value="+992">🇹🇯 +992 (Tajikistan)</option>
+                                                <option value="+255">🇹🇿 +255 (Tanzania)</option>
+                                                <option value="+66">🇹🇭 +66 (Thailand)</option>
+                                                <option value="+228">🇹🇬 +228 (Togo)</option>
+                                                <option value="+676">🇹🇴 +676 (Tonga)</option>
+                                                <option value="+1">🇹🇹 +1 (Trinidad & Tobago)</option>
+                                                <option value="+216">🇹🇳 +216 (Tunisia)</option>
+                                                <option value="+90">🇹🇷 +90 (Turkey)</option>
+                                                <option value="+993">🇹🇲 +993 (Turkmenistan)</option>
+                                                <option value="+688">🇹🇻 +688 (Tuvalu)</option>
+                                                <option value="+256">🇺🇬 +256 (Uganda)</option>
+                                                <option value="+380">🇺🇦 +380 (Ukraine)</option>
+                                                <option value="+971">🇦🇪 +971 (UAE)</option>
+                                                <option value="+44">🇬🇧 +44 (United Kingdom)</option>
+                                                <option value="+1">🇺🇸 +1 (United States)</option>
+                                                <option value="+598">🇺🇾 +598 (Uruguay)</option>
+                                                <option value="+998">🇺🇿 +998 (Uzbekistan)</option>
+                                                <option value="+678">🇻🇺 +678 (Vanuatu)</option>
+                                                <option value="+379">🇻🇦 +379 (Vatican City)</option>
+                                                <option value="+58">🇻🇪 +58 (Venezuela)</option>
+                                                <option value="+84">🇻🇳 +84 (Vietnam)</option>
+                                                <option value="+967">🇾🇪 +967 (Yemen)</option>
+                                                <option value="+260">🇿🇲 +260 (Zambia)</option>
+                                                <option value="+263">🇿🇼 +263 (Zimbabwe)</option>
+                                            </select>
+                                            <div class="phone-input-wrapper" style="flex:1;">
+                                                <input type="tel" id="signupPhone" class="phone-number-input" placeholder="701 234 567">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1527,7 +1810,6 @@
 
             const loginNotice = document.getElementById('loginNotice');
             if (loginNotice) {
-                // FIX #1: build with DOM nodes / textContent instead of interpolated innerHTML
                 loginNotice.innerHTML = '';
                 const wrap = document.createElement('div');
                 wrap.className = 'notice notice-error';
@@ -1554,7 +1836,7 @@
                 const span = document.createElement('span');
                 span.style.fontWeight = '400';
                 span.style.opacity = '0.9';
-                span.textContent = message; // safe: textContent, not innerHTML
+                span.textContent = message;
 
                 const retryBtn = document.createElement('button');
                 retryBtn.textContent = 'Retry';
@@ -1683,7 +1965,6 @@
             }
         }
 
-        // FIX #4: raised floor to 8 chars; strength tiers unchanged in shape but recalibrated
         function getStrength(value) {
             let score = 0;
             if (value.length >= 8) score++;
@@ -1717,8 +1998,6 @@
             }
         }
 
-        // FIX #1: showNotice now builds nodes via textContent — no innerHTML interpolation
-        // of any value that could contain user input (email, error messages, etc.)
         function showNotice(containerId, type, message) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -1737,23 +2016,22 @@
             icon.setAttribute('stroke-width', '2');
             icon.setAttribute('stroke-linecap', 'round');
             icon.setAttribute('stroke-linejoin', 'round');
-            // Static, hardcoded SVG paths only — never derived from user input.
             icon.innerHTML = type === 'success'
                 ? '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'
                 : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
 
             const textNode = document.createElement('span');
-            textNode.textContent = message; // safe — never parsed as HTML
+            textNode.textContent = message;
 
             wrap.appendChild(icon);
             wrap.appendChild(textNode);
             container.appendChild(wrap);
         }
 
-        // ─── FIX #8: CLIENT-SIDE RATE LIMITING ───
+        // ─── RATE LIMITING ───
         const RATE_LIMIT = {
             maxAttempts: 5,
-            baseCooldownMs: 60 * 1000, // 60s
+            baseCooldownMs: 60 * 1000,
         };
 
         function getAttemptState(key) {
@@ -1784,7 +2062,6 @@
             state.count = (state.count || 0) + 1;
             if (state.count >= RATE_LIMIT.maxAttempts) {
                 state.strikes = (state.strikes || 0) + 1;
-                // Cooldown doubles with each additional lockout: 60s, 120s, 240s...
                 const cooldown = RATE_LIMIT.baseCooldownMs * Math.pow(2, state.strikes - 1);
                 state.lockUntil = Date.now() + cooldown;
                 state.count = 0;
@@ -1894,39 +2171,6 @@
         }
 
         // ─── SIGNUP ───
-        // FIX #2: no longer performs a second client-side insert into `profiles`.
-        // All signup metadata is passed via options.data (raw_user_meta_data) and
-        // MUST be consumed atomically by a Postgres trigger on auth.users, e.g.:
-        //
-        //   create or replace function public.handle_new_user()
-        //   returns trigger as $$
-        //   begin
-        //     insert into public.profiles (
-        //       id, full_name, email, role, year, university, phone, license, location, created_at
-        //     )
-        //     values (
-        //       new.id,
-        //       new.raw_user_meta_data->>'full_name',
-        //       new.email,
-        //       new.raw_user_meta_data->>'role',
-        //       new.raw_user_meta_data->>'year',
-        //       new.raw_user_meta_data->>'university',
-        //       new.raw_user_meta_data->>'phone',
-        //       new.raw_user_meta_data->>'license',
-        //       new.raw_user_meta_data->>'location',
-        //       now()
-        //     );
-        //     return new;
-        //   end;
-        //   $$ language plpgsql security definer;
-        //
-        //   create trigger on_auth_user_created
-        //     after insert on auth.users
-        //     for each row execute procedure public.handle_new_user();
-        //
-        // This guarantees the profile row is created in the same transaction as the
-        // user, closing the race window that previously caused blank/incomplete
-        // profiles (the upsertProfile bug).
         async function handleSignup(e) {
             e.preventDefault();
 
@@ -1946,6 +2190,7 @@
             const year = document.getElementById('signupYear').value;
             const university = document.getElementById('signupUniversity').value.trim();
             const phone = document.getElementById('signupPhone').value.trim();
+            const countryCode = document.getElementById('signupCountryCode').value;
             const license = document.getElementById('signupLicense').value.trim();
             const location = document.getElementById('signupLocation').value.trim();
             const agree = document.getElementById('signupAgree').checked;
@@ -1956,7 +2201,11 @@
             if (!email) errors.email = 'Enter your email address.';
             else if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = 'Please enter a valid email address.';
 
-            // FIX #4: 8-char minimum, and block weak passwords outright
+            // Phone validation (optional but if provided, must be valid)
+            if (phone && !/^\d[\d\s-]*$/.test(phone)) {
+                errors.phone = 'Please enter a valid phone number (numbers only).';
+            }
+
             const strength = getStrength(password);
             if (!password) errors.password = 'Choose a password.';
             else if (password.length < 8) errors.password = 'Password must be at least 8 characters.';
@@ -1976,7 +2225,8 @@
                 role: 'signupRoleError',
                 year: 'signupYearError',
                 university: 'signupUniversityError',
-                agree: 'signupAgreeError'
+                agree: 'signupAgreeError',
+                phone: 'signupPhoneError'
             };
 
             Object.values(fields).forEach(id => {
@@ -2001,6 +2251,9 @@
 
             if (Object.keys(errors).length > 0) return false;
 
+            // Format phone number with country code
+            const fullPhone = phone ? `${countryCode} ${phone}` : '';
+
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span> Creating account…';
 
@@ -2014,7 +2267,7 @@
                             role: role,
                             year: year,
                             university: university,
-                            phone: phone,
+                            phone: fullPhone,
                             license: license,
                             location: location,
                         }
@@ -2027,11 +2280,6 @@
                 }
 
                 resetAttempts(RL_KEY);
-
-                // Profile creation is now handled entirely server-side by a DB
-                // trigger consuming raw_user_meta_data (see comment above).
-                // We no longer insert from the client, and no longer silently
-                // swallow a failed insert here.
 
                 showNotice('signupNotice', 'success',
                     `Account created! Check ${email} for confirmation.`
@@ -2210,7 +2458,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[App] DOM ready, initializing...');
 
-            // Check if Supabase SDK is available
             if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
                 initSupabase();
             } else {
