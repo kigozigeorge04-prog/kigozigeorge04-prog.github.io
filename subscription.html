@@ -812,20 +812,22 @@
                 const moduleName = MODULES.find(m => m.id === selectedModule)?.name || selectedModule;
 
                 // Create subscription with selected module - FIXED: use active_module
-                const { data, error } = await supabaseClient
-                    .from('subscriptions')
-                    .insert({
-                        user_id: currentUser.id,
-                        plan_id: plan.id,
-                        plan_type: plan.slug,
-                        status: 'pending',
-                        active_module: selectedModule,  // ✅ FIXED: use active_module instead of allowed_modules
-                        start_date: new Date().toISOString(),
-                        expiry_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
-                        payment_status: 'pending'
-                    })
-                    .select()
-                    .single();
+// In confirmModuleSelection() - make sure it looks like this:
+const { data, error } = await supabaseClient
+    .from('subscriptions')
+    .insert({
+        user_id: currentUser.id,
+        plan_id: plan.id,
+        plan_type: plan.slug,
+        status: 'pending',  // ← Starts as pending
+        active_module: selectedModule,  // ← Store the selected module
+        start_date: new Date().toISOString(),
+        expiry_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
+        payment_status: 'pending',
+        created_at: new Date().toISOString()
+    })
+    .select()
+    .single();
 
                 if (error) throw error;
 
