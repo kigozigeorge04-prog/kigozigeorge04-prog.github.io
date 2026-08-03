@@ -1261,6 +1261,7 @@ async function loadPlanBadge() {
     }
 
    // ─── OPEN MODULE (gated by subscriptions table) ───
+// ─── OPEN MODULE (gated by subscriptions table) ───
 async function openModule(url, moduleCode) {
     const sb = window.sb;
     if (!sb) {
@@ -1275,13 +1276,15 @@ async function openModule(url, moduleCode) {
             return;
         }
 
+        console.log('[Module] Checking access for:', moduleCode);
+        console.log('[Module] User ID:', session.user.id);
+
+        // Get the most recent active or pending subscription
         const { data: sub, error } = await sb
             .from('subscriptions')
-            .select('plan_type, active_module, expiry_date')
+            .select('plan_type, active_module, expiry_date, status, payment_status')
             .eq('user_id', session.user.id)
-            .eq('status', 'active')
-            .gte('expiry_date', new Date().toISOString())
-            .order('expiry_date', { ascending: false })
+            .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
 
@@ -1291,21 +1294,47 @@ async function openModule(url, moduleCode) {
             return;
         }
 
+        console.log('[Module] Subscription found:', sub);
+
         if (!sub) {
+            console.log('[Module] No subscription found');
             window.location.href = `subscription.html?reason=expired`;
             return;
         }
 
-        // If basic plan, check if active_module matches
+        // Check if subscription is active
+        if (sub.status !== 'active') {
+            console.log('[Module] Subscription status:', sub.status);
+            if (sub.status === 'pending') {
+                window.location.href = `subscription.html?reason=pending`;
+                return;
+            }
+            window.location.href = `subscription.html?reason=expired`;
+            return;
+        }
+
+        // Check if subscription is expired
+        if (sub.expiry_date && new Date(sub.expiry_date) < new Date()) {
+            console.log('[Module] Subscription expired');
+            window.location.href = `subscription.html?reason=expired`;
+            return;
+        }
+
+        // Check plan type
         if (sub.plan_type === 'basic') {
-            // active_module is either null (shouldn't happen for basic) or a string
-            if (sub.active_module !== moduleCode) {
+            console.log('[Module] Basic plan, active_module:', sub.active_module);
+            console.log('[Module] Requested module:', moduleCode);
+            
+            // Check if active_module matches
+            if (!sub.active_module || sub.active_module !== moduleCode) {
+                console.log('[Module] Module mismatch or null');
                 window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
                 return;
             }
         }
 
-        // Premium/free-trial, or basic with matching module
+        // Premium or free_trial, or basic with matching module
+        console.log('[Module] Access granted for:', moduleCode);
         window.location.href = url;
 
     } catch (error) {
