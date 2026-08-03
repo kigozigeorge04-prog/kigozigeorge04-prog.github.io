@@ -501,6 +501,42 @@
                     </div>
                 </div>
             </div>
+            <!-- Pending Subscriptions Section -->
+<div class="admin-section">
+    <h2>⏳ Pending Subscriptions</h2>
+    <div id="pendingSubscriptions"></div>
+</div>
+
+<script>
+async function loadPendingSubscriptions() {
+    const { data } = await supabaseClient
+        .from('subscriptions')
+        .select(`
+            *,
+            profiles:user_id (full_name, email)
+        `)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true });
+    
+    // Display in table with Verify button
+}
+
+async function verifySubscription(id) {
+    const { error } = await supabaseClient
+        .from('subscriptions')
+        .update({
+            status: 'active',
+            payment_status: 'paid',
+            verified_at: new Date().toISOString()
+        })
+        .eq('id', id);
+    
+    if (!error) {
+        alert('✅ Subscription verified!');
+        loadPendingSubscriptions();
+    }
+}
+</script>
 
             <!-- OSCE Image Manager -->
             <div class="osce-section">
