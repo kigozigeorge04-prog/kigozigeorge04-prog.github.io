@@ -2516,7 +2516,74 @@
                 window.location.href = 'easemed_login.html';
             }
         }
+// ─── VERIFY MODULE ACCESS ───
+async function verifyAccess(moduleCode) {
+    const sb = window.sb;
+    if (!sb) {
+        window.location.href = 'subscription.html?reason=error';
+        return false;
+    }
 
+    try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+            window.location.href = 'easemed_login.html';
+            return false;
+        }
+
+        const { data: sub, error } = await sb
+            .from('subscriptions')
+            .select('plan_type, allowed_modules, expiry_date')
+            .eq('user_id', session.user.id)
+            .eq('status', 'active')
+            .gte('expiry_date', new Date().toISOString())
+            .order('expiry_date', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (error) {
+            console.warn('[Access] Error checking subscription:', error);
+            window.location.href = 'subscription.html?reason=error';
+            return false;
+        }
+
+        if (!sub) {
+            window.location.href = `subscription.html?reason=expired`;
+            return false;
+        }
+
+        if (sub.plan_type === 'basic') {
+            let allowed = sub.allowed_modules;
+            if (typeof allowed === 'string') {
+                allowed = allowed.split(',').map(m => m.trim());
+            }
+            if (!Array.isArray(allowed) || !allowed.includes(moduleCode)) {
+                window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
+                return false;
+            }
+        }
+
+        // Premium or free-trial, or basic with module included
+        return true;
+
+    } catch (error) {
+        console.error('[Access] Error:', error);
+        window.location.href = 'subscription.html?reason=error';
+        return false;
+    }
+}
+
+// ─── PAGE INITIALIZATION ───
+document.addEventListener('DOMContentLoaded', async () => {
+    // Verify access for Internal Medicine module
+    const hasAccess = await verifyAccess('imed');
+    if (!hasAccess) return;
+    
+    // If we get here, user has access - load your module content
+    console.log('[Dashboard] Access granted for Internal Medicine');
+    // Your existing initialization code here...
+});
+        
         // ─── INITIALIZE PAGE ───
         function initializePage() {
             console.log('[Page] Initializing...');
