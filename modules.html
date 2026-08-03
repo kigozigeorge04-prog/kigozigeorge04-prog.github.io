@@ -828,19 +828,18 @@
             <span id="userGreeting"></span>
             <span class="edition">Hutchison's, 25th Ed.</span>
 
-            <!-- Add this to the right-group in modules.html -->
-<span id="planBadge" style="display:none; background: rgba(16,185,129,0.15); color: #065F46; padding: 4px 14px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; border: 1px solid rgba(16,185,129,0.2);">
-    <!-- Populated by JS -->
-</span>
-            <!-- Add this to the right-group in modules.html -->
-<a href="subscription.html" class="btn-admin-top" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9);" title="Subscription">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-        <path d="M12 2v4M12 22v-4M4 4l2 2M20 20l-2-2M4 20l2-2M20 4l-2 2"/>
-        <circle cx="12" cy="12" r="4"/>
-    </svg>
-    Plans
-</a>
-            <!-- PROFILE LINK - NEW -->
+            <span id="planBadge" style="display:none; background: rgba(16,185,129,0.15); color: #065F46; padding: 4px 14px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; border: 1px solid rgba(16,185,129,0.2);">
+                <!-- Populated by JS -->
+            </span>
+
+            <a href="subscription.html" class="btn-admin-top" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9);" title="Subscription">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                    <path d="M12 2v4M12 22v-4M4 4l2 2M20 20l-2-2M4 20l2-2M20 4l-2-2"/>
+                    <circle cx="12" cy="12" r="4"/>
+                </svg>
+                Plans
+            </a>
+            
             <a href="profile.html" class="btn-profile" title="My Profile">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
@@ -868,7 +867,7 @@
 
     <!-- Modules Grid -->
     <div class="modules">
-        <div onclick="openModule('easemed_dashboard.html')" class="card medicine panel-in">
+        <div onclick="openModule('easemed_dashboard.html', 'imed')" class="card medicine panel-in">
             <div class="banner">
                 <span class="num">01</span>
                 <span class="icon-big">📚</span>
@@ -882,7 +881,7 @@
             </div>
         </div>
 
-        <div onclick="openModule('surgery-clerking.html')" class="card surgery panel-in" style="animation-delay:0.05s;">
+        <div onclick="openModule('surgery-clerking.html', 'surgery')" class="card surgery panel-in" style="animation-delay:0.05s;">
             <div class="banner">
                 <span class="num">02</span>
                 <span class="icon-big">🔪</span>
@@ -896,7 +895,7 @@
             </div>
         </div>
 
-        <div onclick="openModule('easemed_pediatrics.html')" class="card peds panel-in" style="animation-delay:0.1s;">
+        <div onclick="openModule('easemed_pediatrics.html', 'peds')" class="card peds panel-in" style="animation-delay:0.1s;">
             <div class="banner">
                 <span class="num">03</span>
                 <span class="icon-big">👶</span>
@@ -910,7 +909,7 @@
             </div>
         </div>
 
-        <div onclick="openModule('ObGyn.html')" class="card obgyn panel-in" style="animation-delay:0.15s;">
+        <div onclick="openModule('ObGyn.html', 'obgyn')" class="card obgyn panel-in" style="animation-delay:0.15s;">
             <div class="banner">
                 <span class="num">04</span>
                 <span class="icon-big">🤰</span>
@@ -1070,6 +1069,7 @@
 
             startSessionMonitoring();
             await checkSubscriptionStatus(user.id);
+            await loadPlanBadge();
             trackUserActivity(user.id);
 
         } catch (error) {
@@ -1137,44 +1137,50 @@
             }
         }, 30000);
     }
-// ─── LOAD SUBSCRIPTION STATUS FOR DISPLAY ───
-async function loadPlanBadge() {
-    try {
-        const { data, error } = await supabaseClient
-            .from('subscriptions')
-            .select('plan_type, expiry_date')
-            .eq('user_id', currentUser.id)
-            .eq('status', 'active')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
 
-        if (error) throw error;
-        
-        const badge = document.getElementById('planBadge');
-        if (data) {
-            badge.style.display = 'inline';
-            const planNames = {
-                'free_trial': '🎁 Free Trial',
-                'basic': '🩺 Basic',
-                'premium': '⭐ Premium'
-            };
-            badge.textContent = planNames[data.plan_type] || data.plan_type;
+    // ─── LOAD SUBSCRIPTION STATUS FOR DISPLAY ───
+    async function loadPlanBadge() {
+        const sb = window.sb;
+        if (!sb) return;
+
+        try {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) return;
+
+            const { data, error } = await sb
+                .from('subscriptions')
+                .select('plan_type, expiry_date')
+                .eq('user_id', session.user.id)
+                .eq('status', 'active')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (error) throw error;
             
-            if (data.plan_type === 'premium') {
-                badge.style.background = 'rgba(16,185,129,0.15)';
-                badge.style.color = '#065F46';
-            } else if (data.plan_type === 'basic') {
-                badge.style.background = 'rgba(59,130,246,0.15)';
-                badge.style.color = '#1E40AF';
+            const badge = document.getElementById('planBadge');
+            if (data) {
+                badge.style.display = 'inline';
+                const planNames = {
+                    'free_trial': '🎁 Free Trial',
+                    'basic': '🩺 Basic',
+                    'premium': '⭐ Premium'
+                };
+                badge.textContent = planNames[data.plan_type] || data.plan_type;
+                
+                if (data.plan_type === 'premium') {
+                    badge.style.background = 'rgba(16,185,129,0.15)';
+                    badge.style.color = '#065F46';
+                } else if (data.plan_type === 'basic') {
+                    badge.style.background = 'rgba(59,130,246,0.15)';
+                    badge.style.color = '#1E40AF';
+                }
             }
+        } catch (error) {
+            console.log('[Plan Badge] Not available:', error.message);
         }
-    } catch (error) {
-        console.log('[Plan Badge] Not available');
     }
-}
 
-// Call this after loading modules
     // ─── CHECK SUBSCRIPTION STATUS ───
     async function checkSubscriptionStatus(userId) {
         try {
@@ -1204,23 +1210,21 @@ async function loadPlanBadge() {
     }
 
     // ─── TRACK USER ACTIVITY ───
-   async function trackUserActivity(userId) {
-    try {
-        // Try to update, but don't fail if it doesn't work
-        const { error } = await window.sb
-            .from('profiles')
-            .update({ last_activity: new Date().toISOString() })
-            .eq('id', userId);
-        
-        if (error) {
-            // Silently ignore - non-critical
-            console.log('[Activity] Update skipped:', error.message);
+    async function trackUserActivity(userId) {
+        try {
+            const { error } = await window.sb
+                .from('profiles')
+                .update({ last_activity: new Date().toISOString() })
+                .eq('id', userId);
+            
+            if (error) {
+                console.log('[Activity] Update skipped:', error.message);
+            }
+        } catch (error) {
+            console.log('[Activity] Tracking not available');
         }
-    } catch (error) {
-        // Silently ignore all errors
-        console.log('[Activity] Tracking not available');
     }
-}
+
     // ─── HANDLE LOGOUT ───
     async function handleLogout() {
         try {
@@ -1242,8 +1246,8 @@ async function loadPlanBadge() {
         }
     }
 
-    // ─── OPEN MODULE ───
-    async function openModule(url) {
+    // ─── OPEN MODULE (gated by subscriptions table) ───
+    async function openModule(url, moduleCode) {
         const sb = window.sb;
         if (!sb) {
             window.location.href = 'easemed_login.html';
@@ -1257,23 +1261,47 @@ async function loadPlanBadge() {
                 return;
             }
 
-            const { data: profile } = await sb
-                .from('profiles')
-                .select('is_active, expires_at')
-                .eq('id', window._currentUser?.id)
-                .single();
+            const { data: sub, error } = await sb
+                .from('subscriptions')
+                .select('plan_type, allowed_modules, expiry_date')
+                .eq('user_id', session.user.id)
+                .eq('status', 'active')
+                .gte('expiry_date', new Date().toISOString())
+                .order('expiry_date', { ascending: false })
+                .limit(1)
+                .maybeSingle();
 
-            const isActive = profile?.is_active !== false &&
-                (!profile?.expires_at || new Date(profile.expires_at) > new Date());
-
-            if (!isActive) {
-                console.log('[Module] Subscription inactive, but allowing access');
+            if (error) {
+                console.warn('[Module] Access check failed:', error);
+                window.location.href = `subscription.html?reason=error`;
+                return;
             }
 
+            if (!sub) {
+                window.location.href = `subscription.html?reason=expired`;
+                return;
+            }
+
+            // If basic plan, check if module is in allowed_modules
+            if (sub.plan_type === 'basic') {
+                // Handle both array and comma-separated string formats
+                let allowed = sub.allowed_modules;
+                if (typeof allowed === 'string') {
+                    allowed = allowed.split(',').map(m => m.trim());
+                }
+                
+                if (!Array.isArray(allowed) || !allowed.includes(moduleCode)) {
+                    window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
+                    return;
+                }
+            }
+
+            // Premium/free-trial, or basic with module included
             window.location.href = url;
+
         } catch (error) {
             console.error('[Module] Error:', error);
-            window.location.href = url;
+            window.location.href = `subscription.html?reason=error`;
         }
     }
 
