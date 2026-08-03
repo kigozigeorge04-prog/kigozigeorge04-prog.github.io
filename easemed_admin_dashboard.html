@@ -164,6 +164,7 @@
         .status-badge.pending { background: rgba(245,158,11,0.15); color: #92400E; }
         .status-badge.verified { background: rgba(16,185,129,0.15); color: #059669; }
         .status-badge.rejected { background: rgba(239,68,68,0.15); color: #DC2626; }
+        .status-badge.expired { background: rgba(239,68,68,0.15); color: #991B1B; }
 
         .expiry-control { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .expiry-control input {
@@ -190,6 +191,76 @@
             border: 1px solid rgba(11,26,46,0.18); background: rgba(255,255,255,0.76);
             color: #0B1A2E; font: inherit;
         }
+
+        /* ─── PENDING SUBSCRIPTIONS ─── */
+        .admin-section {
+            margin-top: 32px;
+        }
+        .admin-section h2 {
+            font-family: 'Lora', serif;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: #0B1A2E;
+        }
+        .pending-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .pending-card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 16px 20px;
+            border: 1px solid rgba(255,255,255,0.12);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .pending-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+        }
+        .pending-card .user { font-weight: 600; font-size: 1rem; }
+        .pending-card .email { font-size: 0.8rem; color: rgba(11,26,46,0.5); }
+        .pending-card .details {
+            display: flex; gap: 16px; flex-wrap: wrap;
+            margin: 8px 0; font-size: 0.85rem;
+        }
+        .pending-card .details span {
+            background: rgba(255,255,255,0.05);
+            padding: 2px 10px;
+            border-radius: 4px;
+        }
+        .pending-card .actions {
+            display: flex; gap: 8px; margin-top: 12px;
+        }
+        .pending-card .actions button {
+            flex: 1; padding: 10px; border: none; border-radius: 6px;
+            font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif;
+            font-size: 0.85rem; transition: transform 0.2s;
+        }
+        .pending-card .actions button:hover { transform: translateY(-2px); }
+        .pending-card .actions .verify-btn {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+        }
+        .pending-card .actions .reject-btn {
+            background: rgba(239,68,68,0.15);
+            color: #991B1B;
+            border: 1px solid rgba(239,68,68,0.2);
+        }
+        .pending-card .actions .reject-btn:hover {
+            background: rgba(239,68,68,0.25);
+        }
+        .pending-card .actions button:disabled {
+            opacity: 0.5; cursor: not-allowed; transform: none !important;
+        }
+        .pending-empty {
+            text-align: center;
+            padding: 40px;
+            color: rgba(11,26,46,0.4);
+        }
+        .pending-empty .icon { font-size: 2.5rem; margin-bottom: 8px; }
 
         /* ─── PAYMENT VERIFICATION ─── */
         .payments-section { margin-top: 32px; }
@@ -397,6 +468,7 @@
             .osce-controls .field input[type="file"] { min-width: unset; width: 100%; }
             .station-list-compact { grid-template-columns: 1fr; }
             .payments-grid { grid-template-columns: 1fr; }
+            .pending-grid { grid-template-columns: 1fr; }
             .modal-content { padding: 24px; margin: 16px; }
         }
         @media (max-width:480px) {
@@ -451,8 +523,8 @@
 
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card"><div class="number" id="totalUsers">—</div><div class="label">Total Users</div></div>
-                <div class="stat-card"><div class="number" id="activeUsers">—</div><div class="label">Active Users</div></div>
-                <div class="stat-card"><div class="number" id="pendingPayments">—</div><div class="label">Pending Payments</div></div>
+                <div class="stat-card"><div class="number" id="activeUsers">—</div><div class="label">Active Subscriptions</div></div>
+                <div class="stat-card"><div class="number" id="pendingCount">—</div><div class="label">Pending Subscriptions</div></div>
                 <div class="stat-card"><div class="number" id="totalPayments">—</div><div class="label">Total Payments</div></div>
             </div>
 
@@ -468,13 +540,30 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Access Expires</th><th>Action</th>
+                            <th>User</th><th>Email</th><th>Role</th><th>Subscription</th><th>Expires</th><th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="usersTableBody">
                         <tr><td colspan="6" style="text-align:center; padding:32px; color:rgba(11,26,46,0.4);">Loading users...</td></tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- ─── PENDING SUBSCRIPTIONS ─── -->
+            <div class="admin-section">
+                <div class="users-toolbar">
+                    <div>
+                        <h2>⏳ Pending Subscriptions</h2>
+                        <p id="pendingSubsCount">Loading subscriptions…</p>
+                    </div>
+                    <button class="btn-primary" onclick="loadPendingSubscriptions()" style="padding:6px 16px; font-size:0.8rem;">🔄 Refresh</button>
+                </div>
+                <div id="pendingSubscriptionsContainer">
+                    <div style="text-align:center; padding:40px; color:rgba(11,26,46,0.4);">
+                        <div class="spinner" style="width:30px; height:30px; margin:0 auto 16px;"></div>
+                        Loading pending subscriptions...
+                    </div>
+                </div>
             </div>
 
             <!-- ─── PAYMENT VERIFICATION ─── -->
@@ -501,42 +590,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Pending Subscriptions Section -->
-<div class="admin-section">
-    <h2>⏳ Pending Subscriptions</h2>
-    <div id="pendingSubscriptions"></div>
-</div>
-
-<script>
-async function loadPendingSubscriptions() {
-    const { data } = await supabaseClient
-        .from('subscriptions')
-        .select(`
-            *,
-            profiles:user_id (full_name, email)
-        `)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: true });
-    
-    // Display in table with Verify button
-}
-
-async function verifySubscription(id) {
-    const { error } = await supabaseClient
-        .from('subscriptions')
-        .update({
-            status: 'active',
-            payment_status: 'paid',
-            verified_at: new Date().toISOString()
-        })
-        .eq('id', id);
-    
-    if (!error) {
-        alert('✅ Subscription verified!');
-        loadPendingSubscriptions();
-    }
-}
-</script>
 
             <!-- OSCE Image Manager -->
             <div class="osce-section">
@@ -599,7 +652,7 @@ async function verifySubscription(id) {
                     <div class="plan-icon">⭐</div>
                     <div class="plan-info">
                         <div class="plan-name">Premium Access</div>
-                        <div class="plan-desc">All modules + OSCE Practice · UGX 10,000/month</div>
+                        <div class="plan-desc">All modules + OSCE Practice · UGX 50,000/month</div>
                     </div>
                     <div class="plan-check">✓</div>
                 </div>
@@ -607,7 +660,7 @@ async function verifySubscription(id) {
                     <div class="plan-icon">📋</div>
                     <div class="plan-info">
                         <div class="plan-name">Basic Access</div>
-                        <div class="plan-desc">One active rotation · UGX 5,000/month</div>
+                        <div class="plan-desc">One active rotation · UGX 15,000/month</div>
                     </div>
                     <div class="plan-check">✓</div>
                 </div>
@@ -621,11 +674,11 @@ async function verifySubscription(id) {
                 </div>
             </div>
 
-            <div style="margin-top:12px;">
+            <div style="margin-top:12px;" id="moduleSelectContainer">
                 <label style="font-size:0.8rem; color:rgba(11,26,46,0.5);">Active Module (for Basic plan)</label>
-                <select id="activeModuleSelect" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid rgba(11,26,46,0.15); background:rgba(255,255,255,0.76); color:#0B1A2E; font-family:'Inter',sans-serif; margin-top:4px;">
+                <select id="activeModuleSelect" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid rgba(11,26,46,0.15); background:rgba(255,255,255,0.76); color:#0B1A2E; font-family:'Inter',sans-serif; margin-top:4px; display:none;">
                     <option value="imed">Internal Medicine</option>
-                    <option value="surgery" selected>Surgery</option>
+                    <option value="surgery">Surgery</option>
                     <option value="peds">Pediatrics</option>
                     <option value="obgyn">OB/GYN</option>
                 </select>
@@ -666,6 +719,7 @@ async function verifySubscription(id) {
         let currentOsceStations = [];
         let selectedPlan = null;
         let selectedUserId = null;
+        let pendingSubscriptions = [];
 
         // ─── INIT ───
         function initSupabase() {
@@ -733,6 +787,7 @@ async function verifySubscription(id) {
                 content.style.display = 'block';
 
                 await loadDashboardData();
+                await loadPendingSubscriptions();
                 await loadPayments();
 
             } catch (error) {
@@ -751,22 +806,6 @@ async function verifySubscription(id) {
                 if (p) p.textContent = message;
             }
         }
-        // In easemed_admin_dashboard.html
-async function verifyPendingSubscription(subscriptionId) {
-    const { error } = await supabaseClient
-        .from('subscriptions')
-        .update({ 
-            status: 'active', 
-            payment_status: 'paid',
-            verified_at: new Date().toISOString()
-        })
-        .eq('id', subscriptionId);
-    
-    if (!error) {
-        alert('✅ Subscription activated!');
-        loadPendingSubscriptions(); // Refresh list
-    }
-}
 
         // ─── LOAD DASHBOARD DATA ───
         async function loadDashboardData() {
@@ -775,12 +814,20 @@ async function verifyPendingSubscription(subscriptionId) {
                 const { count: totalUsers } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
                 document.getElementById('totalUsers').textContent = totalUsers || 0;
 
-                const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-                const { count: activeUsers } = await supabaseClient
-                    .from('profiles')
+                // Count active subscriptions
+                const { count: activeSubs } = await supabaseClient
+                    .from('subscriptions')
                     .select('*', { count: 'exact', head: true })
-                    .gte('last_activity', weekAgo.toISOString());
-                document.getElementById('activeUsers').textContent = activeUsers || 0;
+                    .eq('status', 'active')
+                    .gte('expiry_date', new Date().toISOString());
+                document.getElementById('activeUsers').textContent = activeSubs || 0;
+
+                // Count pending subscriptions
+                const { count: pendingCount } = await supabaseClient
+                    .from('subscriptions')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'pending');
+                document.getElementById('pendingCount').textContent = pendingCount || 0;
 
                 await loadUsersTable();
                 await loadAllOsceStations();
@@ -795,14 +842,31 @@ async function verifyPendingSubscription(subscriptionId) {
         async function loadUsersTable() {
             if (!supabaseClient) return;
             try {
-                const { data, error } = await supabaseClient
+                // Get users with their subscriptions
+                const { data: users, error: userError } = await supabaseClient
                     .from('profiles')
-                    .select('id, full_name, email, role, is_active, access_expires_at, created_at')
+                    .select('id, full_name, email, role, created_at')
                     .order('created_at', { ascending: false });
 
-                if (error) throw error;
+                if (userError) throw userError;
 
-                allUsers = data || [];
+                // Get subscriptions for all users
+                const { data: subs, error: subError } = await supabaseClient
+                    .from('subscriptions')
+                    .select('user_id, plan_type, status, expiry_date')
+                    .eq('status', 'active');
+
+                if (subError) throw subError;
+
+                // Map subscriptions to users
+                allUsers = users.map(user => {
+                    const sub = subs?.find(s => s.user_id === user.id);
+                    return {
+                        ...user,
+                        subscription: sub || null
+                    };
+                });
+
                 filterUsers();
 
             } catch (error) {
@@ -831,31 +895,242 @@ async function verifyPendingSubscription(subscriptionId) {
             }
 
             tbody.innerHTML = users.map(user => {
-                const expired = user.access_expires_at && new Date(user.access_expires_at).getTime() < Date.now();
-                const expiryDate = user.access_expires_at ? user.access_expires_at.slice(0, 10) : '';
-                const status = expired ? 'Expired' : (user.is_active !== false ? 'Active' : 'Inactive');
-                const statusClass = expired || user.is_active === false ? 'inactive' : 'active';
-                const isActive = user.is_active !== false && !expired;
+                const sub = user.subscription;
+                const hasActiveSub = sub && sub.status === 'active' && new Date(sub.expiry_date) > new Date();
+                const statusClass = hasActiveSub ? 'active' : 'inactive';
+                const statusText = hasActiveSub ? sub.plan_type : 'No Subscription';
+                const expiryDate = sub?.expiry_date ? sub.expiry_date.slice(0, 10) : '—';
+                
                 return `
                     <tr>
                         <td><strong>${user.full_name || 'Unnamed'}</strong></td>
                         <td>${user.email || '—'}</td>
                         <td>${user.role || 'User'}</td>
-                        <td><span class="status-badge ${statusClass}">${status}</span></td>
-                        <td><div class="expiry-control">
-                            <input id="expiry-${user.id}" type="date" value="${expiryDate}">
-                            <button class="table-action" onclick="setUserExpiry('${user.id}')">Save</button>
-                            ${user.access_expires_at ? `<button class="table-action" onclick="clearUserExpiry('${user.id}')">Clear</button>` : ''}
-                        </div></td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${expiryDate}</td>
                         <td>
-                            ${!isActive ? 
+                            ${!hasActiveSub ? 
                                 `<button class="table-action activate-btn" onclick="openActivationModal('${user.id}', '${user.full_name || 'User'}')">✅ Activate</button>` :
-                                `<button class="table-action" onclick="toggleUserStatus('${user.id}', false)" style="background:rgba(239,68,68,0.15);color:#991B1B;border-color:rgba(239,68,68,0.2);">Deactivate</button>`
+                                `<button class="table-action" onclick="deactivateUser('${user.id}')" style="background:rgba(239,68,68,0.15);color:#991B1B;border-color:rgba(239,68,68,0.2);">Deactivate</button>`
                             }
                         </td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        // ─── PENDING SUBSCRIPTIONS ───
+        async function loadPendingSubscriptions() {
+            try {
+                console.log('[Admin] Loading pending subscriptions...');
+                
+                const { data, error } = await supabaseClient
+                    .from('subscriptions')
+                    .select(`
+                        *,
+                        profiles:user_id (full_name, email)
+                    `)
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                pendingSubscriptions = data || [];
+                console.log('[Admin] Pending subscriptions:', pendingSubscriptions.length);
+                
+                document.getElementById('pendingSubsCount').textContent = 
+                    `${pendingSubscriptions.length} pending subscriptions`;
+                
+                renderPendingSubscriptions();
+
+            } catch (error) {
+                console.error('[Admin] Load pending error:', error);
+                document.getElementById('pendingSubscriptionsContainer').innerHTML = `
+                    <div style="text-align:center; padding:40px; color:#DC2626;">
+                        ❌ Failed to load pending subscriptions: ${error.message}
+                        <br><br>
+                        <button class="btn-primary" onclick="loadPendingSubscriptions()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderPendingSubscriptions() {
+            const container = document.getElementById('pendingSubscriptionsContainer');
+            
+            if (!pendingSubscriptions.length) {
+                container.innerHTML = `
+                    <div class="pending-empty">
+                        <div class="icon">✅</div>
+                        <h3>No Pending Subscriptions</h3>
+                        <p>All subscriptions have been verified.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `<div class="pending-grid">` + pendingSubscriptions.map(sub => {
+                const profile = sub.profiles || {};
+                const planLabels = {
+                    'free_trial': '🎁 Free Trial',
+                    'basic': '📋 Basic',
+                    'premium': '⭐ Premium'
+                };
+                const moduleName = sub.allowed_modules && Array.isArray(sub.allowed_modules) 
+                    ? sub.allowed_modules.join(', ') 
+                    : sub.allowed_modules || 'All modules';
+                
+                return `
+                    <div class="pending-card" id="pending-${sub.id}">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <div class="user">${profile.full_name || 'Unknown User'}</div>
+                                <div class="email">${profile.email || 'No email'}</div>
+                            </div>
+                            <span class="status-badge pending">⏳ Pending</span>
+                        </div>
+                        <div class="details">
+                            <span>📋 ${planLabels[sub.plan_type] || sub.plan_type}</span>
+                            <span>📚 ${moduleName}</span>
+                            <span>📅 ${new Date(sub.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:rgba(11,26,46,0.4); margin-top:4px;">
+                            Payment: ${sub.payment_status || 'pending'}
+                        </div>
+                        <div class="actions">
+                            <button class="verify-btn" onclick="verifySubscription('${sub.id}')">
+                                ✅ Verify & Activate
+                            </button>
+                            <button class="reject-btn" onclick="rejectSubscription('${sub.id}')">
+                                ✕ Reject
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('') + `</div>`;
+        }
+
+        // ─── VERIFY SUBSCRIPTION ───
+        async function verifySubscription(subscriptionId) {
+            if (!confirm('✅ Verify this subscription and activate the account?')) return;
+
+            const card = document.getElementById(`pending-${subscriptionId}`);
+            const btns = card?.querySelectorAll('.actions button');
+            if (btns) {
+                btns.forEach(b => {
+                    b.disabled = true;
+                    b.textContent = '⏳ Processing...';
+                });
+            }
+
+            try {
+                console.log('[Admin] Verifying subscription:', subscriptionId);
+                
+                const { error } = await supabaseClient
+                    .from('subscriptions')
+                    .update({
+                        status: 'active',
+                        payment_status: 'paid',
+                        verified_at: new Date().toISOString(),
+                        verified_by: currentUser.id
+                    })
+                    .eq('id', subscriptionId);
+
+                if (error) throw error;
+
+                showToast('✅ Subscription verified and activated!');
+                await loadPendingSubscriptions();
+                await loadUsersTable();
+                await loadDashboardData();
+
+            } catch (error) {
+                console.error('[Verify] Error:', error);
+                showToast('❌ Verification failed: ' + error.message, true);
+                if (btns) {
+                    btns.forEach(b => {
+                        b.disabled = false;
+                        b.textContent = b.classList.contains('verify-btn') ? '✅ Verify & Activate' : '✕ Reject';
+                    });
+                }
+            }
+        }
+
+        // ─── REJECT SUBSCRIPTION ───
+        async function rejectSubscription(subscriptionId) {
+            if (!confirm('❌ Reject this subscription request?')) return;
+
+            const card = document.getElementById(`pending-${subscriptionId}`);
+            const btns = card?.querySelectorAll('.actions button');
+            if (btns) {
+                btns.forEach(b => {
+                    b.disabled = true;
+                    b.textContent = '⏳ Processing...';
+                });
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('subscriptions')
+                    .update({
+                        status: 'rejected',
+                        payment_status: 'rejected',
+                        verified_at: new Date().toISOString(),
+                        verified_by: currentUser.id,
+                        notes: 'Rejected by admin'
+                    })
+                    .eq('id', subscriptionId);
+
+                if (error) throw error;
+
+                showToast('❌ Subscription rejected.', true);
+                await loadPendingSubscriptions();
+
+            } catch (error) {
+                console.error('[Reject] Error:', error);
+                showToast('❌ Failed to reject: ' + error.message, true);
+                if (btns) {
+                    btns.forEach(b => {
+                        b.disabled = false;
+                        b.textContent = b.classList.contains('verify-btn') ? '✅ Verify & Activate' : '✕ Reject';
+                    });
+                }
+            }
+        }
+
+        // ─── DEACTIVATE USER ───
+        async function deactivateUser(userId) {
+            if (!confirm('⚠️ Deactivate this user? They will lose access to all modules.')) return;
+
+            try {
+                // Update subscription to inactive
+                const { error: subError } = await supabaseClient
+                    .from('subscriptions')
+                    .update({
+                        status: 'inactive',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('user_id', userId)
+                    .eq('status', 'active');
+
+                if (subError) throw subError;
+
+                // Also update profile
+                await supabaseClient
+                    .from('profiles')
+                    .update({
+                        is_active: false,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', userId);
+
+                showToast('✅ User deactivated.');
+                await loadUsersTable();
+                await loadDashboardData();
+
+            } catch (error) {
+                console.error('[Deactivate] Error:', error);
+                showToast('❌ Failed to deactivate: ' + error.message, true);
+            }
         }
 
         // ─── ACTIVATION MODAL ───
@@ -869,6 +1144,10 @@ async function verifyPendingSubscription(subscriptionId) {
             document.querySelectorAll('.plan-option').forEach(el => {
                 el.classList.remove('selected');
             });
+            
+            // Hide module select by default
+            document.getElementById('activeModuleSelect').style.display = 'none';
+            document.querySelector('.modal-footer-text').textContent = 'User will get 30 days access from activation date';
             
             document.getElementById('activationModal').classList.add('active');
         }
@@ -924,18 +1203,6 @@ async function verifyPendingSubscription(subscriptionId) {
 
                 if (userError) throw userError;
 
-                // Activate user profile
-                const { error: profileError } = await supabaseClient
-                    .from('profiles')
-                    .update({
-                        is_active: true,
-                        access_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', selectedUserId);
-
-                if (profileError) throw profileError;
-
                 // Get plan ID
                 const { data: plan, error: planError } = await supabaseClient
                     .from('subscription_plans')
@@ -945,16 +1212,31 @@ async function verifyPendingSubscription(subscriptionId) {
 
                 if (planError) throw planError;
 
-                // Check if user already has a subscription
+                // Check if user already has a pending subscription
                 const { data: existingSub, error: subCheckError } = await supabaseClient
                     .from('subscriptions')
                     .select('id')
                     .eq('user_id', selectedUserId)
-                    .eq('status', 'active')
+                    .eq('status', 'pending')
                     .maybeSingle();
 
-                if (!subCheckError && !existingSub) {
-                    // Create subscription
+                if (!subCheckError && existingSub) {
+                    // Update existing pending subscription
+                    await supabaseClient
+                        .from('subscriptions')
+                        .update({
+                            plan_id: plan.id,
+                            plan_type: selectedPlan,
+                            status: 'active',
+                            allowed_modules: selectedPlan === 'basic' ? [activeModule] : null,
+                            expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                            payment_status: 'paid',
+                            verified_at: new Date().toISOString(),
+                            verified_by: currentUser.id
+                        })
+                        .eq('id', existingSub.id);
+                } else {
+                    // Create new subscription
                     await supabaseClient
                         .from('subscriptions')
                         .insert({
@@ -962,25 +1244,23 @@ async function verifyPendingSubscription(subscriptionId) {
                             plan_id: plan.id,
                             plan_type: selectedPlan,
                             status: 'active',
-                            active_module: selectedPlan === 'basic' ? activeModule : null,
+                            allowed_modules: selectedPlan === 'basic' ? [activeModule] : null,
                             start_date: new Date().toISOString(),
                             expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                            payment_status: 'paid'
+                            payment_status: 'paid',
+                            verified_at: new Date().toISOString(),
+                            verified_by: currentUser.id
                         });
-                } else if (existingSub) {
-                    // Update existing subscription
-                    await supabaseClient
-                        .from('subscriptions')
-                        .update({
-                            plan_id: plan.id,
-                            plan_type: selectedPlan,
-                            status: 'active',
-                            active_module: selectedPlan === 'basic' ? activeModule : null,
-                            expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', existingSub.id);
                 }
+
+                // Update profile
+                await supabaseClient
+                    .from('profiles')
+                    .update({
+                        is_active: true,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', selectedUserId);
 
                 const planDisplay = planNames[selectedPlan] || selectedPlan;
                 showToast(`✅ ${user.full_name || 'User'} activated with ${planDisplay}! 30 days access.`);
@@ -988,6 +1268,7 @@ async function verifyPendingSubscription(subscriptionId) {
                 closeActivationModal();
                 await loadUsersTable();
                 await loadDashboardData();
+                await loadPendingSubscriptions();
 
             } catch (error) {
                 console.error('[Activation] Error:', error);
@@ -995,44 +1276,6 @@ async function verifyPendingSubscription(subscriptionId) {
                 btn.disabled = false;
                 btn.textContent = '✅ Activate User';
             }
-        }
-
-        // ─── USER MANAGEMENT HELPERS ───
-        async function setUserExpiry(userId) {
-            const input = document.getElementById(`expiry-${userId}`);
-            if (!input?.value) { alert('Choose an expiry date.'); return; }
-            try {
-                await supabaseClient
-                    .from('profiles')
-                    .update({ access_expires_at: `${input.value}T23:59:59.999Z`, updated_at: new Date().toISOString() })
-                    .eq('id', userId);
-                await loadUsersTable();
-                showToast('✅ Expiry date updated.');
-            } catch (error) { alert('Failed: ' + error.message); }
-        }
-
-        async function clearUserExpiry(userId) {
-            if (!confirm('Remove this user\'s access expiry date?')) return;
-            try {
-                await supabaseClient
-                    .from('profiles')
-                    .update({ access_expires_at: null, updated_at: new Date().toISOString() })
-                    .eq('id', userId);
-                await loadUsersTable();
-                showToast('✅ Expiry date cleared.');
-            } catch (error) { alert('Failed: ' + error.message); }
-        }
-
-        async function toggleUserStatus(userId, activate) {
-            if (!confirm(`Are you sure you want to ${activate ? 'activate' : 'deactivate'} this user?`)) return;
-            try {
-                await supabaseClient
-                    .from('profiles')
-                    .update({ is_active: activate, updated_at: new Date().toISOString() })
-                    .eq('id', userId);
-                await loadUsersTable();
-                showToast(`✅ User ${activate ? 'activated' : 'deactivated'}.`);
-            } catch (error) { alert('Failed: ' + error.message); }
         }
 
         // ─── PAYMENT VERIFICATION ───
@@ -1050,7 +1293,6 @@ async function verifyPendingSubscription(subscriptionId) {
                 console.log('[Admin] Payments loaded:', allPayments.length);
 
                 const pending = allPayments.filter(p => p.status === 'pending');
-                document.getElementById('pendingPayments').textContent = pending.length;
                 document.getElementById('totalPayments').textContent = allPayments.length;
                 document.getElementById('paymentsCount').textContent = 
                     `${pending.length} pending · ${allPayments.length} total`;
@@ -1100,6 +1342,11 @@ async function verifyPendingSubscription(subscriptionId) {
 
             container.innerHTML = `<div class="payments-grid">` + filtered.map(p => {
                 const statusColors = {
+                    pending: 'pending',
+                    verified: 'verified',
+                    rejected: 'rejected'
+                };
+                const statusLabels = {
                     pending: '🟡 Pending',
                     verified: '🟢 Verified',
                     rejected: '🔴 Rejected'
@@ -1116,7 +1363,7 @@ async function verifyPendingSubscription(subscriptionId) {
                                 <div class="user">${p.user_name || 'Student'}</div>
                                 <div class="email">${p.user_email || 'No email'}</div>
                             </div>
-                            <span class="status-badge ${p.status}">${statusColors[p.status] || p.status}</span>
+                            <span class="status-badge ${statusColors[p.status] || 'pending'}">${statusLabels[p.status] || p.status}</span>
                         </div>
                         <div class="transaction">📱 ${p.transaction_id || 'No transaction ID'}</div>
                         <div class="meta">
@@ -1175,13 +1422,18 @@ async function verifyPendingSubscription(subscriptionId) {
             }
 
             const card = document.getElementById(`payment-${paymentId}`);
-            const btns = card.querySelectorAll('.actions button');
-            btns.forEach(b => b.disabled = true);
-            btns.forEach(b => b.textContent = '⏳ Processing...');
+            const btns = card?.querySelectorAll('.actions button');
+            if (btns) {
+                btns.forEach(b => {
+                    b.disabled = true;
+                    b.textContent = '⏳ Processing...';
+                });
+            }
 
             try {
                 console.log('[Admin] Verifying payment:', paymentId);
                 
+                // Update payment status
                 const { error: updateError } = await supabaseClient
                     .from('payments')
                     .update({
@@ -1194,6 +1446,7 @@ async function verifyPendingSubscription(subscriptionId) {
 
                 if (updateError) throw updateError;
 
+                // Get payment details
                 const { data: payment, error: fetchError } = await supabaseClient
                     .from('payments')
                     .select('user_id, user_email, user_name')
@@ -1202,17 +1455,7 @@ async function verifyPendingSubscription(subscriptionId) {
 
                 if (fetchError) throw fetchError;
 
-                const { error: profileError } = await supabaseClient
-                    .from('profiles')
-                    .update({
-                        is_active: true,
-                        access_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', payment.user_id);
-
-                if (profileError) throw profileError;
-
+                // Get premium plan ID
                 const { data: plan, error: planError } = await supabaseClient
                     .from('subscription_plans')
                     .select('id')
@@ -1220,30 +1463,69 @@ async function verifyPendingSubscription(subscriptionId) {
                     .single();
 
                 if (!planError && plan) {
-                    await supabaseClient
+                    // Check if user already has a pending subscription
+                    const { data: existingSub, error: subCheckError } = await supabaseClient
                         .from('subscriptions')
-                        .insert({
-                            user_id: payment.user_id,
-                            plan_id: plan.id,
-                            plan_type: 'premium',
-                            status: 'active',
-                            start_date: new Date().toISOString(),
-                            expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                            payment_status: 'paid'
-                        });
+                        .select('id')
+                        .eq('user_id', payment.user_id)
+                        .eq('status', 'pending')
+                        .maybeSingle();
+
+                    if (!subCheckError && existingSub) {
+                        // Update existing pending subscription
+                        await supabaseClient
+                            .from('subscriptions')
+                            .update({
+                                plan_id: plan.id,
+                                plan_type: 'premium',
+                                status: 'active',
+                                expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                                payment_status: 'paid',
+                                verified_at: new Date().toISOString(),
+                                verified_by: currentUser.id
+                            })
+                            .eq('id', existingSub.id);
+                    } else {
+                        // Create new subscription
+                        await supabaseClient
+                            .from('subscriptions')
+                            .insert({
+                                user_id: payment.user_id,
+                                plan_id: plan.id,
+                                plan_type: 'premium',
+                                status: 'active',
+                                start_date: new Date().toISOString(),
+                                expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                                payment_status: 'paid',
+                                verified_at: new Date().toISOString(),
+                                verified_by: currentUser.id
+                            });
+                    }
+
+                    // Update profile
+                    await supabaseClient
+                        .from('profiles')
+                        .update({
+                            is_active: true,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', payment.user_id);
                 }
 
                 showToast(`✅ Payment verified! ${payment.user_name || 'Student'} account activated.`);
                 await loadPayments();
                 await loadUsersTable();
+                await loadPendingSubscriptions();
 
             } catch (error) {
                 console.error('[Verify] Error:', error);
                 showToast('❌ Verification failed: ' + error.message, true);
-                btns.forEach(b => {
-                    b.disabled = false;
-                    b.textContent = b.classList.contains('btn-success') ? '✅ Verify & Activate' : '✕ Reject';
-                });
+                if (btns) {
+                    btns.forEach(b => {
+                        b.disabled = false;
+                        b.textContent = b.classList.contains('btn-success') ? '✅ Verify & Activate' : '✕ Reject';
+                    });
+                }
             }
         }
 
@@ -1252,9 +1534,13 @@ async function verifyPendingSubscription(subscriptionId) {
             if (!confirm('❌ Reject this payment request?')) return;
 
             const card = document.getElementById(`payment-${paymentId}`);
-            const btns = card.querySelectorAll('.actions button');
-            btns.forEach(b => b.disabled = true);
-            btns.forEach(b => b.textContent = '⏳ Processing...');
+            const btns = card?.querySelectorAll('.actions button');
+            if (btns) {
+                btns.forEach(b => {
+                    b.disabled = true;
+                    b.textContent = '⏳ Processing...';
+                });
+            }
 
             try {
                 const { error } = await supabaseClient
@@ -1275,10 +1561,12 @@ async function verifyPendingSubscription(subscriptionId) {
             } catch (error) {
                 console.error('[Reject] Error:', error);
                 showToast('❌ Failed to reject: ' + error.message, true);
-                btns.forEach(b => {
-                    b.disabled = false;
-                    b.textContent = b.classList.contains('btn-success') ? '✅ Verify & Activate' : '✕ Reject';
-                });
+                if (btns) {
+                    btns.forEach(b => {
+                        b.disabled = false;
+                        b.textContent = b.classList.contains('btn-success') ? '✅ Verify & Activate' : '✕ Reject';
+                    });
+                }
             }
         }
 
