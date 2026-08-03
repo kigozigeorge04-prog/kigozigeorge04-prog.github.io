@@ -955,138 +955,36 @@
 
 <script>
     // ─── VERSION CONTROL ───
-    const APP_VERSION = '2.0.6';
-    const CACHE_KEY = 'easemed_app_version';
-    
-    const storedVersion = localStorage.getItem(CACHE_KEY);
-    if (storedVersion !== APP_VERSION) {
-        console.log('[Cache] New version detected, clearing cache...');
-        if ('caches' in window) {
-            caches.keys().then(keys => {
-                keys.forEach(key => caches.delete(key));
-            });
-        }
-        localStorage.setItem(CACHE_KEY, APP_VERSION);
+  // ─── VERSION CONTROL ───
+const APP_VERSION = '2.0.6';
+const CACHE_KEY = 'easemed_app_version';
+const storedVersion = localStorage.getItem(CACHE_KEY);
+if (storedVersion !== APP_VERSION) {
+    console.log('[Cache] New version detected, clearing cache...');
+    if ('caches' in window) {
+        caches.keys().then(keys => {
+            keys.forEach(key => caches.delete(key));
+        });
     }
+    localStorage.setItem(CACHE_KEY, APP_VERSION);
+}
 
-    // ─── CONFIGURATION ───
-    const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+// ─── CONFIGURATION ───
+const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
-    // ─── GLOBALS ───
-    window.sb = null;
-    window._sessionRefreshInterval = null;
-    window._lastActivity = Date.now();
+// ─── GLOBALS ───
+window.sb = null;
+window._sessionRefreshInterval = null;
+window._lastActivity = Date.now();
 
-    // ─── FATAL ERROR UI ───
-    function showFatalError(message) {
-        const spinner = document.getElementById('loadingSpinner');
-        if (spinner) {
-            spinner.innerHTML = `
-                <div class="error-state">
-                    <h2>⚠️ Service Unavailable</h2>
-                    <p>${message}</p>
-                    <div class="btn-group">
-                        <button class="btn-retry" onclick="location.reload()">Retry</button>
-                        <a href="easemed_login.html" class="btn-login">Go to Login</a>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    // ─── SUPABASE CONFIG ───
-    function initSupabase() {
-        if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-            showFatalError('Supabase SDK failed to load. Please refresh the page.');
-            return;
-        }
-
-        try {
-            window.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-            console.log('[Supabase] Client initialized successfully.');
-            authCheck();
-        } catch (error) {
-            console.error('[Supabase] Initialization error:', error);
-            showFatalError(
-                'Failed to initialize EaseMed services. Please refresh the page. ' +
-                '(Error: ' + error.message + ')'
-            );
-        }
-    }
-
-    // ─── AUTH CHECK WITH SESSION MANAGEMENT ───
-    async function authCheck() {
-        const spinner = document.getElementById('loadingSpinner');
-        const mainContent = document.getElementById('mainContent');
-
-        if (!window.sb) {
-            console.warn('[Auth] Supabase client not available');
-            showFatalError('Supabase client not available. Please refresh the page.');
-            return;
-        }
-
-        try {
-            const { data: { session }, error: sessionError } = await window.sb.auth.getSession();
-            
-            if (sessionError) {
-                console.error('[Auth] Session error:', sessionError);
-                showError('Session Error', 'Unable to retrieve your session. Please try again.');
-                return;
-            }
-
-            if (!session) {
-                console.log('[Auth] No session found, redirecting to login');
-                window.location.href = 'easemed_login.html';
-                return;
-            }
-
-            const { data: { user }, error: userError } = await window.sb.auth.getUser();
-            
-            if (userError || !user) {
-                console.error('[Auth] User validation failed:', userError);
-                await window.sb.auth.signOut();
-                localStorage.removeItem('easemed_user');
-                window.location.href = 'easemed_login.html';
-                return;
-            }
-
-            console.log('[Auth] User authenticated:', user.email);
-            
-            const displayName = user.user_metadata?.full_name || 
-                               user.user_metadata?.name || 
-                               user.email;
-            document.getElementById('userGreeting').textContent = '👤 ' + displayName;
-            
-            window._currentUser = user;
-            window._currentSession = session;
-
-            localStorage.setItem('easemed_user', JSON.stringify(user));
-
-            spinner.style.display = 'none';
-            mainContent.style.display = 'block';
-            document.body.style.display = 'block';
-
-            startSessionMonitoring();
-            await checkSubscriptionStatus(user.id);
-            await loadPlanBadge();
-            trackUserActivity(user.id);
-
-        } catch (error) {
-            console.error('[Auth] Fatal error:', error);
-            showError(
-                'Connection Error', 
-                error.message || 'Unable to verify your session. Please check your internet connection and try again.'
-            );
-        }
-    }
-
-    // ─── SHOW ERROR STATE ───
-    function showError(title, message) {
-        const spinner = document.getElementById('loadingSpinner');
+// ─── FATAL ERROR UI ───
+function showFatalError(message) {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
         spinner.innerHTML = `
             <div class="error-state">
-                <h2>${title}</h2>
+                <h2>⚠️ Service Unavailable</h2>
                 <p>${message}</p>
                 <div class="btn-group">
                     <button class="btn-retry" onclick="location.reload()">Retry</button>
@@ -1095,72 +993,192 @@
             </div>
         `;
     }
+}
 
-    // ─── SESSION MONITORING ───
-    function startSessionMonitoring() {
-        if (window._sessionRefreshInterval) {
-            clearInterval(window._sessionRefreshInterval);
+// ─── SUPABASE CONFIG ───
+function initSupabase() {
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+        showFatalError('Supabase SDK failed to load. Please refresh the page.');
+        return;
+    }
+
+    try {
+        // ✅ FIX: Properly initialize window.sb
+        window.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+        console.log('[Supabase] Client initialized successfully.');
+        console.log('[Supabase] window.sb is now:', window.sb);
+        authCheck();
+    } catch (error) {
+        console.error('[Supabase] Initialization error:', error);
+        showFatalError(
+            'Failed to initialize EaseMed services. Please refresh the page. ' +
+            '(Error: ' + error.message + ')'
+        );
+    }
+}
+
+// ─── AUTH CHECK WITH SESSION MANAGEMENT ───
+async function authCheck() {
+    const spinner = document.getElementById('loadingSpinner');
+    const mainContent = document.getElementById('mainContent');
+
+    if (!window.sb) {
+        console.warn('[Auth] Supabase client not available');
+        showFatalError('Supabase client not available. Please refresh the page.');
+        return;
+    }
+
+    try {
+        const { data: { session }, error: sessionError } = await window.sb.auth.getSession();
+        
+        if (sessionError) {
+            console.error('[Auth] Session error:', sessionError);
+            showError('Session Error', 'Unable to retrieve your session. Please try again.');
+            return;
         }
 
-        window._sessionRefreshInterval = setInterval(async () => {
-            try {
-                const { data: { session }, error } = await window.sb.auth.getSession();
-                
-                if (error || !session) {
-                    console.log('[Session] Session lost, redirecting to login');
-                    clearInterval(window._sessionRefreshInterval);
-                    window.location.href = 'easemed_login.html';
-                    return;
-                }
+        if (!session) {
+            console.log('[Auth] No session found, redirecting to login');
+            window.location.href = 'easemed_login.html';
+            return;
+        }
 
-                window._currentSession = session;
-                
-                const expiresAt = session.expires_at * 1000;
-                const now = Date.now();
-                const timeUntilExpiry = expiresAt - now;
-                
-                if (timeUntilExpiry < 300000) {
-                    console.log('[Session] Refreshing token...');
-                    const { data: refreshData, error: refreshError } = await window.sb.auth.refreshSession();
-                    if (refreshError) {
-                        console.error('[Session] Refresh failed:', refreshError);
-                    } else if (refreshData.session) {
-                        window._currentSession = refreshData.session;
-                        console.log('[Session] Token refreshed successfully');
-                    }
-                }
+        const { data: { user }, error: userError } = await window.sb.auth.getUser();
+        
+        if (userError || !user) {
+            console.error('[Auth] User validation failed:', userError);
+            await window.sb.auth.signOut();
+            localStorage.removeItem('easemed_user');
+            window.location.href = 'easemed_login.html';
+            return;
+        }
 
-                window._lastActivity = Date.now();
+        console.log('[Auth] User authenticated:', user.email);
+        
+        const displayName = user.user_metadata?.full_name || 
+                           user.user_metadata?.name || 
+                           user.email;
+        document.getElementById('userGreeting').textContent = '👤 ' + displayName;
+        
+        window._currentUser = user;
+        window._currentSession = session;
 
-            } catch (error) {
-                console.warn('[Session] Monitoring error:', error);
-            }
-        }, 30000);
+        localStorage.setItem('easemed_user', JSON.stringify(user));
+
+        spinner.style.display = 'none';
+        mainContent.style.display = 'block';
+        document.body.style.display = 'block';
+
+        startSessionMonitoring();
+        await loadPlanBadge();
+        trackUserActivity(user.id);
+
+    } catch (error) {
+        console.error('[Auth] Fatal error:', error);
+        showError(
+            'Connection Error', 
+            error.message || 'Unable to verify your session. Please check your internet connection and try again.'
+        );
     }
+}
+
+// ─── SHOW ERROR STATE ───
+function showError(title, message) {
+    const spinner = document.getElementById('loadingSpinner');
+    spinner.innerHTML = `
+        <div class="error-state">
+            <h2>${title}</h2>
+            <p>${message}</p>
+            <div class="btn-group">
+                <button class="btn-retry" onclick="location.reload()">Retry</button>
+                <a href="easemed_login.html" class="btn-login">Go to Login</a>
+            </div>
+        </div>
+    `;
+}
+
+// ─── SESSION MONITORING ───
+function startSessionMonitoring() {
+    if (window._sessionRefreshInterval) {
+        clearInterval(window._sessionRefreshInterval);
+    }
+
+    window._sessionRefreshInterval = setInterval(async () => {
+        try {
+            const { data: { session }, error } = await window.sb.auth.getSession();
+            
+            if (error || !session) {
+                console.log('[Session] Session lost, redirecting to login');
+                clearInterval(window._sessionRefreshInterval);
+                window.location.href = 'easemed_login.html';
+                return;
+            }
+
+            window._currentSession = session;
+            
+            const expiresAt = session.expires_at * 1000;
+            const now = Date.now();
+            const timeUntilExpiry = expiresAt - now;
+            
+            if (timeUntilExpiry < 300000) {
+                console.log('[Session] Refreshing token...');
+                const { data: refreshData, error: refreshError } = await window.sb.auth.refreshSession();
+                if (refreshError) {
+                    console.error('[Session] Refresh failed:', refreshError);
+                } else if (refreshData.session) {
+                    window._currentSession = refreshData.session;
+                    console.log('[Session] Token refreshed successfully');
+                }
+            }
+
+            window._lastActivity = Date.now();
+
+        } catch (error) {
+            console.warn('[Session] Monitoring error:', error);
+        }
+    }, 30000);
+}
 
 // ─── LOAD SUBSCRIPTION STATUS FOR DISPLAY ───
 async function loadPlanBadge() {
     const sb = window.sb;
-    if (!sb) return;
+    if (!sb) {
+        console.log('[Plan Badge] No Supabase client');
+        return;
+    }
 
     try {
         const { data: { session } } = await sb.auth.getSession();
-        if (!session) return;
+        if (!session) {
+            console.log('[Plan Badge] No session');
+            return;
+        }
+
+        console.log('[Plan Badge] Fetching subscription for user:', session.user.id);
 
         const { data, error } = await sb
             .from('subscriptions')
-            .select('plan_type, expiry_date, active_module')
+            .select('plan_type, active_module, expiry_date, status')
             .eq('user_id', session.user.id)
             .eq('status', 'active')
+            .gte('expiry_date', new Date().toISOString())
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
 
-        if (error) throw error;
+        if (error) {
+            console.log('[Plan Badge] Error:', error);
+            return;
+        }
+        
+        console.log('[Plan Badge] Subscription data:', data);
         
         const badge = document.getElementById('planBadge');
+        if (!badge) return;
+        
         if (data) {
             badge.style.display = 'inline';
+            
             const planNames = {
                 'free_trial': '🎁 Free Trial',
                 'basic': '🩺 Basic',
@@ -1169,7 +1187,6 @@ async function loadPlanBadge() {
             
             let planText = planNames[data.plan_type] || data.plan_type;
             
-            // Show which module for basic plan
             if (data.plan_type === 'basic' && data.active_module) {
                 const moduleNames = {
                     'imed': 'Internal Med',
@@ -1185,86 +1202,73 @@ async function loadPlanBadge() {
             if (data.plan_type === 'premium') {
                 badge.style.background = 'rgba(16,185,129,0.15)';
                 badge.style.color = '#065F46';
+                badge.style.border = '1px solid rgba(16,185,129,0.2)';
             } else if (data.plan_type === 'basic') {
                 badge.style.background = 'rgba(59,130,246,0.15)';
                 badge.style.color = '#1E40AF';
+                badge.style.border = '1px solid rgba(59,130,246,0.2)';
+            } else if (data.plan_type === 'free_trial') {
+                badge.style.background = 'rgba(245,158,11,0.15)';
+                badge.style.color = '#92400E';
+                badge.style.border = '1px solid rgba(245,158,11,0.2)';
             }
+        } else {
+            badge.style.display = 'none';
         }
     } catch (error) {
         console.log('[Plan Badge] Not available:', error.message);
     }
 }
 
-    // ─── CHECK SUBSCRIPTION STATUS ───
-    async function checkSubscriptionStatus(userId) {
-        try {
-            const { data: profile, error } = await window.sb
-                .from('profiles')
-                .select('is_active, expires_at, full_name, role, university')
-                .eq('id', userId)
-                .single();
+// ─── CHECK SUBSCRIPTION STATUS ───
+async function checkSubscriptionStatus(userId) {
+    // This is now handled by loadPlanBadge() and openModule()
+    console.log('[Subscription] Status checked via loadPlanBadge()');
+    return true;
+}
 
-            if (error) {
-                console.warn('[Subscription] Could not fetch profile:', error);
-                return;
-            }
-
-            window._userProfile = profile;
-
-            const isActive = profile?.is_active !== false && 
-                (!profile?.expires_at || new Date(profile.expires_at) > new Date());
-
-            if (!isActive) {
-                console.log('[Subscription] Inactive or expired');
-            }
-
-        } catch (error) {
-            console.warn('[Subscription] Error checking status:', error);
+// ─── TRACK USER ACTIVITY ───
+async function trackUserActivity(userId) {
+    try {
+        const { error } = await window.sb
+            .from('profiles')
+            .update({ last_activity: new Date().toISOString() })
+            .eq('id', userId);
+        
+        if (error) {
+            console.log('[Activity] Update skipped:', error.message);
         }
+    } catch (error) {
+        console.log('[Activity] Tracking not available');
     }
+}
 
-    // ─── TRACK USER ACTIVITY ───
-    async function trackUserActivity(userId) {
-        try {
-            const { error } = await window.sb
-                .from('profiles')
-                .update({ last_activity: new Date().toISOString() })
-                .eq('id', userId);
-            
-            if (error) {
-                console.log('[Activity] Update skipped:', error.message);
-            }
-        } catch (error) {
-            console.log('[Activity] Tracking not available');
+// ─── HANDLE LOGOUT ───
+async function handleLogout() {
+    try {
+        if (window._sessionRefreshInterval) {
+            clearInterval(window._sessionRefreshInterval);
+            window._sessionRefreshInterval = null;
         }
-    }
 
-    // ─── HANDLE LOGOUT ───
-    async function handleLogout() {
-        try {
-            if (window._sessionRefreshInterval) {
-                clearInterval(window._sessionRefreshInterval);
-                window._sessionRefreshInterval = null;
-            }
+        localStorage.removeItem('easemed_user');
 
-            localStorage.removeItem('easemed_user');
-
-            if (window.sb) {
-                await window.sb.auth.signOut();
-            }
-
-            window.location.href = 'easemed_login.html';
-        } catch (error) {
-            console.error('[Logout] Error:', error);
-            window.location.href = 'easemed_login.html';
+        if (window.sb) {
+            await window.sb.auth.signOut();
         }
-    }
 
-   // ─── OPEN MODULE (gated by subscriptions table) ───
+        window.location.href = 'easemed_login.html';
+    } catch (error) {
+        console.error('[Logout] Error:', error);
+        window.location.href = 'easemed_login.html';
+    }
+}
+
 // ─── OPEN MODULE (gated by subscriptions table) ───
 async function openModule(url, moduleCode) {
     const sb = window.sb;
     if (!sb) {
+        console.error('[Module] No Supabase client available');
         window.location.href = 'easemed_login.html';
         return;
     }
@@ -1272,18 +1276,20 @@ async function openModule(url, moduleCode) {
     try {
         const { data: { session } } = await sb.auth.getSession();
         if (!session) {
+            console.error('[Module] No session');
             window.location.href = 'easemed_login.html';
             return;
         }
 
-        console.log('[Module] Checking access for:', moduleCode);
+        console.log('[Module] Checking access for module:', moduleCode);
         console.log('[Module] User ID:', session.user.id);
 
-        // Get the most recent active or pending subscription
         const { data: sub, error } = await sb
             .from('subscriptions')
-            .select('plan_type, active_module, expiry_date, status, payment_status')
+            .select('plan_type, active_module, expiry_date, status')
             .eq('user_id', session.user.id)
+            .eq('status', 'active')
+            .gte('expiry_date', new Date().toISOString())
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
@@ -1297,44 +1303,33 @@ async function openModule(url, moduleCode) {
         console.log('[Module] Subscription found:', sub);
 
         if (!sub) {
-            console.log('[Module] No subscription found');
+            console.log('[Module] No active subscription found');
             window.location.href = `subscription.html?reason=expired`;
             return;
         }
 
-        // Check if subscription is active
-        if (sub.status !== 'active') {
-            console.log('[Module] Subscription status:', sub.status);
-            if (sub.status === 'pending') {
-                window.location.href = `subscription.html?reason=pending`;
-                return;
-            }
-            window.location.href = `subscription.html?reason=expired`;
-            return;
-        }
-
-        // Check if subscription is expired
+        // Check if subscription is expired (additional safety)
         if (sub.expiry_date && new Date(sub.expiry_date) < new Date()) {
-            console.log('[Module] Subscription expired');
+            console.log('[Module] Subscription expired:', sub.expiry_date);
             window.location.href = `subscription.html?reason=expired`;
             return;
         }
 
-        // Check plan type
+        // For basic plan, check if active_module matches
         if (sub.plan_type === 'basic') {
-            console.log('[Module] Basic plan, active_module:', sub.active_module);
+            console.log('[Module] Basic plan - active_module:', sub.active_module);
             console.log('[Module] Requested module:', moduleCode);
             
-            // Check if active_module matches
             if (!sub.active_module || sub.active_module !== moduleCode) {
-                console.log('[Module] Module mismatch or null');
+                console.log('[Module] Module mismatch! Redirecting to upgrade.');
                 window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
                 return;
             }
+            console.log('[Module] ✅ Module matches!');
         }
 
         // Premium or free_trial, or basic with matching module
-        console.log('[Module] Access granted for:', moduleCode);
+        console.log('[Module] ✅ Access granted for:', moduleCode);
         window.location.href = url;
 
     } catch (error) {
@@ -1342,158 +1337,157 @@ async function openModule(url, moduleCode) {
         window.location.href = `subscription.html?reason=error`;
     }
 }
-    // ─── TRACKING ───
-    (function tracking() {
-        let currentLogId = null;
-        let startTime = null;
-        let flushed = false;
-        let trackingEnabled = false;
 
-        async function startTracking() {
-            try {
-                if (!window.sb) return;
-                
-                const { data: { user } } = await window.sb.auth.getUser();
-                if (!user) return;
+// ─── TRACKING ───
+(function tracking() {
+    let currentLogId = null;
+    let startTime = null;
+    let flushed = false;
+    let trackingEnabled = false;
 
-                const moduleName = window.EASEMED_MODULE_NAME || document.title || location.pathname;
-                startTime = Date.now();
+    async function startTracking() {
+        try {
+            if (!window.sb) return;
+            
+            const { data: { user } } = await window.sb.auth.getUser();
+            if (!user) return;
 
-                const { data, error } = await window.sb.from('activity_logs').insert({
-                    user_id: user.id,
-                    event_type: 'module_view',
-                    module_name: moduleName,
-                    page_path: location.pathname,
-                    started_at: new Date(startTime).toISOString(),
-                }).select('id').single();
+            const moduleName = window.EASEMED_MODULE_NAME || document.title || location.pathname;
+            startTime = Date.now();
 
-                if (!error && data) {
-                    currentLogId = data.id;
-                    trackingEnabled = true;
-                } else {
-                    console.log('[Tracking] Disabled - insert failed');
-                    trackingEnabled = false;
-                }
-            } catch (e) {
+            const { data, error } = await window.sb.from('activity_logs').insert({
+                user_id: user.id,
+                event_type: 'module_view',
+                module_name: moduleName,
+                page_path: location.pathname,
+                started_at: new Date(startTime).toISOString(),
+            }).select('id').single();
+
+            if (!error && data) {
+                currentLogId = data.id;
+                trackingEnabled = true;
+            } else {
+                console.log('[Tracking] Disabled - insert failed');
                 trackingEnabled = false;
-                console.log('[Tracking] Disabled');
             }
-        }
-
-        async function flushTracking() {
-            if (!trackingEnabled || !currentLogId || flushed || !startTime) return;
-            flushed = true;
-
-            const durationSeconds = Math.round((Date.now() - startTime) / 1000);
-            if (durationSeconds < 1) return;
-
-            try {
-                if (!window.sb) return;
-                await window.sb.from('activity_logs')
-                    .update({
-                        duration_seconds: durationSeconds,
-                        ended_at: new Date().toISOString(),
-                    })
-                    .eq('id', currentLogId);
-            } catch (e) {
-                // Silently fail
-            }
-        }
-
-        setTimeout(startTracking, 1000);
-
-        window.addEventListener('beforeunload', flushTracking);
-        window.addEventListener('pagehide', flushTracking);
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') flushTracking();
-        });
-    })();
-    
-    // ─── PWA INSTALL ───
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        const installBtn = document.getElementById('installBtn');
-        if (installBtn) installBtn.style.display = 'flex';
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const installBtn = document.getElementById('installBtn');
-        if (installBtn) {
-            installBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const result = await deferredPrompt.userChoice;
-                    if (result.outcome === 'accepted') {
-                        installBtn.style.display = 'none';
-                    }
-                    deferredPrompt = null;
-                }
-            });
-        }
-    });
-
-    window.addEventListener('appinstalled', () => {
-        document.getElementById('installBtn').style.display = 'none';
-    });
-
-    // ─── ANNOUNCEMENT BANNER ───
-    (async function loadEasemedAnnouncement() {
-        let sdkTries = 0;
-        while (typeof window.supabase === 'undefined' && sdkTries < 30) {
-            await new Promise(r => setTimeout(r, 200));
-            sdkTries++;
-        }
-        if (typeof window.supabase === 'undefined') {
-            console.warn('[Banner] Supabase SDK never loaded.');
-            return;
-        }
-
-        const bannerClient = window.sb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-        const { data, error } = await bannerClient
-            .from('announcements')
-            .select('id, message, type')
-            .eq('active', true)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        if (error || !data) return;
-
-        const dismissedId = localStorage.getItem('easemed_dismissed_announcement');
-        if (dismissedId === String(data.id)) return;
-
-        setTimeout(() => {
-            const banner = document.getElementById('easemedBanner');
-            if (banner) {
-                banner.className = data.type || 'info';
-                banner.style.display = 'flex';
-                document.getElementById('easemedBannerText').textContent = data.message;
-                window._currentAnnouncementId = data.id;
-            }
-        }, 1000);
-    })();
-
-    function dismissEasemedBanner() {
-        document.getElementById('easemedBanner').style.display = 'none';
-        if (window._currentAnnouncementId) {
-            localStorage.setItem('easemed_dismissed_announcement', String(window._currentAnnouncementId));
+        } catch (e) {
+            trackingEnabled = false;
+            console.log('[Tracking] Disabled');
         }
     }
 
-    // ─── INITIALIZE PAGE ───
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('[App] DOM ready, initializing...');
-        
-        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-            initSupabase();
-        } else {
-            showFatalError('Supabase SDK failed to load. Please refresh the page.');
-        }
-    });
-</script>
+    async function flushTracking() {
+        if (!trackingEnabled || !currentLogId || flushed || !startTime) return;
+        flushed = true;
 
+        const durationSeconds = Math.round((Date.now() - startTime) / 1000);
+        if (durationSeconds < 1) return;
+
+        try {
+            if (!window.sb) return;
+            await window.sb.from('activity_logs')
+                .update({
+                    duration_seconds: durationSeconds,
+                    ended_at: new Date().toISOString(),
+                })
+                .eq('id', currentLogId);
+        } catch (e) {
+            // Silently fail
+        }
+    }
+
+    setTimeout(startTracking, 1000);
+
+    window.addEventListener('beforeunload', flushTracking);
+    window.addEventListener('pagehide', flushTracking);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flushTracking();
+    });
+})();
+
+// ─── PWA INSTALL ───
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) installBtn.style.display = 'flex';
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const result = await deferredPrompt.userChoice;
+                if (result.outcome === 'accepted') {
+                    installBtn.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+    }
+});
+
+window.addEventListener('appinstalled', () => {
+    document.getElementById('installBtn').style.display = 'none';
+});
+
+// ─── ANNOUNCEMENT BANNER ───
+(async function loadEasemedAnnouncement() {
+    let sdkTries = 0;
+    while (typeof window.supabase === 'undefined' && sdkTries < 30) {
+        await new Promise(r => setTimeout(r, 200));
+        sdkTries++;
+    }
+    if (typeof window.supabase === 'undefined') {
+        console.warn('[Banner] Supabase SDK never loaded.');
+        return;
+    }
+
+    const bannerClient = window.sb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    const { data, error } = await bannerClient
+        .from('announcements')
+        .select('id, message, type')
+        .eq('active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error || !data) return;
+
+    const dismissedId = localStorage.getItem('easemed_dismissed_announcement');
+    if (dismissedId === String(data.id)) return;
+
+    setTimeout(() => {
+        const banner = document.getElementById('easemedBanner');
+        if (banner) {
+            banner.className = data.type || 'info';
+            banner.style.display = 'flex';
+            document.getElementById('easemedBannerText').textContent = data.message;
+            window._currentAnnouncementId = data.id;
+        }
+    }, 1000);
+})();
+
+function dismissEasemedBanner() {
+    document.getElementById('easemedBanner').style.display = 'none';
+    if (window._currentAnnouncementId) {
+        localStorage.setItem('easemed_dismissed_announcement', String(window._currentAnnouncementId));
+    }
+}
+
+// ─── INITIALIZE PAGE ───
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[App] DOM ready, initializing...');
+    
+    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+        initSupabase();
+    } else {
+        showFatalError('Supabase SDK failed to load. Please refresh the page.');
+    }
+});
 <!-- Service Worker -->
 <script>
     if ('serviceWorker' in navigator) {
