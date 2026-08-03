@@ -811,7 +811,7 @@
                 // Get the module name for display
                 const moduleName = MODULES.find(m => m.id === selectedModule)?.name || selectedModule;
 
-                // Create subscription with selected module - FIXED: use allowed_modules
+                // Create subscription with selected module - FIXED: use active_module
                 const { data, error } = await supabaseClient
                     .from('subscriptions')
                     .insert({
@@ -819,7 +819,7 @@
                         plan_id: plan.id,
                         plan_type: plan.slug,
                         status: 'pending',
-                        allowed_modules: [selectedModule], // FIXED: array format for multiple modules
+                        active_module: selectedModule,  // ✅ FIXED: use active_module instead of allowed_modules
                         start_date: new Date().toISOString(),
                         expiry_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
                         payment_status: 'pending'
@@ -926,7 +926,7 @@
             try {
                 const { data, error } = await supabaseClient
                     .from('subscriptions')
-                    .select('status, payment_status, plan_type')
+                    .select('status, payment_status, plan_type, active_module')
                     .eq('id', pendingSubscriptionId)
                     .single();
 
@@ -1008,7 +1008,7 @@
                             plan_id: plan.id,
                             plan_type: plan.slug,
                             status: 'pending',
-                            allowed_modules: null, // null means all modules for premium
+                            active_module: null, // null means all modules for premium
                             start_date: new Date().toISOString(),
                             expiry_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
                             payment_status: 'pending'
@@ -1044,7 +1044,7 @@
                             plan_id: plan.id,
                             plan_type: slug,
                             status: 'active',
-                            allowed_modules: null, // null = all modules for trial
+                            active_module: null, // null = all modules for trial
                             start_date: new Date().toISOString(),
                             expiry_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
                             payment_status: 'paid'
