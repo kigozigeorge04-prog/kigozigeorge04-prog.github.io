@@ -1011,21 +1011,49 @@
         }
 
         // ─── VERIFY SUBSCRIPTION ───
-      async function verifySubscription(subscriptionId) {
+     async function verifySubscription(subscriptionId) {
     if (!confirm('✅ Verify this subscription and activate the account?')) return;
 
-    const card = document.getElementById(`pending-${subscriptionId}`);
-    const btns = card?.querySelectorAll('.actions button');
-    if (btns) {
-        btns.forEach(b => {
-            b.disabled = true;
-            b.textContent = '⏳ Processing...';
-        });
-    }
-
     try {
-        console.log('[Admin] Verifying subscription:', subscriptionId);
-        
+        const { data: sub } = await supabaseClient
+            .from('subscriptions')
+            .select('*')
+            .eq('id', subscriptionId)
+            .single();
+
+        // ✅ Expire any other active subscriptions for this user first
+        await supabaseClient
+            .from('subscriptions')
+            .update({ status: 'expired', updated_at: new Date().toISOString() })
+            .eq('user_id', sub.user_id)
+            .eq('status', 'active')
+            .neq('id', subscriptionId);
+
+        // Then activate the new one
+        await supabaseClient
+            .from('subscriptions')
+            .update({
+                status: 'active',
+                payment_status: 'paid',
+                verified_at: new Date().toISOString(),
+                verified_by: currentUser.id,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', subscriptionId);
+
+        await supabaseClient
+            .from('profiles')
+            .update({ is_active: true })
+            .eq('id', sub.user_id);
+
+        showToast('✅ Subscription verified and activated!');
+        await loadPendingSubscriptions();
+        await loadUsersTable();
+
+    } catch (error) {
+        showToast('❌ Verification failed: ' + error.message, true);
+    }
+}   
         // Get the subscription first to check what plan it is
         const { data: sub, error: fetchError } = await supabaseClient
             .from('subscriptions')
