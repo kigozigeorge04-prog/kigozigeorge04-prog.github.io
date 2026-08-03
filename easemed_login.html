@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>EaseMed — Sign In</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0a2e2d">
+    <meta name="theme-color" content="#E8F4FD">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EaseMed">
@@ -17,43 +17,12 @@
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
 
-    <!-- Splash gating: decide BEFORE first paint whether this load shows the
-         boot animation, so there's no flash of splash-then-instant-hide on
-         repeat visits within the same session. -->
-    <script>
-        (function () {
-            try {
-                window.__showSplash = !sessionStorage.getItem('easemed_splash_shown');
-            } catch (e) {
-                // Storage unavailable (private mode edge cases, etc.) — default to showing it once.
-                window.__showSplash = true;
-            }
-        })();
-    </script>
-
     <style>
         /* ──────────── RESET & BASE ──────────── */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        html:not(.no-splash) body {
-            /* When the splash is active, the underlying page fades in on its
-               own slower timeline, driven once the splash dissolves — see
-               .app-ready below. */
-            opacity: 0;
-        }
-
-        html.no-splash body {
-            opacity: 0;
-            animation: fadeIn 0.6s ease forwards;
-        }
-
-        body.app-ready {
-            opacity: 1;
-            transition: opacity 0.5s ease;
         }
 
         body {
@@ -63,6 +32,8 @@
             display: flex;
             background: linear-gradient(160deg, #E8F4FD 0%, #B8D8F0 40%, #8EC4E8 100%);
             color: #0B1A2E;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
             overflow-y: auto;
         }
 
@@ -114,116 +85,6 @@
 
         .rotation-label {
             animation: fade-rotate 2.8s ease-in-out;
-        }
-
-        /* ──────────── BOOT SPLASH ──────────── */
-        #splash {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 22px;
-            background: linear-gradient(150deg, #0a2e2d 0%, #0d4a46 45%, #0f5c56 100%);
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-        }
-
-        #splash.splash-hide {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        .splash-mark {
-            width: 64px;
-            height: 64px;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #14b8a6, #0f766e);
-            display: grid;
-            place-items: center;
-            color: white;
-            font-family: 'Lora', serif;
-            font-size: 28px;
-            font-weight: 700;
-            box-shadow: 0 12px 40px rgba(20, 184, 166, 0.35);
-            opacity: 0;
-            transform: scale(0.6);
-            animation: splashMarkIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-
-        @keyframes splashMarkIn {
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .splash-word {
-            font-family: 'Lora', serif;
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            color: #ccfbf1;
-            opacity: 0;
-            animation: splashWordIn 0.5s ease forwards;
-            animation-delay: 0.35s;
-        }
-
-        @keyframes splashWordIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .splash-ecg {
-            width: 220px;
-            height: 40px;
-            opacity: 0;
-            animation: splashFadeIn 0.4s ease forwards;
-            animation-delay: 0.55s;
-        }
-
-        @keyframes splashFadeIn {
-            to { opacity: 1; }
-        }
-
-        .splash-ecg svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .splash-ecg-path {
-            stroke-dasharray: 240;
-            stroke-dashoffset: 240;
-            animation: splashEcgDraw 0.9s ease-out forwards;
-            animation-delay: 0.6s;
-        }
-
-        @keyframes splashEcgDraw {
-            to { stroke-dashoffset: 0; }
-        }
-
-        .splash-tag {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: rgba(204, 251, 241, 0.45);
-            opacity: 0;
-            animation: splashFadeIn 0.4s ease forwards;
-            animation-delay: 0.85s;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            #splash,
-            .splash-mark,
-            .splash-word,
-            .splash-ecg,
-            .splash-ecg-path,
-            .splash-tag {
-                animation: none !important;
-                opacity: 1 !important;
-                transform: none !important;
-                stroke-dashoffset: 0 !important;
-            }
         }
 
         /* ──────────── BACKGROUND ──────────── */
@@ -1309,22 +1170,6 @@
     </style>
 </head>
 <body>
-    <!-- Boot splash: only rendered/shown on the first load of a session.
-         The inline script in <head> set window.__showSplash before paint,
-         so we branch on it immediately below rather than flashing splash
-         then instantly hiding it. -->
-    <div id="splash" aria-hidden="true">
-        <div class="splash-mark">✚</div>
-        <div class="splash-word">EaseMed</div>
-        <div class="splash-ecg">
-            <svg viewBox="0 0 220 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <polyline class="splash-ecg-path" points="0,20 60,20 75,6 90,34 105,2 120,20 220,20"
-                          stroke="#14b8a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-        </div>
-        <div class="splash-tag">Clinical Clerk System</div>
-    </div>
-
     <!-- Background -->
     <div class="bg-gradient"></div>
     <div class="bg-grid"></div>
@@ -1357,7 +1202,7 @@
                 <div class="eyebrow">Clinical Clerking</div>
                 <h1>Your logbook,<br><span>one patient at a time</span></h1>
                 <p class="sub">
-                    Structured history-taking and examination, built for the wards, every prompt referenced back to clinical methods.
+                    Structured history-taking and examination, built for the wards — every prompt referenced back to clinical methods.
                 </p>
 
                 <div class="ecg-container">
@@ -1753,35 +1598,6 @@
                 });
             }
             localStorage.setItem(CACHE_KEY, APP_VERSION);
-        }
-
-        // ─── BOOT SPLASH ───
-        // Runs on every load, but the splash element itself is only ever
-        // visible on the first load of a session (window.__showSplash,
-        // decided pre-paint in <head>). On repeat loads we skip straight
-        // to the plain fade-in the page already had.
-        const SPLASH_MIN_MS = 1350; // lets the mark/word/ecg sequence finish
-        const splashEl = document.getElementById('splash');
-
-        function revealApp() {
-            document.body.classList.add('app-ready');
-        }
-
-        function finishSplash() {
-            if (splashEl) {
-                splashEl.classList.add('splash-hide');
-            }
-            revealApp();
-            try { sessionStorage.setItem('easemed_splash_shown', '1'); } catch (e) {}
-        }
-
-        if (!window.__showSplash) {
-            // Repeat visit this session: no splash, use the page's normal fade-in.
-            document.documentElement.classList.add('no-splash');
-            if (splashEl) splashEl.remove();
-        } else {
-            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            setTimeout(finishSplash, reducedMotion ? 0 : SPLASH_MIN_MS);
         }
 
         // ─── COUNTRY DATA ───
