@@ -1011,50 +1011,71 @@
         }
 
         // ─── VERIFY SUBSCRIPTION ───
-        async function verifySubscription(subscriptionId) {
-            if (!confirm('✅ Verify this subscription and activate the account?')) return;
+      async function verifySubscription(subscriptionId) {
+    if (!confirm('✅ Verify this subscription and activate the account?')) return;
 
-            const card = document.getElementById(`pending-${subscriptionId}`);
-            const btns = card?.querySelectorAll('.actions button');
-            if (btns) {
-                btns.forEach(b => {
-                    b.disabled = true;
-                    b.textContent = '⏳ Processing...';
-                });
-            }
+    const card = document.getElementById(`pending-${subscriptionId}`);
+    const btns = card?.querySelectorAll('.actions button');
+    if (btns) {
+        btns.forEach(b => {
+            b.disabled = true;
+            b.textContent = '⏳ Processing...';
+        });
+    }
 
-            try {
-                console.log('[Admin] Verifying subscription:', subscriptionId);
-                
-                const { error } = await supabaseClient
-                    .from('subscriptions')
-                    .update({
-                        status: 'active',
-                        payment_status: 'paid',
-                        verified_at: new Date().toISOString(),
-                        verified_by: currentUser.id
-                    })
-                    .eq('id', subscriptionId);
+    try {
+        console.log('[Admin] Verifying subscription:', subscriptionId);
+        
+        // Get the subscription first to check what plan it is
+        const { data: sub, error: fetchError } = await supabaseClient
+            .from('subscriptions')
+            .select('*')
+            .eq('id', subscriptionId)
+            .single();
 
-                if (error) throw error;
+        if (fetchError) throw fetchError;
 
-                showToast('✅ Subscription verified and activated!');
-                await loadPendingSubscriptions();
-                await loadUsersTable();
-                await loadDashboardData();
+        console.log('[Admin] Subscription data:', sub);
 
-            } catch (error) {
-                console.error('[Verify] Error:', error);
-                showToast('❌ Verification failed: ' + error.message, true);
-                if (btns) {
-                    btns.forEach(b => {
-                        b.disabled = false;
-                        b.textContent = b.classList.contains('verify-btn') ? '✅ Verify & Activate' : '✕ Reject';
-                    });
-                }
-            }
+        // Update subscription to active
+        const { error } = await supabaseClient
+            .from('subscriptions')
+            .update({
+                status: 'active',
+                payment_status: 'paid',
+                verified_at: new Date().toISOString(),
+                verified_by: currentUser.id,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', subscriptionId);
+
+        if (error) throw error;
+
+        // Also update profile to active
+        await supabaseClient
+            .from('profiles')
+            .update({
+                is_active: true,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', sub.user_id);
+
+        showToast('✅ Subscription verified and activated!');
+        await loadPendingSubscriptions();
+        await loadUsersTable();
+        await loadDashboardData();
+
+    } catch (error) {
+        console.error('[Verify] Error:', error);
+        showToast('❌ Verification failed: ' + error.message, true);
+        if (btns) {
+            btns.forEach(b => {
+                b.disabled = false;
+                b.textContent = b.classList.contains('verify-btn') ? '✅ Verify & Activate' : '✕ Reject';
+            });
         }
-
+    }
+}
         // ─── REJECT SUBSCRIPTION ───
         async function rejectSubscription(subscriptionId) {
             if (!confirm('❌ Reject this subscription request?')) return;
