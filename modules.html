@@ -1138,48 +1138,62 @@
         }, 30000);
     }
 
-    // ─── LOAD SUBSCRIPTION STATUS FOR DISPLAY ───
-    async function loadPlanBadge() {
-        const sb = window.sb;
-        if (!sb) return;
+// ─── LOAD SUBSCRIPTION STATUS FOR DISPLAY ───
+async function loadPlanBadge() {
+    const sb = window.sb;
+    if (!sb) return;
 
-        try {
-            const { data: { session } } = await sb.auth.getSession();
-            if (!session) return;
+    try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) return;
 
-            const { data, error } = await sb
-                .from('subscriptions')
-                .select('plan_type, expiry_date')
-                .eq('user_id', session.user.id)
-                .eq('status', 'active')
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
+        const { data, error } = await sb
+            .from('subscriptions')
+            .select('plan_type, expiry_date, active_module')
+            .eq('user_id', session.user.id)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
-            if (error) throw error;
+        if (error) throw error;
+        
+        const badge = document.getElementById('planBadge');
+        if (data) {
+            badge.style.display = 'inline';
+            const planNames = {
+                'free_trial': '🎁 Free Trial',
+                'basic': '🩺 Basic',
+                'premium': '⭐ Premium'
+            };
             
-            const badge = document.getElementById('planBadge');
-            if (data) {
-                badge.style.display = 'inline';
-                const planNames = {
-                    'free_trial': '🎁 Free Trial',
-                    'basic': '🩺 Basic',
-                    'premium': '⭐ Premium'
+            let planText = planNames[data.plan_type] || data.plan_type;
+            
+            // Show which module for basic plan
+            if (data.plan_type === 'basic' && data.active_module) {
+                const moduleNames = {
+                    'imed': 'Internal Med',
+                    'surgery': 'Surgery',
+                    'peds': 'Pediatrics',
+                    'obgyn': 'OB/GYN'
                 };
-                badge.textContent = planNames[data.plan_type] || data.plan_type;
-                
-                if (data.plan_type === 'premium') {
-                    badge.style.background = 'rgba(16,185,129,0.15)';
-                    badge.style.color = '#065F46';
-                } else if (data.plan_type === 'basic') {
-                    badge.style.background = 'rgba(59,130,246,0.15)';
-                    badge.style.color = '#1E40AF';
-                }
+                planText += ` (${moduleNames[data.active_module] || data.active_module})`;
             }
-        } catch (error) {
-            console.log('[Plan Badge] Not available:', error.message);
+            
+            badge.textContent = planText;
+            
+            if (data.plan_type === 'premium') {
+                badge.style.background = 'rgba(16,185,129,0.15)';
+                badge.style.color = '#065F46';
+            } else if (data.plan_type === 'basic') {
+                badge.style.background = 'rgba(59,130,246,0.15)';
+                badge.style.color = '#1E40AF';
+            }
         }
+    } catch (error) {
+        console.log('[Plan Badge] Not available:', error.message);
     }
+}
 
     // ─── CHECK SUBSCRIPTION STATUS ───
     async function checkSubscriptionStatus(userId) {
@@ -1246,65 +1260,59 @@
         }
     }
 
-    // ─── OPEN MODULE (gated by subscriptions table) ───
-    async function openModule(url, moduleCode) {
-        const sb = window.sb;
-        if (!sb) {
+   // ─── OPEN MODULE (gated by subscriptions table) ───
+async function openModule(url, moduleCode) {
+    const sb = window.sb;
+    if (!sb) {
+        window.location.href = 'easemed_login.html';
+        return;
+    }
+
+    try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
             window.location.href = 'easemed_login.html';
             return;
         }
 
-        try {
-            const { data: { session } } = await sb.auth.getSession();
-            if (!session) {
-                window.location.href = 'easemed_login.html';
-                return;
-            }
+        const { data: sub, error } = await sb
+            .from('subscriptions')
+            .select('plan_type, active_module, expiry_date')
+            .eq('user_id', session.user.id)
+            .eq('status', 'active')
+            .gte('expiry_date', new Date().toISOString())
+            .order('expiry_date', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
-            const { data: sub, error } = await sb
-                .from('subscriptions')
-                .select('plan_type, allowed_modules, expiry_date')
-                .eq('user_id', session.user.id)
-                .eq('status', 'active')
-                .gte('expiry_date', new Date().toISOString())
-                .order('expiry_date', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-
-            if (error) {
-                console.warn('[Module] Access check failed:', error);
-                window.location.href = `subscription.html?reason=error`;
-                return;
-            }
-
-            if (!sub) {
-                window.location.href = `subscription.html?reason=expired`;
-                return;
-            }
-
-            // If basic plan, check if module is in allowed_modules
-            if (sub.plan_type === 'basic') {
-                // Handle both array and comma-separated string formats
-                let allowed = sub.allowed_modules;
-                if (typeof allowed === 'string') {
-                    allowed = allowed.split(',').map(m => m.trim());
-                }
-                
-                if (!Array.isArray(allowed) || !allowed.includes(moduleCode)) {
-                    window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
-                    return;
-                }
-            }
-
-            // Premium/free-trial, or basic with module included
-            window.location.href = url;
-
-        } catch (error) {
-            console.error('[Module] Error:', error);
+        if (error) {
+            console.warn('[Module] Access check failed:', error);
             window.location.href = `subscription.html?reason=error`;
+            return;
         }
-    }
 
+        if (!sub) {
+            window.location.href = `subscription.html?reason=expired`;
+            return;
+        }
+
+        // If basic plan, check if active_module matches
+        if (sub.plan_type === 'basic') {
+            // active_module is either null (shouldn't happen for basic) or a string
+            if (sub.active_module !== moduleCode) {
+                window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
+                return;
+            }
+        }
+
+        // Premium/free-trial, or basic with matching module
+        window.location.href = url;
+
+    } catch (error) {
+        console.error('[Module] Error:', error);
+        window.location.href = `subscription.html?reason=error`;
+    }
+}
     // ─── TRACKING ───
     (function tracking() {
         let currentLogId = null;
