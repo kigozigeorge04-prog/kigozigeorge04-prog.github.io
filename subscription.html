@@ -209,7 +209,9 @@
             max-width: 600px;
             text-align: center;
             transition: border-color 0.3s;
+            display: none;
         }
+        .payment-cta.active { display: block; }
         .payment-cta:hover {
             border-color: rgba(37,211,102,0.5);
         }
@@ -231,6 +233,24 @@
             font-size: 0.9rem;
             color: rgba(11,26,46,0.5);
             margin-bottom: 12px;
+        }
+        .payment-cta .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .payment-cta .status-badge.pending {
+            background: rgba(245,158,11,0.15);
+            color: #92400E;
+            border: 1px solid rgba(245,158,11,0.2);
+        }
+        .payment-cta .status-badge.verified {
+            background: rgba(16,185,129,0.15);
+            color: #065F46;
+            border: 1px solid rgba(16,185,129,0.2);
         }
         .btn-whatsapp-pay {
             display: inline-flex;
@@ -444,10 +464,11 @@
         </div>
 
         <!-- WhatsApp Payment CTA -->
-        <div id="paymentCTA" class="payment-cta" style="display:none;">
+        <div id="paymentCTA" class="payment-cta">
             <div class="icon">💬</div>
             <h3>Complete Your Payment via WhatsApp</h3>
             <p>Send the payment amount to this Airtel Money number, then send the confirmation via WhatsApp.</p>
+            <div id="paymentStatusBadge" class="status-badge pending">⏳ Waiting for payment</div>
             <div class="number-box">📱 0756 418 723</div>
             <div class="number-name">👤 Kigozi George</div>
             <br>
@@ -457,6 +478,9 @@
             <p style="margin-top:12px; font-size:0.8rem; color:rgba(11,26,46,0.4);">
                 Your account will be activated within 24 hours after verification.
             </p>
+            <button onclick="checkPaymentStatus()" style="margin-top:12px; padding:8px 20px; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); border-radius:8px; cursor:pointer; font-family:'Inter', sans-serif; font-size:0.85rem; font-weight:600; color:#1E40AF;">
+                🔄 Check Payment Status
+            </button>
         </div>
     </div>
 
@@ -511,9 +535,11 @@
         let supabaseClient = null;
         let currentUser = null;
         let currentSubscription = null;
+        let pendingSubscriptionId = null;
         let plans = [];
         let selectedModule = null;
         let pendingPlan = null;
+        let paymentCheckInterval = null;
 
         // ─── INIT ───
         async function init() {
@@ -543,6 +569,14 @@
 
                 await loadPlans();
                 await loadCurrentSubscription();
+
+                // Check for pending subscription from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const pendingId = urlParams.get('pending');
+                if (pendingId) {
+                    pendingSubscriptionId = pendingId;
+                    await checkPaymentStatus();
+                }
 
             } catch (error) {
                 console.error('[Subscription] Init error:', error);
@@ -774,7 +808,10 @@
             try {
                 const plan = pendingPlan;
                 
-                // Create subscription with selected module
+                // Get the module name for display
+                const moduleName = MODULES.find(m => m.id === selectedModule)?.name || selectedModule;
+
+                // Create subscription with selected module - FIXED: use allowed_modules
                 const { data, error } = await supabaseClient
                     .from('subscriptions')
                     .insert({
@@ -782,7 +819,7 @@
                         plan_id: plan.id,
                         plan_type: plan.slug,
                         status: 'pending',
-                        active_module: selectedModule,
+                        allowed_modules: [selectedModule], // FIXED: array format for multiple modules
                         start_date: new Date().toISOString(),
                         expiry_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
                         payment_status: 'pending'
@@ -792,11 +829,13 @@
 
                 if (error) throw error;
 
+                pendingSubscriptionId = data.id;
+
                 // Close modal
                 closeModuleSelection();
                 
                 // Show WhatsApp payment CTA with module info
-                showPaymentCTA(plan, selectedModule);
+                showPaymentCTA(plan, selectedModule, data.id);
                 
                 showToast(`✅ Basic plan selected! Please complete payment of UGX ${plan.price.toLocaleString()}`, false);
 
@@ -816,23 +855,121 @@
         }
 
         // ─── SHOW PAYMENT CTA ───
-        function showPaymentCTA(plan, moduleId) {
+        function showPaymentCTA(plan, moduleId, subscriptionId) {
             const cta = document.getElementById('paymentCTA');
             const whatsappLink = document.getElementById('whatsappPaymentLink');
             
             const moduleName = MODULES.find(m => m.id === moduleId)?.name || moduleId || 'All Modules';
             const email = currentUser?.email || '';
             const msg = encodeURIComponent(
-                `Hello, I have paid for EaseMed ${plan.name} (UGX ${plan.price.toLocaleString()}) via Airtel Money.\n\nEmail: ${email}\nPlan: ${plan.name}\nModule: ${moduleName}\nAmount: UGX ${plan.price.toLocaleString()}\n\n[Please attach your payment screenshot to this message]`
+                `Hello, I have paid for EaseMed ${plan.name} (UGX ${plan.price.toLocaleString()}) via Airtel Money.\n\nEmail: ${email}\nPlan: ${plan.name}\nModule: ${moduleName}\nAmount: UGX ${plan.price.toLocaleString()}\nSubscription ID: ${subscriptionId}\n\n[Please attach your payment screenshot to this message]`
             );
             whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
             
-            cta.style.display = 'block';
+            // Update status badge
+            const badge = document.getElementById('paymentStatusBadge');
+            badge.className = 'status-badge pending';
+            badge.textContent = '⏳ Waiting for payment verification';
+            
+            cta.classList.add('active');
+            
+            // Store pending ID for status checks
+            pendingSubscriptionId = subscriptionId;
+            
+            // Add to URL for persistence
+            const url = new URL(window.location);
+            url.searchParams.set('pending', subscriptionId);
+            window.history.pushState({}, '', url);
+            
             cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Start auto-check
+            startPaymentCheck(subscriptionId);
         }
 
         function hidePaymentCTA() {
-            document.getElementById('paymentCTA').style.display = 'none';
+            document.getElementById('paymentCTA').classList.remove('active');
+            if (paymentCheckInterval) {
+                clearInterval(paymentCheckInterval);
+                paymentCheckInterval = null;
+            }
+            // Remove pending from URL
+            const url = new URL(window.location);
+            url.searchParams.delete('pending');
+            window.history.pushState({}, '', url);
+        }
+
+        // ─── START PAYMENT CHECK ───
+        function startPaymentCheck(subscriptionId) {
+            if (paymentCheckInterval) {
+                clearInterval(paymentCheckInterval);
+            }
+            
+            // Check immediately
+            checkPaymentStatus();
+            
+            // Then check every 10 seconds
+            paymentCheckInterval = setInterval(async () => {
+                await checkPaymentStatus();
+            }, 10000);
+        }
+
+        // ─── CHECK PAYMENT STATUS ───
+        async function checkPaymentStatus() {
+            if (!pendingSubscriptionId) {
+                // Check if we have one from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                pendingSubscriptionId = urlParams.get('pending');
+                if (!pendingSubscriptionId) return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('subscriptions')
+                    .select('status, payment_status, plan_type')
+                    .eq('id', pendingSubscriptionId)
+                    .single();
+
+                if (error) throw error;
+
+                const badge = document.getElementById('paymentStatusBadge');
+                
+                if (data.status === 'active' && data.payment_status === 'paid') {
+                    // Payment verified!
+                    badge.className = 'status-badge verified';
+                    badge.textContent = '✅ Payment Verified! Your account is active.';
+                    
+                    showToast('✅ Payment verified! Redirecting to modules...', false);
+                    
+                    // Stop checking
+                    if (paymentCheckInterval) {
+                        clearInterval(paymentCheckInterval);
+                        paymentCheckInterval = null;
+                    }
+                    
+                    // Refresh subscription data
+                    await loadCurrentSubscription();
+                    
+                    // Redirect after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = 'modules.html';
+                    }, 3000);
+                    
+                    return true;
+                } else if (data.status === 'pending') {
+                    badge.className = 'status-badge pending';
+                    badge.textContent = '⏳ Waiting for admin verification...';
+                } else {
+                    badge.className = 'status-badge pending';
+                    badge.textContent = `⏳ Status: ${data.status}`;
+                }
+                
+                return false;
+
+            } catch (error) {
+                console.error('[Payment Check] Error:', error);
+                return false;
+            }
         }
 
         // ─── SELECT PLAN ───
@@ -862,7 +999,33 @@
 
             // For Premium - show WhatsApp payment CTA directly
             if (slug === 'premium' && plan.price > 0) {
-                showPaymentCTA(plan, 'all');
+                // Create pending subscription for Premium
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('subscriptions')
+                        .insert({
+                            user_id: currentUser.id,
+                            plan_id: plan.id,
+                            plan_type: plan.slug,
+                            status: 'pending',
+                            allowed_modules: null, // null means all modules for premium
+                            start_date: new Date().toISOString(),
+                            expiry_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
+                            payment_status: 'pending'
+                        })
+                        .select()
+                        .single();
+
+                    if (error) throw error;
+
+                    pendingSubscriptionId = data.id;
+                    showPaymentCTA(plan, 'all', data.id);
+                    showToast(`✅ Premium plan selected! Please complete payment of UGX ${plan.price.toLocaleString()}`, false);
+
+                } catch (error) {
+                    console.error('[Premium] Error:', error);
+                    showToast('❌ Failed to create subscription: ' + error.message, true);
+                }
                 return;
             }
 
@@ -881,6 +1044,7 @@
                             plan_id: plan.id,
                             plan_type: slug,
                             status: 'active',
+                            allowed_modules: null, // null = all modules for trial
                             start_date: new Date().toISOString(),
                             expiry_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
                             payment_status: 'paid'
