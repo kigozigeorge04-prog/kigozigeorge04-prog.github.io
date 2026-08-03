@@ -715,6 +715,22 @@
                 if (p) p.textContent = message;
             }
         }
+        // In easemed_admin_dashboard.html
+async function verifyPendingSubscription(subscriptionId) {
+    const { error } = await supabaseClient
+        .from('subscriptions')
+        .update({ 
+            status: 'active', 
+            payment_status: 'paid',
+            verified_at: new Date().toISOString()
+        })
+        .eq('id', subscriptionId);
+    
+    if (!error) {
+        alert('✅ Subscription activated!');
+        loadPendingSubscriptions(); // Refresh list
+    }
+}
 
         // ─── LOAD DASHBOARD DATA ───
         async function loadDashboardData() {
