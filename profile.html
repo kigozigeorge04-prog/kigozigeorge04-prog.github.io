@@ -138,6 +138,26 @@
             color: #3B82F6;
             border: 1px solid rgba(59, 130, 246, 0.15);
         }
+        .profile-title .sub .badge-premium {
+            background: rgba(16, 185, 129, 0.15);
+            color: #065F46;
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        .profile-title .sub .badge-basic {
+            background: rgba(59, 130, 246, 0.15);
+            color: #1E40AF;
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+        .profile-title .sub .badge-trial {
+            background: rgba(245, 158, 11, 0.15);
+            color: #92400E;
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+        .profile-title .sub .badge-expired {
+            background: rgba(239, 68, 68, 0.15);
+            color: #991B1B;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
 
         .profile-actions {
             display: flex;
@@ -189,6 +209,22 @@
             cursor: not-allowed;
             transform: none !important;
         }
+        .btn-danger {
+            padding: 9px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.08);
+            color: #991B1B;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.15);
+            transform: translateY(-2px);
+        }
 
         /* ---- NOTICE ---- */
         .notice {
@@ -213,6 +249,11 @@
             border-color: rgba(220, 38, 38, 0.2);
             background: rgba(220, 38, 38, 0.06);
         }
+        .notice-warning {
+            color: #92400E;
+            border-color: rgba(245, 158, 11, 0.2);
+            background: rgba(245, 158, 11, 0.06);
+        }
         .hidden {
             display: none !important;
         }
@@ -220,8 +261,11 @@
         /* ---- PROFILE GRID ---- */
         .profile-grid {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 24px;
+        }
+        .profile-grid .section-full {
+            grid-column: 1 / -1;
         }
 
         .section {
@@ -296,6 +340,17 @@
             flex: 1;
             word-break: break-word;
         }
+        .info-row .value .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .status-dot.active { background: #10B981; }
+        .status-dot.pending { background: #F59E0B; }
+        .status-dot.expired { background: #EF4444; }
+        .status-dot.inactive { background: #9CA3AF; }
 
         /* ---- EDIT FORM ---- */
         .edit-form {
@@ -455,6 +510,9 @@
             .section {
                 padding: 20px;
             }
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
             .info-row {
                 flex-direction: column;
                 align-items: flex-start;
@@ -506,12 +564,17 @@
                             <span id="userRole">—</span>
                             <span class="badge" id="userYear">—</span>
                             <span id="userUniversity">—</span>
+                            <span id="planBadge" class="badge">—</span>
                         </div>
                     </div>
                     <div class="profile-actions">
                         <a href="modules.html" class="btn-outline" style="text-decoration:none;">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             Back to Modules
+                        </a>
+                        <a href="subscription.html" class="btn-outline" style="text-decoration:none;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 22v-4M4 4l2 2M20 20l-2-2M4 20l2-2M20 4l-2-2"/><circle cx="12" cy="12" r="4"/></svg>
+                            Plans
                         </a>
                         <button class="btn-outline" onclick="handleLogout()">Sign out</button>
                     </div>
@@ -584,6 +647,42 @@
                             </form>
                         </div>
                     </div>
+
+                    <!-- SUBSCRIPTION INFORMATION -->
+                    <div class="section">
+                        <div class="section-header">
+                            <h3>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 22v-4M4 4l2 2M20 20l-2-2M4 20l2-2M20 4l-2-2"/><circle cx="12" cy="12" r="4"/></svg>
+                                Subscription
+                            </h3>
+                            <a href="subscription.html" class="edit-toggle" style="text-decoration:none;">Upgrade</a>
+                        </div>
+
+                        <div id="subscriptionInfo">
+                            <div class="info-row"><span class="key">Plan</span><span class="value" id="subPlan">—</span></div>
+                            <div class="info-row"><span class="key">Status</span><span class="value" id="subStatus">—</span></div>
+                            <div class="info-row"><span class="key">Active Module</span><span class="value" id="subModule">—</span></div>
+                            <div class="info-row"><span class="key">Expiry Date</span><span class="value" id="subExpiry">—</span></div>
+                            <div class="info-row"><span class="key">Days Remaining</span><span class="value" id="subDaysRemaining">—</span></div>
+                        </div>
+                    </div>
+
+                    <!-- ACCOUNT ACTIONS -->
+                    <div class="section section-full">
+                        <div class="section-header">
+                            <h3>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"/></svg>
+                                Account Actions
+                            </h3>
+                        </div>
+                        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                            <a href="subscription.html" class="btn-primary">🔄 Upgrade Plan</a>
+                            <button class="btn-danger" onclick="cancelSubscription()">🚫 Cancel Subscription</button>
+                        </div>
+                        <div style="margin-top:12px; font-size:12px; color:rgba(11,26,46,0.4);">
+                            <span>⚠️ Canceling will remove your access immediately. You can resubscribe anytime.</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- FOOTER NOTE -->
@@ -620,6 +719,7 @@
         let supabaseClient = null;
         let currentUser = null;
         let profileData = {};
+        let subscriptionData = null;
         let isEditing = false;
 
         // ─── DOM REFS ───
@@ -628,6 +728,14 @@
         const toggleBtn = document.getElementById('toggleEditBtn');
         const loadingState = document.getElementById('loadingState');
         const profileContent = document.getElementById('profileContent');
+
+        // ─── MODULE NAMES ───
+        const MODULE_NAMES = {
+            'imed': 'Internal Medicine',
+            'surgery': 'Surgery',
+            'peds': 'Pediatrics',
+            'obgyn': 'OB/GYN'
+        };
 
         // ─── INIT SUPABASE ───
         function initSupabase() {
@@ -675,6 +783,7 @@
 
                 currentUser = session.user;
                 await loadProfile();
+                await loadSubscription();
 
             } catch (error) {
                 console.error('[Profile] Auth error:', error);
@@ -733,6 +842,36 @@
             }
         }
 
+        // ─── LOAD SUBSCRIPTION ───
+        async function loadSubscription() {
+            if (!supabaseClient || !currentUser) return;
+
+            try {
+                // Fetch active subscription
+                const { data: sub, error } = await supabaseClient
+                    .from('subscriptions')
+                    .select('plan_type, active_module, expiry_date, status, payment_status')
+                    .eq('user_id', currentUser.id)
+                    .eq('status', 'active')
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                subscriptionData = sub;
+                console.log('[Profile] Subscription loaded:', subscriptionData);
+                
+                renderSubscription();
+
+            } catch (error) {
+                console.error('[Profile] Subscription load error:', error);
+                // Show "no subscription" state
+                subscriptionData = null;
+                renderSubscription();
+            }
+        }
+
         // ─── RENDER VIEW ───
         function renderView() {
             document.getElementById('userFullName').textContent = profileData.name;
@@ -756,6 +895,91 @@
             document.getElementById('editRole').value = profileData.role || 'student';
             document.getElementById('editYear').value = profileData.year;
             document.getElementById('editUniversity').value = profileData.university;
+        }
+
+        // ─── RENDER SUBSCRIPTION ───
+        function renderSubscription() {
+            const planEl = document.getElementById('subPlan');
+            const statusEl = document.getElementById('subStatus');
+            const moduleEl = document.getElementById('subModule');
+            const expiryEl = document.getElementById('subExpiry');
+            const daysEl = document.getElementById('subDaysRemaining');
+            const badgeEl = document.getElementById('planBadge');
+
+            if (!subscriptionData) {
+                planEl.textContent = 'No active plan';
+                statusEl.innerHTML = '<span class="status-dot inactive"></span> Inactive';
+                moduleEl.textContent = '—';
+                expiryEl.textContent = '—';
+                daysEl.textContent = '—';
+                badgeEl.textContent = '🚫 No Subscription';
+                badgeEl.className = 'badge badge-expired';
+                return;
+            }
+
+            // Plan name
+            const planNames = {
+                'free_trial': '🎁 Free Trial',
+                'basic': '📋 Basic',
+                'premium': '⭐ Premium'
+            };
+            planEl.textContent = planNames[subscriptionData.plan_type] || subscriptionData.plan_type;
+
+            // Status
+            const statusMap = {
+                'active': '✅ Active',
+                'pending': '⏳ Pending',
+                'expired': '❌ Expired',
+                'rejected': '🚫 Rejected'
+            };
+            const statusClass = subscriptionData.status === 'active' ? 'active' : 
+                               subscriptionData.status === 'pending' ? 'pending' : 'expired';
+            statusEl.innerHTML = `<span class="status-dot ${statusClass}"></span> ${statusMap[subscriptionData.status] || subscriptionData.status}`;
+
+            // Module
+            if (subscriptionData.plan_type === 'premium' || subscriptionData.plan_type === 'free_trial') {
+                moduleEl.textContent = '✅ All modules';
+            } else if (subscriptionData.active_module) {
+                moduleEl.textContent = MODULE_NAMES[subscriptionData.active_module] || subscriptionData.active_module;
+            } else {
+                moduleEl.textContent = '—';
+            }
+
+            // Expiry
+            if (subscriptionData.expiry_date) {
+                const expiry = new Date(subscriptionData.expiry_date);
+                expiryEl.textContent = expiry.toLocaleDateString('en-GB', { 
+                    day: 'numeric', month: 'short', year: 'numeric' 
+                });
+
+                // Days remaining
+                const now = new Date();
+                const daysRemaining = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+                if (daysRemaining > 0) {
+                    daysEl.textContent = `${daysRemaining} days`;
+                } else if (daysRemaining === 0) {
+                    daysEl.textContent = 'Expires today!';
+                } else {
+                    daysEl.textContent = 'Expired';
+                }
+            } else {
+                expiryEl.textContent = 'Never expires';
+                daysEl.textContent = '∞';
+            }
+
+            // Badge in header
+            const planDisplay = planNames[subscriptionData.plan_type] || subscriptionData.plan_type;
+            badgeEl.textContent = planDisplay;
+            
+            if (subscriptionData.plan_type === 'premium') {
+                badgeEl.className = 'badge badge-premium';
+            } else if (subscriptionData.plan_type === 'basic') {
+                badgeEl.className = 'badge badge-basic';
+            } else if (subscriptionData.plan_type === 'free_trial') {
+                badgeEl.className = 'badge badge-trial';
+            } else {
+                badgeEl.className = 'badge';
+            }
         }
 
         // ─── FORMAT ROLE FOR DISPLAY ───
@@ -782,7 +1006,7 @@
             const container = document.getElementById('profileNotice');
             container.innerHTML = '';
             const wrap = document.createElement('div');
-            wrap.className = `notice ${type === 'success' ? 'notice-success' : 'notice-error'}`;
+            wrap.className = `notice ${type === 'success' ? 'notice-success' : type === 'warning' ? 'notice-warning' : 'notice-error'}`;
             const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             icon.setAttribute('width', '16');
             icon.setAttribute('height', '16');
@@ -792,9 +1016,15 @@
             icon.setAttribute('stroke-width', '2');
             icon.setAttribute('stroke-linecap', 'round');
             icon.setAttribute('stroke-linejoin', 'round');
-            icon.innerHTML = type === 'success' ?
-                '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' :
-                '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+            
+            if (type === 'success') {
+                icon.innerHTML = '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
+            } else if (type === 'warning') {
+                icon.innerHTML = '<path d="M12 9v4M12 17h.01"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>';
+            } else {
+                icon.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+            }
+            
             const text = document.createElement('span');
             text.textContent = message;
             wrap.appendChild(icon);
@@ -900,7 +1130,7 @@
                 };
 
                 renderView();
-                showNotice('success', '✅ Profile updated successfully in Supabase!');
+                showNotice('success', '✅ Profile updated successfully!');
                 cancelEdit();
 
             } catch (error) {
@@ -910,6 +1140,38 @@
 
             btn.disabled = false;
             btn.innerHTML = '💾 Save changes';
+        }
+
+        // ─── CANCEL SUBSCRIPTION ───
+        async function cancelSubscription() {
+            if (!subscriptionData) {
+                showNotice('warning', 'You don\'t have an active subscription to cancel.');
+                return;
+            }
+
+            if (!confirm('⚠️ Are you sure you want to cancel your subscription?\n\nThis will remove your access immediately.')) {
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('subscriptions')
+                    .update({
+                        status: 'expired',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', subscriptionData.id)
+                    .eq('user_id', currentUser.id);
+
+                if (error) throw error;
+
+                showNotice('success', '✅ Subscription cancelled. You can resubscribe anytime.');
+                await loadSubscription();
+
+            } catch (error) {
+                console.error('[Cancel] Error:', error);
+                showNotice('error', 'Failed to cancel: ' + error.message);
+            }
         }
 
         // ─── SIGN OUT ───
