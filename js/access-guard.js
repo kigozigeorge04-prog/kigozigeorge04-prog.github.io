@@ -12,6 +12,37 @@ const MODULE_SLUG_CONFIG = {
 const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
+// ─── SHARED CLIENT ───
+// Creating a second GoTrue client on the same page (in addition to whatever
+// client the module page's own script creates) causes "Multiple GoTrueClient
+// instances" contention — each instance runs its own auto-refresh timer and
+// they can fight over the same browser lock, which can make getSession()
+// hang intermittently. Cache one client on window and reuse it here; if the
+// module page's own script is updated to check window.__easemedSupabase
+// first (before calling createClient itself), it'll share this same
+// instance instead of spinning up a third one.
+function getSharedSupabaseClient() {
+    if (window.__easemedSupabase) return window.__easemedSupabase;
+    if (!window.supabase?.createClient) return null;
+    window.__easemedSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    return window.__easemedSupabase;
+}
+
+// ─── TIMEOUT GUARD ───
+// Network calls below have no built-in timeout. On a slow/unstable
+// connection an unresolved await here leaves the page hidden behind the
+// loading overlay indefinitely. Race every network call against this so
+// the guard always resolves one way or another.
+const GUARD_TIMEOUT_MS = 8000;
+function withTimeout(promise, label) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`TIMEOUT:${label}`)), GUARD_TIMEOUT_MS)
+        )
+    ]);
+}
+
 // ─── GET MODULE SLUG ───
 function getCurrentModuleSlug() {
     const pageName = location.pathname.split('/').pop();
@@ -84,14 +115,17 @@ async function checkModuleAccess(client, userId, moduleSlug) {
         console.log('[AccessGuard] Checking module access for:', moduleSlug);
         
         // First, check if user has any active subscription
-        const { data: subscription, error } = await client
-            .from('subscriptions')
-            .select('plan_type, active_module, expiry_date, status')
-            .eq('user_id', userId)
-            .eq('status', 'active')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+        const { data: subscription, error } = await withTimeout(
+            client
+                .from('subscriptions')
+                .select('plan_type, active_module, expiry_date, status')
+                .eq('user_id', userId)
+                .eq('status', 'active')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle(),
+            'subscriptionCheck'
+        );
 
         if (error) {
             console.warn('[AccessGuard] Subscription error:', error);
@@ -203,10 +237,15 @@ function showUpgradeModal(moduleName) {
             return;
         }
 
-        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-        
+        const client = getSharedSupabaseClient();
+        if (!client) {
+            console.warn('[AccessGuard] Could not obtain Supabase client');
+            revealPage();
+            return;
+        }
+
         // Get session
-        const { data: { session } } = await client.auth.getSession();
+        const { data: { session } } = await withTimeout(client.auth.getSession(), 'getSession');
         if (!session?.user) {
             console.log('[AccessGuard] No session');
             revealPage();
@@ -214,11 +253,14 @@ function showUpgradeModal(moduleName) {
         }
 
         // Get profile
-        const { data: profile, error } = await client
-            .from('profiles')
-            .select('is_active, access_expires_at, role, is_admin')
-            .eq('id', session.user.id)
-            .single();
+        const { data: profile, error } = await withTimeout(
+            client
+                .from('profiles')
+                .select('is_active, access_expires_at, role, is_admin')
+                .eq('id', session.user.id)
+                .single(),
+            'profileFetch'
+        );
 
         if (error || !profile) {
             console.warn('[AccessGuard] Profile error:', error?.message);
@@ -298,7 +340,11 @@ function showUpgradeModal(moduleName) {
         revealPage();
 
     } catch (error) {
-        console.error('[AccessGuard] Error:', error);
+        if (error && String(error.message).startsWith('TIMEOUT')) {
+            console.warn(`[AccessGuard] Timed out waiting on ${error.message.split(':')[1]} — revealing page rather than hanging.`);
+        } else {
+            console.error('[AccessGuard] Error:', error);
+        }
         revealPage();
     }
 })();
