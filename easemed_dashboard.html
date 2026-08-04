@@ -2441,6 +2441,7 @@
 
             try {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+               window.sb = supabaseClient;
                 console.log('[Auth] Supabase client initialized.');
 
                 const { data: { session }, error } = await supabaseClient.auth.getSession();
@@ -2471,31 +2472,24 @@
                     console.warn('[Auth] Profile fetch warning:', profileError);
                 }
 
-                if (profile) {
-                    if (!profile.is_active) {
-                        window.location.href = 'easemed_payment.html';
-                        return;
-                    }
-                    if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
-                        await supabaseClient.from('profiles').update({ is_active: false }).eq('id', currentUser.id);
-                        window.location.href = 'easemed_payment.html?reason=expired';
-                        return;
-                    }
-                    
-                    const displayName = profile.full_name || currentUser.user_metadata?.full_name || 
-                                       currentUser.user_metadata?.name || currentUser.email;
-                    document.getElementById('userGreeting').textContent = '👤 ' + displayName;
-                    const avatar = document.getElementById('userAvatar');
-                    if (avatar) {
-                        avatar.textContent = displayName ? displayName.charAt(0).toUpperCase() : '👤';
-                    }
-                }
+               if (profile) {
+    const displayName = profile.full_name || currentUser.user_metadata?.full_name || 
+                       currentUser.user_metadata?.name || currentUser.email;
+    document.getElementById('userGreeting').textContent = '👤 ' + displayName;
+    const avatar = document.getElementById('userAvatar');
+    if (avatar) {
+        avatar.textContent = displayName ? displayName.charAt(0).toUpperCase() : '👤';
+    }
+}
+              // Verify subscription access before showing content
+const hasAccess = await verifyAccess('imed');
+if (!hasAccess) return;
 
-                // Show the page content
-                document.body.style.display = 'block';
-                
-                // Initialize the page
-                initializePage();
+// Show the page content
+document.body.style.display = 'block';
+
+// Initialize the page
+initializePage();
 
             } catch (error) {
                 console.error('[Auth] Fatal error:', error);
@@ -2572,18 +2566,7 @@ async function verifyAccess(moduleCode) {
         return false;
     }
 }
-
-// ─── PAGE INITIALIZATION ───
-document.addEventListener('DOMContentLoaded', async () => {
-    // Verify access for Internal Medicine module
-    const hasAccess = await verifyAccess('imed');
-    if (!hasAccess) return;
-    
-    // If we get here, user has access - load your module content
-    console.log('[Dashboard] Access granted for Internal Medicine');
-    // Your existing initialization code here...
-});
-        
+     
         // ─── INITIALIZE PAGE ───
         function initializePage() {
             console.log('[Page] Initializing...');
@@ -5190,25 +5173,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     </script>
     
-
-<!-- Your page's own script -->
-<script>
-    // ── PAGE INITIALIZATION ──
-    document.addEventListener('DOMContentLoaded', async function() {
-        // 1. Require authentication
-        const isAuthenticated = await requireAuth('easemed_login.html');
-        if (!isAuthenticated) return;
-
-        // 2. Your page code here...
-        console.log('[EaseMed] Protected page loaded successfully');
-        console.log('Welcome, ' + localStorage.getItem('easemed_user_name'));
-
-        // 3. Add logout button handler (optional)
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => logoutUser('easemed_login.html'));
-        }
-    });
-</script>
 </body>
 </html>
