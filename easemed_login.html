@@ -11,6 +11,9 @@
     <meta name="apple-mobile-web-app-title" content="EaseMed">
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+    <!-- Content Security Policy - Updated to include Cloudflare and local sources -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sentry-cdn.com https://browser.sentry-cdn.com https://*.supabase.co https://*.vercel.com https://vercel.com https://static.cloudflareinsights.com">
+
     <!-- Local Supabase SDK -->
     <script src="/js/supabase.min.js"></script>
 
@@ -1600,6 +1603,10 @@
             localStorage.setItem(CACHE_KEY, APP_VERSION);
         }
 
+        // ─── SUPABASE CONFIG - DECLARED ONCE AT TOP ───
+        const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
         // ─── COUNTRY DATA ───
         const countries = [
             { name: "Afghanistan", code: "+93" },
@@ -1798,6 +1805,21 @@
             { name: "Zimbabwe", code: "+263" }
         ];
 
+        // ─── ROTATIONS ───
+        const ROTATIONS = [
+            "Internal Medicine — Week 4",
+            "General Surgery — Week 2",
+            "Pediatrics — Week 1",
+            "OB/GYN — Week 3",
+            "Psychiatry — Week 5",
+        ];
+
+        // ─── STATE ───
+        let currentView = 'login';
+        let rotationIndex = 0;
+        let rotationInterval = null;
+        let deferredPrompt;
+
         // ─── POPULATE COUNTRY DROPDOWN ───
         function populateCountryDropdown() {
             const select = document.getElementById('signupCountryCode');
@@ -1894,17 +1916,15 @@
             }
         }
 
-        // ─── SUPABASE CONFIG ───
+        // ─── INIT SUPABASE ───
         function initSupabase() {
+            // Check if supabase is available globally
             if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
                 showFatalError('Supabase SDK failed to load. Please refresh the page.');
                 return;
             }
 
             try {
-                const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
-
                 window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 console.log('[Supabase] Client initialized successfully.');
 
@@ -1918,20 +1938,6 @@
                 );
             }
         }
-
-        // ─── DATA ───
-        const ROTATIONS = [
-            "Internal Medicine — Week 4",
-            "General Surgery — Week 2",
-            "Pediatrics — Week 1",
-            "OB/GYN — Week 3",
-            "Psychiatry — Week 5",
-        ];
-
-        // ─── STATE ───
-        let currentView = 'login';
-        let rotationIndex = 0;
-        let rotationInterval = null;
 
         // ─── VIEW SWITCHING ───
         function switchToLogin() {
@@ -1958,7 +1964,6 @@
         }
 
         // ─── PWA INSTALL ───
-        let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -2240,7 +2245,6 @@
             if (!email) errors.email = 'Enter your email address.';
             else if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = 'Please enter a valid email address.';
 
-            // Phone validation (optional but if provided, must be valid)
             if (phone && !/^[\d\s\-+()]*$/.test(phone)) {
                 errors.phone = 'Please enter a valid phone number.';
             }
@@ -2294,7 +2298,6 @@
 
             if (Object.keys(errors).length > 0) return false;
 
-            // Format phone number with country code
             const fullPhone = phone ? `${countryCode} ${phone}` : '';
 
             btn.disabled = true;
@@ -2502,10 +2505,24 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[App] DOM ready, initializing...');
 
+            // Check if supabase is available globally
             if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
                 initSupabase();
             } else {
-                showFatalError('Supabase SDK failed to load. Please refresh the page.');
+                // Wait a bit for the script to load
+                console.log('[App] Waiting for Supabase SDK...');
+                let attempts = 0;
+                const maxAttempts = 20;
+                const checkInterval = setInterval(() => {
+                    attempts++;
+                    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                        clearInterval(checkInterval);
+                        initSupabase();
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(checkInterval);
+                        showFatalError('Supabase SDK failed to load. Please refresh the page.');
+                    }
+                }, 500);
             }
         });
     </script>
