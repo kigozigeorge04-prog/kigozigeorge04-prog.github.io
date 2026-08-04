@@ -17,10 +17,10 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // client the module page's own script creates) causes "Multiple GoTrueClient
 // instances" contention — each instance runs its own auto-refresh timer and
 // they can fight over the same browser lock, which can make getSession()
-// hang intermittently. Cache one client on window and reuse it here; if the
-// module page's own script is updated to check window.__easemedSupabase
-// first (before calling createClient itself), it'll share this same
-// instance instead of spinning up a third one.
+// hang intermittently. Cache one client on window and reuse it here; the
+// module page's own script should check window.__easemedSupabase first
+// (before calling createClient itself) so it shares this same instance
+// instead of spinning up a second one.
 function getSharedSupabaseClient() {
     if (window.__easemedSupabase) return window.__easemedSupabase;
     if (!window.supabase?.createClient) return null;
@@ -89,7 +89,7 @@ function getCurrentModuleSlug() {
         }
     `;
     document.documentElement.appendChild(style);
-    
+
     // Show loading overlay
     const overlay = document.createElement('div');
     overlay.id = 'access-guard-overlay';
@@ -107,21 +107,28 @@ function revealPage() {
     if (hideStyle) hideStyle.remove();
 }
 
-// ─── MODULE ACCESS CHECK (FIXED) ───
+// ─── MODULE ACCESS CHECK ───
+// Reads plan_type / allowed_modules / expiry_date / status from the real
+// subscriptions table schema:
+//   plan_type      text   ('free-trial' | 'basic' | 'premium')
+//   allowed_modules jsonb  (null = all modules; array of module slugs for basic)
+//   expiry_date    timestamptz
+//   status         text   ('active' | 'expired' | 'cancelled' | 'pending')
 async function checkModuleAccess(client, userId, moduleSlug) {
     if (!moduleSlug) return true;
 
     try {
         console.log('[AccessGuard] Checking module access for:', moduleSlug);
-        
-        // First, check if user has any active subscription
+
+        // Most recent active, non-expired subscription
         const { data: subscription, error } = await withTimeout(
             client
                 .from('subscriptions')
-                .select('plan_type, active_module, expiry_date, status')
+                .select('plan_type, allowed_modules, expiry_date, status')
                 .eq('user_id', userId)
                 .eq('status', 'active')
-                .order('created_at', { ascending: false })
+                .gte('expiry_date', new Date().toISOString())
+                .order('expiry_date', { ascending: false })
                 .limit(1)
                 .maybeSingle(),
             'subscriptionCheck'
@@ -132,28 +139,34 @@ async function checkModuleAccess(client, userId, moduleSlug) {
             return false;
         }
 
-        // If no subscription, check for free trial
         if (!subscription) {
             console.log('[AccessGuard] No active subscription found');
             return false;
         }
 
-        // Check if subscription is expired
+        // Belt-and-braces: query already filters expiry_date >= now(),
+        // but re-check in case of clock skew between client and DB.
         if (subscription.expiry_date && new Date(subscription.expiry_date).getTime() < Date.now()) {
             console.log('[AccessGuard] Subscription expired');
             return false;
         }
 
-        // Premium or Free Trial = full access to all modules
-        if (subscription.plan_type === 'premium' || subscription.plan_type === 'free_trial') {
+        // Premium or free trial = full access to all modules
+        if (subscription.plan_type === 'premium' || subscription.plan_type === 'free-trial') {
             console.log('[AccessGuard] Premium/Free Trial - full access');
             return true;
         }
 
-        // Basic = only active module
+        // Basic = only the module(s) assigned at activation
         if (subscription.plan_type === 'basic') {
-            console.log('[AccessGuard] Basic plan - active module:', subscription.active_module, 'requested:', moduleSlug);
-            return subscription.active_module === moduleSlug;
+            let allowed = subscription.allowed_modules;
+            if (typeof allowed === 'string') {
+                // tolerate a comma-separated string if ever stored that way
+                allowed = allowed.split(',').map(m => m.trim());
+            }
+            const hasModule = Array.isArray(allowed) && allowed.includes(moduleSlug);
+            console.log('[AccessGuard] Basic plan - allowed modules:', allowed, 'requested:', moduleSlug, '-> ', hasModule);
+            return hasModule;
         }
 
         console.log('[AccessGuard] No valid access');
@@ -218,7 +231,7 @@ function showUpgradeModal(moduleName) {
         </style>
     `;
     document.body.appendChild(modal);
-    
+
     modal.addEventListener('click', function(e) {
         if (e.target === this) this.remove();
     });
@@ -288,21 +301,19 @@ function showUpgradeModal(moduleName) {
             return;
         }
 
-        // Check subscription status
+        // Check profile-level active/expired flag
         const isExpired = profile.access_expires_at && new Date(profile.access_expires_at).getTime() < Date.now();
         if (profile.is_active === false || isExpired) {
             console.log('[AccessGuard] Account inactive or expired');
-            // Show upgrade modal instead of redirecting
-            const moduleName = getCurrentModuleSlug();
+            const moduleSlugForName = getCurrentModuleSlug();
             const moduleNames = {
                 'imed': 'Internal Medicine',
                 'surgery': 'Surgery',
                 'peds': 'Pediatrics',
                 'obgyn': 'OB/GYN'
             };
-            showUpgradeModal(moduleNames[moduleName] || 'Module');
-            
-            // Hide content
+            showUpgradeModal(moduleNames[moduleSlugForName] || 'Module');
+
             const hideStyle = document.createElement('style');
             hideStyle.id = 'access-guard-hide-content';
             hideStyle.textContent = '#moduleContent, .main-wrap { display: none !important; }';
@@ -310,11 +321,11 @@ function showUpgradeModal(moduleName) {
             return;
         }
 
-        // Module access check
+        // Module-level access check (plan_type / allowed_modules from subscriptions)
         const moduleSlug = getCurrentModuleSlug();
         if (moduleSlug) {
             const hasAccess = await checkModuleAccess(client, session.user.id, moduleSlug);
-            
+
             if (!hasAccess) {
                 const moduleNames = {
                     'imed': 'Internal Medicine',
@@ -323,13 +334,12 @@ function showUpgradeModal(moduleName) {
                     'obgyn': 'OB/GYN'
                 };
                 console.log(`[AccessGuard] ❌ Access denied: ${moduleNames[moduleSlug] || moduleSlug}`);
-                
-                // Hide all content
+
                 const hideStyle = document.createElement('style');
                 hideStyle.id = 'access-guard-hide-content';
                 hideStyle.textContent = '#moduleContent, .main-wrap { display: none !important; }';
                 document.head.appendChild(hideStyle);
-                
+
                 showUpgradeModal(moduleNames[moduleSlug] || moduleSlug);
                 return;
             }
