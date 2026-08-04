@@ -2409,7 +2409,7 @@
     ============================================================ -->
     <script>
             // ─── VERSION CONTROL ───
-        const APP_VERSION = '2.0.5';
+        const APP_VERSION = '2.0.6';
         const CACHE_KEY = 'easemed_app_version';
         
         const storedVersion = localStorage.getItem(CACHE_KEY);
@@ -2424,7 +2424,7 @@
         }
 
         // ─── SUPABASE CONFIG ───
-    
+
         let currentUser = null;
         let supabaseClient = null;
 
@@ -2439,11 +2439,23 @@ async function checkAuth() {
     }
 
     try {
-        // Use shared client if available, or create new one
+        // Prefer the client created by access-guard.js. Its configuration is
+        // exposed on `window` because top-level consts in another script are
+        // not a safe dependency for this page.
         if (window.__easemedSupabase) {
             supabaseClient = window.__easemedSupabase;
         } else {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const supabaseUrl = window.EASEMED_SUPABASE_URL ||
+                (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : null);
+            const supabaseAnonKey = window.EASEMED_SUPABASE_ANON_KEY ||
+                (typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : null) ||
+                (typeof SUPABASE_ANON !== 'undefined' ? SUPABASE_ANON : null);
+
+            if (!supabaseUrl || !supabaseAnonKey) {
+                throw new Error('Supabase configuration is unavailable');
+            }
+
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
             window.__easemedSupabase = supabaseClient;
         }
         window.sb = supabaseClient;
@@ -2511,9 +2523,9 @@ async function checkAuth() {
             return;
         }
 
-        // Verify subscription access before showing content
-        const hasAccess = await verifyAccess('imed');
-        if (!hasAccess) return;
+        // Subscription enforcement is owned by js/access-guard.js. Keeping a
+        // second check here previously called a nonexistent verifyAccess()
+        // function, which threw and redirected every subscribed user.
 
         // Show the page content
         document.body.style.display = 'block';
