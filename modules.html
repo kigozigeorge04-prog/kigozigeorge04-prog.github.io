@@ -10,10 +10,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
-    <!-- Load Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+
+    <!-- Local Supabase SDK — do NOT use the jsdelivr CDN here.
+         jsdelivr is blocked on some Ugandan mobile networks (Opera Mini /
+         UC Browser / carrier proxies), which silently breaks the whole
+         page. Self-hosting this avoids that failure mode. -->
+    <script src="/js/supabase.min.js"></script>
+
     <style>
         /* ──────────── RESET & BASE ──────────── */
         * {
@@ -820,7 +823,7 @@
 
 <script>
     // ─── VERSION CONTROL ───
-    const APP_VERSION = '2.0.6';
+    const APP_VERSION = '2.0.7';
     const CACHE_KEY = 'easemed_app_version';
     const storedVersion = localStorage.getItem(CACHE_KEY);
     if (storedVersion !== APP_VERSION) {
@@ -841,36 +844,44 @@
     window.sb = null;
     window._currentUser = null;
 
-    // ─── INIT SUPABASE ───
-    function initSupabase() {
-        if (window.sb) return window.sb;
-        
-        if (typeof supabase === 'undefined') {
-            console.error('[Supabase] SDK not loaded');
-            return null;
+    // ─── INIT SUPABASE (retry-safe) ───
+    // The SDK script tag can still be mid-download/parse when this file's
+    // own script runs, especially on slow connections. Instead of failing
+    // on the very first check, poll for up to ~3s before giving up.
+    function initSupabase(retries = 10) {
+        if (window.sb) return Promise.resolve(window.sb);
+
+        if (typeof supabase === 'undefined' || !supabase.createClient) {
+            if (retries > 0) {
+                return new Promise(resolve => {
+                    setTimeout(() => resolve(initSupabase(retries - 1)), 300);
+                });
+            }
+            console.error('[Supabase] SDK failed to load after retries');
+            return Promise.resolve(null);
         }
 
         try {
             window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
             console.log('[Supabase] Client initialized successfully');
-            return window.sb;
+            return Promise.resolve(window.sb);
         } catch (error) {
             console.error('[Supabase] Init error:', error);
-            return null;
+            return Promise.resolve(null);
         }
     }
 
     // ─── AUTH CHECK ───
     async function checkAuth() {
-        const sb = initSupabase();
+        const sb = await initSupabase();
         if (!sb) {
-            showFatalError('Supabase client not available');
+            showFatalError('Supabase failed to load. Please check your connection and retry.');
             return false;
         }
 
         try {
             const { data: { session }, error } = await sb.auth.getSession();
-            
+
             if (error || !session) {
                 console.log('[Auth] No session, redirecting to login');
                 window.location.href = 'easemed_login.html';
@@ -878,20 +889,20 @@
             }
 
             window._currentUser = session.user;
-            
+
             // Update greeting
-            const displayName = session.user.user_metadata?.full_name || 
-                               session.user.user_metadata?.name || 
+            const displayName = session.user.user_metadata?.full_name ||
+                               session.user.user_metadata?.name ||
                                session.user.email;
             document.getElementById('userGreeting').textContent = '👤 ' + displayName;
-            
+
             // Show main content
             document.getElementById('loadingSpinner').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
-            
+
             // Load plan badge
             await loadPlanBadge();
-            
+
             return true;
         } catch (error) {
             console.error('[Auth] Error:', error);
@@ -901,6 +912,10 @@
     }
 
     // ─── LOAD PLAN BADGE ───
+    // Reads plan_type / allowed_modules from the real subscriptions schema.
+    // plan_type is 'free-trial' | 'basic' | 'premium' (hyphenated trial value —
+    // matches the DB check constraint). allowed_modules is jsonb: null for
+    // trial/premium (all modules), or an array of module slugs for basic.
     async function loadPlanBadge() {
         const sb = window.sb;
         if (!sb || !window._currentUser) return;
@@ -908,11 +923,11 @@
         try {
             const { data, error } = await sb
                 .from('subscriptions')
-                .select('plan_type, active_module, status')
+                .select('plan_type, allowed_modules, status')
                 .eq('user_id', window._currentUser.id)
                 .eq('status', 'active')
                 .gte('expiry_date', new Date().toISOString())
-                .order('created_at', { ascending: false })
+                .order('expiry_date', { ascending: false })
                 .limit(1)
                 .maybeSingle();
 
@@ -923,23 +938,26 @@
             }
 
             const planNames = {
-                'free_trial': '🎁 Free Trial',
+                'free-trial': '🎁 Free Trial',
                 'basic': '🩺 Basic',
                 'premium': '⭐ Premium'
             };
-            
+
             let planText = planNames[data.plan_type] || data.plan_type;
-            
-            if (data.plan_type === 'basic' && data.active_module) {
+
+            if (data.plan_type === 'basic' && data.allowed_modules) {
+                let allowed = data.allowed_modules;
+                if (typeof allowed === 'string') allowed = allowed.split(',').map(m => m.trim());
                 const moduleNames = {
                     'imed': 'Internal Med',
                     'surgery': 'Surgery',
                     'peds': 'Pediatrics',
                     'obgyn': 'OB/GYN'
                 };
-                planText += ` (${moduleNames[data.active_module] || data.active_module})`;
+                const labels = (allowed || []).map(m => moduleNames[m] || m);
+                if (labels.length) planText += ` (${labels.join(', ')})`;
             }
-            
+
             badge.textContent = planText;
             badge.style.display = 'inline';
         } catch (error) {
@@ -948,8 +966,10 @@
     }
 
     // ─── OPEN MODULE ───
+    // Same schema as loadPlanBadge: allowed_modules (jsonb array), and
+    // plan_type check uses 'free-trial' (hyphenated).
     async function openModule(url, moduleCode) {
-        const sb = window.sb;
+        const sb = window.sb || await initSupabase();
         if (!sb) {
             window.location.href = 'easemed_login.html';
             return;
@@ -965,28 +985,37 @@
             // Check subscription
             const { data: sub, error } = await sb
                 .from('subscriptions')
-                .select('plan_type, active_module, expiry_date, status')
+                .select('plan_type, allowed_modules, expiry_date, status')
                 .eq('user_id', session.user.id)
                 .eq('status', 'active')
                 .gte('expiry_date', new Date().toISOString())
-                .order('created_at', { ascending: false })
+                .order('expiry_date', { ascending: false })
                 .limit(1)
                 .maybeSingle();
 
             if (error || !sub) {
-                window.location.href = `subscription.html?reason=expired`;
+                window.location.href = `subscription.html?reason=expired&module=${moduleCode}`;
                 return;
             }
 
-            // Check expiry
+            // Belt-and-braces re-check in case of clock skew
             if (sub.expiry_date && new Date(sub.expiry_date) < new Date()) {
-                window.location.href = `subscription.html?reason=expired`;
+                window.location.href = `subscription.html?reason=expired&module=${moduleCode}`;
                 return;
             }
 
-            // For basic plan, check module access
+            // Premium or free-trial = full access, skip module check
+            if (sub.plan_type === 'premium' || sub.plan_type === 'free-trial') {
+                window.location.href = url;
+                return;
+            }
+
+            // Basic plan — check assigned module(s)
             if (sub.plan_type === 'basic') {
-                if (!sub.active_module || sub.active_module !== moduleCode) {
+                let allowed = sub.allowed_modules;
+                if (typeof allowed === 'string') allowed = allowed.split(',').map(m => m.trim());
+                const hasModule = Array.isArray(allowed) && allowed.includes(moduleCode);
+                if (!hasModule) {
                     window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
                     return;
                 }
