@@ -13,14 +13,6 @@ const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
 // ─── SHARED CLIENT ───
-// Creating a second GoTrue client on the same page (in addition to whatever
-// client the module page's own script creates) causes "Multiple GoTrueClient
-// instances" contention — each instance runs its own auto-refresh timer and
-// they can fight over the same browser lock, which can make getSession()
-// hang intermittently. Cache one client on window and reuse it here; the
-// module page's own script should check window.__easemedSupabase first
-// (before calling createClient itself) so it shares this same instance
-// instead of spinning up a second one.
 function getSharedSupabaseClient() {
     if (window.__easemedSupabase) return window.__easemedSupabase;
     if (!window.supabase?.createClient) return null;
@@ -29,10 +21,6 @@ function getSharedSupabaseClient() {
 }
 
 // ─── TIMEOUT GUARD ───
-// Network calls below have no built-in timeout. On a slow/unstable
-// connection an unresolved await here leaves the page hidden behind the
-// loading overlay indefinitely. Race every network call against this so
-// the guard always resolves one way or another.
 const GUARD_TIMEOUT_MS = 8000;
 function withTimeout(promise, label) {
     return Promise.race([
@@ -90,7 +78,6 @@ function getCurrentModuleSlug() {
     `;
     document.documentElement.appendChild(style);
 
-    // Show loading overlay
     const overlay = document.createElement('div');
     overlay.id = 'access-guard-overlay';
     overlay.innerHTML = `
@@ -108,25 +95,25 @@ function revealPage() {
 }
 
 // ─── MODULE ACCESS CHECK ───
-// Reads plan_type / allowed_modules / expiry_date / status from the real
-// subscriptions table schema:
-//   plan_type      text   ('free-trial' | 'basic' | 'premium')
-//   allowed_modules jsonb  (null = all modules; array of module slugs for basic)
-//   expiry_date    timestamptz
-//   status         text   ('active' | 'expired' | 'cancelled' | 'pending')
+// FIXED: Uses actual schema columns from subscriptions table:
+//   - active_module (text) - single module slug
+//   - expiry_date (timestamptz) - when subscription expires
+//   - status (text) - 'active', 'expired', 'cancelled', 'pending'
+//   - payment_status (text) - 'paid', 'unpaid', 'pending'
 async function checkModuleAccess(client, userId, moduleSlug) {
     if (!moduleSlug) return true;
 
     try {
         console.log('[AccessGuard] Checking module access for:', moduleSlug);
 
-        // Most recent active, non-expired subscription
+        // Get the user's subscription - using actual schema columns
         const { data: subscription, error } = await withTimeout(
             client
                 .from('subscriptions')
-                .select('plan_type, allowed_modules, expiry_date, status')
+                .select('active_module, expiry_date, status, payment_status')
                 .eq('user_id', userId)
                 .eq('status', 'active')
+                .eq('payment_status', 'paid')
                 .gte('expiry_date', new Date().toISOString())
                 .order('expiry_date', { ascending: false })
                 .limit(1)
@@ -140,37 +127,22 @@ async function checkModuleAccess(client, userId, moduleSlug) {
         }
 
         if (!subscription) {
-            console.log('[AccessGuard] No active subscription found');
+            console.log('[AccessGuard] No active, paid subscription found');
             return false;
         }
 
-        // Belt-and-braces: query already filters expiry_date >= now(),
-        // but re-check in case of clock skew between client and DB.
+        // Double-check expiry date (belt and braces)
         if (subscription.expiry_date && new Date(subscription.expiry_date).getTime() < Date.now()) {
             console.log('[AccessGuard] Subscription expired');
             return false;
         }
 
-        // Premium or free trial = full access to all modules
-        if (subscription.plan_type === 'premium' || subscription.plan_type === 'free-trial') {
-            console.log('[AccessGuard] Premium/Free Trial - full access');
-            return true;
-        }
-
-        // Basic = only the module(s) assigned at activation
-        if (subscription.plan_type === 'basic') {
-            let allowed = subscription.allowed_modules;
-            if (typeof allowed === 'string') {
-                // tolerate a comma-separated string if ever stored that way
-                allowed = allowed.split(',').map(m => m.trim());
-            }
-            const hasModule = Array.isArray(allowed) && allowed.includes(moduleSlug);
-            console.log('[AccessGuard] Basic plan - allowed modules:', allowed, 'requested:', moduleSlug, '-> ', hasModule);
-            return hasModule;
-        }
-
-        console.log('[AccessGuard] No valid access');
-        return false;
+        // Check if the requested module matches the active_module
+        // active_module is a single text value, not an array
+        const hasModule = subscription.active_module === moduleSlug;
+        console.log('[AccessGuard] Active module:', subscription.active_module, 'Requested:', moduleSlug, '->', hasModule);
+        
+        return hasModule;
 
     } catch (error) {
         console.warn('[AccessGuard] Module check error:', error);
@@ -265,11 +237,11 @@ function showUpgradeModal(moduleName) {
             return;
         }
 
-        // Get profile
+        // Get profile - using actual schema columns
         const { data: profile, error } = await withTimeout(
             client
                 .from('profiles')
-                .select('is_active, access_expires_at, role, is_admin')
+                .select('is_active, role, is_admin')
                 .eq('id', session.user.id)
                 .single(),
             'profileFetch'
@@ -301,10 +273,10 @@ function showUpgradeModal(moduleName) {
             return;
         }
 
-        // Check profile-level active/expired flag
-        const isExpired = profile.access_expires_at && new Date(profile.access_expires_at).getTime() < Date.now();
-        if (profile.is_active === false || isExpired) {
-            console.log('[AccessGuard] Account inactive or expired');
+        // Check profile-level active status (no access_expires_at in profiles table)
+        // Using is_active from profiles table
+        if (profile.is_active === false) {
+            console.log('[AccessGuard] Account inactive');
             const moduleSlugForName = getCurrentModuleSlug();
             const moduleNames = {
                 'imed': 'Internal Medicine',
@@ -321,7 +293,7 @@ function showUpgradeModal(moduleName) {
             return;
         }
 
-        // Module-level access check (plan_type / allowed_modules from subscriptions)
+        // Module-level access check using active_module from subscriptions
         const moduleSlug = getCurrentModuleSlug();
         if (moduleSlug) {
             const hasAccess = await checkModuleAccess(client, session.user.id, moduleSlug);
