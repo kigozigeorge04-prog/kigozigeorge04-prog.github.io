@@ -2431,89 +2431,128 @@
         let supabaseClient = null;
 
         // ─── AUTH CHECK ───
-        async function checkAuth() {
-            // Wait for Supabase SDK to be available
-            if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-                console.warn('[Auth] Supabase SDK not available, retrying...');
-                setTimeout(checkAuth, 500);
-                return;
+// ─── CHECK AUTHENTICATION ───
+async function checkAuth() {
+    // Wait for Supabase SDK to be available
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+        console.warn('[Auth] Supabase SDK not available, retrying...');
+        setTimeout(checkAuth, 500);
+        return;
+    }
+
+    try {
+        // Use shared client if available, or create new one
+        if (window.__easemedSupabase) {
+            supabaseClient = window.__easemedSupabase;
+        } else {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            window.__easemedSupabase = supabaseClient;
+        }
+        window.sb = supabaseClient;
+        console.log('[Auth] Supabase client initialized.');
+
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        
+        if (error) {
+            console.error('[Auth] Session error:', error);
+            window.location.href = 'easemed_login.html';
+            return;
+        }
+
+        if (!session) {
+            console.warn('[Auth] No session found, redirecting to login');
+            window.location.href = 'easemed_login.html';
+            return;
+        }
+
+        currentUser = session.user;
+        console.log('[Auth] User authenticated:', currentUser.email);
+
+        // Check if profile is active
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles')
+            .select('is_active, full_name, role, is_admin')
+            .eq('id', currentUser.id)
+            .single();
+
+        if (profileError) {
+            console.warn('[Auth] Profile fetch warning:', profileError);
+            // Continue anyway, but log the error
+        }
+
+        // Update user greeting
+        if (profile) {
+            const displayName = profile.full_name || currentUser.user_metadata?.full_name || 
+                               currentUser.user_metadata?.name || currentUser.email;
+            const greetingEl = document.getElementById('userGreeting');
+            if (greetingEl) {
+                greetingEl.textContent = '👤 ' + displayName;
             }
+            const avatar = document.getElementById('userAvatar');
+            if (avatar) {
+                avatar.textContent = displayName ? displayName.charAt(0).toUpperCase() : '👤';
+            }
+        }
 
-            try {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-               window.sb = supabaseClient;
-                console.log('[Auth] Supabase client initialized.');
+        // Check if user is admin (bypass subscription checks)
+        const isAdmin = profile?.is_admin === true || 
+                       profile?.role?.toLowerCase() === 'admin' ||
+                       profile?.role?.toLowerCase() === 'superadmin';
 
-                const { data: { session }, error } = await supabaseClient.auth.getSession();
-                
-                if (error) {
-                    console.error('[Auth] Session error:', error);
-                    window.location.href = 'easemed_login.html';
-                    return;
-                }
+        if (isAdmin) {
+            console.log('[Auth] Admin user - full access granted');
+            document.body.style.display = 'block';
+            initializePage();
+            return;
+        }
 
-                if (!session) {
-                    console.warn('[Auth] No session found, redirecting to login');
-                    window.location.href = 'easemed_login.html';
-                    return;
-                }
+        // Check if profile is active
+        if (profile && profile.is_active === false) {
+            console.warn('[Auth] Account is inactive');
+            window.location.href = 'subscription.html?reason=inactive';
+            return;
+        }
 
-                currentUser = session.user;
-                console.log('[Auth] User authenticated:', currentUser.email);
+        // Verify subscription access before showing content
+        const hasAccess = await verifyAccess('imed');
+        if (!hasAccess) return;
 
-                // Check if profile is active
-                const { data: profile, error: profileError } = await supabaseClient
-                    .from('profiles')
-                    .select('is_active, expires_at, full_name')
-                    .eq('id', currentUser.id)
-                    .single();
+        // Show the page content
+        document.body.style.display = 'block';
 
-                if (profileError) {
-                    console.warn('[Auth] Profile fetch warning:', profileError);
-                }
+        // Initialize the page
+        initializePage();
 
-               if (profile) {
-    const displayName = profile.full_name || currentUser.user_metadata?.full_name || 
-                       currentUser.user_metadata?.name || currentUser.email;
-    document.getElementById('userGreeting').textContent = '👤 ' + displayName;
-    const avatar = document.getElementById('userAvatar');
-    if (avatar) {
-        avatar.textContent = displayName ? displayName.charAt(0).toUpperCase() : '👤';
+    } catch (error) {
+        console.error('[Auth] Fatal error:', error);
+        window.location.href = 'easemed_login.html';
     }
 }
-              // Verify subscription access before showing content
-const hasAccess = await verifyAccess('imed');
-if (!hasAccess) return;
 
-// Show the page content
-document.body.style.display = 'block';
-
-// Initialize the page
-initializePage();
-
-            } catch (error) {
-                console.error('[Auth] Fatal error:', error);
-                window.location.href = 'easemed_login.html';
-            }
+// ─── HANDLE LOGOUT ───
+async function handleLogout() {
+    try {
+        if (supabaseClient) {
+            await supabaseClient.auth.signOut();
         }
+        localStorage.removeItem('easemed_user');
+        window.location.href = 'easemed_login.html';
+    } catch (error) {
+        console.error('[Logout] Error:', error);
+        window.location.href = 'easemed_login.html';
+    }
+}
 
-        // ─── HANDLE LOGOUT ───
-        async function handleLogout() {
-            try {
-                if (supabaseClient) {
-                    await supabaseClient.auth.signOut();
-                }
-                localStorage.removeItem('easemed_user');
-                window.location.href = 'easemed_login.html';
-            } catch (error) {
-                console.error('[Logout] Error:', error);
-                window.location.href = 'easemed_login.html';
-            }
-        }
 // ─── VERIFY MODULE ACCESS ───
+// FIXED: Uses actual schema columns:
+//   - active_module (text) - single module slug
+//   - expiry_date (timestamptz) - when subscription expires
+//   - status (text) - 'active', 'expired', 'cancelled', 'pending'
+//   - payment_status (text) - 'paid', 'unpaid', 'pending'
 async function verifyAccess(moduleCode) {
     const sb = window.sb;
     if (!sb) {
+        console.error('[Access] Supabase client not initialized');
         window.location.href = 'subscription.html?reason=error';
         return false;
     }
@@ -2521,15 +2560,18 @@ async function verifyAccess(moduleCode) {
     try {
         const { data: { session } } = await sb.auth.getSession();
         if (!session) {
+            console.warn('[Access] No session');
             window.location.href = 'easemed_login.html';
             return false;
         }
 
+        // Check for active, paid subscription with valid expiry
         const { data: sub, error } = await sb
             .from('subscriptions')
-            .select('plan_type, allowed_modules, expiry_date')
+            .select('active_module, expiry_date, status, payment_status')
             .eq('user_id', session.user.id)
             .eq('status', 'active')
+            .eq('payment_status', 'paid')
             .gte('expiry_date', new Date().toISOString())
             .order('expiry_date', { ascending: false })
             .limit(1)
@@ -2542,22 +2584,27 @@ async function verifyAccess(moduleCode) {
         }
 
         if (!sub) {
-            window.location.href = `subscription.html?reason=expired`;
+            console.warn('[Access] No active, paid subscription found');
+            window.location.href = 'subscription.html?reason=expired';
             return false;
         }
 
-        if (sub.plan_type === 'basic') {
-            let allowed = sub.allowed_modules;
-            if (typeof allowed === 'string') {
-                allowed = allowed.split(',').map(m => m.trim());
-            }
-            if (!Array.isArray(allowed) || !allowed.includes(moduleCode)) {
-                window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
-                return false;
-            }
+        // Double-check expiry date (belt and braces)
+        if (sub.expiry_date && new Date(sub.expiry_date).getTime() < Date.now()) {
+            console.warn('[Access] Subscription expired');
+            window.location.href = 'subscription.html?reason=expired';
+            return false;
         }
 
-        // Premium or free-trial, or basic with module included
+        // Check if the requested module matches the active_module
+        // active_module is a single text value, not an array
+        if (sub.active_module !== moduleCode) {
+            console.log(`[Access] Module mismatch: active='${sub.active_module}', requested='${moduleCode}'`);
+            window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
+            return false;
+        }
+
+        console.log(`[Access] ✅ Access granted for module: ${moduleCode}`);
         return true;
 
     } catch (error) {
@@ -2565,8 +2612,7 @@ async function verifyAccess(moduleCode) {
         window.location.href = 'subscription.html?reason=error';
         return false;
     }
-}
-     
+} 
         // ─── INITIALIZE PAGE ───
         function initializePage() {
             console.log('[Page] Initializing...');
