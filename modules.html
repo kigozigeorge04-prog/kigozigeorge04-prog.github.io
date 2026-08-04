@@ -10,12 +10,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script
+        src="https://js.sentry-cdn.com/c4ec42c18b311f1f1a1efaf80c293aa3.min.js"
+        crossorigin="anonymous"
+    ></script>
+    
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
 
-    <!-- Local Supabase SDK — do NOT use the jsdelivr CDN here.
-         jsdelivr is blocked on some Ugandan mobile networks (Opera Mini /
-         UC Browser / carrier proxies), which silently breaks the whole
-         page. Self-hosting this avoids that failure mode. -->
+    <!-- Local Supabase SDK -->
     <script src="/js/supabase.min.js"></script>
+
 
     <style>
         /* ──────────── RESET & BASE ──────────── */
@@ -37,11 +43,21 @@
         }
 
         /* ──────────── ANIMATIONS ──────────── */
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        @keyframes ecg-draw {
+            0% { stroke-dashoffset: 1000; }
+            100% { stroke-dashoffset: 0; }
         }
-        .spin {
-            animation: spin 0.8s linear infinite;
+        .ecg-path {
+            stroke-dasharray: 1000;
+            animation: ecg-draw 3.4s linear infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.8); }
+        }
+        .pulse-dot {
+            animation: pulse-dot 1.6s ease-in-out infinite;
         }
 
         @keyframes panel-in {
@@ -50,6 +66,29 @@
         }
         .panel-in {
             animation: panel-in 0.28s ease;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spin {
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes fade-rotate {
+            0%, 100% { opacity: 0; transform: translateY(4px); }
+            12%, 88% { opacity: 1; transform: translateY(0); }
+        }
+        .rotation-label {
+            animation: fade-rotate 2.8s ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .float {
+            animation: float 6s ease-in-out infinite;
         }
 
         @keyframes pulseGlow {
@@ -188,6 +227,7 @@
             flex-wrap: wrap;
         }
 
+        /* Profile button - NEW */
         .btn-profile {
             background: linear-gradient(135deg, #8B5CF6, #6D28D9);
             color: #FFFFFF;
@@ -208,6 +248,10 @@
         .btn-profile:hover {
             transform: scale(1.04);
             box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+        }
+        .btn-profile svg {
+            width: 14px;
+            height: 14px;
         }
 
         .btn-admin-top {
@@ -230,6 +274,10 @@
         .btn-admin-top:hover {
             transform: scale(1.04);
             box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+        }
+        .btn-admin-top svg {
+            width: 14px;
+            height: 14px;
         }
 
         .btn-logout {
@@ -446,7 +494,7 @@
             transform: translateX(6px);
         }
 
-        /* Card color variants */
+        /* Card color variants - darker for better contrast */
         .card.medicine { --accent-a: #1E3A5F; --accent-b: #3B82F6; }
         .card.surgery { --accent-a: #1A365D; --accent-b: #60A5FA; }
         .card.peds { --accent-a: #065F46; --accent-b: #34D399; }
@@ -611,16 +659,64 @@
             box-shadow: 0 8px 32px rgba(37, 211, 102, 0.5);
         }
 
-        /* ──────────── PLAN BADGE ──────────── */
-        #planBadge {
+        /* ──────────── BANNER ──────────── */
+        #easemedBanner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999999;
+            padding: 12px 20px;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
             display: none;
-            background: rgba(16,185,129,0.15);
-            color: #065F46;
-            padding: 4px 14px;
-            border-radius: 99px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            border: 1px solid rgba(16,185,129,0.2);
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #easemedBanner.info {
+            background: rgba(59, 130, 246, 0.15);
+            backdrop-filter: blur(20px);
+            color: #0B1A2E;
+            border-bottom: 3px solid #3B82F6;
+        }
+        #easemedBanner.warning {
+            background: rgba(245, 158, 11, 0.15);
+            backdrop-filter: blur(20px);
+            color: #0B1A2E;
+            border-bottom: 3px solid #F59E0B;
+        }
+        #easemedBanner.success {
+            background: rgba(16, 185, 129, 0.15);
+            backdrop-filter: blur(20px);
+            color: #0B1A2E;
+            border-bottom: 3px solid #10B981;
+        }
+        #easemedBanner button {
+            background: rgba(11, 26, 46, 0.08);
+            border: 1px solid rgba(11, 26, 46, 0.1);
+            border-radius: 6px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #0B1A2E;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        #easemedBanner button:hover {
+            background: rgba(11, 26, 46, 0.15);
+        }
+
+        /* ──────────── USER GREETING ──────────── */
+        #userGreeting {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            color: rgba(11, 26, 46, 0.7);
+            font-weight: 500;
         }
 
         /* ──────────── RESPONSIVE ──────────── */
@@ -680,6 +776,27 @@
                 font-size: 0.8rem;
             }
         }
+
+        /* ──────────── SELECTION ──────────── */
+        ::selection {
+            background: rgba(59, 130, 246, 0.2);
+            color: #0B1A2E;
+        }
+
+        /* ──────────── SCROLLBAR ──────────── */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -711,7 +828,11 @@
         <div class="right-group">
             <span id="userGreeting"></span>
             <span class="edition">Hutchison's, 25th Ed.</span>
-            <span id="planBadge"></span>
+
+            <span id="planBadge" style="display:none; background: rgba(16,185,129,0.15); color: #065F46; padding: 4px 14px; border-radius: 99px; font-size: 0.7rem; font-weight: 600; border: 1px solid rgba(16,185,129,0.2);">
+                <!-- Populated by JS -->
+            </span>
+
             <a href="subscription.html" class="btn-admin-top" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9);" title="Subscription">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
                     <path d="M12 2v4M12 22v-4M4 4l2 2M20 20l-2-2M4 20l2-2M20 4l-2-2"/>
@@ -719,15 +840,17 @@
                 </svg>
                 Plans
             </a>
+            
             <a href="profile.html" class="btn-profile" title="My Profile">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
                     <circle cx="12" cy="7" r="4"/>
                 </svg>
                 Profile
             </a>
+            
             <a href="easemed_admin_dashboard.html" class="btn-admin-top" title="Admin Dashboard">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4h8z"/>
                 </svg>
                 Admin
@@ -755,7 +878,8 @@
                 <h3>Internal Medicine</h3>
                 <p class="desc">Full adult history: presenting complaint, HPC, PMH, HIV history, review of systems &amp; examination.</p>
                 <span class="go">Open module <span class="arrow">→</span></span>
-            </div>
+               <!-- Replace all OSCE links -->
+<a href="#" onclick="event.preventDefault(); openModule('osce.html?module=imed', 'imed');" class="go" style="color:#059669;">🎯 OSCE Practice</a></div>
         </div>
 
         <div onclick="openModule('surgery-clerking.html', 'surgery')" class="card surgery panel-in" style="animation-delay:0.05s;">
@@ -768,7 +892,8 @@
                 <h3>Surgery</h3>
                 <p class="desc">Surgical history taking: PC, HPC, PMH, ROS, physical examination &amp; assessment.</p>
                 <span class="go">Open module <span class="arrow">→</span></span>
-            </div>
+              <!-- Replace all OSCE links -->
+<a href="#" onclick="event.preventDefault(); openModule('osce.html?module=surgery', 'surgery');" class="go" style="color:#059669;">🎯 OSCE Practice</a>  </div>
         </div>
 
         <div onclick="openModule('easemed_pediatrics.html', 'peds')" class="card peds panel-in" style="animation-delay:0.1s;">
@@ -781,7 +906,8 @@
                 <h3>Pediatrics</h3>
                 <p class="desc">Birth history, developmental milestones, immunisations, growth charts &amp; red flags.</p>
                 <span class="go">Open module <span class="arrow">→</span></span>
-            </div>
+               <!-- Replace all OSCE links -->
+<a href="#" onclick="event.preventDefault(); openModule('osce.html?module=peds', 'peds');" class="go" style="color:#059669;">🎯 OSCE Practice</a> </div>
         </div>
 
         <div onclick="openModule('ObGyn.html', 'obgyn')" class="card obgyn panel-in" style="animation-delay:0.15s;">
@@ -794,7 +920,8 @@
                 <h3>Obstetrics &amp; Gynaecology</h3>
                 <p class="desc">Menstrual, obstetric &amp; gynaecological history, ANC data, system-specific ROS &amp; examination.</p>
                 <span class="go">Open module <span class="arrow">→</span></span>
-            </div>
+               <!-- Replace all OSCE links -->
+<a href="#" onclick="event.preventDefault(); openModule('osce.html?module=obgyn', 'obgyn');" class="go" style="color:#059669;">🎯 OSCE Practice</a> </div>
         </div>
     </div>
 
@@ -821,282 +948,548 @@
     </div>
 </div>
 
+<!-- Banner -->
+<div id="easemedBanner">
+    <span id="easemedBannerText"></span>
+    <button onclick="dismissEasemedBanner()">✕</button>
+</div>
+
 <script>
     // ─── VERSION CONTROL ───
-    const APP_VERSION = '2.0.7';
-    const CACHE_KEY = 'easemed_app_version';
-    const storedVersion = localStorage.getItem(CACHE_KEY);
-    if (storedVersion !== APP_VERSION) {
-        console.log('[Cache] New version detected, clearing cache...');
-        if ('caches' in window) {
-            caches.keys().then(keys => {
-                keys.forEach(key => caches.delete(key));
-            });
-        }
-        localStorage.setItem(CACHE_KEY, APP_VERSION);
+  // ─── VERSION CONTROL ───
+const APP_VERSION = '2.0.6';
+const CACHE_KEY = 'easemed_app_version';
+const storedVersion = localStorage.getItem(CACHE_KEY);
+if (storedVersion !== APP_VERSION) {
+    console.log('[Cache] New version detected, clearing cache...');
+    if ('caches' in window) {
+        caches.keys().then(keys => {
+            keys.forEach(key => caches.delete(key));
+        });
+    }
+    localStorage.setItem(CACHE_KEY, APP_VERSION);
+}
+
+// ─── CONFIGURATION ───
+const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
+// ─── GLOBALS ───
+window.sb = null;
+window._sessionRefreshInterval = null;
+window._lastActivity = Date.now();
+
+// ─── FATAL ERROR UI ───
+function showFatalError(message) {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.innerHTML = `
+            <div class="error-state">
+                <h2>⚠️ Service Unavailable</h2>
+                <p>${message}</p>
+                <div class="btn-group">
+                    <button class="btn-retry" onclick="location.reload()">Retry</button>
+                    <a href="easemed_login.html" class="btn-login">Go to Login</a>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// ─── SUPABASE CONFIG ───
+function initSupabase() {
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+        showFatalError('Supabase SDK failed to load. Please refresh the page.');
+        return;
     }
 
-    // ─── CONFIGURATION ───
-    const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+    try {
+        // ✅ FIX: Properly initialize window.sb
+        window.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+        console.log('[Supabase] Client initialized successfully.');
+        console.log('[Supabase] window.sb is now:', window.sb);
+        authCheck();
+    } catch (error) {
+        console.error('[Supabase] Initialization error:', error);
+        showFatalError(
+            'Failed to initialize EaseMed services. Please refresh the page. ' +
+            '(Error: ' + error.message + ')'
+        );
+    }
+}
 
-    // ─── GLOBALS ───
-    window.sb = null;
-    window._currentUser = null;
+// ─── AUTH CHECK WITH SESSION MANAGEMENT ───
+async function authCheck() {
+    const spinner = document.getElementById('loadingSpinner');
+    const mainContent = document.getElementById('mainContent');
 
-    // ─── INIT SUPABASE (retry-safe) ───
-    // The SDK script tag can still be mid-download/parse when this file's
-    // own script runs, especially on slow connections. Instead of failing
-    // on the very first check, poll for up to ~3s before giving up.
-    function initSupabase(retries = 10) {
-        if (window.sb) return Promise.resolve(window.sb);
-
-        if (typeof supabase === 'undefined' || !supabase.createClient) {
-            if (retries > 0) {
-                return new Promise(resolve => {
-                    setTimeout(() => resolve(initSupabase(retries - 1)), 300);
-                });
-            }
-            console.error('[Supabase] SDK failed to load after retries');
-            return Promise.resolve(null);
-        }
-
-        try {
-            window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-            console.log('[Supabase] Client initialized successfully');
-            return Promise.resolve(window.sb);
-        } catch (error) {
-            console.error('[Supabase] Init error:', error);
-            return Promise.resolve(null);
-        }
+    if (!window.sb) {
+        console.warn('[Auth] Supabase client not available');
+        showFatalError('Supabase client not available. Please refresh the page.');
+        return;
     }
 
-    // ─── AUTH CHECK ───
-    async function checkAuth() {
-        const sb = await initSupabase();
-        if (!sb) {
-            showFatalError('Supabase failed to load. Please check your connection and retry.');
-            return false;
+    try {
+        const { data: { session }, error: sessionError } = await window.sb.auth.getSession();
+        
+        if (sessionError) {
+            console.error('[Auth] Session error:', sessionError);
+            showError('Session Error', 'Unable to retrieve your session. Please try again.');
+            return;
         }
 
-        try {
-            const { data: { session }, error } = await sb.auth.getSession();
+        if (!session) {
+            console.log('[Auth] No session found, redirecting to login');
+            window.location.href = 'easemed_login.html';
+            return;
+        }
 
+        const { data: { user }, error: userError } = await window.sb.auth.getUser();
+        
+        if (userError || !user) {
+            console.error('[Auth] User validation failed:', userError);
+            await window.sb.auth.signOut();
+            localStorage.removeItem('easemed_user');
+            window.location.href = 'easemed_login.html';
+            return;
+        }
+
+        console.log('[Auth] User authenticated:', user.email);
+        
+        const displayName = user.user_metadata?.full_name || 
+                           user.user_metadata?.name || 
+                           user.email;
+        document.getElementById('userGreeting').textContent = '👤 ' + displayName;
+        
+        window._currentUser = user;
+        window._currentSession = session;
+
+        localStorage.setItem('easemed_user', JSON.stringify(user));
+
+        spinner.style.display = 'none';
+        mainContent.style.display = 'block';
+        document.body.style.display = 'block';
+
+        startSessionMonitoring();
+        await loadPlanBadge();
+        trackUserActivity(user.id);
+
+    } catch (error) {
+        console.error('[Auth] Fatal error:', error);
+        showError(
+            'Connection Error', 
+            error.message || 'Unable to verify your session. Please check your internet connection and try again.'
+        );
+    }
+}
+
+// ─── SHOW ERROR STATE ───
+function showError(title, message) {
+    const spinner = document.getElementById('loadingSpinner');
+    spinner.innerHTML = `
+        <div class="error-state">
+            <h2>${title}</h2>
+            <p>${message}</p>
+            <div class="btn-group">
+                <button class="btn-retry" onclick="location.reload()">Retry</button>
+                <a href="easemed_login.html" class="btn-login">Go to Login</a>
+            </div>
+        </div>
+    `;
+}
+
+// ─── SESSION MONITORING ───
+function startSessionMonitoring() {
+    if (window._sessionRefreshInterval) {
+        clearInterval(window._sessionRefreshInterval);
+    }
+
+    window._sessionRefreshInterval = setInterval(async () => {
+        try {
+            const { data: { session }, error } = await window.sb.auth.getSession();
+            
             if (error || !session) {
-                console.log('[Auth] No session, redirecting to login');
+                console.log('[Session] Session lost, redirecting to login');
+                clearInterval(window._sessionRefreshInterval);
                 window.location.href = 'easemed_login.html';
-                return false;
-            }
-
-            window._currentUser = session.user;
-
-            // Update greeting
-            const displayName = session.user.user_metadata?.full_name ||
-                               session.user.user_metadata?.name ||
-                               session.user.email;
-            document.getElementById('userGreeting').textContent = '👤 ' + displayName;
-
-            // Show main content
-            document.getElementById('loadingSpinner').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-
-            // Load plan badge
-            await loadPlanBadge();
-
-            return true;
-        } catch (error) {
-            console.error('[Auth] Error:', error);
-            showFatalError('Unable to verify your session');
-            return false;
-        }
-    }
-
-    // ─── LOAD PLAN BADGE ───
-    // Reads plan_type / allowed_modules from the real subscriptions schema.
-    // plan_type is 'free-trial' | 'basic' | 'premium' (hyphenated trial value —
-    // matches the DB check constraint). allowed_modules is jsonb: null for
-    // trial/premium (all modules), or an array of module slugs for basic.
-    async function loadPlanBadge() {
-        const sb = window.sb;
-        if (!sb || !window._currentUser) return;
-
-        try {
-            const { data, error } = await sb
-                .from('subscriptions')
-                .select('plan_type, allowed_modules, status')
-                .eq('user_id', window._currentUser.id)
-                .eq('status', 'active')
-                .gte('expiry_date', new Date().toISOString())
-                .order('expiry_date', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-
-            const badge = document.getElementById('planBadge');
-            if (error || !data) {
-                badge.style.display = 'none';
                 return;
             }
 
+            window._currentSession = session;
+            
+            const expiresAt = session.expires_at * 1000;
+            const now = Date.now();
+            const timeUntilExpiry = expiresAt - now;
+            
+            if (timeUntilExpiry < 300000) {
+                console.log('[Session] Refreshing token...');
+                const { data: refreshData, error: refreshError } = await window.sb.auth.refreshSession();
+                if (refreshError) {
+                    console.error('[Session] Refresh failed:', refreshError);
+                } else if (refreshData.session) {
+                    window._currentSession = refreshData.session;
+                    console.log('[Session] Token refreshed successfully');
+                }
+            }
+
+            window._lastActivity = Date.now();
+
+        } catch (error) {
+            console.warn('[Session] Monitoring error:', error);
+        }
+    }, 30000);
+}
+
+// ─── LOAD SUBSCRIPTION STATUS FOR DISPLAY ───
+async function loadPlanBadge() {
+    const sb = window.sb;
+    if (!sb) {
+        console.log('[Plan Badge] No Supabase client');
+        return;
+    }
+
+    try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+            console.log('[Plan Badge] No session');
+            return;
+        }
+
+        console.log('[Plan Badge] Fetching subscription for user:', session.user.id);
+
+        const { data, error } = await sb
+            .from('subscriptions')
+            .select('plan_type, active_module, expiry_date, status')
+            .eq('user_id', session.user.id)
+            .eq('status', 'active')
+            .gte('expiry_date', new Date().toISOString())
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (error) {
+            console.log('[Plan Badge] Error:', error);
+            return;
+        }
+        
+        console.log('[Plan Badge] Subscription data:', data);
+        
+        const badge = document.getElementById('planBadge');
+        if (!badge) return;
+        
+        if (data) {
+            badge.style.display = 'inline';
+            
             const planNames = {
-                'free-trial': '🎁 Free Trial',
+                'free_trial': '🎁 Free Trial',
                 'basic': '🩺 Basic',
                 'premium': '⭐ Premium'
             };
-
+            
             let planText = planNames[data.plan_type] || data.plan_type;
-
-            if (data.plan_type === 'basic' && data.allowed_modules) {
-                let allowed = data.allowed_modules;
-                if (typeof allowed === 'string') allowed = allowed.split(',').map(m => m.trim());
+            
+            if (data.plan_type === 'basic' && data.active_module) {
                 const moduleNames = {
                     'imed': 'Internal Med',
                     'surgery': 'Surgery',
                     'peds': 'Pediatrics',
                     'obgyn': 'OB/GYN'
                 };
-                const labels = (allowed || []).map(m => moduleNames[m] || m);
-                if (labels.length) planText += ` (${labels.join(', ')})`;
+                planText += ` (${moduleNames[data.active_module] || data.active_module})`;
             }
-
+            
             badge.textContent = planText;
-            badge.style.display = 'inline';
-        } catch (error) {
-            console.log('[Plan Badge] Error:', error);
+            
+            if (data.plan_type === 'premium') {
+                badge.style.background = 'rgba(16,185,129,0.15)';
+                badge.style.color = '#065F46';
+                badge.style.border = '1px solid rgba(16,185,129,0.2)';
+            } else if (data.plan_type === 'basic') {
+                badge.style.background = 'rgba(59,130,246,0.15)';
+                badge.style.color = '#1E40AF';
+                badge.style.border = '1px solid rgba(59,130,246,0.2)';
+            } else if (data.plan_type === 'free_trial') {
+                badge.style.background = 'rgba(245,158,11,0.15)';
+                badge.style.color = '#92400E';
+                badge.style.border = '1px solid rgba(245,158,11,0.2)';
+            }
+        } else {
+            badge.style.display = 'none';
         }
+    } catch (error) {
+        console.log('[Plan Badge] Not available:', error.message);
+    }
+}
+
+// ─── CHECK SUBSCRIPTION STATUS ───
+async function checkSubscriptionStatus(userId) {
+    // This is now handled by loadPlanBadge() and openModule()
+    console.log('[Subscription] Status checked via loadPlanBadge()');
+    return true;
+}
+
+// ─── TRACK USER ACTIVITY ───
+async function trackUserActivity(userId) {
+    try {
+        const { error } = await window.sb
+            .from('profiles')
+            .update({ last_activity: new Date().toISOString() })
+            .eq('id', userId);
+        
+        if (error) {
+            console.log('[Activity] Update skipped:', error.message);
+        }
+    } catch (error) {
+        console.log('[Activity] Tracking not available');
+    }
+}
+
+// ─── HANDLE LOGOUT ───
+async function handleLogout() {
+    try {
+        if (window._sessionRefreshInterval) {
+            clearInterval(window._sessionRefreshInterval);
+            window._sessionRefreshInterval = null;
+        }
+
+        localStorage.removeItem('easemed_user');
+
+        if (window.sb) {
+            await window.sb.auth.signOut();
+        }
+
+        window.location.href = 'easemed_login.html';
+    } catch (error) {
+        console.error('[Logout] Error:', error);
+        window.location.href = 'easemed_login.html';
+    }
+}
+
+// ─── OPEN MODULE (gated by subscriptions table) ───
+async function openModule(url, moduleCode) {
+    const sb = window.sb;
+    if (!sb) {
+        console.error('[Module] No Supabase client available');
+        window.location.href = 'easemed_login.html';
+        return;
     }
 
-    // ─── OPEN MODULE ───
-    // Same schema as loadPlanBadge: allowed_modules (jsonb array), and
-    // plan_type check uses 'free-trial' (hyphenated).
-    async function openModule(url, moduleCode) {
-        const sb = window.sb || await initSupabase();
-        if (!sb) {
+    try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+            console.error('[Module] No session');
             window.location.href = 'easemed_login.html';
             return;
         }
 
-        try {
-            const { data: { session } } = await sb.auth.getSession();
-            if (!session) {
-                window.location.href = 'easemed_login.html';
-                return;
-            }
+        console.log('[Module] Checking access for module:', moduleCode);
+        console.log('[Module] User ID:', session.user.id);
 
-            // Check subscription
-            const { data: sub, error } = await sb
-                .from('subscriptions')
-                .select('plan_type, allowed_modules, expiry_date, status')
-                .eq('user_id', session.user.id)
-                .eq('status', 'active')
-                .gte('expiry_date', new Date().toISOString())
-                .order('expiry_date', { ascending: false })
-                .limit(1)
-                .maybeSingle();
+        const { data: sub, error } = await sb
+            .from('subscriptions')
+            .select('plan_type, active_module, expiry_date, status')
+            .eq('user_id', session.user.id)
+            .eq('status', 'active')
+            .gte('expiry_date', new Date().toISOString())
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
-            if (error || !sub) {
-                window.location.href = `subscription.html?reason=expired&module=${moduleCode}`;
-                return;
-            }
-
-            // Belt-and-braces re-check in case of clock skew
-            if (sub.expiry_date && new Date(sub.expiry_date) < new Date()) {
-                window.location.href = `subscription.html?reason=expired&module=${moduleCode}`;
-                return;
-            }
-
-            // Premium or free-trial = full access, skip module check
-            if (sub.plan_type === 'premium' || sub.plan_type === 'free-trial') {
-                window.location.href = url;
-                return;
-            }
-
-            // Basic plan — check assigned module(s)
-            if (sub.plan_type === 'basic') {
-                let allowed = sub.allowed_modules;
-                if (typeof allowed === 'string') allowed = allowed.split(',').map(m => m.trim());
-                const hasModule = Array.isArray(allowed) && allowed.includes(moduleCode);
-                if (!hasModule) {
-                    window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
-                    return;
-                }
-            }
-
-            // Access granted
-            window.location.href = url;
-
-        } catch (error) {
-            console.error('[Module] Error:', error);
+        if (error) {
+            console.warn('[Module] Access check failed:', error);
             window.location.href = `subscription.html?reason=error`;
+            return;
         }
-    }
 
-    // ─── HANDLE LOGOUT ───
-    async function handleLogout() {
-        try {
-            if (window.sb) {
-                await window.sb.auth.signOut();
+        console.log('[Module] Subscription found:', sub);
+
+        if (!sub) {
+            console.log('[Module] No active subscription found');
+            window.location.href = `subscription.html?reason=expired`;
+            return;
+        }
+
+        // Check if subscription is expired (additional safety)
+        if (sub.expiry_date && new Date(sub.expiry_date) < new Date()) {
+            console.log('[Module] Subscription expired:', sub.expiry_date);
+            window.location.href = `subscription.html?reason=expired`;
+            return;
+        }
+
+        // For basic plan, check if active_module matches
+        if (sub.plan_type === 'basic') {
+            console.log('[Module] Basic plan - active_module:', sub.active_module);
+            console.log('[Module] Requested module:', moduleCode);
+            
+            if (!sub.active_module || sub.active_module !== moduleCode) {
+                console.log('[Module] Module mismatch! Redirecting to upgrade.');
+                window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
+                return;
             }
-            localStorage.removeItem('easemed_user');
-            window.location.href = 'easemed_login.html';
-        } catch (error) {
-            console.error('[Logout] Error:', error);
-            window.location.href = 'easemed_login.html';
+            console.log('[Module] ✅ Module matches!');
+        }
+
+        // Premium or free_trial, or basic with matching module
+        console.log('[Module] ✅ Access granted for:', moduleCode);
+        window.location.href = url;
+
+    } catch (error) {
+        console.error('[Module] Error:', error);
+        window.location.href = `subscription.html?reason=error`;
+    }
+}
+
+// ─── TRACKING ───
+(function tracking() {
+    let currentLogId = null;
+    let startTime = null;
+    let flushed = false;
+    let trackingEnabled = false;
+
+    async function startTracking() {
+        try {
+            if (!window.sb) return;
+            
+            const { data: { user } } = await window.sb.auth.getUser();
+            if (!user) return;
+
+            const moduleName = window.EASEMED_MODULE_NAME || document.title || location.pathname;
+            startTime = Date.now();
+
+            const { data, error } = await window.sb.from('activity_logs').insert({
+                user_id: user.id,
+                event_type: 'module_view',
+                module_name: moduleName,
+                page_path: location.pathname,
+                started_at: new Date(startTime).toISOString(),
+            }).select('id').single();
+
+            if (!error && data) {
+                currentLogId = data.id;
+                trackingEnabled = true;
+            } else {
+                console.log('[Tracking] Disabled - insert failed');
+                trackingEnabled = false;
+            }
+        } catch (e) {
+            trackingEnabled = false;
+            console.log('[Tracking] Disabled');
         }
     }
 
-    // ─── SHOW FATAL ERROR ───
-    function showFatalError(message) {
-        const spinner = document.getElementById('loadingSpinner');
-        if (spinner) {
-            spinner.innerHTML = `
-                <div class="error-state">
-                    <h2>⚠️ Service Unavailable</h2>
-                    <p>${message}</p>
-                    <div class="btn-group">
-                        <button class="btn-retry" onclick="location.reload()">Retry</button>
-                        <a href="easemed_login.html" class="btn-login">Go to Login</a>
-                    </div>
-                </div>
-            `;
+    async function flushTracking() {
+        if (!trackingEnabled || !currentLogId || flushed || !startTime) return;
+        flushed = true;
+
+        const durationSeconds = Math.round((Date.now() - startTime) / 1000);
+        if (durationSeconds < 1) return;
+
+        try {
+            if (!window.sb) return;
+            await window.sb.from('activity_logs')
+                .update({
+                    duration_seconds: durationSeconds,
+                    ended_at: new Date().toISOString(),
+                })
+                .eq('id', currentLogId);
+        } catch (e) {
+            // Silently fail
         }
     }
 
-    // ─── INIT ───
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('[App] DOM ready, initializing...');
-        checkAuth();
-    });
+    setTimeout(startTracking, 1000);
 
-    // ─── PWA INSTALL ───
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        const installBtn = document.getElementById('installBtn');
-        if (installBtn) installBtn.style.display = 'flex';
+    window.addEventListener('beforeunload', flushTracking);
+    window.addEventListener('pagehide', flushTracking);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flushTracking();
     });
+})();
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const installBtn = document.getElementById('installBtn');
-        if (installBtn) {
-            installBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const result = await deferredPrompt.userChoice;
-                    if (result.outcome === 'accepted') {
-                        installBtn.style.display = 'none';
-                    }
-                    deferredPrompt = null;
+// ─── PWA INSTALL ───
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) installBtn.style.display = 'flex';
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const result = await deferredPrompt.userChoice;
+                if (result.outcome === 'accepted') {
+                    installBtn.style.display = 'none';
                 }
-            });
+                deferredPrompt = null;
+            }
+        });
+    }
+});
+
+window.addEventListener('appinstalled', () => {
+    document.getElementById('installBtn').style.display = 'none';
+});
+
+// ─── ANNOUNCEMENT BANNER ───
+(async function loadEasemedAnnouncement() {
+    let sdkTries = 0;
+    while (typeof window.supabase === 'undefined' && sdkTries < 30) {
+        await new Promise(r => setTimeout(r, 200));
+        sdkTries++;
+    }
+    if (typeof window.supabase === 'undefined') {
+        console.warn('[Banner] Supabase SDK never loaded.');
+        return;
+    }
+
+    const bannerClient = window.sb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    const { data, error } = await bannerClient
+        .from('announcements')
+        .select('id, message, type')
+        .eq('active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error || !data) return;
+
+    const dismissedId = localStorage.getItem('easemed_dismissed_announcement');
+    if (dismissedId === String(data.id)) return;
+
+    setTimeout(() => {
+        const banner = document.getElementById('easemedBanner');
+        if (banner) {
+            banner.className = data.type || 'info';
+            banner.style.display = 'flex';
+            document.getElementById('easemedBannerText').textContent = data.message;
+            window._currentAnnouncementId = data.id;
         }
-    });
+    }, 1000);
+})();
 
-    window.addEventListener('appinstalled', () => {
-        document.getElementById('installBtn').style.display = 'none';
-    });
+function dismissEasemedBanner() {
+    document.getElementById('easemedBanner').style.display = 'none';
+    if (window._currentAnnouncementId) {
+        localStorage.setItem('easemed_dismissed_announcement', String(window._currentAnnouncementId));
+    }
+}
+
+// ─── INITIALIZE PAGE ───
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[App] DOM ready, initializing...');
+    
+    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+        initSupabase();
+    } else {
+        showFatalError('Supabase SDK failed to load. Please refresh the page.');
+    }
+}); 
 </script>
-
 <!-- Service Worker -->
 <script>
     if ('serviceWorker' in navigator) {
@@ -1106,6 +1499,73 @@
                 .catch(err => console.warn('❌ SW registration failed:', err));
         });
     }
+</script>
+
+<!-- Cookie consent banner -->
+<div id="cookie-banner" style="
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: #0a2e2d;
+    color: #ffffff;
+    padding: 18px 24px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+">
+    <p style="margin: 0; font-size: 0.88rem; color: rgba(255,255,255,0.85); max-width: 560px;">
+        EaseMed uses cookies to keep you signed in and improve your experience. By continuing, you agree to our
+        <a href="privacy.html" style="color: #14b8a6; text-decoration: underline;">Privacy Policy</a>.
+    </p>
+    <div style="display: flex; gap: 10px; flex-shrink: 0;">
+        <button id="cookie-accept" style="
+            background: #14b8a6;
+            color: #0a2e2d;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+        ">Accept</button>
+        <button id="cookie-decline" style="
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+        ">Decline</button>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const banner = document.getElementById('cookie-banner');
+        const consent = localStorage.getItem('easemed_cookie_consent');
+
+        if (!consent) {
+            banner.style.display = 'flex';
+        }
+
+        document.getElementById('cookie-accept').addEventListener('click', function () {
+            localStorage.setItem('easemed_cookie_consent', 'accepted');
+            banner.style.display = 'none';
+        });
+
+        document.getElementById('cookie-decline').addEventListener('click', function () {
+            localStorage.setItem('easemed_cookie_consent', 'declined');
+            banner.style.display = 'none';
+        });
+    })();
 </script>
 
 </body>
