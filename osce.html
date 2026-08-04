@@ -172,11 +172,8 @@ function getModuleFromUrl() {
 }
 const currentModule = getModuleFromUrl();
 
-async function init() {
-  try {
-   // ─── VERIFY MODULE ACCESS ───
+// ─── VERIFY MODULE ACCESS ───
 async function verifyAccess(moduleCode) {
-    const sb = window.sb;
     if (!sb) {
         window.location.href = 'subscription.html?reason=error';
         return false;
@@ -188,14 +185,15 @@ async function verifyAccess(moduleCode) {
             window.location.href = 'easemed_login.html';
             return false;
         }
+        currentUser = session.user;
 
         const { data: sub, error } = await sb
             .from('subscriptions')
-            .select('plan_type, allowed_modules, expiry_date')
+            .select('plan_type, active_module, expiry_date, status')
             .eq('user_id', session.user.id)
             .eq('status', 'active')
             .gte('expiry_date', new Date().toISOString())
-            .order('expiry_date', { ascending: false })
+            .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
 
@@ -210,15 +208,9 @@ async function verifyAccess(moduleCode) {
             return false;
         }
 
-        if (sub.plan_type === 'basic') {
-            let allowed = sub.allowed_modules;
-            if (typeof allowed === 'string') {
-                allowed = allowed.split(',').map(m => m.trim());
-            }
-            if (!Array.isArray(allowed) || !allowed.includes(moduleCode)) {
-                window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
-                return false;
-            }
+        if (sub.plan_type === 'basic' && sub.active_module !== moduleCode) {
+            window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
+            return false;
         }
 
         return true;
@@ -230,28 +222,13 @@ async function verifyAccess(moduleCode) {
     }
 }
 
-// ─── PAGE INITIALIZATION ───
-document.addEventListener('DOMContentLoaded', async () => {
-    // Get module from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const moduleCode = urlParams.get('module') || 'imed'; // default to imed
-    
-    // Verify access
-    const hasAccess = await verifyAccess(moduleCode);
-    if (!hasAccess) return;
-    
-    console.log(`[OSCE] Access granted for ${moduleCode} module`);
-    // Your existing OSCE initialization code here...
-});
-    // ✅ FIXED: Use window.supabase (loaded from local file)
+// ─── INIT ───
+async function init() {
+  try {
     sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-    
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-      window.location.href = 'easemed_login.html';
-      return;
-    }
-    currentUser = session.user;
+
+    const hasAccess = await verifyAccess(currentModule);
+    if (!hasAccess) return;
 
     document.getElementById('moduleTitle').textContent = MODULE_LABELS[currentModule];
 
