@@ -2541,76 +2541,7 @@ async function handleLogout() {
     }
 }
 
-// ─── VERIFY MODULE ACCESS ───
-// FIXED: Uses actual schema columns:
-//   - active_module (text) - single module slug
-//   - expiry_date (timestamptz) - when subscription expires
-//   - status (text) - 'active', 'expired', 'cancelled', 'pending'
-//   - payment_status (text) - 'paid', 'unpaid', 'pending'
-async function verifyAccess(moduleCode) {
-    const sb = window.sb;
-    if (!sb) {
-        console.error('[Access] Supabase client not initialized');
-        window.location.href = 'subscription.html?reason=error';
-        return false;
-    }
 
-    try {
-        const { data: { session } } = await sb.auth.getSession();
-        if (!session) {
-            console.warn('[Access] No session');
-            window.location.href = 'easemed_login.html';
-            return false;
-        }
-
-        // Check for active, paid subscription with valid expiry
-        const { data: sub, error } = await sb
-            .from('subscriptions')
-            .select('active_module, expiry_date, status, payment_status')
-            .eq('user_id', session.user.id)
-            .eq('status', 'active')
-            .eq('payment_status', 'paid')
-            .gte('expiry_date', new Date().toISOString())
-            .order('expiry_date', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        if (error) {
-            console.warn('[Access] Error checking subscription:', error);
-            window.location.href = 'subscription.html?reason=error';
-            return false;
-        }
-
-        if (!sub) {
-            console.warn('[Access] No active, paid subscription found');
-            window.location.href = 'subscription.html?reason=expired';
-            return false;
-        }
-
-        // Double-check expiry date (belt and braces)
-        if (sub.expiry_date && new Date(sub.expiry_date).getTime() < Date.now()) {
-            console.warn('[Access] Subscription expired');
-            window.location.href = 'subscription.html?reason=expired';
-            return false;
-        }
-
-        // Check if the requested module matches the active_module
-        // active_module is a single text value, not an array
-        if (sub.active_module !== moduleCode) {
-            console.log(`[Access] Module mismatch: active='${sub.active_module}', requested='${moduleCode}'`);
-            window.location.href = `subscription.html?reason=upgrade&module=${moduleCode}`;
-            return false;
-        }
-
-        console.log(`[Access] ✅ Access granted for module: ${moduleCode}`);
-        return true;
-
-    } catch (error) {
-        console.error('[Access] Error:', error);
-        window.location.href = 'subscription.html?reason=error';
-        return false;
-    }
-} 
         // ─── INITIALIZE PAGE ───
         function initializePage() {
             console.log('[Page] Initializing...');
