@@ -16,7 +16,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 function getSharedSupabaseClient() {
     if (window.__easemedSupabase) return window.__easemedSupabase;
     if (!window.supabase?.createClient) return null;
-    window.__easemedSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    // ✅ FIXED: was referencing undefined SUPABASE_ANON, now correctly uses SUPABASE_ANON_KEY
+    window.__easemedSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Keep window.sb in sync so every page (regardless of which variable name its
+    // own scripts use) shares this exact same client instance.
+    window.sb = window.__easemedSupabase;
     return window.__easemedSupabase;
 }
 
