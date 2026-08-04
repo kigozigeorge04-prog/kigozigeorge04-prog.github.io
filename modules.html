@@ -19,10 +19,10 @@
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
 
-    <!-- Local Supabase SDK -->
-    <script src="/js/supabase.min.js"></script>
-
-
+    <
+   <!-- In modules.html head section -->
+<script src="/js/supabase.min.js"></script>
+<script src="/js/access-guard.js"></script>
     <style>
         /* ──────────── RESET & BASE ──────────── */
         * {
@@ -924,6 +924,32 @@
 <a href="#" onclick="event.preventDefault(); openModule('osce.html?module=obgyn', 'obgyn');" class="go" style="color:#059669;">🎯 OSCE Practice</a> </div>
         </div>
     </div>
+    <!-- In modules.html, for each module card -->
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check if user can access the module
+    const moduleName = 'easemed'; // or 'billing', etc.
+    const result = await checkAccess(moduleName);
+    
+    if (!result.allowed) {
+        // Show locked state
+        document.querySelector('.module-card').classList.add('locked');
+        document.querySelector('.lock-icon').style.display = 'block';
+        document.querySelector('.access-btn').disabled = true;
+        document.querySelector('.access-btn').textContent = result.reason || 'Access Denied';
+    } else {
+        // Allow access
+        document.querySelector('.module-card').classList.remove('locked');
+        document.querySelector('.lock-icon').style.display = 'none';
+        document.querySelector('.access-btn').disabled = false;
+        document.querySelector('.access-btn').textContent = 'Launch Module';
+        document.querySelector('.access-btn').onclick = function() {
+            // Redirect to module
+            window.location.href = `${moduleName}-dashboard.html`;
+        };
+    }
+});
+</script>
 
     <footer>EASEMED · BUILT FOR UGANDAN MEDICAL STUDENTS</footer>
 
