@@ -1509,7 +1509,7 @@
                                     <div id="signupAgreeError" class="error-text hidden"></div>
                                 </div>
 
-                                <button type="submit" class="btn-primary" id="signupBtn" style="margin-top:16px;">
+                                <button type="submit" class="btn-primary" id="signupBtn" style="margin-top:16px;" disabled>
                                     Create account
                                 </button>
                             </form>
@@ -1813,6 +1813,20 @@
             "OB/GYN — Week 3",
             "Psychiatry — Week 5",
         ];
+
+        // ─── AGREE CHECKBOX GATES SIGNUP BUTTON ───
+        function initAgreeCheckbox() {
+            const agreeBox = document.getElementById('signupAgree');
+            const btn = document.getElementById('signupBtn');
+            if (!agreeBox || !btn) return;
+
+            // Set initial state (button should be disabled since checkbox is unchecked)
+            btn.disabled = true;
+
+            agreeBox.addEventListener('change', () => {
+                btn.disabled = !agreeBox.checked;
+            });
+        }
 
         // ─── STATE ───
         let currentView = 'login';
@@ -2495,6 +2509,7 @@
         // ─── START ───
         function startApp() {
             populateCountryDropdown();
+            initAgreeCheckbox();
             switchToLogin();
             startRotation();
             checkSession();
