@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EaseMed – DDX Generator</title>
+    <script src="/js/supabase.min.js"></script>
+    <script src="/js/access-guard.js"></script>
+    <script>window.EASEMED_MODULE_NAME = 'DDX Generator';</script>
+    <script src="tracking.js"></script>
+    <style>
+        :root {
+            --bg: #f7f9fb;
+            --surface: #ffffff;
+            --border: #dde3ea;
+            --primary: #1a5f7a;
+            --primary-light: #e8f4f8;
+            --accent: #e05c2a;
+            --text: #1c2b36;
+            --muted: #6b7f8c;
+            --danger: #c0392b;
+            --success: #1a7a4a;
+            --warn-bg: #fffbea;
+            --warn-border: #f0c050;
+            --radius: 10px;
+            --shadow: 0 2px 12px rgba(26, 95, 122, 0.08);
+            --ai-color: #8e44ad;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .topbar-brand {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .topbar-brand span {
+            color: #9fd8f0;
+        }
+        .topbar-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 1px;
+        }
+        .topbar-right {
+            display: flex;
+            gap: 0.75rem;
+        }
+        .btn-outline-white {
+            background: transparent;
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            color: #fff;
+            padding: 0.35rem 0.9rem;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-outline-white:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .main-wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem 2rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.4rem;
+            margin-bottom: 1.1rem;
+            box-shadow: var(--shadow);
+        }
+        .card.ai-card {
+            border-left: 4px solid var(--ai-color);
+            background: #f8f4fc;
+        }
+        .card-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--muted);
+            margin-bottom: 0.9rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            margin-top: 1.5rem;
+        }
+        .section-badge {
+            background: var(--primary);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.25rem 0.7rem;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .field-group {
+            margin-bottom: 1rem;
+        }
+        .field-group:last-child {
+            margin-bottom: 0;
+        }
+        label {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.35rem;
+        }
+        label .req {
+            color: var(--danger);
+            margin-left: 2px;
+        }
+        .hint {
+            font-size: 0.76rem;
+            color: var(--muted);
+            margin-bottom: 0.4rem;
+            font-style: italic;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.55rem 0.75rem;
+            border: 1.5px solid var(--border);
+            border-radius: 7px;
+            font-size: 0.9rem;
+            color: var(--text);
+            background: #fff;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            outline: none;
+        }
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 95, 122, 0.1);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+            line-height: 1.5;
+        }
+
+        .inline-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.9rem;
+        }
+        .inline-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.9rem;
+        }
+        .inline-row-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 0.9rem;
+        }
+        @media (max-width: 560px) {
+            .inline-row,
+            .inline-row-3,
+            .inline-row-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-primary:hover {
+            background: #154f67;
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-accent:hover {
+            background: #c94a1a;
+        }
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-success:hover {
+            background: #14633a;
+        }
+        .btn-secondary {
+            background: #95a5a6;
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .dx-item {
+            background: var(--bg);
+            border-radius: 7px;
+            padding: 0.7rem 0.9rem;
+            margin-bottom: 0.6rem;
+            border-left: 4px solid var(--primary);
+            transition: all 0.2s;
+        }
+        .dx-item.generated {
+            border-left-color: var(--accent);
+            background: #fff8f5;
+        }
+        .dx-item.high-confidence {
+            border-left-color: var(--success);
+            background: #f0faf5;
+        }
+        .dx-item.low-confidence {
+            border-left-color: var(--danger);
+            background: #fdf0f0;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.3rem;
+        }
+        .confidence-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .callout {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            border-radius: 0 7px 7px 0;
+            padding: 0.7rem 1rem;
+            font-size: 0.83rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        .callout strong {
+            font-weight: 700;
+        }
+
+        .footer-nav {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.06);
+        }
+
+        .import-section {
+            background: #f0f7fa;
+            border: 2px dashed var(--primary);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .import-section textarea {
+            min-height: 120px;
+            font-family: monospace;
+            font-size: 0.82rem;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 1.2rem 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .badge-success {
+            background: #e6f6ee;
+            color: var(--success);
+        }
+        .badge-warning {
+            background: #fffbea;
+            color: #b07800;
+        }
+        .badge-danger {
+            background: #fdecea;
+            color: var(--danger);
+        }
+        .badge-info {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* PE Findings Tags */
+        .pe-finding-tag {
+            display: inline-block;
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.76rem;
+            cursor: pointer;
+            background: var(--bg);
+            color: var(--text);
+            user-select: none;
+            transition: all 0.15s;
+            margin: 0.15rem;
+        }
+        .pe-finding-tag:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        .pe-finding-tag.present {
+            background: #e6f6ee;
+            border-color: var(--success);
+            color: var(--success);
+            font-weight: 600;
+        }
+        .pe-finding-tag.present::before {
+            content: '✓ ';
+        }
+        .pe-finding-tag.absent {
+            background: #fdecea;
+            border-color: var(--danger);
+            color: var(--danger);
+            font-weight: 600;
+        }
+        .pe-finding-tag.absent::before {
+            content: '✗ ';
+        }
+
+        .pe-section {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.8rem;
+            background: var(--bg);
+        }
+        .pe-section-title {
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--primary);
+            margin-bottom: 0.3rem;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 99999;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transition: opacity 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Data Preview */
+        .data-preview {
+            background: #1c2b36;
+            color: #e8f4f8;
+            padding: 1rem;
+            border-radius: 7px;
+            font-family: monospace;
+            font-size: 0.78rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 0.5rem;
+        }
+
+        /* Print styles */
+        @media print {
+            .topbar,
+            .footer-nav,
+            .btn-primary,
+            .btn-accent,
+            .btn-secondary,
+            .btn-outline-white,
+            .import-section,
+            .btn-success {
+                display: none !important;
+            }
+            .main-wrap {
+                padding: 0.5rem;
+            }
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Topbar -->
+    <nav class="topbar">
+        <div>
+            <div class="topbar-brand">Ease<span>Med</span></div>
+            <div class="topbar-subtitle">DDX Generator</div>
+        </div>
+        <div class="topbar-right">
+            <button class="btn-outline-white" onclick="window.location.href='surgery-clerking.html'">← Back to Clerking</button>
+            <button class="btn-outline-white" onclick="window.print()">🖨️ Print</button>
+        </div>
+    </nav>
+
+    <div class="main-wrap">
+
+        <!-- Header -->
+        <div class="section-header" style="margin-top:0.5rem;">
+            <span class="section-badge">🧠</span>
+            <span class="section-title">Differential Diagnosis Generator</span>
+        </div>
+
+        <div class="callout">
+            <strong>Full Clinical Data Integration:</strong> This generator uses ALL available clinical data including demographics, presenting complaints, HPC details, ROS symptoms, <strong>physical examination findings from all systems</strong>, vitals, GCS, past history, and risk factors to generate comprehensive differential diagnoses.
+        </div>
+
+        <!-- Import Section -->
+        <div class="card">
+            <div class="card-title">📥 Import Patient Data</div>
+            <div class="import-section">
+                <p style="margin-bottom:0.8rem; color:var(--muted);">
+                    <strong>Option 1:</strong> Paste JSON data from the clerking module
+                </p>
+                <textarea id="importData" placeholder='Paste JSON data here...'></textarea>
+                <div style="margin-top:0.8rem; display:flex; gap:0.6rem; justify-content:center; flex-wrap:wrap;">
+                    <button class="btn-primary" onclick="importFromJSON()">📥 Import & Generate</button>
+                    <button class="btn-secondary" onclick="document.getElementById('importData').value=''">Clear</button>
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:0.8rem;">
+                <span style="color:var(--muted); font-size:0.85rem;">— OR —</span>
+            </div>
+            <div style="margin-top:0.8rem; display:flex; gap:0.6rem; flex-wrap:wrap;">
+                <button class="btn-accent" onclick="loadFromLocalStorage()" style="flex:1;">
+                    📂 Load from Clerking Module Draft
+                </button>
+                <button class="btn-secondary" onclick="loadSampleData()" style="flex:1;">
+                    📋 Load Sample Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Manual Input Section -->
+        <div class="card">
+            <div class="card-title">✏️ Manual Data Entry</div>
+
+            <!-- Demographics -->
+            <div class="card" style="border-left:3px solid var(--primary); margin-bottom:1rem;">
+                <div class="card-title" style="border-bottom:none; margin-bottom:0.5rem;">👤 Demographics</div>
+                <div class="inline-row">
+                    <div class="field-group">
+                        <label>Age <span class="req">*</span></label>
+                        <input type="number" id="ddxAge" placeholder="Years" min="0" max="120" />
+                    </div>
+                    <div class="field-group">
+                        <label>Sex <span class="req">*</span></label>
+                        <select id="ddxSex">
+                            <option value="">— Select —</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Presenting Complaint -->
+            <div class="card" style="border-left:3px solid var(--accent); margin-bottom:1rem;">
+                <div class="card-title" style="border-bottom:none; margin-bottom:0.5rem;">📋 Presenting Complaint</div>
+                <div class="field-group">
+                    <label>Complaint Category <span class="req">*</span></label>
+                    <select id="ddxPCCategory">
+                        <option value="">— Select a complaint category —</option>
+                        <option value="abdo-pain">Abdominal pain</option>
+                        <option value="abdo-distension">Abdominal distension</option>
+                        <option value="vomiting">Nausea / Vomiting</option>
+                        <option value="bowel">Bowel change</option>
+                        <option value="rectal-bleed">Rectal bleeding</option>
+                        <option value="jaundice">Jaundice</option>
+                        <option value="haematuria">Haematuria</option>
+                        <option value="urinary-sx">Urinary symptoms</option>
+                        <option value="scrotal">Scrotal swelling/pain</option>
+                        <option value="loin-pain">Loin pain</option>
+                        <option value="prostate">Prostate symptoms</option>
+                        <option value="ortho-pain">Bone/joint pain</option>
+                        <option value="fracture">Fracture</option>
+                        <option value="trauma">Trauma / Injury</option>
+                        <option value="back-pain">Back pain</option>
+                        <option value="joint-swelling">Joint swelling</option>
+                        <option value="swelling-surface">Surface swelling</option>
+                        <option value="wound">Wound / Ulcer</option>
+                        <option value="skin-lesion">Skin lesion</option>
+                        <option value="lymph-node">Lymph node swelling</option>
+                        <option value="breast">Breast lump</option>
+                        <option value="breast-pain">Breast pain</option>
+                        <option value="neck">Neck/thyroid</option>
+                        <option value="varicose">Varicose veins</option>
+                        <option value="leg-ulcer">Leg ulcer</option>
+                        <option value="claudication">Claudication</option>
+                        <option value="hernia">Hernia</option>
+                        <option value="haemorrhoids">Haemorrhoids</option>
+                        <option value="abscess">Abscess</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- HPC Details -->
+            <div class="card" style="border-left:3px solid var(--primary); margin-bottom:1rem;">
+                <div class="card-title" style="border-bottom:none; margin-bottom:0.5rem;">📖 HPC Details</div>
+                <div class="inline-row-3">
+                    <div class="field-group">
+                        <label>Site</label>
+                        <input type="text" id="ddxHpcSite" placeholder="e.g. RIF" />
+                    </div>
+                    <div class="field-group">
+                        <label>Onset</label>
+                        <input type="text" id="ddxHpcOnset" placeholder="e.g. Sudden" />
+                    </div>
+                    <div class="field-group">
+                        <label>Character</label>
+                        <input type="text" id="ddxHpcCharacter" placeholder="e.g. Colicky" />
+                    </div>
+                </div>
+                <div class="inline-row-3">
+                    <div class="field-group">
+                        <label>Radiation</label>
+                        <input type="text" id="ddxHpcRadiation" placeholder="e.g. To back" />
+                    </div>
+                    <div class="field-group">
+                        <label>Timing</label>
+                        <input type="text" id="ddxHpcTiming" placeholder="e.g. Constant" />
+                    </div>
+                    <div class="field-group">
+                        <label>Associations</label>
+                        <input type="text" id="ddxHpcAssociations" placeholder="e.g. Fever, nausea" />
+                    </div>
+                </div>
+                <div class="inline-row">
+                    <div class="field-group">
+                        <label>Exacerbating</label>
+                        <input type="text" id="ddxHpcExacerbating" placeholder="e.g. Movement" />
+                    </div>
+                    <div class="field-group">
+                        <label>Relieving</label>
+                        <input type="text" id="ddxHpcRelieving" placeholder="e.g. Rest" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROS Symptoms -->
+            <div class="card" style="border-left:3px solid #2a9d8f; margin-bottom:1rem;">
+                <div class="card-title" style="border-bottom:none; margin-bottom:0.5rem;">🔄 Review of Systems</div>
+                <div class="field-group">
+                    <label>ROS Symptoms Present (comma separated)</label>
+                    <input type="text" id="ddxRosPresent" placeholder="e.g. nausea, fever, constipation, vomiting" />
+                    <div class="hint">Enter all positive ROS findings from all systems</div>
+                </div>
+            </div>
+
+            <!-- Physical Examination - Full -->
+            <div class="card" style="border-left:3px solid #8e44ad; margin-bottom:1rem;">
+                <div class="card-title" style="border-bottom:none; margin-bottom:0.5rem;">🩺 Physical Examination</div>
+
+                <!-- General -->
+                <div class="pe-section">
+                    <div class="pe-section-title">🔍 General Appearance</div>
+                    <div class="pe-finding-group" id="peGeneral">
+                        <span class="pe-finding-label">Click to toggle:</span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Well-looking" onclick="togglePEFinding(this)">Well-looking</span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Ill-looking" onclick="togglePEFinding(this)">Ill-looking</span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Toxic appearance" onclick="togglePEFinding(this)">Toxic appearance</span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Pallor" onclick="togglePEFinding(this)">Pallor</span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Jaundice" onclick="togglePEFinding(this)">Jaundice</span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Cyanosis" onclick="togglePEFinding(this)">Cyanosis</span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Oedema" onclick="togglePEFinding(this)">Oedema</span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Dehydrated" onclick="togglePEFinding(this)">Dehydrated</span>
+                        <span class="pe-finding-tag" data-pe="general" data-finding="Cachectic" onclick="togglePEFinding(this)">Cachectic</span>
+                    </div>
+                </div>
+
+                <!-- Cardiovascular -->
+                <div class="pe-section">
+                    <div class="pe-section-title">❤️ Cardiovascular</div>
+                    <div class="pe-finding-group" id="peCVS">
+                        <span class="pe-finding-label">Click to toggle:</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Elevated JVP" onclick="togglePEFinding(this)">Elevated JVP</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Apex beat displaced" onclick="togglePEFinding(this)">Apex beat displaced</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="LV heave" onclick="togglePEFinding(this)">LV heave</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="RV heave" onclick="togglePEFinding(this)">RV heave</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Thrill" onclick="togglePEFinding(this)">Thrill</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="S3 gallop" onclick="togglePEFinding(this)">S3 gallop</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="S4" onclick="togglePEFinding(this)">S4</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Systolic murmur" onclick="togglePEFinding(this)">Systolic murmur</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Diastolic murmur" onclick="togglePEFinding(this)">Diastolic murmur</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Pericardial rub" onclick="togglePEFinding(this)">Pericardial rub</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Irregular rhythm" onclick="togglePEFinding(this)">Irregular rhythm</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Weak peripheral pulses" onclick="togglePEFinding(this)">Weak peripheral pulses</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Bounding pulses" onclick="togglePEFinding(this)">Bounding pulses</span>
+                        <span class="pe-finding-tag" data-pe="cvs" data-finding="Capillary refill >2s" onclick="togglePEFinding(this)">Capillary refill >2s</span>
+                    </div>
+                </div>
+
+                <!-- Respiratory -->
+                <div class="pe-section">
+                    <div class="pe-section-title">🫁 Respiratory</div>
+                    <div class="pe-finding-group" id="peResp">
+                        <span class="pe-finding-label">Click to toggle:</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Tachypnoea" onclick="togglePEFinding(this)">Tachypnoea</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Accessory muscle use" onclick="togglePEFinding(this)">Accessory muscle use</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Tracheal deviation" onclick="togglePEFinding(this)">Tracheal deviation</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Barrel chest" onclick="togglePEFinding(this)">Barrel chest</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Reduced expansion" onclick="togglePEFinding(this)">Reduced expansion</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Tactile fremitus increased" onclick="togglePEFinding(this)">Fremitus increased</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Tactile fremitus reduced" onclick="togglePEFinding(this)">Fremitus reduced</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Dull percussion" onclick="togglePEFinding(this)">Dull percussion</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Hyperresonant" onclick="togglePEFinding(this)">Hyperresonant</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Coarse crackles" onclick="togglePEFinding(this)">Coarse crackles</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Fine crackles" onclick="togglePEFinding(this)">Fine crackles</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Bilateral basal crackles" onclick="togglePEFinding(this)">Bilateral basal crackles</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Expiratory wheeze" onclick="togglePEFinding(this)">Expiratory wheeze</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Bronchial breathing" onclick="togglePEFinding(this)">Bronchial breathing</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Reduced breath sounds" onclick="togglePEFinding(this)">Reduced breath sounds</span>
+                        <span class="pe-finding-tag" data-pe="resp" data-finding="Pleural rub" onclick="togglePEFinding(this)">Pleural rub</span>
+                    </div>
+                </div>
+
+                <!-- Abdominal -->
+                <div class="pe-section">
+                    <div class="pe-section-title">🫃 Abdominal</div>
+                    <div class="pe-finding-group" id="peAbdo">
+                        <span class="pe-finding-label">Click to toggle:</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Distended" onclick="togglePEFinding(this)">Distended</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Scaphoid" onclick="togglePEFinding(this)">Scaphoid</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Visible peristalsis" onclick="togglePEFinding(this)">Visible peristalsis</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Caput medusae" onclick="togglePEFinding(this)">Caput medusae</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Surgical scar" onclick="togglePEFinding(this)">Surgical scar</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Bowel sounds absent" onclick="togglePEFinding(this)">Bowel sounds absent</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Hyperactive bowel sounds" onclick="togglePEFinding(this)">Hyperactive bowel sounds</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Tinkling bowel sounds" onclick="togglePEFinding(this)">Tinkling bowel sounds</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Generalised tenderness" onclick="togglePEFinding(this)">Generalised tenderness</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="RIF tenderness" onclick="togglePEFinding(this)">RIF tenderness</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="RUQ tenderness" onclick="togglePEFinding(this)">RUQ tenderness</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Epigastric tenderness" onclick="togglePEFinding(this)">Epigastric tenderness</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="LLQ tenderness" onclick="togglePEFinding(this)">LLQ tenderness</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Guarding" onclick="togglePEFinding(this)">Guarding</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Rigidity" onclick="togglePEFinding(this)">Rigidity</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Rebound tenderness" onclick="togglePEFinding(this)">Rebound tenderness</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Hepatomegaly" onclick="togglePEFinding(this)">Hepatomegaly</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Splenomegaly" onclick="togglePEFinding(this)">Splenomegaly</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Palpable mass" onclick="togglePEFinding(this)">Palpable mass</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Pulsatile mass" onclick="togglePEFinding(this)">Pulsatile mass</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Shifting dullness" onclick="togglePEFinding(this)">Shifting dullness</span>
+                        <span class="pe-finding-tag" data-pe="abdo" data-finding="Murphy's sign" onclick="togglePEFinding(this)">Murphy's sign</span>
+                    </div>
+                </div>
+
+                <!-- Genitourinary -->
+                <div class="pe-section">
+                    <div class="pe-section-title">💧 Genitourinary</div>
+                    <div class="pe-finding-group" id="peGU">
+                        <span class="pe-finding-label">Click to toggle:</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Scrotal swelling" onclick="togglePEFinding(this)">Scrotal swelling</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Tender testis" onclick="togglePEFinding(this)">Tender testis</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Testicular mass" onclick="togglePEFinding(this)">Testicular mass</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Urethral discharge" onclick="togglePEFinding(this)">Urethral discharge</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Inguinal hernia" onclick="togglePEFinding(this)">Inguinal hernia</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Enlarged prostate" onclick="togglePEFinding(this)">Enlarged prostate</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Nodular prostate" onclick="togglePEFinding(this)">Nodular prostate</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Rectal mass" onclick="togglePEFinding(this)">Rectal mass</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Blood on DRE" onclick="togglePEFinding(this)">Blood on DRE</span>
+                        <span class="pe-finding-tag" data-pe="gu" data-finding="Renal angle tenderness" onclick="togglePEFinding(this)">Renal angle tenderness</span>
+                    </div>
+                </div>
+
+                <!-- Neurological -->
+                <div class="pe-section">
+                    <div class="pe-section-title">🧠 Neurological</div>
+                    <div class="pe-finding-group" id="peNeuro">
+                        <span class="pe-finding-label">Click to toggle:</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Confused/drowsy" onclick="togglePEFinding(this)">Confused/drowsy</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Facial asymmetry" onclick="togglePEFinding(this)">Facial asymmetry</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Ptosis" onclick="togglePEFinding(this)">Ptosis</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Abnormal pupils" onclick="togglePEFinding(this)">Abnormal pupils</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Power reduced" onclick="togglePEFinding(this)">Power reduced</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Increased tone" onclick="togglePEFinding(this)">Increased tone</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Decreased tone" onclick="togglePEFinding(this)">Decreased tone</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Babinski positive" onclick="togglePEFinding(this)">Babinski positive</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Clonus" onclick="togglePEFinding(this)">Clonus</span>
+                        <span class="pe-finding-tag" data-pe="neuro" data-finding="Sensory level" onclick="togglePEFinding(this)">Sensory level</span>
+                    </div>
+                </div>
+
+                <!-- Musculoskeletal -->
+                <div class="pe-section">
+                    <div class="pe-section-title">🦴 Musculoskeletal</div>
+                    <div class="pe-finding-group" id="peMSK">
+                        <span class="pe-finding-label">Click to toggle:</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Deformity" onclick="togglePEFinding(this)">Deformity</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Joint swelling" onclick="togglePEFinding(this)">Joint swelling</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Tenderness" onclick="togglePEFinding(this)">Tenderness</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Crepitus" onclick="togglePEFinding(this)">Crepitus</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Joint effusion" onclick="togglePEFinding(this)">Joint effusion</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Warmth" onclick="togglePEFinding(this)">Warmth</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Restricted ROM" onclick="togglePEFinding(this)">Restricted ROM</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Absent pulses" onclick="togglePEFinding(this)">Absent pulses</span>
+                        <span class="pe-finding-tag" data-pe="msk" data-finding="Skin changes" onclick="togglePEFinding(this)">Skin changes</span>
+                    </div>
+                </div>
+
+                <!-- Wound -->
+                <div class="pe-section">
+                    <div class="pe-section-title">🩹 Wound / Ulcer</div>
+                    <div class="pe-finding-group" id="peWound">
+                        <span class="pe-finding-label">Click to toggle:</span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Necrotic base" onclick="togglePEFinding(this)">Necrotic base</span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Purulent discharge" onclick="togglePEFinding(this)">Purulent discharge</span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Everted edges" onclick="togglePEFinding(this)">Everted edges</span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Undermined edges" onclick="togglePEFinding(this)">Undermined edges</span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Granulation tissue" onclick="togglePEFinding(this)">Granulation tissue</span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Subcutaneous emphysema" onclick="togglePEFinding(this)">Subcutaneous emphysema</span>
+                        <span class="pe-finding-tag" data-pe="wound" data-finding="Regional lymphadenopathy" onclick="togglePEFinding(this)">Regional lymphadenopathy</span>
+                    </div>
+                </div>
+
+                <!-- Other -->
+                <div class="pe-section">
+                    <div class="pe-section-title">➕ Other (Breast, Neck, Lymphatics)</div>
+                    <div class="pe-finding-group" id="peOther">
+                        <span class="pe-finding-label">Click to toggle:</span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Cervical lymphadenopathy" onclick="togglePEFinding(this)">Cervical lymphadenopathy</span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Axillary lymphadenopathy" onclick="togglePEFinding(this)">Axillary lymphadenopathy</span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Inguinal lymphadenopathy" onclick="togglePEFinding(this)">Inguinal lymphadenopathy</span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Breast lump" onclick="togglePEFinding(this)">Breast lump</span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Peau d'orange" onclick="togglePEFinding(this)">Peau d'orange</span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Thyroid nodule" onclick="togglePEFinding(this)">Thyroid nodule</span>
+                        <span class="pe-finding-tag" data-pe="other" data-finding="Skin rash" onclick="togglePEFinding(this)">Skin rash</span>
+                    </div>
+                </div>
+
+                <!-- Vitals -->
+                <div style="margin-top:0.8rem;">
+                    <div class="pe-section-title">📊 Vitals</div>
+                    <div class="inline-row-4">
+                        <div class="field-group">
+                            <label>Temp (°C)</label>
+                            <input type="text" id="ddxTemp" placeholder="37.2" />
+                        </div>
+                        <div class="field-group">
+                            <label>HR (bpm)</label>
+                            <input type="text" id="ddxHR" placeholder="72" />
+                        </div>
+                        <div class="field-group">
+                            <label>SBP (mmHg)</label>
+                            <input type="text" id="ddxBPSystolic" placeholder="120" />
+                        </div>
+                        <div class="field-group">
+                            <label>SpO2 (%)</label>
+                            <input type="text" id="ddxSpO2" placeholder="98" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GCS -->
+                <div style="margin-top:0.8rem; border-top:1px solid var(--border); padding-top:0.8rem;">
+                    <div class="pe-section-title">🧠 GCS</div>
+                    <div class="inline-row-4">
+                        <div class="field-group">
+                            <label>Eye (E)</label>
+                            <select id="ddxGcsEye">
+                                <option value="">Select</option>
+                                <option value="4">4</option>
+                                <option value="3">3</option>
+                                <option value="2">2</option>
+                                <option value="1">1</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>Verbal (V)</label>
+                            <select id="ddxGcsVerbal">
+                                <option value="">Select</option>
+                                <option value="5">5</option>
+                                <option value="4">4</option>
+                                <option value="3">3</option>
+                                <option value="2">2</option>
+                                <option value="1">1</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>Motor (M)</label>
+                            <select id="ddxGcsMotor">
+                                <option value="">Select</option>
+                                <option value="6">6</option>
+                                <option value="5">5</option>
+                                <option value="4">4</option>
+                                <option value="3">3</option>
+                                <option value="2">2</option>
+                                <option value="1">1</option>
+                            </select>
+                        </div>
+                        <div class="field-group" style="display:flex; align-items:center;">
+                            <label style="margin-bottom:0;">
+                                <input type="checkbox" id="ddxGcsIntubated" /> Intubated
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Past History -->
+            <div class="card" style="border-left:3px solid #1a7a4a; margin-bottom:1rem;">
+                <div class="card-title" style="border-bottom:none; margin-bottom:0.5rem;">📋 Past Medical & Surgical History</div>
+                <div class="field-group">
+                    <label>Past Medical History</label>
+                    <input type="text" id="ddxPastMedical" placeholder="e.g. diabetes, hypertension, gallstones" />
+                </div>
+                <div class="field-group">
+                    <label>Past Surgical History</label>
+                    <input type="text" id="ddxPastSurgical" placeholder="e.g. appendicectomy, cholecystectomy" />
+                </div>
+                <div class="field-group">
+                    <label>Current Medications</label>
+                    <input type="text" id="ddxCurrentMeds" placeholder="e.g. metformin, amlodipine" />
+                </div>
+            </div>
+
+            <!-- Risk Factors -->
+            <div class="card" style="border-left:3px solid #e05c2a; margin-bottom:1rem;">
+                <div class="card-title" style="border-bottom:none; margin-bottom:0.5rem;">⚠️ Risk Factors</div>
+                <div class="inline-row">
+                    <div class="field-group">
+                        <label>Smoking</label>
+                        <select id="ddxSmoking">
+                            <option value="">— Select —</option>
+                            <option value="never">Never</option>
+                            <option value="current">Current</option>
+                            <option value="former">Former</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label>Alcohol</label>
+                        <select id="ddxAlcohol">
+                            <option value="">— Select —</option>
+                            <option value="never">Never</option>
+                            <option value="current">Current</option>
+                            <option value="former">Former</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label>Family History</label>
+                    <input type="text" id="ddxFamilyHistory" placeholder="e.g. breast cancer, colon cancer" />
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="generateDDXFromManual()" style="width:100%; margin-top:0.5rem; padding:0.8rem; font-size:1.05rem;">
+                🧠 Generate Differentials
+            </button>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Results Section -->
+        <div id="resultsSection" style="display:none;">
+            <div class="section-header">
+                <span class="section-badge">📊</span>
+                <span class="section-title">Differential Diagnosis Results</span>
+            </div>
+
+            <!-- Data Preview -->
+            <div class="card" style="background:#1c2b36; color:#e8f4f8;">
+                <div class="card-title" style="color:#9fd8f0; border-bottom-color:#2a4a5a;">📊 Clinical Data Used</div>
+                <div id="dataPreview" class="data-preview">Loading...</div>
+            </div>
+
+            <div class="card ai-card">
+                <div class="card-title">🧠 Ranked Differentials</div>
+                <div id="ddxResultsContainer">
+                    <!-- Results rendered by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-nav">
+            <div class="step-indicator">DDX Generator — Powered by comprehensive clinical reasoning engine</div>
+            <div style="display:flex; gap:0.8rem;">
+                <button class="btn-primary" onclick="window.location.href='surgery-clerking.html'">← Back to Clerking</button>
+                <button class="btn-success" onclick="window.print()">🖨️ Print Results</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 1. TOAST NOTIFICATION
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function showToast(msg, color = '#2a9d8f') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.background = color;
+            toast.style.color = 'white';
+            toast.style.opacity = '1';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 2. PE FINDING TOGGLES
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function togglePEFinding(el) {
+            if (el.classList.contains('present')) {
+                el.classList.remove('present');
+                el.classList.add('absent');
+            } else if (el.classList.contains('absent')) {
+                el.classList.remove('absent');
+            } else {
+                el.classList.add('present');
+            }
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 3. COMPREHENSIVE PATIENT DATA COLLECTION
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function collectPatientData() {
+            const getVal = (id) => document.getElementById(id)?.value || '';
+            const getNum = (id) => parseFloat(document.getElementById(id)?.value) || 0;
+            const getSelectVal = (id) => document.getElementById(id)?.value || '';
+
+            // PC Categories
+            const pcCategories = [];
+            const cat = getVal('ddxPCCategory');
+            if (cat) pcCategories.push(cat);
+
+            // ROS Symptoms
+            const rosPresent = getVal('ddxRosPresent').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+            // Physical Exam Findings - collect from all PE tags
+            const peFindings = [];
+            document.querySelectorAll('.pe-finding-tag.present, .pe-finding-tag.absent').forEach(tag => {
+                peFindings.push({
+                    system: tag.dataset.pe,
+                    finding: tag.dataset.finding,
+                    status: tag.classList.contains('present') ? 'present' : 'absent'
+                });
+            });
+
+            // Also collect from the original data if it was imported
+            const importedPE = window._importedPEFindings || [];
+            importedPE.forEach(f => {
+                if (!peFindings.some(p => p.system === f.system && p.finding === f.finding)) {
+                    peFindings.push(f);
+                }
+            });
+
+            // GCS
+            const gcsEye = parseInt(getVal('ddxGcsEye')) || 0;
+            const gcsVerbal = parseInt(getVal('ddxGcsVerbal')) || 0;
+            const gcsMotor = parseInt(getVal('ddxGcsMotor')) || 0;
+            const gcsIntubated = document.getElementById('ddxGcsIntubated')?.checked || false;
+
+            return {
+                age: getNum('ddxAge'),
+                isFemale: getVal('ddxSex') === 'Female',
+                pcCategories,
+                rosPresent,
+                peFindings,
+                vitals: {
+                    temp: getNum('ddxTemp'),
+                    hr: getNum('ddxHR'),
+                    systolic: getNum('ddxBPSystolic'),
+                    spo2: getNum('ddxSpO2'),
+                },
+                hpc: {
+                    site: getVal('ddxHpcSite').toLowerCase(),
+                    onset: getVal('ddxHpcOnset').toLowerCase(),
+                    character: getVal('ddxHpcCharacter').toLowerCase(),
+                    radiation: getVal('ddxHpcRadiation').toLowerCase(),
+                    time: getVal('ddxHpcTiming').toLowerCase(),
+                    associations: getVal('ddxHpcAssociations').toLowerCase(),
+                    exacerbating: getVal('ddxHpcExacerbating').toLowerCase(),
+                    relieving: getVal('ddxHpcRelieving').toLowerCase(),
+                },
+                gcs: {
+                    eye: gcsEye,
+                    verbal: gcsVerbal,
+                    motor: gcsMotor,
+                    intubated: gcsIntubated,
+                    total: gcsEye + (gcsIntubated ? 0 : gcsVerbal) + gcsMotor
+                },
+                pastMedical: getVal('ddxPastMedical').toLowerCase(),
+                pastSurgical: getVal('ddxPastSurgical').toLowerCase(),
+                currentMeds: getVal('ddxCurrentMeds').toLowerCase(),
+                smoking: getVal('ddxSmoking'),
+                alcohol: getVal('ddxAlcohol'),
+                familyHistory: getVal('ddxFamilyHistory').toLowerCase(),
+            };
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 4. IMPORT FROM JSON (Enhanced)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function importFromJSON() {
+            const jsonStr = document.getElementById('importData').value.trim();
+            if (!jsonStr) {
+                showToast('⚠️ Please paste JSON data first.', '#e67e22');
+                return;
+            }
+            try {
+                const data = JSON.parse(jsonStr);
+                window._importedPEFindings = [];
+
+                // Demographics
+                if (data.demographics) {
+                    if (data.demographics.age) document.getElementById('ddxAge').value = data.demographics.age;
+                    if (data.demographics.sex) document.getElementById('ddxSex').value = data.demographics.sex;
+                }
+
+                // PC
+                if (data.complaint) {
+                    const pc1 = data.complaint.pc1;
+                    if (pc1 && pc1.category) {
+                        document.getElementById('ddxPCCategory').value = pc1.category;
+                    }
+                }
+
+                // HPC
+                if (data.hpc) {
+                    if (data.hpc.site) document.getElementById('ddxHpcSite').value = data.hpc.site;
+                    if (data.hpc.onset) document.getElementById('ddxHpcOnset').value = data.hpc.onset;
+                    if (data.hpc.character) document.getElementById('ddxHpcCharacter').value = data.hpc.character;
+                    if (data.hpc.radiation) document.getElementById('ddxHpcRadiation').value = data.hpc.radiation;
+                    if (data.hpc.time) document.getElementById('ddxHpcTiming').value = data.hpc.time;
+                    if (data.hpc.associations) document.getElementById('ddxHpcAssociations').value = data.hpc.associations;
+                    if (data.hpc.exacerbating) document.getElementById('ddxHpcExacerbating').value = data.hpc.exacerbating;
+                    if (data.hpc.relieving) document.getElementById('ddxHpcRelieving').value = data.hpc.relieving;
+                }
+
+                // ROS
+                if (data.ros) {
+                    const rosSymptoms = [];
+                    Object.entries(data.ros).forEach(([sys, sysData]) => {
+                        if (sysData.symptoms) {
+                            sysData.symptoms.forEach(s => {
+                                if (s.status === 'present') rosSymptoms.push(s.name);
+                            });
+                        }
+                    });
+                    document.getElementById('ddxRosPresent').value = rosSymptoms.join(', ');
+                }
+
+                // Physical Exam - map all findings to tags
+                if (data.physicalExam && data.physicalExam.findings) {
+                    // Map findings to PE tags
+                    const peTagMap = {};
+                    document.querySelectorAll('.pe-finding-tag').forEach(tag => {
+                        const key = tag.dataset.pe + ':' + tag.dataset.finding;
+                        peTagMap[key] = tag;
+                    });
+
+                    Object.entries(data.physicalExam.findings).forEach(([system, findings]) => {
+                        if (findings.present) {
+                            findings.present.forEach(finding => {
+                                const key = system + ':' + finding;
+                                if (peTagMap[key]) {
+                                    peTagMap[key].classList.add('present');
+                                    peTagMap[key].classList.remove('absent');
+                                }
+                                window._importedPEFindings.push({ system, finding, status: 'present' });
+                            });
+                        }
+                        if (findings.absent) {
+                            findings.absent.forEach(finding => {
+                                const key = system + ':' + finding;
+                                if (peTagMap[key]) {
+                                    peTagMap[key].classList.add('absent');
+                                    peTagMap[key].classList.remove('present');
+                                }
+                                window._importedPEFindings.push({ system, finding, status: 'absent' });
+                            });
+                        }
+                    });
+                }
+
+                // Vitals
+                if (data.physicalExam) {
+                    if (data.physicalExam.temp) document.getElementById('ddxTemp').value = data.physicalExam.temp;
+                    if (data.physicalExam.hr) document.getElementById('ddxHR').value = data.physicalExam.hr;
+                    if (data.physicalExam.bp) {
+                        const bpParts = data.physicalExam.bp.split('/');
+                        if (bpParts[0]) document.getElementById('ddxBPSystolic').value = bpParts[0];
+                    }
+                    if (data.physicalExam.spo2) document.getElementById('ddxSpO2').value = data.physicalExam.spo2;
+                    if (data.physicalExam.gcsEye) document.getElementById('ddxGcsEye').value = data.physicalExam.gcsEye;
+                    if (data.physicalExam.gcsVerbal) document.getElementById('ddxGcsVerbal').value = data.physicalExam
+                    .gcsVerbal;
+                    if (data.physicalExam.gcsMotor) document.getElementById('ddxGcsMotor').value = data.physicalExam
+                    .gcsMotor;
+                    if (data.physicalExam.gcsIntubated) {
+                        document.getElementById('ddxGcsIntubated').checked = data.physicalExam.gcsIntubated;
+                    }
+                }
+
+                // Past History
+                if (data.pastHistory) {
+                    if (data.pastHistory.medical) document.getElementById('ddxPastMedical').value = data.pastHistory
+                    .medical;
+                    if (data.pastHistory.surgical) document.getElementById('ddxPastSurgical').value = data.pastHistory
+                        .surgical;
+                }
+
+                // Drug History
+                if (data.drugHistory && data.drugHistory.currentMeds) {
+                    document.getElementById('ddxCurrentMeds').value = data.drugHistory.currentMeds;
+                }
+
+                // Risk Factors
+                if (data.familySocial) {
+                    if (data.familySocial.smoking) document.getElementById('ddxSmoking').value = data.familySocial
+                    .smoking;
+                    if (data.familySocial.alcohol) document.getElementById('ddxAlcohol').value = data.familySocial
+                        .alcohol;
+                    if (data.familySocial.familyHistory) document.getElementById('ddxFamilyHistory').value = data
+                        .familySocial.familyHistory;
+                }
+
+                showToast('✅ Data imported successfully!', '#2a9d8f');
+                generateDDXFromManual();
+
+            } catch (e) {
+                showToast('❌ Invalid JSON: ' + e.message, '#c0392b');
+            }
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 5. LOAD FROM LOCAL STORAGE
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('easeMed_surgery_draft');
+            if (!saved) {
+                showToast('⚠️ No draft found in local storage.', '#e67e22');
+                return;
+            }
+            try {
+                const data = JSON.parse(saved);
+                document.getElementById('importData').value = JSON.stringify(data, null, 2);
+                importFromJSON();
+            } catch (e) {
+                showToast('❌ Error loading draft: ' + e.message, '#c0392b');
+            }
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 6. LOAD SAMPLE DATA
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function loadSampleData() {
+            const sampleData = {
+                demographics: { age: 35, sex: 'Male' },
+                complaint: { pc1: { category: 'abdo-pain' } },
+                hpc: {
+                    site: 'right iliac fossa',
+                    onset: 'sudden',
+                    character: 'colicky',
+                    radiation: 'right iliac fossa',
+                    time: 'constant',
+                    associations: 'nausea, fever'
+                },
+                ros: {
+                    git: { symptoms: [{ name: 'Nausea', status: 'present' }, { name: 'Vomiting', status: 'present' },
+                        { name: 'Anorexia', status: 'present' }] }
+                },
+                physicalExam: {
+                    temp: '37.8',
+                    hr: '92',
+                    bp: '130/85',
+                    findings: {
+                        abdo: { present: ['RIF tenderness', 'Rebound tenderness', 'Guarding'] }
+                    }
+                },
+                pastHistory: { medical: '' },
+                familySocial: { smoking: 'never', alcohol: 'never' }
+            };
+            document.getElementById('importData').value = JSON.stringify(sampleData, null, 2);
+            importFromJSON();
+            showToast('📋 Sample data loaded!', '#2a9d8f');
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 7. DDX GENERATION ENGINE (Enhanced with Full PE)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        function generateDDXFromManual() {
+            const patient = collectPatientData();
+            const conditions = buildSurgeryKnowledgeBase();
+
+            // Show data preview
+            showDataPreview(patient);
+
+            const results = conditions.map(cond => {
+                let totalWeight = 0;
+                let score = 0;
+                const matchedTexts = [];
+                cond.criteria.forEach(criterion => {
+                    totalWeight += criterion.weight;
+                    if (criterion.check(patient)) {
+                        score += criterion.weight;
+                        matchedTexts.push(criterion.matchText);
+                    }
+                });
+                if (totalWeight === 0) return null;
+                const confidence = Math.round((score / totalWeight) * 100);
+                return {
+                    ...cond,
+                    score,
+                    totalWeight,
+                    confidence: Math.min(confidence, 100),
+                    matchedTexts
+                };
+            }).filter(r => r !== null);
+
+            results.sort((a, b) => b.confidence - a.confidence || b.score - a.score);
+            renderResults(results);
+        }
+
+        function buildSurgeryKnowledgeBase() {
+            const conditions = [];
+
+            // ─── HELPER FUNCTIONS ───
+            const hasPCCategory = (p, keywords) => p.pcCategories.some(cat => keywords.some(kw => cat.includes(kw)));
+            const hasROS = (p, keywords) => p.rosPresent.some(s => keywords.some(kw => s.includes(kw)));
+            const hasPE = (p, system, finding, status = 'present') => p.peFindings.some(f =>
+                f.system === system && f.finding.toLowerCase().includes(finding.toLowerCase()) && f.status === status
+            );
+            const hasPEFinding = (p, system, finding) => hasPE(p, system, finding, 'present') || hasPE(p, system, finding,
+                'absent');
+            const hasChronic = (p, keywords) => keywords.some(kw => p.pastMedical.includes(kw));
+            const hasSurgical = (p, keywords) => keywords.some(kw => p.pastSurgical.includes(kw));
+            const hasMedication = (p, keywords) => keywords.some(kw => p.currentMeds.includes(kw));
+            const hasFamilyHistory = (p, keywords) => keywords.some(kw => p.familyHistory.includes(kw));
+            const ageIn = (p, min, max) => p.age >= min && p.age <= max;
+            const gcsLow = (p) => p.gcs.total > 0 && p.gcs.total <= 12;
+
+            // ─── 1. ACUTE APPENDICITIS ───
+            conditions.push({
+                id: 'appendicitis',
+                name: 'Acute Appendicitis',
+                category: 'Surgical',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 26'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['abdo-pain']), weight: 3, matchText: 'Abdominal pain' },
+                    { check: p => p.hpc.onset && p.hpc.onset.includes('sudden'), weight: 2, matchText: 'Sudden onset' },
+                    { check: p => p.hpc.character && p.hpc.character.includes('colicky'), weight: 2,
+                        matchText: 'Colicky pain' },
+                    { check: p => p.hpc.radiation && (p.hpc.radiation.includes('right iliac') || p.hpc.radiation
+                            .includes('rif')), weight: 3, matchText: 'Pain radiation to RIF' },
+                    { check: p => hasROS(p, ['nausea', 'vomiting']), weight: 2, matchText: 'Nausea / vomiting' },
+                    { check: p => hasROS(p, ['anorexia', 'loss of appetite']), weight: 2, matchText: 'Anorexia' },
+                    { check: p => hasROS(p, ['fever']), weight: 1, matchText: 'Fever' },
+                    { check: p => hasPE(p, 'abdo', 'RIF tenderness'), weight: 4,
+                        matchText: 'RIF tenderness (McBurney\'s point)' },
+                    { check: p => hasPE(p, 'abdo', 'Rebound tenderness'), weight: 3, matchText: 'Rebound tenderness' },
+                    { check: p => hasPE(p, 'abdo', 'Guarding'), weight: 3, matchText: 'Guarding' },
+                    { check: p => hasPE(p, 'abdo', 'Rigidity'), weight: 2, matchText: 'Abdominal rigidity' },
+                    { check: p => p.vitals.temp > 37.5, weight: 1, matchText: 'Fever >37.5°C' },
+                    { check: p => p.vitals.hr > 90, weight: 1, matchText: 'Tachycardia (HR >90)' },
+                    { check: p => ageIn(p, 10, 40), weight: 1, matchText: 'Age 10–40' },
+                ]
+            });
+
+            // ─── 2. BOWEL OBSTRUCTION ───
+            conditions.push({
+                id: 'bowel_obstruction',
+                name: 'Bowel Obstruction',
+                category: 'Surgical',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 27'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['abdo-pain', 'abdo-distension', 'vomiting']), weight: 3,
+                        matchText: 'Abdominal pain, distension, or vomiting' },
+                    { check: p => p.hpc.character && p.hpc.character.includes('colicky'), weight: 2,
+                        matchText: 'Colicky pain' },
+                    { check: p => hasROS(p, ['vomiting', 'nausea']), weight: 2, matchText: 'Nausea / vomiting' },
+                    { check: p => hasROS(p, ['constipation', 'absolute constipation', 'no flatus']), weight: 3,
+                        matchText: 'Constipation / no flatus' },
+                    { check: p => hasROS(p, ['distension']), weight: 2, matchText: 'Abdominal distension' },
+                    { check: p => hasPE(p, 'abdo', 'Distended'), weight: 3, matchText: 'Abdominal distension' },
+                    { check: p => hasPE(p, 'abdo', 'Hyperactive bowel sounds'), weight: 2,
+                        matchText: 'Hyperactive bowel sounds' },
+                    { check: p => hasPE(p, 'abdo', 'Tinkling bowel sounds'), weight: 2,
+                        matchText: 'Tinkling bowel sounds' },
+                    { check: p => hasPE(p, 'abdo', 'Surgical scar'), weight: 2, matchText: 'Previous surgical scar' },
+                    { check: p => hasSurgical(p, ['laparotomy', 'abdominal']), weight: 2,
+                        matchText: 'Previous abdominal surgery' },
+                    { check: p => hasPE(p, 'abdo', 'Generalised tenderness'), weight: 1,
+                        matchText: 'Generalised abdominal tenderness' },
+                ]
+            });
+
+            // ─── 3. CHOLELITHIASIS / CHOLECYSTITIS ───
+            conditions.push({
+                id: 'cholecystitis',
+                name: 'Cholecystitis / Biliary Colic',
+                category: 'Surgical',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 28'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['abdo-pain']), weight: 3, matchText: 'Abdominal pain' },
+                    { check: p => p.hpc.site && (p.hpc.site.includes('right upper') || p.hpc.site.includes('ruq')),
+                        weight: 3, matchText: 'RUQ pain' },
+                    { check: p => p.hpc.radiation && (p.hpc.radiation.includes('back') || p.hpc.radiation.includes(
+                            'shoulder')), weight: 2, matchText: 'Radiation to back or shoulder' },
+                    { check: p => p.hpc.character && p.hpc.character.includes('colicky'), weight: 2,
+                        matchText: 'Colicky pain' },
+                    { check: p => hasROS(p, ['nausea', 'vomiting']), weight: 2, matchText: 'Nausea / vomiting' },
+                    { check: p => hasROS(p, ['fever']), weight: 1, matchText: 'Fever' },
+                    { check: p => hasPE(p, 'abdo', 'RUQ tenderness'), weight: 3, matchText: 'RUQ tenderness' },
+                    { check: p => hasPE(p, 'abdo', 'Murphy\'s sign'), weight: 3, matchText: 'Murphy\'s sign positive' },
+                    { check: p => p.age > 40, weight: 1, matchText: 'Age >40' },
+                    { check: p => p.isFemale, weight: 1, matchText: 'Female sex' },
+                    { check: p => hasPE(p, 'abdo', 'Jaundice'), weight: 2, matchText: 'Jaundice' },
+                ]
+            });
+
+            // ─── 4. ACUTE PANCREATITIS ───
+            conditions.push({
+                id: 'pancreatitis',
+                name: 'Acute Pancreatitis',
+                category: 'Surgical',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 29'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['abdo-pain']), weight: 3, matchText: 'Abdominal pain' },
+                    { check: p => p.hpc.site && p.hpc.site.includes('epigastric'), weight: 3,
+                        matchText: 'Epigastric pain' },
+                    { check: p => p.hpc.radiation && p.hpc.radiation.includes('back'), weight: 3,
+                        matchText: 'Radiation to the back' },
+                    { check: p => p.hpc.character && p.hpc.character.includes('constant'), weight: 2,
+                        matchText: 'Constant pain' },
+                    { check: p => hasROS(p, ['nausea', 'vomiting']), weight: 2, matchText: 'Nausea / vomiting' },
+                    { check: p => hasROS(p, ['fever']), weight: 1, matchText: 'Fever' },
+                    { check: p => hasPE(p, 'abdo', 'Epigastric tenderness'), weight: 3,
+                        matchText: 'Epigastric tenderness' },
+                    { check: p => hasPE(p, 'abdo', 'Guarding'), weight: 2, matchText: 'Guarding' },
+                    { check: p => p.alcohol === 'current' || p.alcohol === 'former', weight: 2,
+                        matchText: 'Alcohol use' },
+                    { check: p => hasChronic(p, ['gallstone', 'gallstones']), weight: 2,
+                        matchText: 'History of gallstones' },
+                    { check: p => p.vitals.temp > 37.5, weight: 1, matchText: 'Fever' },
+                    { check: p => hasPE(p, 'abdo', 'Generalised tenderness'), weight: 1,
+                        matchText: 'Generalised tenderness' },
+                ]
+            });
+
+            // ─── 5. DIVERTICULITIS ───
+            conditions.push({
+                id: 'diverticulitis',
+                name: 'Diverticulitis',
+                category: 'Surgical',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 27'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['abdo-pain']), weight: 3, matchText: 'Abdominal pain' },
+                    { check: p => p.hpc.site && (p.hpc.site.includes('left lower') || p.hpc.site.includes('llq')),
+                        weight: 3, matchText: 'LLQ pain' },
+                    { check: p => p.hpc.onset && p.hpc.onset.includes('gradual'), weight: 1, matchText: 'Gradual onset' },
+                    { check: p => hasROS(p, ['fever', 'chills']), weight: 2, matchText: 'Fever / chills' },
+                    { check: p => hasROS(p, ['constipation', 'diarrhoea', 'change in bowel habit']), weight: 2,
+                        matchText: 'Change in bowel habit' },
+                    { check: p => hasPE(p, 'abdo', 'LLQ tenderness'), weight: 4, matchText: 'LLQ tenderness' },
+                    { check: p => hasPE(p, 'abdo', 'Rebound tenderness'), weight: 2, matchText: 'Rebound tenderness' },
+                    { check: p => p.vitals.temp > 37.5, weight: 1, matchText: 'Fever' },
+                    { check: p => p.age > 50, weight: 2, matchText: 'Age >50' },
+                    { check: p => hasPE(p, 'abdo', 'Palpable mass'), weight: 2, matchText: 'Palpable mass' },
+                ]
+            });
+
+            // ─── 6. PEPTIC ULCER DISEASE ───
+            conditions.push({
+                id: 'peptic_ulcer',
+                name: 'Peptic Ulcer Disease',
+                category: 'Surgical',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 28'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['abdo-pain']), weight: 3, matchText: 'Abdominal pain' },
+                    { check: p => p.hpc.site && p.hpc.site.includes('epigastric'), weight: 3,
+                        matchText: 'Epigastric pain' },
+                    { check: p => p.hpc.character && p.hpc.character.includes('burning'), weight: 2,
+                        matchText: 'Burning pain' },
+                    { check: p => p.hpc.time && (p.hpc.time.includes('meal') || p.hpc.time.includes('eating')), weight: 2,
+                        matchText: 'Pain related to meals' },
+                    { check: p => hasROS(p, ['nausea', 'vomiting']), weight: 1, matchText: 'Nausea / vomiting' },
+                    { check: p => hasROS(p, ['haematemesis', 'melaena', 'blood in stool']), weight: 3,
+                        matchText: 'Bleeding (haematemesis / melaena)' },
+                    { check: p => hasPE(p, 'abdo', 'Epigastric tenderness'), weight: 3,
+                        matchText: 'Epigastric tenderness' },
+                    { check: p => hasMedication(p, ['nsaid', 'aspirin', 'ibuprofen']), weight: 2,
+                        matchText: 'NSAID use' },
+                    { check: p => p.age > 40, weight: 1, matchText: 'Age >40' },
+                    { check: p => hasROS(p, ['weight loss', 'anorexia']), weight: 1,
+                        matchText: 'Weight loss or anorexia' },
+                ]
+            });
+
+            // ─── 7. INCARCERATED / STRANGULATED HERNIA ───
+            conditions.push({
+                id: 'hernia_incarcerated',
+                name: 'Incarcerated / Strangulated Hernia',
+                category: 'Surgical',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 26'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['hernia', 'abdo-pain', 'vomiting']), weight: 3,
+                        matchText: 'Hernia, pain, or vomiting' },
+                    { check: p => p.hpc.site && (p.hpc.site.includes('groin') || p.hpc.site.includes('inguinal') || p
+                            .hpc.site.includes('femoral')), weight: 3, matchText: 'Groin / inguinal pain' },
+                    { check: p => hasROS(p, ['nausea', 'vomiting']), weight: 2, matchText: 'Nausea / vomiting' },
+                    { check: p => hasROS(p, ['constipation', 'absolute constipation']), weight: 2,
+                        matchText: 'Constipation' },
+                    { check: p => hasPE(p, 'gu', 'Inguinal hernia'), weight: 2, matchText: 'Inguinal hernia' },
+                    { check: p => hasPE(p, 'abdo', 'Irreducible swelling'), weight: 4,
+                        matchText: 'Irreducible swelling' },
+                    { check: p => hasPE(p, 'abdo', 'Tenderness over hernia'), weight: 3,
+                        matchText: 'Tenderness over hernia' },
+                    { check: p => hasPE(p, 'abdo', 'Distended'), weight: 2, matchText: 'Abdominal distension' },
+                    { check: p => hasSurgical(p, ['hernia', 'repair']), weight: 1, matchText: 'Previous hernia' },
+                ]
+            });
+
+            // ─── 8. FRACTURE / TRAUMA ───
+            conditions.push({
+                id: 'fracture',
+                name: 'Fracture',
+                category: 'Orthopaedic',
+                references: ['Rockwood and Green\'s Fractures in Adults, 9th Ed.'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['fracture', 'trauma', 'ortho-pain']), weight: 3,
+                        matchText: 'Fracture or trauma' },
+                    { check: p => p.hpc.onset && p.hpc.onset.includes('sudden'), weight: 2,
+                        matchText: 'Sudden onset (trauma)' },
+                    { check: p => hasROS(p, ['pain', 'swelling', 'deformity']), weight: 2,
+                        matchText: 'Pain, swelling, deformity' },
+                    { check: p => hasPE(p, 'msk', 'Deformity'), weight: 4, matchText: 'Deformity' },
+                    { check: p => hasPE(p, 'msk', 'Swelling'), weight: 3, matchText: 'Swelling' },
+                    { check: p => hasPE(p, 'msk', 'Tenderness'), weight: 3, matchText: 'Tenderness' },
+                    { check: p => hasPE(p, 'msk', 'Restricted ROM'), weight: 2, matchText: 'Restricted range of motion' },
+                    { check: p => p.vitals.hr > 100, weight: 1, matchText: 'Tachycardia' },
+                    { check: p => hasPE(p, 'msk', 'Crepitus'), weight: 2, matchText: 'Crepitus' },
+                ]
+            });
+
+            // ─── 9. SEPTIC ARTHRITIS ───
+            conditions.push({
+                id: 'septic_arthritis',
+                name: 'Septic Arthritis',
+                category: 'Orthopaedic',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 41'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['joint-swelling', 'ortho-pain']), weight: 3,
+                        matchText: 'Joint swelling or pain' },
+                    { check: p => p.hpc.onset && p.hpc.onset.includes('sudden'), weight: 2, matchText: 'Sudden onset' },
+                    { check: p => hasROS(p, ['fever', 'chills']), weight: 3, matchText: 'Fever / chills' },
+                    { check: p => hasPE(p, 'msk', 'Joint swelling'), weight: 3, matchText: 'Joint swelling' },
+                    { check: p => hasPE(p, 'msk', 'Tenderness'), weight: 3, matchText: 'Tenderness' },
+                    { check: p => hasPE(p, 'msk', 'Warmth'), weight: 3, matchText: 'Warmth over joint' },
+                    { check: p => hasPE(p, 'msk', 'Joint effusion'), weight: 2, matchText: 'Joint effusion' },
+                    { check: p => hasPE(p, 'msk', 'Restricted ROM'), weight: 2, matchText: 'Restricted range of motion' },
+                    { check: p => p.vitals.temp > 38, weight: 2, matchText: 'Fever >38°C' },
+                ]
+            });
+
+            // ─── 10. URINARY TRACT INFECTION / PYELONEPHRITIS ───
+            conditions.push({
+                id: 'uti',
+                name: 'Urinary Tract Infection / Pyelonephritis',
+                category: 'Urology',
+                references: ['Campbell-Walsh Urology, 12th Ed., Ch. 14'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['urinary-sx', 'loin-pain', 'dysuria']), weight: 3,
+                        matchText: 'Urinary symptoms' },
+                    { check: p => p.hpc.site && (p.hpc.site.includes('loin') || p.hpc.site.includes('flank') || p.hpc
+                            .site.includes('renal')), weight: 2, matchText: 'Loin / flank pain' },
+                    { check: p => hasROS(p, ['fever', 'chills']), weight: 2, matchText: 'Fever / chills' },
+                    { check: p => hasROS(p, ['dysuria', 'frequency', 'urgency']), weight: 3,
+                        matchText: 'Dysuria, frequency, or urgency' },
+                    { check: p => hasROS(p, ['haematuria', 'blood in urine']), weight: 1, matchText: 'Haematuria' },
+                    { check: p => hasPE(p, 'gu', 'Renal angle tenderness'), weight: 3,
+                        matchText: 'Renal angle tenderness' },
+                    { check: p => p.vitals.temp > 38, weight: 2, matchText: 'Fever >38°C' },
+                    { check: p => hasROS(p, ['nausea', 'vomiting']), weight: 1, matchText: 'Nausea / vomiting' },
+                ]
+            });
+
+            // ─── 11. TESTICULAR TORSION ───
+            conditions.push({
+                id: 'testicular_torsion',
+                name: 'Testicular Torsion',
+                category: 'Urology / Emergency',
+                references: ['Campbell-Walsh Urology, 12th Ed., Ch. 42'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['scrotal']), weight: 4, matchText: 'Scrotal pain' },
+                    { check: p => !p.isFemale, weight: 0, matchText: 'Male sex' },
+                    { check: p => p.hpc.onset && p.hpc.onset.includes('sudden'), weight: 3, matchText: 'Sudden onset' },
+                    { check: p => hasROS(p, ['nausea', 'vomiting']), weight: 2, matchText: 'Nausea / vomiting' },
+                    { check: p => hasPE(p, 'gu', 'Tender testis'), weight: 4, matchText: 'Tender testis' },
+                    { check: p => hasPE(p, 'gu', 'Scrotal swelling'), weight: 3, matchText: 'Scrotal swelling' },
+                    { check: p => ageIn(p, 10, 30), weight: 2, matchText: 'Age 10–30' },
+                    { check: p => hasPE(p, 'gu', 'Testicular mass'), weight: 2, matchText: 'Testicular mass' },
+                ]
+            });
+
+            // ─── 12. RUPTURED AAA ───
+            conditions.push({
+                id: 'aaa_rupture',
+                name: 'Ruptured Abdominal Aortic Aneurysm (AAA)',
+                category: 'Vascular / Emergency',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 22'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['abdo-pain', 'back-pain']), weight: 3,
+                        matchText: 'Abdominal or back pain' },
+                    { check: p => p.hpc.site && (p.hpc.site.includes('back') || p.hpc.site.includes('abdomen') || p
+                            .hpc.site.includes('flank')), weight: 2, matchText: 'Back or abdominal pain' },
+                    { check: p => p.hpc.onset && p.hpc.onset.includes('sudden'), weight: 3, matchText: 'Sudden onset' },
+                    { check: p => p.hpc.character && (p.hpc.character.includes('tearing') || p.hpc.character.includes(
+                            'ripping') || p.hpc.character.includes('sharp')), weight: 3,
+                        matchText: 'Tearing / ripping pain' },
+                    { check: p => hasROS(p, ['dizziness', 'fainting', 'collapse', 'syncope']), weight: 2,
+                        matchText: 'Dizziness / collapse' },
+                    { check: p => hasPE(p, 'abdo', 'Pulsatile mass'), weight: 4, matchText: 'Pulsatile abdominal mass' },
+                    { check: p => p.vitals.systolic < 90, weight: 3, matchText: 'Hypotension (SBP <90)' },
+                    { check: p => p.vitals.hr > 100, weight: 2, matchText: 'Tachycardia (HR >100)' },
+                    { check: p => p.age > 60, weight: 2, matchText: 'Age >60' },
+                    { check: p => hasChronic(p, ['aaa', 'aneurysm']), weight: 2, matchText: 'History of AAA' },
+                    { check: p => gcsLow(p), weight: 1, matchText: 'Reduced GCS' },
+                ]
+            });
+
+            // ─── 13. PERFORATED PEPTIC ULCER ───
+            conditions.push({
+                id: 'perforated_ulcer',
+                name: 'Perforated Peptic Ulcer',
+                category: 'Surgical / Emergency',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 28'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['abdo-pain']), weight: 3, matchText: 'Abdominal pain' },
+                    { check: p => p.hpc.site && p.hpc.site.includes('epigastric'), weight: 2,
+                        matchText: 'Epigastric pain' },
+                    { check: p => p.hpc.onset && p.hpc.onset.includes('sudden'), weight: 3, matchText: 'Sudden onset' },
+                    { check: p => p.hpc.character && (p.hpc.character.includes('sharp') || p.hpc.character.includes(
+                            'stabbing')), weight: 2, matchText: 'Sharp / stabbing pain' },
+                    { check: p => hasROS(p, ['nausea', 'vomiting']), weight: 1, matchText: 'Nausea / vomiting' },
+                    { check: p => hasPE(p, 'abdo', 'Guarding'), weight: 3, matchText: 'Guarding' },
+                    { check: p => hasPE(p, 'abdo', 'Rigidity'), weight: 4, matchText: 'Board-like rigidity' },
+                    { check: p => hasPE(p, 'abdo', 'Rebound tenderness'), weight: 3, matchText: 'Rebound tenderness' },
+                    { check: p => hasPE(p, 'abdo', 'Generalised tenderness'), weight: 2,
+                        matchText: 'Generalised tenderness' },
+                    { check: p => p.vitals.hr > 100, weight: 1, matchText: 'Tachycardia' },
+                    { check: p => p.vitals.temp > 38, weight: 1, matchText: 'Fever' },
+                    { check: p => gcsLow(p), weight: 1, matchText: 'Reduced GCS' },
+                ]
+            });
+
+            // ─── 14. BREAST LUMP ───
+            conditions.push({
+                id: 'breast_lump',
+                name: 'Breast Lump (Benign / Malignant)',
+                category: 'Breast Surgery',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 32'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['breast', 'breast-pain', 'breast-discharge']), weight: 4,
+                        matchText: 'Breast complaint' },
+                    { check: p => p.isFemale, weight: 2, matchText: 'Female sex' },
+                    { check: p => p.hpc.onset && p.hpc.onset.includes('gradual'), weight: 1, matchText: 'Gradual onset' },
+                    { check: p => hasROS(p, ['breast pain', 'nipple discharge', 'skin changes']), weight: 2,
+                        matchText: 'Breast pain, discharge, or skin changes' },
+                    { check: p => hasPE(p, 'other', 'Breast lump'), weight: 4, matchText: 'Palpable breast lump' },
+                    { check: p => hasPE(p, 'other', 'Peau d\'orange'), weight: 3,
+                        matchText: 'Peau d\'orange (inflammatory breast cancer)' },
+                    { check: p => hasPE(p, 'other', 'Skin changes'), weight: 2,
+                        matchText: 'Skin changes (dimpling, peau d\'orange)' },
+                    { check: p => hasPE(p, 'other', 'Axillary lymphadenopathy'), weight: 2,
+                        matchText: 'Axillary lymphadenopathy' },
+                    { check: p => hasFamilyHistory(p, ['breast', 'ovarian']), weight: 2,
+                        matchText: 'Family history of breast/ovarian cancer' },
+                    { check: p => p.age > 40, weight: 2, matchText: 'Age >40' },
+                    { check: p => hasPE(p, 'other', 'Cervical lymphadenopathy'), weight: 1,
+                        matchText: 'Cervical lymphadenopathy' },
+                ]
+            });
+
+            // ─── 15. DEEP VEIN THROMBOSIS ───
+            conditions.push({
+                id: 'dvt',
+                name: 'Deep Vein Thrombosis (DVT)',
+                category: 'Vascular',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 22'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['leg-ulcer', 'swelling-surface']), weight: 2,
+                        matchText: 'Leg swelling or ulcer' },
+                    { check: p => p.hpc.site && p.hpc.site.includes('leg'), weight: 2, matchText: 'Leg pain or swelling' },
+                    { check: p => hasROS(p, ['swelling', 'pain', 'warmth', 'redness']), weight: 2,
+                        matchText: 'Leg swelling, pain, warmth, redness' },
+                    { check: p => hasPE(p, 'msk', 'Swelling'), weight: 3, matchText: 'Leg swelling' },
+                    { check: p => hasPE(p, 'msk', 'Warmth'), weight: 3, matchText: 'Warmth over affected leg' },
+                    { check: p => hasPE(p, 'msk', 'Tenderness'), weight: 3, matchText: 'Calf tenderness' },
+                    { check: p => p.vitals.hr > 100, weight: 1, matchText: 'Tachycardia' },
+                    { check: p => p.vitals.temp > 37.5, weight: 1, matchText: 'Fever' },
+                    { check: p => hasPE(p, 'msk', 'Skin changes'), weight: 1, matchText: 'Skin changes over leg' },
+                ]
+            });
+
+            // ─── 16. MESENTERIC ADENITIS ───
+            conditions.push({
+                id: 'mesenteric_adenitis',
+                name: 'Mesenteric Adenitis',
+                category: 'Surgical / Paediatric',
+                references: ['Bailey & Love\'s Short Practice of Surgery, 27th Ed.'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['abdo-pain']), weight: 3, matchText: 'Abdominal pain' },
+                    { check: p => p.hpc.site && (p.hpc.site.includes('right iliac') || p.hpc.site.includes('rif') || p
+                            .hpc.site.includes('periumbilical')), weight: 2, matchText: 'RIF or periumbilical pain' },
+                    { check: p => hasROS(p, ['fever']), weight: 2, matchText: 'Fever' },
+                    { check: p => hasROS(p, ['cough', 'sore throat', 'runny nose']), weight: 2,
+                        matchText: 'URTI symptoms' },
+                    { check: p => ageIn(p, 3, 15), weight: 3, matchText: 'Age 3–15' },
+                    { check: p => hasPE(p, 'abdo', 'RIF tenderness'), weight: 2, matchText: 'RIF tenderness' },
+                    { check: p => !hasPE(p, 'abdo', 'Rebound tenderness'), weight: 1,
+                        matchText: 'No rebound tenderness (favours over appendicitis)' },
+                    { check: p => !hasPE(p, 'abdo', 'Guarding'), weight: 1,
+                        matchText: 'No guarding (favours over appendicitis)' },
+                ]
+            });
+
+            // ─── 17. RENAL COLIC ───
+            conditions.push({
+                id: 'renal_colic',
+                name: 'Renal Colic (Ureteric Stone)',
+                category: 'Urology',
+                references: ['Campbell-Walsh Urology, 12th Ed., Ch. 20'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['loin-pain', 'haematuria']), weight: 3,
+                        matchText: 'Loin pain or haematuria' },
+                    { check: p => p.hpc.site && (p.hpc.site.includes('loin') || p.hpc.site.includes('flank') || p.hpc
+                            .site.includes('renal')), weight: 3, matchText: 'Loin / flank pain' },
+                    { check: p => p.hpc.radiation && (p.hpc.radiation.includes('groin') || p.hpc.radiation.includes(
+                            'inguinal') || p.hpc.radiation.includes('testicle')), weight: 2,
+                        matchText: 'Radiation to groin' },
+                    { check: p => p.hpc.character && p.hpc.character.includes('colicky'), weight: 2,
+                        matchText: 'Colicky pain' },
+                    { check: p => hasROS(p, ['haematuria']), weight: 2, matchText: 'Haematuria' },
+                    { check: p => hasROS(p, ['nausea', 'vomiting']), weight: 1, matchText: 'Nausea / vomiting' },
+                    { check: p => hasPE(p, 'gu', 'Renal angle tenderness'), weight: 3,
+                        matchText: 'Renal angle tenderness' },
+                    { check: p => ageIn(p, 30, 60), weight: 1, matchText: 'Age 30–60' },
+                ]
+            });
+
+            // ─── 18. PERIPHERAL ARTERIAL DISEASE ───
+            conditions.push({
+                id: 'pad',
+                name: 'Peripheral Arterial Disease',
+                category: 'Vascular',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 22'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['claudication', 'leg-ulcer']), weight: 3,
+                        matchText: 'Claudication or leg ulcer' },
+                    { check: p => p.hpc.character && (p.hpc.character.includes('cramping') || p.hpc.character.includes(
+                            'aching')), weight: 2, matchText: 'Cramping / aching pain' },
+                    { check: p => p.hpc.time && (p.hpc.time.includes('walking') || p.hpc.time.includes('exercise')),
+                        weight: 2, matchText: 'Pain on walking' },
+                    { check: p => p.hpc.relieving && (p.hpc.relieving.includes('rest') || p.hpc.relieving.includes(
+                            'stop')), weight: 2, matchText: 'Relieved by rest' },
+                    { check: p => hasROS(p, ['leg pain', 'cold leg', 'skin changes']), weight: 2,
+                        matchText: 'Leg symptoms' },
+                    { check: p => hasPE(p, 'msk', 'Skin changes'), weight: 2,
+                        matchText: 'Skin changes (hair loss, shiny skin)' },
+                    { check: p => hasPE(p, 'msk', 'Absent pulses'), weight: 4, matchText: 'Absent peripheral pulses' },
+                    { check: p => p.smoking === 'current' || p.smoking === 'former', weight: 2,
+                        matchText: 'Smoking history' },
+                    { check: p => hasChronic(p, ['diabetes', 'hypertension']), weight: 2,
+                        matchText: 'Diabetes / hypertension' },
+                    { check: p => p.age > 50, weight: 1, matchText: 'Age >50' },
+                    { check: p => hasPE(p, 'msk', 'Tenderness'), weight: 1, matchText: 'Tenderness in affected limb' },
+                ]
+            });
+
+            // ─── 19. INTESTINAL OBSTRUCTION (Additional) ───
+            conditions.push({
+                id: 'intestinal_obstruction_other',
+                name: 'Intestinal Obstruction (other causes)',
+                category: 'Surgical',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 27'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['abdo-distension', 'vomiting', 'abdo-pain']), weight: 3,
+                        matchText: 'Distension, vomiting, or pain' },
+                    { check: p => hasROS(p, ['constipation', 'absolute constipation', 'no flatus']), weight: 3,
+                        matchText: 'Constipation / no flatus' },
+                    { check: p => hasROS(p, ['vomiting', 'nausea']), weight: 2, matchText: 'Nausea / vomiting' },
+                    { check: p => hasPE(p, 'abdo', 'Distended'), weight: 3, matchText: 'Distension' },
+                    { check: p => hasPE(p, 'abdo', 'Hyperactive bowel sounds'), weight: 2,
+                        matchText: 'Hyperactive bowel sounds' },
+                    { check: p => hasPE(p, 'abdo', 'Tinkling bowel sounds'), weight: 2,
+                        matchText: 'Tinkling bowel sounds' },
+                    { check: p => hasPE(p, 'abdo', 'Surgical scar'), weight: 2, matchText: 'Previous surgical scar' },
+                    { check: p => hasSurgical(p, ['laparotomy', 'abdominal']), weight: 2,
+                        matchText: 'Previous abdominal surgery' },
+                    { check: p => hasPE(p, 'abdo', 'Generalised tenderness'), weight: 1,
+                        matchText: 'Generalised tenderness' },
+                ]
+            });
+
+            // ─── 20. UPPER GI BLEED ───
+            conditions.push({
+                id: 'upper_gi_bleed',
+                name: 'Upper GI Bleed (Variceal / Ulcer)',
+                category: 'Surgical / Gastroenterology',
+                references: ['Schwartz\'s Principles of Surgery, 11th Ed., Ch. 28'],
+                criteria: [
+                    { check: p => hasPCCategory(p, ['rectal-bleed', 'vomiting']), weight: 2,
+                        matchText: 'Rectal bleeding or vomiting' },
+                    { check: p => hasROS(p, ['haematemesis', 'melaena', 'blood in stool']), weight: 4,
+                        matchText: 'Haematemesis / melaena' },
+                    { check: p => hasROS(p, ['abdominal pain', 'epigastric pain']), weight: 1,
+                        matchText: 'Abdominal pain' },
+                    { check: p => hasROS(p, ['dizziness', 'syncope', 'collapse']), weight: 2,
+                        matchText: 'Dizziness / syncope' },
+                    { check: p => p.vitals.systolic < 90, weight: 3, matchText: 'Hypotension' },
+                    { check: p => p.vitals.hr > 100, weight: 2, matchText: 'Tachycardia' },
+                    { check: p => hasChronic(p, ['liver', 'cirrhosis', 'portal hypertension']), weight: 2,
+                        matchText: 'Liver disease' },
+                    { check: p => hasMedication(p, ['nsaid', 'aspirin', 'warfarin', 'clopidogrel']), weight: 2,
+                        matchText: 'NSAID / anticoagulant use' },
+                    { check: p => hasPE(p, 'abdo', 'Caput medusae'), weight: 2,
+                        matchText: 'Caput medusae (portal hypertension)' },
+                    { check: p => hasPE(p, 'abdo', 'Ascites'), weight: 2, matchText: 'Ascites' },
+                    { check: p => hasPE(p, 'abdo', 'Splenomegaly'), weight: 2, matchText: 'Splenomegaly' },
+                ]
+            });
+
+            return conditions;
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 8. SHOW DATA PREVIEW
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function showDataPreview(patient) {
+            const preview = document.getElementById('dataPreview');
+            const data = {
+                'Age': patient.age || 'Not set',
+                'Sex': patient.isFemale ? 'Female' : 'Male',
+                'PC Categories': patient.pcCategories.length ? patient.pcCategories.join(', ') : 'None',
+                'ROS Symptoms': patient.rosPresent.length ? patient.rosPresent.join(', ') : 'None',
+                'PE Findings': patient.peFindings.filter(f => f.status === 'present').map(f => f.finding).join(', ') || 'None',
+                'PE Absent': patient.peFindings.filter(f => f.status === 'absent').map(f => f.finding).join(', ') || 'None',
+                'Vitals': `Temp: ${patient.vitals.temp || 'N/A'}°C, HR: ${patient.vitals.hr || 'N/A'}, SBP: ${patient.vitals.systolic || 'N/A'}`,
+                'GCS': patient.gcs.total ? `E${patient.gcs.eye} V${patient.gcs.intubated ? 'Intubated' : patient.gcs.verbal} M${patient.gcs.motor} = ${patient.gcs.total}/15` :
+                    'Not set',
+                'Past Medical': patient.pastMedical || 'None',
+                'Past Surgical': patient.pastSurgical || 'None',
+                'Current Meds': patient.currentMeds || 'None',
+                'Smoking': patient.smoking || 'Not set',
+                'Alcohol': patient.alcohol || 'Not set',
+                'Family History': patient.familyHistory || 'None',
+            };
+            preview.textContent = JSON.stringify(data, null, 2);
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 9. RENDER RESULTS
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function renderResults(results) {
+            const container = document.getElementById('ddxResultsContainer');
+            const section = document.getElementById('resultsSection');
+
+            if (!results || results.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:2rem; color:var(--muted);">
+                        <div style="font-size:3rem; margin-bottom:1rem;">🔍</div>
+                        <p>No differentials generated. Please enter more clinical data.</p>
+                        <p style="font-size:0.85rem; margin-top:0.5rem;">Try adding more symptoms, exam findings, or risk factors.</p>
+                    </div>
+                `;
+                section.style.display = 'block';
+                return;
+            }
+
+            section.style.display = 'block';
+            let html = '';
+
+            results.forEach((result, index) => {
+                const confidenceClass = result.confidence >= 70 ? 'high-confidence' :
+                    result.confidence >= 40 ? '' : 'low-confidence';
+                const confidenceColor = result.confidence >= 70 ? 'var(--success)' :
+                    result.confidence >= 40 ? '#f1c40f' : 'var(--danger)';
+
+                const uniqueTexts = [...new Set(result.matchedTexts || [])];
+                const evidenceHtml = uniqueTexts.length ? `
+                    <ul style="margin:0.3rem 0 0 1rem; font-size:0.82rem; color:var(--muted);">
+                        ${uniqueTexts.map(text => `<li>${text}</li>`).join('')}
+                    </ul>
+                ` : '';
+
+                const refsHtml = result.references && result.references.length ? `
+                    <div style="font-size:0.65rem; color:var(--muted); margin-top:0.3rem;">
+                        📖 ${result.references.join('; ')}
+                    </div>
+                ` : '';
+
+                html += `
+                    <div class="dx-item generated ${confidenceClass}" style="border-left-color:${confidenceColor};">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem; flex-wrap:wrap;">
+                            <div style="flex:1; min-width:0;">
+                                <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                    <span style="font-weight:700; font-size:1rem;">${index + 1}. ${result.name}</span>
+                                    <span class="badge ${result.confidence >= 70 ? 'badge-success' : result.confidence >= 40 ? 'badge-warning' : 'badge-danger'}">
+                                        ${result.confidence}%
+                                    </span>
+                                    <span class="badge badge-info">${result.category}</span>
+                                </div>
+                                ${evidenceHtml}
+                                ${refsHtml}
+                            </div>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-bar-fill" style="width:${result.confidence}%; background:${confidenceColor};"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Add summary stats
+            const highCount = results.filter(r => r.confidence >= 70).length;
+            const modCount = results.filter(r => r.confidence >= 40 && r.confidence < 70).length;
+            const lowCount = results.filter(r => r.confidence < 40).length;
+
+            html = `
+                <div style="margin-bottom:1rem; padding:0.8rem 1rem; background:var(--primary-light); border-radius:8px; display:flex; gap:1rem; flex-wrap:wrap; justify-content:space-between;">
+                    <div><strong>📊 Total Diagnoses:</strong> ${results.length}</div>
+                    <div><strong>🎯 High Confidence (≥70%):</strong> ${highCount}</div>
+                    <div><strong>⚠️ Moderate (40-69%):</strong> ${modCount}</div>
+                    <div><strong>🔴 Low (&lt;40%):</strong> ${lowCount}</div>
+                </div>
+                ${html}
+            `;
+
+            container.innerHTML = html;
+            showToast(`✅ Generated ${results.length} differentials`, '#2a9d8f');
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 10. INIT
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auto') === 'true') {
+                loadFromLocalStorage();
+            }
+        });
+    </script>
+
+</body>
+</html>
