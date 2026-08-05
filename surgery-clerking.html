@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <script src="/js/supabase.min.js"></script>
-    <script src="/js/access-guard.js"></script>
+      <meta charset="UTF-8" />
+  <script src="/js/supabase.min.js"></script>
+<script src="/js/access-guard.js"></script>
     <script>window.EASEMED_MODULE_NAME = 'Surgery Clerking Module';</script>
-    <script src="tracking.js"></script>
-    <script src="surg-ddx-database.js"></script>
+<script src="tracking.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EaseMed – Surgery Clerkship</title>
+    <title>EaseMed – Surgery Clerkship </title>
     <style>
         /* ─── CSS ─── */
         :root {
@@ -27,7 +26,6 @@
             --radius: 10px;
             --shadow: 0 2px 12px rgba(26, 95, 122, 0.08);
             --ai-color: #8e44ad;
-            --ddx-color: #7c3aed;
         }
         * {
             box-sizing: border-box;
@@ -94,12 +92,11 @@
             transition: width 0.4s ease;
         }
 
-        .main-wrap {
-            max-width: 860px;
-            margin: 0 auto;
-            padding: 1.5rem 1rem 2rem;
-        }
-
+      .main-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 2rem;
+}
         .section-header {
             display: flex;
             align-items: center;
@@ -121,9 +118,6 @@
         .section-badge.ai {
             background: var(--ai-color);
         }
-        .section-badge.ddx {
-            background: var(--ddx-color);
-        }
         .section-title {
             font-size: 1.1rem;
             font-weight: 700;
@@ -141,9 +135,6 @@
         .card.ai-card {
             border-left: 4px solid var(--ai-color);
             background: #f8f4fc;
-        }
-        .card.ddx-card {
-            border-left: 4px solid var(--ddx-color);
         }
         .card-title {
             font-size: 0.78rem;
@@ -424,16 +415,16 @@
             content: '✗ ';
         }
 
-        .footer-nav {
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.85rem 1.5rem;
-            margin-top: 2rem;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.06);
-        }
+      .footer-nav {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.5rem;
+    margin-top: 2rem;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.06);
+}
         .step-indicator {
             font-size: 0.8rem;
             color: var(--muted);
@@ -441,7 +432,6 @@
         .step-indicator strong {
             color: var(--text);
         }
-
         .btn-primary {
             background: var(--primary);
             color: #fff;
@@ -516,28 +506,6 @@
         .btn-success:hover {
             background: #14633a;
         }
-        .btn-ddx {
-            background: var(--ddx-color);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 2rem;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-        .btn-ddx:hover {
-            background: #6d28d9;
-        }
-        .btn-ddx:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
         .sys-notes {
             margin-top: 0.6rem;
             min-height: 50px;
@@ -1159,150 +1127,6 @@
             font-weight: 600;
             font-size: 0.95rem;
             color: var(--text);
-        }
-
-        /* ─── DDX Result Styles ─── */
-        .ddx-card-item {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px 16px;
-            margin-bottom: 10px;
-            border-left: 4px solid var(--ddx-color);
-            transition: all 0.2s;
-        }
-        .ddx-card-item:hover {
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-        }
-        .ddx-card-item .ddx-rank {
-            display: inline-block;
-            background: var(--ddx-color);
-            color: #fff;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            text-align: center;
-            line-height: 24px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            margin-right: 8px;
-            flex-shrink: 0;
-        }
-        .ddx-card-item .ddx-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 4px;
-        }
-        .ddx-card-item .ddx-name {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-        .ddx-card-item .ddx-likelihood {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 2px 10px;
-            border-radius: 20px;
-            letter-spacing: 0.5px;
-        }
-        .ddx-likelihood.high {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .ddx-likelihood.moderate {
-            background: #fef9c3;
-            color: #854d0e;
-        }
-        .ddx-likelihood.low {
-            background: #e2e8f0;
-            color: #475569;
-        }
-        .ddx-card-item .ddx-evidence {
-            font-size: 0.82rem;
-            color: var(--text-secondary);
-            margin-top: 4px;
-            padding-left: 32px;
-        }
-        .ddx-card-item .ddx-evidence strong {
-            color: var(--text);
-        }
-        .ddx-card-item .ddx-features {
-            font-size: 0.78rem;
-            color: var(--muted);
-            margin-top: 4px;
-            padding-left: 32px;
-            border-top: 1px solid var(--border);
-            padding-top: 6px;
-        }
-        .ddx-card-item .ddx-features span {
-            background: var(--bg);
-            padding: 1px 8px;
-            border-radius: 12px;
-            display: inline-block;
-            margin: 2px 4px 2px 0;
-            font-size: 0.7rem;
-            border: 1px solid var(--border);
-        }
-        .ddx-card-item .ddx-features .feature-label {
-            font-weight: 600;
-            color: var(--text);
-            margin-right: 4px;
-        }
-        .ddx-card-item .ddx-score {
-            font-size: 0.7rem;
-            color: var(--muted);
-            text-align: right;
-            margin-top: 2px;
-        }
-        .ddx-summary-box {
-            background: #f0fdfa;
-            border: 1px solid #ccfbf1;
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 14px;
-            font-size: 0.85rem;
-            color: var(--text);
-        }
-        .ddx-summary-box strong {
-            color: var(--primary);
-        }
-        .ddx-loading {
-            text-align: center;
-            padding: 30px 20px;
-            color: var(--muted);
-        }
-        .ddx-loading .spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 4px solid var(--border);
-            border-top: 4px solid var(--ddx-color);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .ddx-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 12px;
-        }
-        .ddx-empty {
-            text-align: center;
-            padding: 30px 20px;
-            color: var(--muted);
-            font-size: 0.9rem;
-        }
-        .ddx-empty .ddx-icon {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -2467,54 +2291,6 @@
             </div>
         </div>
 
-        <!-- ============================================================
-        SECTION 10: DIFFERENTIAL DIAGNOSIS GENERATOR
-        ============================================================ -->
-        <div class="section-header">
-            <span class="section-badge ddx">🧠</span>
-            <span class="section-title">Differential Diagnosis Generator</span>
-        </div>
-
-        <div class="card ddx-card">
-            <div class="card-title">🧠 AI-Assisted Differential Diagnosis</div>
-            <div class="callout" style="margin-bottom:0.8rem; font-size:0.82rem;">
-                <strong>⚡ How it works:</strong> The system analyses all the clinical data you've entered — including demographics, presenting complaints, history, review of systems, and physical examination findings — and generates a ranked list of possible surgical diagnoses with supporting evidence and key distinguishing features.
-                <br><br>
-                <strong>🇺🇬 Uganda Context:</strong> The algorithm prioritises conditions common in Uganda, including surgical emergencies, trauma, and tropical surgical diseases.
-            </div>
-
-            <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
-                <button class="btn-ddx" id="generateSurgeryDdxBtn" onclick="generateSurgeryDifferentials()">
-                    🧠 Generate Differentials
-                </button>
-                <button class="btn-secondary" onclick="clearSurgeryDifferentials()">
-                    ✕ Clear Results
-                </button>
-            </div>
-
-            <div id="surgeryDdxContainer">
-                <div id="surgeryDdxLoading" class="ddx-loading" style="display:none;">
-                    <div class="spinner"></div>
-                    <p>Analysing surgical data and generating differentials...</p>
-                </div>
-
-                <div id="surgeryDdxResult" style="display:none;">
-                    <div id="surgeryDdxSummaryBox" class="ddx-summary-box"></div>
-                    <div id="surgeryDdxList"></div>
-                    <div class="ddx-actions">
-                        <button class="btn-primary" onclick="copySurgeryDdxToClipboard()" style="background:var(--ddx-color);">📋 Copy Differentials</button>
-                        <button class="btn-secondary" onclick="exportSurgeryDdxToWord()">📄 Export to Word</button>
-                    </div>
-                </div>
-
-                <div id="surgeryDdxEmpty" class="ddx-empty">
-                    <div class="ddx-icon">🧠</div>
-                    <p><strong>No differentials generated yet.</strong></p>
-                    <p style="font-size:0.85rem; color:var(--muted);">Click the "Generate Differentials" button above after completing the clinical history and examination.</p>
-                </div>
-            </div>
-        </div>
-
         <!-- DDX Generator Button - Opens in new tab -->
         <div style="margin-top:0.5rem; text-align:center;">
             <button class="btn-primary" onclick="window.open('ddx-generator.html?auto=true', '_blank')" style="background:var(--ai-color); padding:0.8rem 2rem;">
@@ -2522,7 +2298,7 @@
             </button>
         </div>
 
-        <!-- SECTION 11: FILE UPLOAD -->
+        <!-- SECTION 10: FILE UPLOAD -->
         <div class="section-header">
             <span class="section-badge">📎</span>
             <span class="section-title">Document Upload</span>
@@ -2561,7 +2337,7 @@
         </div>
 
         <div class="footer-nav">
-            <div class="step-indicator">Steps <strong>1–11</strong> complete — Demographics · PC · HPC · ROS · PMH · Drugs · Family/Social · PE · Assessment · DDX · Documents</div>
+            <div class="step-indicator">Steps <strong>1–10</strong> complete — Demographics · PC · HPC · ROS · PMH · Drugs · Family/Social · PE · Assessment · Documents</div>
             <div style="display:flex; gap:0.8rem;">
                 <button class="btn-primary" onclick="saveDraft()">💾 Save Draft</button>
                 <button class="btn-accent" onclick="downloadDraftAsPDF()">📄 Download PDF</button>
@@ -2867,323 +2643,7 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 4. SURGERY DDX DATA COLLECTION
-            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            function collectSurgeryClinicalData() {
-                const getVal = (id) => document.getElementById(id)?.value || '';
-                const getText = (id) => document.getElementById(id)?.value || '';
-                const getRadio = (name) => {
-                    const el = document.querySelector(`input[name="${name}"]:checked`);
-                    return el ? el.value : '';
-                };
-
-                // Collect PC categories
-                const pcCategories = [];
-                for (let i = 1; i <= 3; i++) {
-                    const cat = getVal('pc' + i + 'Category');
-                    if (cat) pcCategories.push(cat);
-                }
-
-                // Collect ROS symptoms
-                const rosPresent = [];
-                document.querySelectorAll('.sym-chip.present').forEach(chip => {
-                    rosPresent.push(chip.textContent.trim().toLowerCase());
-                });
-
-                // Collect PE findings
-                const peFindings = [];
-                document.querySelectorAll('.pe-finding-tag.present, .pe-finding-tag.absent').forEach(tag => {
-                    peFindings.push({
-                        system: tag.dataset.pe,
-                        finding: tag.dataset.finding,
-                        status: tag.classList.contains('present') ? 'present' : 'absent'
-                    });
-                });
-
-                // Vitals
-                const vitals = {
-                    temp: parseFloat(getVal('peTemp')) || 0,
-                    hr: parseInt(getVal('peHR')) || 0,
-                    rr: parseInt(getVal('peRR')) || 0,
-                    systolic: parseInt(getVal('peBP')?.split('/')[0]) || 0,
-                    diastolic: parseInt(getVal('peBP')?.split('/')[1]) || 0,
-                };
-
-                // HPC
-                const hpc = {
-                    site: getVal('hpcSite').toLowerCase(),
-                    onset: getVal('hpcOnset').toLowerCase(),
-                    character: getVal('hpcCharacter').toLowerCase(),
-                    radiation: getVal('hpcRadiation').toLowerCase(),
-                    severity: parseInt(getVal('hpcSeverity')) || 0,
-                    time: getVal('hpcTime').toLowerCase(),
-                    exacerbating: getVal('hpcExacerbating').toLowerCase(),
-                    relieving: getVal('hpcRelieving').toLowerCase(),
-                    associations: getVal('hpcAssociations').toLowerCase(),
-                };
-
-                return {
-                    age: parseInt(getVal('age')) || 0,
-                    isFemale: getVal('sex') === 'Female',
-                    pcCategories,
-                    rosPresent,
-                    peFindings,
-                    vitals,
-                    hpc,
-                    pastMedical: getText('pastMedical').toLowerCase(),
-                    pastSurgical: getText('pastSurgical').toLowerCase(),
-                    currentMeds: getText('currentMeds').toLowerCase(),
-                    smoking: getRadio('smoking'),
-                    alcohol: getRadio('alcohol'),
-                    familyHistory: getText('familyHistory').toLowerCase(),
-                    // Helper functions
-                    hasPCCategory: function(keyword) {
-                        return this.pcCategories.some(cat => cat.includes(keyword));
-                    },
-                    hasRosSymptom: function(keyword) {
-                        return this.rosPresent.some(s => s.includes(keyword));
-                    },
-                    hasExamFinding: function(system, finding) {
-                        return this.peFindings.some(f =>
-                            f.system === system &&
-                            f.finding.includes(finding) &&
-                            f.status === 'present'
-                        );
-                    }
-                };
-            }
-
-            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 5. DDX GENERATION FUNCTIONS
-            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            
-            function generateSurgeryDifferentials() {
-                const btn = document.getElementById('generateSurgeryDdxBtn');
-                const loading = document.getElementById('surgeryDdxLoading');
-                const result = document.getElementById('surgeryDdxResult');
-                const empty = document.getElementById('surgeryDdxEmpty');
-
-                if (!btn) {
-                    console.warn('DDX button not found');
-                    return;
-                }
-
-                // Disable button and show loading
-                btn.disabled = true;
-                loading.style.display = 'block';
-                result.style.display = 'none';
-                empty.style.display = 'none';
-
-                // Use setTimeout to allow UI to update
-                setTimeout(() => {
-                    try {
-                        const data = collectSurgeryClinicalData();
-                        // Check if the DDX engine is available
-                        if (typeof runSurgeryDdxEngine !== 'function') {
-                            throw new Error('DDX engine not loaded. Please check that surg-ddx-database.js is loaded.');
-                        }
-                        const ddxResults = runSurgeryDdxEngine(data);
-                        displaySurgeryDdxResults(ddxResults, data);
-                        loading.style.display = 'none';
-                        result.style.display = 'block';
-                        window._lastSurgeryDdxResults = ddxResults;
-                        window._lastSurgeryDdxData = data;
-                    } catch (err) {
-                        console.error('DDX generation error:', err);
-                        loading.style.display = 'none';
-                        empty.style.display = 'block';
-                        empty.innerHTML = `
-                            <div style="font-size:2.5rem; margin-bottom:10px;">❌</div>
-                            <p><strong>Error generating differentials.</strong></p>
-                            <p style="font-size:0.85rem; color:var(--muted);">${err.message || 'Please ensure you have entered sufficient clinical data.'}</p>
-                        `;
-                        showToast('Error generating differentials: ' + err.message, '#dc2626');
-                    } finally {
-                        btn.disabled = false;
-                    }
-                }, 300);
-            }
-
-            function displaySurgeryDdxResults(results, data) {
-                const listContainer = document.getElementById('surgeryDdxList');
-                const summaryBox = document.getElementById('surgeryDdxSummaryBox');
-
-                if (!listContainer || !summaryBox) {
-                    console.warn('DDX containers not found');
-                    return;
-                }
-
-                // Build summary
-                const total = results.length;
-                const top = results[0] || null;
-                const age = data.age || 'Unknown';
-                const complaint = data.pcCategories.join(', ') || 'Unspecified';
-
-                let summaryHtml = `
-                    <strong>🧠 Clinical Analysis</strong><br>
-                    <strong>Age:</strong> ${age} years &nbsp;|&nbsp; <strong>Chief complaint:</strong> ${complaint} &nbsp;|&nbsp; 
-                    <strong>Generated:</strong> ${total} differential${total > 1 ? 's' : ''}<br>
-                `;
-
-                if (top) {
-                    const likelihoodLabel = top.score >= 70 ? 'High' : top.score >= 45 ? 'Moderate' : 'Low';
-                    summaryHtml += `
-                        <strong>Top differential:</strong> ${top.name} 
-                        <span style="background:#e2e8f0;padding:1px 8px;border-radius:12px;font-size:0.7rem;font-weight:600;">
-                            ${likelihoodLabel} (${top.score}%)
-                        </span>
-                    `;
-                }
-
-                summaryBox.innerHTML = summaryHtml;
-
-                // Build list
-                if (results.length === 0) {
-                    listContainer.innerHTML = `
-                        <div style="text-align:center; padding:20px; color:var(--muted);">
-                            <p>No differentials could be generated from the available data.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                let listHtml = '';
-                results.forEach((ddx, index) => {
-                    const likelihoodLabel = ddx.score >= 70 ? 'High' : ddx.score >= 45 ? 'Moderate' : 'Low';
-                    const likelihoodClass = ddx.score >= 70 ? 'high' : ddx.score >= 45 ? 'moderate' : 'low';
-
-                    listHtml += `
-                        <div class="ddx-card-item">
-                            <div class="ddx-header">
-                                <span class="ddx-rank">${index + 1}</span>
-                                <span class="ddx-name">${escapeHtml(ddx.name)}</span>
-                                <span class="ddx-likelihood ${likelihoodClass}">${likelihoodLabel} (${ddx.score}%)</span>
-                            </div>
-                            <div class="ddx-evidence">
-                                <strong>📋 Supporting evidence:</strong> ${escapeHtml(ddx.description)}
-                            </div>
-                            ${ddx.distinguishingFeatures && ddx.distinguishingFeatures.length > 0 ? `
-                                <div class="ddx-features">
-                                    <span class="feature-label">🔑 Key distinguishing features:</span>
-                                    ${ddx.distinguishingFeatures.map(f => `<span>${escapeHtml(f)}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                            ${ddx.investigations && ddx.investigations.length > 0 ? `
-                                <div class="ddx-features">
-                                    <span class="feature-label">🔬 Suggested investigations:</span>
-                                    ${ddx.investigations.map(f => `<span>${escapeHtml(f)}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                            ${ddx.treatment ? `
-                                <div class="ddx-features">
-                                    <span class="feature-label">💊 Treatment approach:</span>
-                                    <span>${escapeHtml(ddx.treatment)}</span>
-                                </div>
-                            ` : ''}
-                            <div class="ddx-score">Confidence score: ${ddx.score}%</div>
-                        </div>
-                    `;
-                });
-
-                listContainer.innerHTML = listHtml;
-            }
-
-            function clearSurgeryDifferentials() {
-                document.getElementById('surgeryDdxResult').style.display = 'none';
-                document.getElementById('surgeryDdxLoading').style.display = 'none';
-                document.getElementById('surgeryDdxEmpty').style.display = 'block';
-                document.getElementById('surgeryDdxList').innerHTML = '';
-                document.getElementById('surgeryDdxSummaryBox').innerHTML = '';
-                window._lastSurgeryDdxResults = null;
-                window._lastSurgeryDdxData = null;
-            }
-
-            function copySurgeryDdxToClipboard() {
-                const results = window._lastSurgeryDdxResults;
-                if (!results || results.length === 0) {
-                    showToast('No differentials to copy. Generate first.', '#e67e22');
-                    return;
-                }
-
-                let text = '=== SURGERY DIFFERENTIAL DIAGNOSIS ===\n\n';
-                results.forEach((ddx, index) => {
-                    const likelihoodLabel = ddx.score >= 70 ? 'High' : ddx.score >= 45 ? 'Moderate' : 'Low';
-                    text += `${index + 1}. ${ddx.name} — ${likelihoodLabel} (${ddx.score}%)\n`;
-                    text += `   Evidence: ${ddx.description}\n`;
-                    if (ddx.distinguishingFeatures && ddx.distinguishingFeatures.length) {
-                        text += `   Key features: ${ddx.distinguishingFeatures.join(', ')}\n`;
-                    }
-                    if (ddx.investigations && ddx.investigations.length) {
-                        text += `   Investigations: ${ddx.investigations.join(', ')}\n`;
-                    }
-                    if (ddx.treatment) {
-                        text += `   Treatment: ${ddx.treatment}\n`;
-                    }
-                    text += '\n';
-                });
-
-                navigator.clipboard.writeText(text).then(() => {
-                    showToast('📋 Differential diagnoses copied!', '#7c3aed');
-                }).catch(() => {
-                    showToast('Failed to copy. Please copy manually.', '#dc2626');
-                });
-            }
-
-            function exportSurgeryDdxToWord() {
-                const results = window._lastSurgeryDdxResults;
-                if (!results || results.length === 0) {
-                    showToast('No differentials to export. Generate first.', '#e67e22');
-                    return;
-                }
-
-                const name = document.getElementById('patientName')?.value.trim() || 'Unnamed';
-                const date = new Date().toLocaleString();
-
-                let ddxHtml = results.map((ddx, index) => {
-                    const likelihoodLabel = ddx.score >= 70 ? 'High' : ddx.score >= 45 ? 'Moderate' : 'Low';
-                    return `
-                        <div style="margin-bottom:16px; padding:12px; border:1px solid #e2e8f0; border-radius:8px; border-left:4px solid #7c3aed;">
-                            <h4 style="margin:0 0 4px 0; color:#1a5f7a;">${index + 1}. ${escapeHtml(ddx.name)}</h4>
-                            <div style="font-size:0.9rem; color:#6b7f8c; margin-bottom:4px;">Likelihood: <strong>${likelihoodLabel}</strong> (${ddx.score}%)</div>
-                            <p style="margin:4px 0;"><strong>Evidence:</strong> ${escapeHtml(ddx.description)}</p>
-                            ${ddx.distinguishingFeatures && ddx.distinguishingFeatures.length > 0 ? `<p style="margin:4px 0;"><strong>Key features:</strong> ${ddx.distinguishingFeatures.join(', ')}</p>` : ''}
-                            ${ddx.investigations && ddx.investigations.length > 0 ? `<p style="margin:4px 0;"><strong>Investigations:</strong> ${ddx.investigations.join(', ')}</p>` : ''}
-                            ${ddx.treatment ? `<p style="margin:4px 0;"><strong>Treatment:</strong> ${escapeHtml(ddx.treatment)}</p>` : ''}
-                        </div>
-                    `;
-                }).join('');
-
-                const docHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Surgery Differential Diagnosis - ${name}</title>
-                    <style>body{font-family:'Segoe UI',Arial,sans-serif;margin:2cm;line-height:1.6;color:#1c2b36;}h1{color:#1a5f7a;font-size:22pt;border-bottom:2px solid #1a5f7a;padding-bottom:6px;}h2{color:#1a5f7a;font-size:16pt;margin-top:20px;}hr{margin:20px 0;border:0;border-top:1px solid #dde3ea;}</style>
-                    </head><body>
-                    <h1>🧠 Surgery Differential Diagnosis</h1>
-                    <p><strong>Patient:</strong> ${escapeHtml(name)} &nbsp;|&nbsp; <strong>Generated:</strong> ${date}</p>
-                    <hr>
-                    ${ddxHtml}
-                    <hr>
-                    <p style="font-size:0.8rem; color:#6b7f8c;">Generated by EaseMed Surgery Clerkship Tool — ${date}</p>
-                    </body></html>`;
-
-                const blob = new Blob([docHtml], { type: 'application/msword' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `Surgery_Differential_Dx_${name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.doc`;
-                link.click();
-                URL.revokeObjectURL(link.href);
-                showToast('📄 Differentials exported to Word', '#7c3aed');
-            }
-
-            function escapeHtml(str) {
-                return String(str || '').replace(/[&<>]/g, function(m) {
-                    if (m === '&') return '&amp;';
-                    if (m === '<') return '&lt;';
-                    if (m === '>') return '&gt;';
-                    return m;
-                });
-            }
-
-            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 6. CLINICAL SUMMARY GENERATOR
+            // 4. CLINICAL SUMMARY GENERATOR
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function generateClerkshipSummary() {
                 const data = collectFormData();
@@ -3394,7 +2854,7 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 7. SAVE DRAFT
+            // 5. SAVE DRAFT
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             async function saveDraft() {
                 const data = collectFormData();
@@ -3424,7 +2884,7 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 8. COMPLAINT CATEGORIES
+            // 6. COMPLAINT CATEGORIES
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             const complaintCategories = [
                 'abdo-pain', 'abdo-distension', 'vomiting', 'bowel', 'rectal-bleed', 'jaundice',
@@ -3470,7 +2930,7 @@
             };
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 9. EXHAUSTIVE HINT PANELS
+            // 7. EXHAUSTIVE HINT PANELS
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             const HINT_PANELS = {
                 'abdo-pain': {
@@ -3517,11 +2977,1248 @@
                         'HIV-related abdominal conditions — consider TB, Kaposi sarcoma, and opportunistic infections'
                     ]
                 },
-                // ... (other hint panels would go here, but truncated for brevity)
+                'abdo-distension': {
+                    icon: '🔵',
+                    title: 'Abdominal Distension',
+                    questions: [
+                        'Where is the distension — generalised or localised? Upper, lower, or asymmetrical?',
+                        'When was it first noticed? Was it sudden or gradual? Is it progressive or intermittent?',
+                        'Is it painful — constant, colicky, or painless?',
+                        'Do you have nausea, vomiting, or absolute constipation?',
+                        'Have you had fever, weight loss, or anorexia?',
+                        'Any change in bowel habit or flatus?',
+                        'History of liver disease, heart failure, or malignancy?',
+                        'Previous abdominal surgeries?'
+                    ],
+                    socrates: [
+                        'Site: Generalised or localised?',
+                        'Onset: Acute or gradual?',
+                        'Character: Painful or painless; colicky or constant?',
+                        'Radiation: Any radiation?',
+                        'Severity: Degree of distension, discomfort level',
+                        'Timing: Intermittent or progressive?',
+                        'Exacerbating: Eating, posture?',
+                        'Relieving: Passage of flatus or stool?',
+                        'Associations: Nausea, vomiting, fever, weight loss'
+                    ],
+                    associated: [
+                        'Nausea and vomiting — obstruction or paralytic ileus',
+                        'Absolute constipation — intestinal obstruction',
+                        'Fever — infection, inflammation, or malignancy',
+                        'Weight loss and cachexia — malignancy or chronic disease'
+                    ],
+                    redFlags: [
+                        'Rapidly increasing distension with vomiting and obstipation — intestinal obstruction (surgical emergency)',
+                        'Ascites with signs of liver failure — hepatorenal syndrome, spontaneous bacterial peritonitis',
+                        'Pulsatile expansile mass — abdominal aortic aneurysm (urgent imaging)',
+                        'Distension with shock — haemorrhage, perforation, or sepsis'
+                    ],
+                    uganda: [
+                        'Consider hepatomegaly from viral hepatitis, malaria, or schistosomiasis',
+                        'Hydatid cysts are endemic — exercise caution to avoid anaphylaxis during manipulation',
+                        'Kaposi sarcoma and Burkitt lymphoma are common in HIV-positive patients'
+                    ]
+                },
+                'vomiting': {
+                    icon: '🟡',
+                    title: 'Nausea / Vomiting',
+                    questions: [
+                        'What is coming up — food, bile, blood (fresh/coffee‑ground), or faeculent?',
+                        'When does it happen — related to meals? In the morning? Projectile?',
+                        'How many times per day? Is it massive or small volume?',
+                        'Do you have nausea before vomiting? Does it relieve your symptoms?',
+                        'Do you have abdominal pain, distension, fever, headache, or dizziness?',
+                        'Are you thirsty? Reduced urine output? Postural dizziness?',
+                        'Are you on any medications — opioids, chemotherapy, antibiotics, digoxin?',
+                        'Any neurological symptoms — headache, visual changes, neck stiffness?'
+                    ],
+                    socrates: [
+                        'Site: Where does the nausea originate?',
+                        'Onset: When did it start? Sudden or gradual?',
+                        'Character: Projectile, effortless, retching?',
+                        'Radiation: Any pain radiating?',
+                        'Severity: How many episodes?',
+                        'Timing: Related to meals, morning, post-prandial?',
+                        'Exacerbating: What triggers it?',
+                        'Relieving: What stops it?',
+                        'Associations: Pain, fever, headache, dizziness'
+                    ],
+                    associated: [
+                        'Abdominal pain — localises to GI or biliary cause',
+                        'Fever — infection or inflammation',
+                        'Headache, visual changes — neurological cause',
+                        'Dizziness, postural hypotension — dehydration'
+                    ],
+                    redFlags: [
+                        'Haematemesis (fresh or coffee‑ground) — upper GI bleed',
+                        'Faeculent vomiting — intestinal obstruction',
+                        'Projectile vomiting + headache — raised ICP',
+                        'Signs of shock, dehydration, electrolyte imbalance'
+                    ],
+                    uganda: [
+                        'Consider malaria as a cause of vomiting without localising signs',
+                        'Typhoid fever is common — causes vomiting with high fever and constipation',
+                        'Cholera in outbreaks — profuse vomiting with watery diarrhoea'
+                    ]
+                },
+                'bowel': {
+                    icon: '🟤',
+                    title: 'Bowel Change',
+                    questions: [
+                        'Has your bowel frequency changed — more constipated or more diarrhoea? How long?',
+                        'What does the stool look like — hard, watery, ribbon‑like, mucous, or bloody?',
+                        'Is the blood fresh (on the surface) or dark (mixed in)?',
+                        'Do you have cramping, tenesmus, or urgency?',
+                        'Have you lost weight, had anorexia, or felt fatigued?',
+                        'Do you have a history of IBS, IBD, diverticular disease, polyps, or cancer?',
+                        'Have you travelled recently or taken antibiotics?',
+                        'Any family history of colorectal cancer or polyps?'
+                    ],
+                    socrates: [
+                        'Site: Any abdominal pain or discomfort?',
+                        'Onset: When did the change start?',
+                        'Character: Type of stool — watery, hard, ribbon, bloody?',
+                        'Radiation: Any radiation of pain?',
+                        'Severity: How frequent?',
+                        'Timing: Constant or intermittent?',
+                        'Exacerbating: Worse with certain foods?',
+                        'Relieving: What helps?',
+                        'Associations: Weight loss, fever, tenesmus'
+                    ],
+                    associated: [
+                        'Abdominal pain — obstruction, inflammation, or perforation',
+                        'Fever — infection or IBD',
+                        'Weight loss, anorexia — malignancy',
+                        'Anaemia — chronic blood loss'
+                    ],
+                    redFlags: [
+                        'Absolute constipation + vomiting + distension — obstruction',
+                        'Rectal bleeding + weight loss + change in bowel habit — colorectal cancer',
+                        'Black tarry stool — upper GI bleed',
+                        'Tenesmus with mucus and blood — possible rectal malignancy'
+                    ],
+                    uganda: [
+                        'Consider amoebiasis and giardiasis — common causes of diarrhoea',
+                        'Schistosomiasis can cause rectal bleeding and tenesmus',
+                        'HIV-related diarrhoea — consider opportunistic infections'
+                    ]
+                },
+                'rectal-bleed': {
+                    icon: '🔴',
+                    title: 'Rectal Bleeding',
+                    questions: [
+                        'What colour is the blood — bright red, dark red, or black/tarry?',
+                        'How much — drops, clots, mixed with stool, or large volume?',
+                        'When does it happen — before, during, or after defecation? Is it painful?',
+                        'Do you have tenesmus, change in bowel habit, abdominal pain, or weight loss?',
+                        'Have you had this before? Any history of haemorrhoids, fissures, or diverticulosis?',
+                        'Are you on anticoagulants or antiplatelets?',
+                        'Any family history of colorectal cancer or polyps?',
+                        'Any recent travel or infections?'
+                    ],
+                    socrates: [
+                        'Site: Where does the bleeding come from?',
+                        'Onset: When did it start?',
+                        'Character: Colour, consistency, amount',
+                        'Radiation: Any radiation?',
+                        'Severity: Amount, frequency',
+                        'Timing: Related to defecation?',
+                        'Exacerbating: Straining?',
+                        'Relieving: What helps?',
+                        'Associations: Pain, change in bowel habit, weight loss'
+                    ],
+                    associated: [
+                        'Anal pain or pruritus — haemorrhoids, fissure',
+                        'Change in bowel habit — malignancy or IBD',
+                        'Abdominal pain — diverticulitis, ischaemia',
+                        'Fever, weight loss — infection or malignancy'
+                    ],
+                    redFlags: [
+                        'Large volume, haemodynamically unstable — massive bleed',
+                        'Melaena (black tarry) — upper GI source',
+                        'Weight loss, abdominal mass, persistent change — malignancy',
+                        'Fresh bleeding with shock — always suspect upper GI source'
+                    ],
+                    uganda: [
+                        'Schistosomiasis is a common cause of haematuria and rectal bleeding',
+                        'Consider colonic amoebiasis in patients with bloody diarrhoea',
+                        'HIV-related Kaposi sarcoma can present with rectal bleeding'
+                    ]
+                },
+                'jaundice': {
+                    icon: '🟡',
+                    title: 'Jaundice',
+                    questions: [
+                        'When did you first notice the yellowing? Was it sudden or gradual? Fluctuating?',
+                        'Have you noticed dark urine or pale stools?',
+                        'Any itching (pruritus)?',
+                        'Do you have abdominal pain — especially in the right upper quadrant?',
+                        'Do you have fever, chills, or night sweats?',
+                        'Have you lost weight, had anorexia, nausea, or vomiting?',
+                        'Any risk factors — alcohol, viral exposure, blood transfusions, IVDU, tattoos, sexual history?',
+                        'Are you on any medications — paracetamol, INH, phenytoin?'
+                    ],
+                    socrates: [
+                        'Site: Any abdominal pain?',
+                        'Onset: When did jaundice appear?',
+                        'Character: Fluctuating or progressive?',
+                        'Radiation: Pain radiation?',
+                        'Severity: How yellow?',
+                        'Timing: Constant or intermittent?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Pruritus, dark urine, pale stools'
+                    ],
+                    associated: [
+                        'RUQ pain — biliary or hepatic',
+                        'Fever, chills — cholangitis, hepatitis',
+                        'Pruritus — obstructive jaundice',
+                        'Weight loss, anorexia — malignancy'
+                    ],
+                    redFlags: [
+                        'Charcot\'s triad (fever, RUQ pain, jaundice) — acute cholangitis',
+                        'Reynolds\' pentad (plus shock, confusion) — severe cholangitis',
+                        'Painless, progressive jaundice + weight loss — pancreatic or biliary malignancy',
+                        'Liver failure: encephalopathy, ascites, coagulopathy'
+                    ],
+                    uganda: [
+                        'Viral hepatitis (A, B, C, E) is endemic — test all patients',
+                        'Consider malaria as a cause of haemolytic jaundice',
+                        'Biliary stones are common — ultrasound is the first-line imaging'
+                    ]
+                },
+                'haematuria': {
+                    icon: '🔴',
+                    title: 'Haematuria',
+                    questions: [
+                        'When does the blood appear — at the start, throughout, or at the end of urination?',
+                        'What colour is the urine — pink, bright red, smoky, or with clots?',
+                        'Do you have any pain — loin pain (renal colic), suprapubic pain, or dysuria?',
+                        'Do you have frequency, urgency, hesitancy, or a poor stream?',
+                        'Do you have fever, weight loss, hypertension, or oedema?',
+                        'Any risk factors — schistosomiasis, smoking, occupational exposure, family history of renal cancer?',
+                        'Have you had a recent UTI, stones, trauma, or instrumentation?'
+                    ],
+                    socrates: [
+                        'Site: Where does the blood come from?',
+                        'Onset: When did it start?',
+                        'Character: Colour, clots, timing in stream',
+                        'Radiation: Any pain radiation?',
+                        'Severity: Amount of blood?',
+                        'Timing: Constant or intermittent?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Pain, frequency, fever'
+                    ],
+                    associated: [
+                        'Loin pain — renal colic (stones) or pyelonephritis',
+                        'Suprapubic pain — bladder pathology',
+                        'Dysuria, frequency, urgency — UTI',
+                        'Fever — infection, pyelonephritis'
+                    ],
+                    redFlags: [
+                        'Painless total haematuria — bladder/renal malignancy',
+                        'Clot retention (acute urinary retention with clots)',
+                        'Flank mass + haematuria — renal cell carcinoma',
+                        'Fever + loin pain + haematuria — pyelonephritis, abscess'
+                    ],
+                    uganda: [
+                        'Schistosoma haematobium is a common cause of haematuria in Uganda',
+                        'Consider sickle cell nephropathy in at-risk populations',
+                        'Renal stones are common — ultrasound and CT KUB are diagnostic'
+                    ]
+                },
+                'urinary-sx': {
+                    icon: '🔵',
+                    title: 'Urinary Symptoms',
+                    questions: [
+                        'Do you have hesitancy, a poor stream, straining, or terminal dribbling?',
+                        'Do you have frequency, urgency, nocturia, or dysuria?',
+                        'Can you empty your bladder completely? Do you have a palpable bladder?',
+                        'What does your urine look like — bloody, cloudy, offensive?',
+                        'Is there any urethral discharge? If so, what colour and amount?',
+                        'Do you have fever, back pain, weight loss, or neurological symptoms?',
+                        'Any risk factors — age, BPH, diabetes, spinal injury, STIs, instrumentation?',
+                        'Are you on any medications — anticholinergics, sympathomimetics, diuretics?'
+                    ],
+                    socrates: [
+                        'Site: Where is the discomfort?',
+                        'Onset: When did symptoms start?',
+                        'Character: Obstructive or irritative?',
+                        'Radiation: Any radiation?',
+                        'Severity: How bothersome?',
+                        'Timing: Worse at night?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Fever, discharge, haematuria'
+                    ],
+                    associated: [
+                        'Fever, rigors — UTI, pyelonephritis, urosepsis',
+                        'Haematuria — stones, malignancy, infection',
+                        'Urethral discharge — urethritis, STI',
+                        'Neurological symptoms — cauda equina, spinal cord compression'
+                    ],
+                    redFlags: [
+                        'Acute urinary retention (inability to void, suprapubic pain) — immediate catheterisation',
+                        'Haematuria + weight loss — malignancy',
+                        'Neurological symptoms — cauda equina, spinal cord compression',
+                        'Fever, rigors — UTI, pyelonephritis, urosepsis'
+                    ],
+                    uganda: [
+                        'Consider schistosomiasis in patients with haematuria and irritative symptoms',
+                        'HIV-related urinary tract infections are common',
+                        'BPH is common in men over 50 — digital rectal examination is essential'
+                    ]
+                },
+                'scrotal': {
+                    icon: '🟢',
+                    title: 'Scrotal Swelling/Pain',
+                    questions: [
+                        'When did it start — sudden or gradual?',
+                        'Is there severe pain? Does it radiate to the groin or abdomen?',
+                        'Is there a swelling? What size, does it fluctuate, transilluminate, or have a cough impulse?',
+                        'Do you have fever, nausea, vomiting?',
+                        'Was there any trauma, exercise, or sexual activity?',
+                        'Have you had this before? Any history of hernias, previous torsion, or STIs?'
+                    ],
+                    socrates: [
+                        'Site: Which side, location?',
+                        'Onset: Sudden or gradual?',
+                        'Character: Sharp, dull, heavy?',
+                        'Radiation: To groin or abdomen?',
+                        'Severity: How painful?',
+                        'Timing: Constant or intermittent?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Fever, nausea, urinary symptoms'
+                    ],
+                    associated: [
+                        'Fever, nausea, vomiting — torsion, infection',
+                        'Urinary symptoms — UTI, prostatitis',
+                        'Discharge — STI, urethritis'
+                    ],
+                    redFlags: [
+                        'Sudden severe pain in adolescent — testicular torsion (surgical emergency)',
+                        'Hard, non‑tender mass — testicular cancer',
+                        'Reducible swelling with cough impulse — hernia',
+                        'Fournier\'s gangrene: rapidly spreading necrotising infection'
+                    ],
+                    uganda: [
+                        'Consider filarial hydrocele in endemic areas',
+                        'TB epididymitis is common in HIV-positive patients',
+                        'Testicular torsion is a surgical emergency — do not delay'
+                    ]
+                },
+                'loin-pain': {
+                    icon: '🔴',
+                    title: 'Loin Pain',
+                    questions: [
+                        'Which side? Does it radiate to the groin or abdomen?',
+                        'Was the onset sudden or gradual?',
+                        'Is the pain colicky (comes in waves) or constant?',
+                        'Rate the pain on a 0–10 scale.',
+                        'Do you have fever, chills, or rigors?',
+                        'Do you have haematuria, dysuria, or frequency?',
+                        'Have you had stones before? Any family history?',
+                        'Any trauma, recent procedures, or instrumentation?'
+                    ],
+                    socrates: [
+                        'Site: Which side?',
+                        'Onset: Sudden or gradual?',
+                        'Character: Colicky or constant?',
+                        'Radiation: To groin or abdomen?',
+                        'Severity: 0–10 scale',
+                        'Timing: Constant or intermittent?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Haematuria, fever, dysuria'
+                    ],
+                    associated: [
+                        'Haematuria — stone, malignancy',
+                        'Fever, rigors — pyelonephritis, abscess',
+                        'Dysuria, frequency — UTI',
+                        'Nausea, vomiting — renal colic'
+                    ],
+                    redFlags: [
+                        'Fever + loin pain + haematuria — pyelonephritis, renal abscess',
+                        'Anuria — bilateral obstruction, acute kidney injury',
+                        'Pulsatile mass — AAA, renal artery aneurysm',
+                        'Haematuria with flank mass — renal cell carcinoma'
+                    ],
+                    uganda: [
+                        'Renal stones are common — imaging with ultrasound or CT KUB',
+                        'Consider schistosomiasis in patients with loin pain and haematuria',
+                        'Pyelonephritis is common in pregnancy — urgent assessment'
+                    ]
+                },
+                'prostate': {
+                    icon: '🔵',
+                    title: 'Prostate Symptoms',
+                    questions: [
+                        'Do you have hesitancy, a poor stream, straining, or terminal dribbling?',
+                        'Do you have frequency, urgency, nocturia, or dysuria?',
+                        'Can you empty your bladder completely? Any acute retention?',
+                        'Do you have pain in the perineum, lower back, or during ejaculation?',
+                        'Do you have haematuria or haematospermia?',
+                        'Have you had UTIs or epididymitis?',
+                        'Any family history of prostate cancer?',
+                        'Any neurological symptoms — leg weakness, numbness, or bowel/bladder dysfunction?'
+                    ],
+                    socrates: [
+                        'Site: Perineal, lower back?',
+                        'Onset: Gradual or sudden?',
+                        'Character: Obstructive or irritative?',
+                        'Radiation: To back or groin?',
+                        'Severity: How bothersome?',
+                        'Timing: Worse at night?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Haematuria, fever, sexual dysfunction'
+                    ],
+                    associated: [
+                        'Haematuria — BPH, malignancy, infection',
+                        'Fever — prostatitis, UTI',
+                        'Sexual dysfunction — prostate cancer, prostatitis'
+                    ],
+                    redFlags: [
+                        'Acute urinary retention — immediate catheterisation',
+                        'Haematuria + weight loss + bone pain — prostate cancer metastasis',
+                        'Neurological symptoms — cauda equina, spinal cord compression',
+                        'Fever + rigors — urosepsis'
+                    ],
+                    uganda: [
+                        'Prostate cancer is common — PSA testing and DRE are essential',
+                        'BPH is the most common cause of obstructive symptoms in men over 50',
+                        'Consider schistosomiasis in young men with haematuria'
+                    ]
+                },
+                'ortho-pain': {
+                    icon: '🦴',
+                    title: 'Bone/Joint Pain',
+                    questions: [
+                        'Which joint or bone is affected? Is it unilateral or bilateral?',
+                        'Was the onset sudden (trauma, crystal) or gradual (degenerative)?',
+                        'How would you describe the pain — dull ache, sharp, throbbing, or stiffness?',
+                        'What makes it worse — movement, rest, weight‑bearing, or weather?',
+                        'Is there swelling, redness, or warmth over the joint?',
+                        'Do you have fever, night sweats, or weight loss?',
+                        'How does it affect your function — gait, activities of daily living?',
+                        'Any risk factors — sickle cell disease, TB, HIV, diabetes, trauma, sports?'
+                    ],
+                    socrates: [
+                        'Site: Which joint/bone?',
+                        'Onset: Sudden or gradual?',
+                        'Character: Sharp, dull, throbbing?',
+                        'Radiation: Any radiation?',
+                        'Severity: 0–10 scale',
+                        'Timing: Constant or intermittent?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Swelling, redness, warmth, fever'
+                    ],
+                    associated: [
+                        'Swelling, redness, warmth — infection, crystal, inflammation',
+                        'Fever — septic arthritis, osteomyelitis',
+                        'Weight loss, night sweats — TB, malignancy'
+                    ],
+                    redFlags: [
+                        'Septic arthritis: hot, swollen, painful joint with fever — emergency',
+                        'Unexplained bone pain + weight loss — malignancy (primary or metastatic)',
+                        'Back pain + neurological signs — cord compression',
+                        'Pathological fracture (minimal trauma) — osteoporosis or tumour'
+                    ],
+                    uganda: [
+                        'Sickle cell disease is common — consider avascular necrosis and dactylitis',
+                        'TB osteomyelitis and septic arthritis are endemic',
+                        'HIV-related musculoskeletal infections are common'
+                    ]
+                },
+                'fracture': {
+                    icon: '🦴',
+                    title: 'Fracture',
+                    questions: [
+                        'How did it happen — high-energy (RTA, fall from height) or low-energy (simple fall)?',
+                        'Is the wound open or closed? Any skin breach or contamination?',
+                        'Is there any deformity — angulation, shortening, or rotation?',
+                        'Check neurovascular status — sensation, motor function, pulses, capillary refill.',
+                        'Is there pain out of proportion to the injury? Any paraesthesia?',
+                        'Are there any other injuries — head, chest, abdomen, pelvis, spine?',
+                        'Is there visible bleeding — external or occult (pelvic, femoral)?',
+                        'Any risk factors — osteoporosis, malignancy, metabolic bone disease?'
+                    ],
+                    socrates: [
+                        'Site: Where is the pain?',
+                        'Onset: Sudden (trauma) or spontaneous?',
+                        'Character: Sharp, throbbing?',
+                        'Radiation: Any radiation?',
+                        'Severity: 0–10 scale',
+                        'Timing: Constant or intermittent?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Neurovascular symptoms, swelling, deformity'
+                    ],
+                    associated: [
+                        'Neurovascular deficit — urgent surgical referral',
+                        'Compartment syndrome: pain, pallor, pulselessness, paraesthesia, paralysis',
+                        'Open wound — infection risk, tetanus prophylaxis'
+                    ],
+                    redFlags: [
+                        'Open fracture — risk of infection, neurovascular injury',
+                        'Compartment syndrome — emergency fasciotomy',
+                        'Pelvic fracture with haemodynamic instability',
+                        'Fracture with absent pulses — vascular injury',
+                        'Spinal fracture with neurological deficit'
+                    ],
+                    uganda: [
+                        'Road traffic accidents are a leading cause of fractures',
+                        'Consider osteoporosis in elderly patients with low-energy fractures',
+                        'Traditional bone setting is common — counsel on risks of delayed treatment'
+                    ]
+                },
+                'trauma': {
+                    icon: '⚠️',
+                    title: 'Trauma / Injury',
+                    questions: [
+                        'What happened — blunt, penetrating, crush, fall, RTA, assault?',
+                        'When did it happen? Any loss of consciousness (duration)?',
+                        'What injuries were sustained — fractures, lacerations, head injury, chest/abdominal injuries?',
+                        'Is there bleeding — site, amount, control? Any signs of internal bleeding?',
+                        'Check neurovascular status — sensation, movement, pulses distal to injury.',
+                        'Is there pain out of proportion to the injury? Any paraesthesia?',
+                        'Do you have chest pain, dyspnoea, abdominal pain, or haematuria?',
+                        'Any history of bleeding disorders, anticoagulants, or tetanus vaccination status?'
+                    ],
+                    socrates: [
+                        'Site: Where is the pain/injury?',
+                        'Onset: When did it happen?',
+                        'Character: Sharp, throbbing?',
+                        'Radiation: Any radiation?',
+                        'Severity: 0–10 scale',
+                        'Timing: Constant or intermittent?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Neurovascular symptoms, bleeding, LOC'
+                    ],
+                    associated: [
+                        'Head injury — GCS, neurological deficit',
+                        'Chest injury — dyspnoea, haemothorax, pneumothorax',
+                        'Abdominal injury — peritoneal signs, haematuria',
+                        'Spinal injury — neurological deficit'
+                    ],
+                    redFlags: [
+                        'Open fracture, neurovascular deficit, compartment syndrome',
+                        'Chest trauma: tension pneumothorax, haemothorax, flail chest',
+                        'Spinal injury: neurological deficit, neck pain, sensory/motor level',
+                        'Blunt abdominal trauma: solid organ injury (liver, spleen), haemoperitoneum',
+                        'Head injury: deteriorating GCS, focal neurological signs, pupillary changes'
+                    ],
+                    uganda: [
+                        'Road traffic accidents are a leading cause of trauma in Uganda',
+                        'Consider penetrating injuries from assaults or accidents',
+                        'Traditional bone setting is common — assess for infection and malunion'
+                    ]
+                },
+                'back-pain': {
+                    icon: '🔵',
+                    title: 'Back Pain',
+                    questions: [
+                        'Where is the pain — cervical, thoracic, lumbar, or sacral?',
+                        'Was the onset sudden (injury) or gradual (degenerative)?',
+                        'Does the pain radiate to the buttocks or legs? Any numbness or weakness?',
+                        'What makes it worse — sitting, standing, bending, or coughing?',
+                        'Do you have fever, weight loss, or night sweats?',
+                        'Any trauma or injury?',
+                        'Do you have any neurological symptoms — leg weakness, numbness, or bowel/bladder dysfunction?',
+                        'Any history of osteoporosis, malignancy, or TB?'
+                    ],
+                    socrates: [
+                        'Site: Which part of the back?',
+                        'Onset: Sudden or gradual?',
+                        'Character: Dull, sharp, burning?',
+                        'Radiation: To buttocks or legs?',
+                        'Severity: 0–10 scale',
+                        'Timing: Worse at certain times?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Neurological symptoms, fever, weight loss'
+                    ],
+                    associated: [
+                        'Neurological symptoms — nerve compression, cauda equina',
+                        'Fever — infection (discitis, TB spine)',
+                        'Weight loss — malignancy, TB',
+                        'Morning stiffness — inflammatory (ankylosing spondylitis)'
+                    ],
+                    redFlags: [
+                        'Cauda equina syndrome: saddle anaesthesia, bowel/bladder dysfunction',
+                        'Spinal cord compression: motor/sensory level, paraplegia',
+                        'Fever + back pain — spinal infection (discitis, epidural abscess)',
+                        'Pathological fracture — malignancy, osteoporosis'
+                    ],
+                    uganda: [
+                        'TB spine (Pott\'s disease) is common — consider in patients with back pain and fever',
+                        'Sickle cell disease can cause avascular necrosis of vertebral bodies',
+                        'Heavy lifting is a common cause of mechanical back pain in rural areas'
+                    ]
+                },
+                'joint-swelling': {
+                    icon: '🔴',
+                    title: 'Joint Swelling',
+                    questions: [
+                        'Which joint is affected? Is it unilateral or bilateral?',
+                        'Was the onset sudden (trauma, crystal) or gradual (degenerative, inflammatory)?',
+                        'Is it painful? What is the character — aching, throbbing, stiffness?',
+                        'Is there redness or warmth over the joint?',
+                        'Do you have fever, night sweats, or weight loss?',
+                        'Any history of gout, psoriasis, IBD, or sickle cell disease?',
+                        'How does it affect your function — gait, range of motion?'
+                    ],
+                    socrates: [
+                        'Site: Which joint?',
+                        'Onset: Sudden or gradual?',
+                        'Character: Aching, throbbing, stiffness?',
+                        'Radiation: Any radiation?',
+                        'Severity: 0–10 scale',
+                        'Timing: Worse at rest or on movement?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Redness, warmth, fever'
+                    ],
+                    associated: [
+                        'Redness, warmth — infection, crystal, inflammation',
+                        'Fever — septic arthritis, systemic inflammation',
+                        'Morning stiffness — inflammatory arthritis (rheumatoid, psoriatic)'
+                    ],
+                    redFlags: [
+                        'Septic arthritis: hot, swollen, painful joint with fever — emergency',
+                        'Acute monoarthritis with fever — septic arthritis until proven otherwise',
+                        'Unexplained joint swelling + weight loss — malignancy',
+                        'Haemarthrosis — bleeding disorder, trauma'
+                    ],
+                    uganda: [
+                        'Sickle cell disease is common — consider avascular necrosis and septic arthritis',
+                        'TB arthritis is endemic — indolent monoarthritis',
+                        'HIV-related reactive arthritis and septic arthritis are common'
+                    ]
+                },
+                'swelling-surface': {
+                    icon: '🟢',
+                    title: 'Surface Swelling',
+                    questions: [
+                        'Where is the swelling — site, size, shape, skin changes?',
+                        'When was it first noticed? Was it sudden or gradual? Is it growing?',
+                        'Is it painful or tender? Spontaneous or on pressure?',
+                        'What is the consistency — firm, soft, cystic, fluctuant?',
+                        'Is it mobile or fixed to skin or deep structures?',
+                        'Are there any associated regional lymph nodes?',
+                        'Do you have fever, weight loss, or night sweats?',
+                        'Any risk factors — sun exposure, trauma, infection, immunosuppression?'
+                    ],
+                    socrates: [
+                        'Site: Exact location',
+                        'Onset: When first noticed',
+                        'Character: Consistency, skin changes',
+                        'Radiation: Any radiation?',
+                        'Severity: Painful or painless?',
+                        'Timing: Constant or intermittent?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Fever, weight loss, lymphadenopathy'
+                    ],
+                    associated: [
+                        'Lymphadenopathy — infection, malignancy',
+                        'Fever — infection, inflammation',
+                        'Weight loss — malignancy'
+                    ],
+                    redFlags: [
+                        'Rapid growth, irregular edges, ulceration — malignancy (squamous cell, melanoma)',
+                        'Pulsatile, bruit — vascular malformation or aneurysm',
+                        'Matted, fixed, rubbery nodes — lymphoma or metastasis',
+                        'Bleeding, non‑healing — Marjolin\'s ulcer'
+                    ],
+                    uganda: [
+                        'Kaposi sarcoma is common in HIV-positive patients',
+                        'Skin cancers are common in areas of high sun exposure',
+                        'Consider tropical diseases — Buruli ulcer, leishmaniasis'
+                    ]
+                },
+                'wound': {
+                    icon: '🟠',
+                    title: 'Wound / Ulcer',
+                    questions: [
+                        'Where is the wound — site, size, depth, exposed tissues?',
+                        'What does the edge look like — sloping, punched‑out, undermined, everted, rolled?',
+                        'What is the base like — slough, granulation, necrotic, pale/ischaemic, exposed bone/tendon?',
+                        'Is there any discharge — serous, purulent, haemorrhagic, watery, foul‑smelling?',
+                        'What is the surrounding skin like — erythema, warmth, induration, cellulitis, oedema?',
+                        'How painful is it? Is it related to dressing changes or weight‑bearing?',
+                        'When did it start? Is it healing or worsening?',
+                        'Any risk factors — diabetes, peripheral vascular disease, neuropathy, trauma, pressure, HIV, malnutrition?'
+                    ],
+                    socrates: [
+                        'Site: Exact location',
+                        'Onset: When did it start?',
+                        'Character: Edge, base, discharge',
+                        'Radiation: Any radiation?',
+                        'Severity: Painful or painless?',
+                        'Timing: Healing or worsening?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Fever, lymphadenopathy, systemic symptoms'
+                    ],
+                    associated: [
+                        'Fever — infection, cellulitis, sepsis',
+                        'Lymphadenopathy — infection, malignancy',
+                        'Systemic symptoms — diabetes, vascular disease, malnutrition'
+                    ],
+                    redFlags: [
+                        'Rapidly progressing, crepitus, systemic toxicity — necrotising fasciitis',
+                        'Chronic non‑healing ulcer with everted edges — Marjolin\'s ulcer (squamous cell carcinoma)',
+                        'Exposed bone, joint involvement — osteomyelitis, septic arthritis',
+                        'Ischaemic changes, gangrene — arterial disease'
+                    ],
+                    uganda: [
+                        'Buruli ulcer is common in Uganda — painless, undermining, necrotic',
+                        'Diabetic foot ulcers are common and often preventable',
+                        'HIV-related wounds are slow to heal — consider nutrition and immune status'
+                    ]
+                },
+                'skin-lesion': {
+                    icon: '🟤',
+                    title: 'Skin Lesion',
+                    questions: [
+                        'Where is the lesion — site, size, shape, colour, and borders?',
+                        'When was it first noticed? Is it changing in size, colour, or shape?',
+                        'Is it painful, itchy, or bleeding?',
+                        'What does the surface look like — scaly, ulcerated, crusted, or weeping?',
+                        'Is it raised or flat? What is the consistency — firm, soft, cystic?',
+                        'Are there any other lesions — similar or different?',
+                        'Do you have fever, weight loss, or night sweats?',
+                        'Any risk factors — sun exposure, trauma, family history of skin cancer, HIV?'
+                    ],
+                    socrates: [
+                        'Site: Exact location',
+                        'Onset: When first noticed',
+                        'Character: Colour, border, surface',
+                        'Radiation: Any spread?',
+                        'Severity: Painful or painless?',
+                        'Timing: Any change over time?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Itching, bleeding, other lesions'
+                    ],
+                    associated: [
+                        'Itching — allergy, infection, malignancy (lymphoma)',
+                        'Bleeding — trauma, malignancy',
+                        'Multiple lesions — systemic disease (HIV, lymphoma, sarcoid)'
+                    ],
+                    redFlags: [
+                        'ABCDE: Asymmetry, irregular Border, multiple Colours, Diameter >6mm, Evolving — melanoma',
+                        'Rapid growth, ulceration — squamous cell carcinoma',
+                        'Non‑healing lesion — Marjolin\'s ulcer',
+                        'Matted, fixed lymph nodes — metastasis'
+                    ],
+                    uganda: [
+                        'Kaposi sarcoma is common in HIV-positive patients — purple/red nodules',
+                        'Skin cancers are common in areas of high sun exposure',
+                        'Consider tropical diseases — cutaneous leishmaniasis, mycetoma'
+                    ]
+                },
+                'lymph-node': {
+                    icon: '🔵',
+                    title: 'Lymph Node Swelling',
+                    questions: [
+                        'Where are the swollen nodes — cervical, axillary, inguinal, or generalized?',
+                        'When were they first noticed? Are they growing?',
+                        'Are they painful or tender?',
+                        'What is the consistency — firm, rubbery, hard? Are they mobile or fixed?',
+                        'Are there any other symptoms — fever, weight loss, night sweats, or rash?',
+                        'Any risk factors — HIV, TB, travel, exposure to animals?',
+                        'Any history of infection in the drainage area — skin infection, URTI, dental?',
+                        'Any family history of lymphoma or leukaemia?'
+                    ],
+                    socrates: [
+                        'Site: Location of nodes',
+                        'Onset: When first noticed',
+                        'Character: Size, consistency, mobility',
+                        'Radiation: Any spread?',
+                        'Severity: Painful or painless?',
+                        'Timing: Growing or stable?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Fever, weight loss, night sweats'
+                    ],
+                    associated: [
+                        'Fever — infection, lymphoma, HIV',
+                        'Weight loss, night sweats — malignancy, TB',
+                        'Rash — HIV, syphilis, lymphoma'
+                    ],
+                    redFlags: [
+                        'Hard, fixed, rubbery, or matted nodes — lymphoma or metastasis',
+                        'Generalised lymphadenopathy — HIV, lymphoma, leukaemia',
+                        'Supraclavicular nodes — metastatic malignancy (Virchow\'s node)',
+                        'Hepatosplenomegaly — lymphoma, leukaemia'
+                    ],
+                    uganda: [
+                        'Tuberculous lymphadenitis is common — consider in HIV-positive patients',
+                        'HIV-related lymphadenopathy is common — assess for other signs',
+                        'Cat-scratch disease and other zoonotic infections are common in rural areas'
+                    ]
+                },
+                'breast': {
+                    icon: '🩷',
+                    title: 'Breast Lump',
+                    questions: [
+                        'Where is the lump — which quadrant? Is it in one or both breasts?',
+                        'When was it first noticed? Is it growing?',
+                        'What is the consistency — firm, hard, or cystic? Is it mobile or fixed to skin or deep structures?',
+                        'Are there any skin changes — dimpling, peau d\'orange, ulceration, or redness?',
+                        'Any nipple changes — discharge (bloody, clear, milky), retraction, crusting, or eczema?',
+                        'Is it painful?',
+                        'Are there any axillary lymph nodes?',
+                        'Any risk factors — age, family history (BRCA), nulliparity, early menarche, late menopause, HRT, alcohol?'
+                    ],
+                    socrates: [
+                        'Site: Which quadrant?',
+                        'Onset: When first noticed',
+                        'Character: Consistency, mobility, skin changes',
+                        'Radiation: Any spread?',
+                        'Severity: Painful or painless?',
+                        'Timing: Cyclical or constant?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Nipple discharge, lymphadenopathy'
+                    ],
+                    associated: [
+                        'Nipple discharge — papilloma, malignancy, endocrine',
+                        'Axillary lymphadenopathy — infection, metastasis',
+                        'Pain — infection, hormonal, malignancy'
+                    ],
+                    redFlags: [
+                        'Hard, irregular, fixed lump — breast cancer',
+                        'Bloody nipple discharge, peau d\'orange, ulceration',
+                        'Axillary lymphadenopathy — metastatic spread',
+                        'Inflammatory breast cancer: erythema, warmth, oedema'
+                    ],
+                    uganda: [
+                        'Breast cancer is common — self-examination and clinical examination are essential',
+                        'Mastitis and breast abscess are common in lactating women',
+                        'Traditional medicine use may delay presentation — counsel on early referral'
+                    ]
+                },
+                'breast-pain': {
+                    icon: '🩷',
+                    title: 'Breast Pain',
+                    questions: [
+                        'Is the pain cyclical — related to your menstrual cycle?',
+                        'Where is the pain — diffuse or localised?',
+                        'Is there any lump or swelling?',
+                        'Is there any redness, warmth, or discharge?',
+                        'Are you pregnant or breastfeeding?',
+                        'Any trauma or injury?',
+                        'Do you have fever or systemic symptoms?',
+                        'Any risk factors — hormonal therapy, family history?'
+                    ],
+                    socrates: [
+                        'Site: Which part of the breast?',
+                        'Onset: When did it start?',
+                        'Character: Dull, sharp, burning?',
+                        'Radiation: Any radiation?',
+                        'Severity: 0–10 scale',
+                        'Timing: Cyclical or constant?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Lump, discharge, redness, fever'
+                    ],
+                    associated: [
+                        'Lump — fibroadenoma, cyst, carcinoma',
+                        'Discharge — papilloma, carcinoma',
+                        'Redness, warmth — mastitis, inflammatory breast cancer'
+                    ],
+                    redFlags: [
+                        'Inflammatory breast cancer: diffuse erythema, warmth, oedema',
+                        'Persistent focal pain with a palpable lump',
+                        'Bloody discharge with pain',
+                        'Axillary lymphadenopathy with pain'
+                    ],
+                    uganda: [
+                        'Mastitis is common in breastfeeding women — treat with antibiotics',
+                        'Breast abscess requires drainage',
+                        'Inflammatory breast cancer can be mistaken for mastitis — biopsy is essential'
+                    ]
+                },
+                'breast-discharge': {
+                    icon: '🩷',
+                    title: 'Nipple Discharge',
+                    questions: [
+                        'What colour is the discharge — clear, milky, yellow, green, or bloody?',
+                        'Is it from one or both nipples?',
+                        'Is it spontaneous or expressed?',
+                        'Are there any associated lumps or breast changes?',
+                        'Are you on any medications — oral contraceptives, antipsychotics, or other?',
+                        'Are you pregnant, breastfeeding, or recently postpartum?',
+                        'Do you have headaches, visual changes, or menstrual irregularities?',
+                        'Any history of breast surgery or trauma?'
+                    ],
+                    socrates: [
+                        'Site: Which nipple?',
+                        'Onset: When did it start?',
+                        'Character: Colour, consistency, spontaneous or expressed',
+                        'Radiation: Any radiation?',
+                        'Severity: How much?',
+                        'Timing: Constant or intermittent?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Lump, headache, visual changes'
+                    ],
+                    associated: [
+                        'Lump — papilloma, carcinoma',
+                        'Headache, visual changes — prolactinoma',
+                        'Menstrual irregularities — endocrine'
+                    ],
+                    redFlags: [
+                        'Bloody or serous discharge from a single duct — intraductal papilloma or carcinoma',
+                        'Spontaneous discharge with a palpable lump',
+                        'Discharge with skin changes (peau d\'orange, ulceration)',
+                        'Bilateral spontaneous discharge — endocrine cause'
+                    ],
+                    uganda: [
+                        'Galactorrhoea is common — consider prolactinoma, hypothyroidism, or drug-induced',
+                        'Intraductal papilloma is the most common cause of blood-stained discharge',
+                        'Breast cancer is the most concerning cause — urgent referral'
+                    ]
+                },
+                'neck': {
+                    icon: '🔵',
+                    title: 'Neck/Thyroid Swelling',
+                    questions: [
+                        'Where is the swelling — midline or lateral? Does it move with swallowing?',
+                        'Is it painful or tender?',
+                        'Do you have any difficulty swallowing (dysphagia) or voice changes (hoarseness)?',
+                        'Do you have any symptoms of hyperthyroidism — palpitations, tremor, heat intolerance, weight loss?',
+                        'Do you have any symptoms of hypothyroidism — cold intolerance, weight gain, lethargy, constipation?',
+                        'Are there any enlarged lymph nodes in the neck?',
+                        'Do you have fever or systemic symptoms?',
+                        'Any risk factors — iodine deficiency, family history of thyroid disease, radiation exposure?'
+                    ],
+                    socrates: [
+                        'Site: Midline or lateral?',
+                        'Onset: When first noticed',
+                        'Character: Size, consistency, tenderness',
+                        'Radiation: Any radiation?',
+                        'Severity: Painful or painless?',
+                        'Timing: Growing or stable?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Dysphagia, hoarseness, thyroid symptoms'
+                    ],
+                    associated: [
+                        'Dysphagia, hoarseness — compressive goitre or malignancy',
+                        'Palpitations, tremor, weight loss — hyperthyroidism',
+                        'Weight gain, lethargy, constipation — hypothyroidism'
+                    ],
+                    redFlags: [
+                        'Hard, fixed, painless nodule — thyroid malignancy',
+                        'Hoarseness, stridor, or dysphagia — compressive symptoms (malignancy, large goitre)',
+                        'Rapid growth, pain, fever — thyroiditis or abscess',
+                        'Lymphadenopathy — metastasis'
+                    ],
+                    uganda: [
+                        'Iodine deficiency goitre is common in areas of the Great Lakes region',
+                        'Thyroid nodules are common — ultrasound and FNA are essential',
+                        'HIV-related thyroiditis is common'
+                    ]
+                },
+                'varicose': {
+                    icon: '🔵',
+                    title: 'Varicose Veins',
+                    questions: [
+                        'Where are the veins — legs, thighs, or other?',
+                        'When did they first appear? Are they increasing in number or size?',
+                        'Are they painful, aching, or heavy?',
+                        'Is there any swelling (oedema) of the legs?',
+                        'Are there any skin changes — pigmentation, eczema, lipodermatosclerosis, or ulcers?',
+                        'Any history of deep vein thrombosis?',
+                        'Do you have a family history of varicose veins?',
+                        'Are you pregnant or overweight?'
+                    ],
+                    socrates: [
+                        'Site: Which leg?',
+                        'Onset: When first noticed',
+                        'Character: Appearance, size',
+                        'Radiation: Any radiation?',
+                        'Severity: Painful or painless?',
+                        'Timing: Worse at end of day?',
+                        'Exacerbating: Standing or sitting?',
+                        'Relieving: Elevation?',
+                        'Associations: Swelling, skin changes, ulcers'
+                    ],
+                    associated: [
+                        'Oedema — venous insufficiency, DVT',
+                        'Skin changes — chronic venous insufficiency',
+                        'Ulcers — venous ulcers (gaiter area)'
+                    ],
+                    redFlags: [
+                        'Painful, red, warm, tender cord — superficial thrombophlebitis',
+                        'Sudden swelling, pain, warmth — DVT (urgent Doppler)',
+                        'Bleeding from a varicose vein — emergency',
+                        'Non-healing ulcer over the gaiter area — venous ulcer'
+                    ],
+                    uganda: [
+                        'Varicose veins are common in people who stand for long periods',
+                        'Consider filarial lymphoedema in patients with lower limb swelling',
+                        'Traditional treatments may cause complications — counsel on evidence-based care'
+                    ]
+                },
+                'leg-ulcer': {
+                    icon: '🔴',
+                    title: 'Leg Ulcer',
+                    questions: [
+                        'Where is the ulcer — gaiter area, foot, or other?',
+                        'What does the edge look like — sloping, punched‑out, undermined, everted?',
+                        'What is the base like — slough, granulation, necrotic, exposed bone/tendon?',
+                        'Is there any discharge — serous, purulent, haemorrhagic, watery, foul‑smelling?',
+                        'What is the surrounding skin like — erythema, warmth, induration, cellulitis, oedema?',
+                        'Is it painful?',
+                        'When did it start? Is it healing or worsening?',
+                        'Any risk factors — diabetes, peripheral vascular disease, neuropathy, trauma, HIV, malnutrition?'
+                    ],
+                    socrates: [
+                        'Site: Exact location',
+                        'Onset: When did it start?',
+                        'Character: Edge, base, discharge',
+                        'Radiation: Any radiation?',
+                        'Severity: Painful or painless?',
+                        'Timing: Healing or worsening?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Fever, lymphadenopathy, systemic symptoms'
+                    ],
+                    associated: [
+                        'Fever — infection, cellulitis, sepsis',
+                        'Lymphadenopathy — infection, malignancy',
+                        'Systemic symptoms — diabetes, vascular disease, malnutrition'
+                    ],
+                    redFlags: [
+                        'Rapidly progressing, crepitus, systemic toxicity — necrotising fasciitis',
+                        'Chronic non‑healing ulcer with everted edges — Marjolin\'s ulcer (squamous cell carcinoma)',
+                        'Exposed bone, joint involvement — osteomyelitis, septic arthritis',
+                        'Ischaemic changes, gangrene — arterial disease'
+                    ],
+                    uganda: [
+                        'Buruli ulcer is common in Uganda — painless, undermining, necrotic',
+                        'Diabetic foot ulcers are common and often preventable',
+                        'Sickle cell leg ulcers are common in patients with sickle cell disease'
+                    ]
+                },
+                'claudication': {
+                    icon: '🔴',
+                    title: 'Claudication',
+                    questions: [
+                        'What is the walking distance that causes pain?',
+                        'Where is the pain — buttocks, thigh, or calf?',
+                        'What does the pain feel like — cramping, aching, tiredness?',
+                        'Does the pain go away with rest? How long does it take?',
+                        'Do you have any skin changes — hair loss, shiny skin, colour changes?',
+                        'Have you had any ulcers or infections of the feet?',
+                        'Any risk factors — smoking, diabetes, hypertension, dyslipidaemia?',
+                        'Any history of heart disease or stroke?'
+                    ],
+                    socrates: [
+                        'Site: Where is the pain?',
+                        'Onset: When does it start?',
+                        'Character: Cramping, aching?',
+                        'Radiation: Any radiation?',
+                        'Severity: How limiting?',
+                        'Timing: When does it occur?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Skin changes, ulcers'
+                    ],
+                    associated: [
+                        'Skin changes — hair loss, shiny skin, colour changes',
+                        'Ulcers — critical limb ischaemia',
+                        'Rest pain — advanced ischaemia'
+                    ],
+                    redFlags: [
+                        'Rest pain — critical limb ischaemia (urgent vascular referral)',
+                        'Non‑healing ulcers or gangrene — imminent limb loss',
+                        'Acute worsening — acute limb ischaemia (emergency)',
+                        'Absent pulses — severe arterial disease'
+                    ],
+                    uganda: [
+                        'Peripheral arterial disease is common in patients with diabetes and hypertension',
+                        'Smoking cessation is the most important intervention',
+                        'Consider other causes — Buerger\'s disease in young smokers'
+                    ]
+                },
+                'hernia': {
+                    icon: '🟢',
+                    title: 'Hernia',
+                    questions: [
+                        'Where is the swelling — groin, umbilicus, or surgical scar?',
+                        'When was it first noticed? Is it growing?',
+                        'Is it reducible — does it go away on lying down or with gentle pressure?',
+                        'Is there a cough impulse?',
+                        'Is it painful or tender?',
+                        'Do you have nausea, vomiting, or abdominal distension?',
+                        'Any history of previous hernias or surgery?',
+                        'Are you straining or lifting heavy objects?'
+                    ],
+                    socrates: [
+                        'Site: Groin, umbilicus, or scar?',
+                        'Onset: When first noticed',
+                        'Character: Reducible or not?',
+                        'Radiation: Any radiation?',
+                        'Severity: Painful or painless?',
+                        'Timing: Worse with straining?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Nausea, vomiting, obstruction'
+                    ],
+                    associated: [
+                        'Nausea, vomiting — obstruction or strangulation',
+                        'Distension — obstruction',
+                        'Pain — incarceration or strangulation'
+                    ],
+                    redFlags: [
+                        'Irreducible, painful, tender — incarcerated hernia (urgent)',
+                        'Strangulated hernia: signs of obstruction, ischaemia, or perforation',
+                        'Hernia with fever, tachycardia, or shock — emergency',
+                        'Incarcerated hernia in children — urgent surgical referral'
+                    ],
+                    uganda: [
+                        'Inguinal hernias are very common — elective repair is preferred',
+                        'Incarcerated hernias are a common surgical emergency',
+                        'Traditional hernia trusses may cause complications — counsel on surgical repair'
+                    ]
+                },
+                'haemorrhoids': {
+                    icon: '🔴',
+                    title: 'Haemorrhoids',
+                    questions: [
+                        'Do you have any bleeding — fresh blood on the paper, in the toilet, or mixed with stool?',
+                        'Is there any pain during or after defecation?',
+                        'Do you have any itching or irritation?',
+                        'Are there any lumps or prolapse — do they come out with defecation?',
+                        'Do you have any tenesmus or change in bowel habit?',
+                        'What is your diet — fibre intake?',
+                        'Are you pregnant or postpartum?',
+                        'Any family history of colorectal cancer?'
+                    ],
+                    socrates: [
+                        'Site: Where is the pain/bleeding?',
+                        'Onset: When did it start?',
+                        'Character: Bleeding, prolapse, pain',
+                        'Radiation: Any radiation?',
+                        'Severity: How much bleeding?',
+                        'Timing: Worse with defecation?',
+                        'Exacerbating: Straining?',
+                        'Relieving: What helps?',
+                        'Associations: Itching, tenesmus, constipation'
+                    ],
+                    associated: [
+                        'Constipation — predisposing factor',
+                        'Itching — irritation from discharge',
+                        'Tenesmus — may suggest other pathology'
+                    ],
+                    redFlags: [
+                        'Massive bleeding with haemodynamic instability',
+                        'Colorectal cancer: change in bowel habit, weight loss, family history',
+                        'Anaemia from chronic bleeding',
+                        'Inflammatory bowel disease: bleeding with diarrhoea, abdominal pain'
+                    ],
+                    uganda: [
+                        'Haemorrhoids are common — dietary advice and conservative management first',
+                        'Consider schistosomiasis in patients with rectal bleeding',
+                        'Traditional treatments may cause complications — counsel on evidence-based care'
+                    ]
+                },
+                'abscess': {
+                    icon: '🟠',
+                    title: 'Abscess',
+                    questions: [
+                        'Where is the swelling — skin, subcutaneous, perianal, or other?',
+                        'When was it first noticed? Is it growing?',
+                        'Is it painful, tender, or red?',
+                        'Is there any pus or discharge?',
+                        'Is there a sinus or fistula?',
+                        'Do you have fever, chills, or rigors?',
+                        'Any risk factors — diabetes, HIV, immunosuppression, poor hygiene?',
+                        'Any history of previous abscesses or infections?'
+                    ],
+                    socrates: [
+                        'Site: Exact location',
+                        'Onset: When first noticed',
+                        'Character: Swelling, redness, tenderness',
+                        'Radiation: Any radiation?',
+                        'Severity: Painful or painless?',
+                        'Timing: Growing or stable?',
+                        'Exacerbating: What worsens it?',
+                        'Relieving: What helps?',
+                        'Associations: Fever, pus, sinus'
+                    ],
+                    associated: [
+                        'Fever — systemic infection',
+                        'Pus or discharge — suppuration',
+                        'Sinus or fistula — chronic infection'
+                    ],
+                    redFlags: [
+                        'Rapidly spreading cellulitis or abscess — necrotising fasciitis',
+                        'Fournier\'s gangrene — rapidly spreading infection of the perineum',
+                        'Abscess with systemic toxicity — sepsis',
+                        'Abscess in an immunocompromised patient — urgent drainage'
+                    ],
+                    uganda: [
+                        'Skin abscesses are common — incision and drainage is the treatment',
+                        'Consider HIV and TB in patients with recurrent abscesses',
+                        'Psoas abscess from TB is common — consider in patients with back pain and fever'
+                    ]
+                },
+                'other': {
+                    icon: '➕',
+                    title: 'General / Other Complaint',
+                    questions: [
+                        'What is the main problem? Please describe it in your own words.',
+                        'Where exactly is the problem located?',
+                        'When did it first start? Was it sudden or gradual?',
+                        'What makes it better or worse?',
+                        'What other symptoms do you have?',
+                        'How does this affect your daily life?',
+                        'Have you had this problem before?',
+                        'What treatments have you tried already?'
+                    ],
+                    socrates: [
+                        'Site: Where is the problem?',
+                        'Onset: When did it start?',
+                        'Character: What does it feel like?',
+                        'Radiation: Does it spread?',
+                        'Severity: How bad is it?',
+                        'Timing: When does it happen?',
+                        'Exacerbating: What makes it worse?',
+                        'Relieving: What makes it better?',
+                        'Associations: What else happens with it?'
+                    ],
+                    associated: [
+                        'Systemic symptoms — fever, weight loss, fatigue',
+                        'Local symptoms — pain, swelling, discharge',
+                        'Functional impact — how does it affect daily life?'
+                    ],
+                    redFlags: [
+                        'Rapidly progressing symptoms',
+                        'Systemic toxicity — fever, tachycardia, hypotension',
+                        'Neurological deficit',
+                        'Bleeding or shock'
+                    ],
+                    uganda: [
+                        'Consider common tropical diseases — malaria, typhoid, HIV, TB',
+                        'Think about the patient\'s environment and risk factors',
+                        'Always consider the patient\'s immune status'
+                    ]
+                }
             };
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 10. PC MANAGEMENT
+            // 8. PC MANAGEMENT
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function renderTags(pcNum) {
                 const container = document.getElementById('pc' + pcNum + 'Tags');
@@ -3695,7 +4392,7 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 11. ROS & HELPERS
+            // 9. ROS & HELPERS
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             const SYS_SYMPTOMS = {
                 cvs: ['Chest pain', 'Palpitations', 'Dyspnoea on exertion', 'Orthopnoea', 'PND', 'Ankle swelling', 'Syncope',
@@ -3789,7 +4486,7 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 12. GCS CALCULATION
+            // 10. GCS CALCULATION
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function calculateGCS() {
                 const eye = parseInt(document.getElementById('gcsEye').value) || 0;
@@ -3804,7 +4501,7 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 13. TOAST
+            // 11. TOAST
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function showToast(msg, color = '#2a9d8f') {
                 const toast = document.createElement('div');
@@ -3826,7 +4523,7 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 14. SUBMIT
+            // 12. SUBMIT
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function submitForm() {
                 const name = document.getElementById('patientName').value.trim();
@@ -3852,7 +4549,7 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 15. LOAD DRAFT
+            // 13. LOAD DRAFT
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function loadDraft() {
                 const saved = localStorage.getItem('easeMed_surgery_draft');
@@ -4033,7 +4730,7 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 16. PROGRESS
+            // 14. PROGRESS
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             function updateProgress() {
                 const inputs = document.querySelectorAll('input:not(.btn-camera):not([type="file"]), textarea, select');
@@ -4056,7 +4753,7 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 17. INIT
+            // 15. INIT
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             document.addEventListener('DOMContentLoaded', function() {
                 renderTags(1);
@@ -4101,51 +4798,45 @@
                         }
                     });
                 }
-
-                // Make DDX functions globally available
-                window.generateSurgeryDifferentials = generateSurgeryDifferentials;
-                window.clearSurgeryDifferentials = clearSurgeryDifferentials;
-                window.copySurgeryDdxToClipboard = copySurgeryDdxToClipboard;
-                window.exportSurgeryDdxToWord = exportSurgeryDdxToWord;
             });
         </script>
       
-        <!-- ─── UPGRADE MODAL ─── -->
-        <div id="upgradeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:99999; align-items:center; justify-content:center; padding:24px;">
-            <div style="background:white; max-width:420px; width:100%; border-radius:20px; padding:32px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,0.2); animation:fadeIn 0.3s ease;">
-                <div style="font-size:3rem; margin-bottom:12px;">🔒</div>
-                <h2 style="font-family:'Lora',serif; font-size:1.5rem; margin-bottom:8px; color:#0B1A2E;">Access Restricted</h2>
-                <p style="color:rgba(11,26,46,0.6); margin-bottom:8px; font-size:0.95rem; line-height:1.6;" id="upgradeReason">
-                    This module requires a subscription.
-                </p>
-                <div style="background:rgba(245,158,11,0.08); padding:14px; border-radius:12px; margin:16px 0; border:1px solid rgba(245,158,11,0.15);">
-                    <strong style="color:#D97706; font-size:0.95rem;">⚡ Quick Upgrade</strong>
-                    <p style="font-size:0.85rem; color:rgba(11,26,46,0.5); margin-top:4px;">
-                        Get Premium Access for only <strong style="color:#0B1A2E;">UGX 10,000/month</strong>
-                    </p>
-                    <p style="font-size:0.75rem; color:rgba(11,26,46,0.3); margin-top:4px;">
-                        🔄 Cancel anytime
-                    </p>
-                </div>
-                <div style="display:flex; gap:12px; margin-top:8px;">
-                    <button onclick="window.location.href='subscription.html'" style="flex:1; padding:12px; border:none; border-radius:12px; background:linear-gradient(135deg,#3B82F6,#2563EB); color:white; font-weight:700; font-size:0.95rem; cursor:pointer; font-family:'Inter',sans-serif; transition:transform 0.2s, box-shadow 0.2s;">
-                        🚀 Upgrade Now
-                    </button>
-                    <button onclick="document.getElementById('upgradeModal').style.display='none'" style="flex:1; padding:12px; border:none; border-radius:12px; background:rgba(255,255,255,0.1); color:#0B1A2E; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:'Inter',sans-serif; border:1px solid rgba(11,26,46,0.1);">
-                        Cancel
-                    </button>
-                </div>
-                <p style="font-size:0.7rem; color:rgba(11,26,46,0.3); margin-top:14px;">
-                    Already subscribed? <a href="#" onclick="location.reload()" style="color:#3B82F6; text-decoration:none; font-weight:600;">Refresh</a>
-                </p>
-            </div>
+          <!-- ─── UPGRADE MODAL ─── -->
+<div id="upgradeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:99999; align-items:center; justify-content:center; padding:24px;">
+    <div style="background:white; max-width:420px; width:100%; border-radius:20px; padding:32px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,0.2); animation:fadeIn 0.3s ease;">
+        <div style="font-size:3rem; margin-bottom:12px;">🔒</div>
+        <h2 style="font-family:'Lora',serif; font-size:1.5rem; margin-bottom:8px; color:#0B1A2E;">Access Restricted</h2>
+        <p style="color:rgba(11,26,46,0.6); margin-bottom:8px; font-size:0.95rem; line-height:1.6;" id="upgradeReason">
+            This module requires a subscription.
+        </p>
+        <div style="background:rgba(245,158,11,0.08); padding:14px; border-radius:12px; margin:16px 0; border:1px solid rgba(245,158,11,0.15);">
+            <strong style="color:#D97706; font-size:0.95rem;">⚡ Quick Upgrade</strong>
+            <p style="font-size:0.85rem; color:rgba(11,26,46,0.5); margin-top:4px;">
+                Get Premium Access for only <strong style="color:#0B1A2E;">UGX 10,000/month</strong>
+            </p>
+            <p style="font-size:0.75rem; color:rgba(11,26,46,0.3); margin-top:4px;">
+                🔄 Cancel anytime
+            </p>
         </div>
+        <div style="display:flex; gap:12px; margin-top:8px;">
+            <button onclick="window.location.href='subscription.html'" style="flex:1; padding:12px; border:none; border-radius:12px; background:linear-gradient(135deg,#3B82F6,#2563EB); color:white; font-weight:700; font-size:0.95rem; cursor:pointer; font-family:'Inter',sans-serif; transition:transform 0.2s, box-shadow 0.2s;">
+                🚀 Upgrade Now
+            </button>
+            <button onclick="document.getElementById('upgradeModal').style.display='none'" style="flex:1; padding:12px; border:none; border-radius:12px; background:rgba(255,255,255,0.1); color:#0B1A2E; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:'Inter',sans-serif; border:1px solid rgba(11,26,46,0.1);">
+                Cancel
+            </button>
+        </div>
+        <p style="font-size:0.7rem; color:rgba(11,26,46,0.3); margin-top:14px;">
+            Already subscribed? <a href="#" onclick="location.reload()" style="color:#3B82F6; text-decoration:none; font-weight:600;">Refresh</a>
+        </p>
+    </div>
+</div>
 
-        <style>
-            @keyframes fadeIn {
-                from { opacity: 0; transform: scale(0.95); }
-                to { opacity: 1; transform: scale(1); }
-            }
-        </style>
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+</style>
     </body>
 </html>
