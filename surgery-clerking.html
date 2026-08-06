@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-      <meta charset="UTF-8" />
-  <script src="/js/supabase.min.js"></script>
-<script src="/js/access-guard.js"></script>
+    <meta charset="UTF-8" />
+    <script src="/js/supabase.min.js"></script>
+    <script src="/js/access-guard.js"></script>
     <script>window.EASEMED_MODULE_NAME = 'Surgery Clerking Module';</script>
-<script src="tracking.js"></script>
+    <script src="tracking.js"></script>
+    <script src="surg-ddx-generator.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EaseMed – Surgery Clerkship </title>
+    <title>EaseMed – Surgery Clerkship</title>
     <style>
         /* ─── CSS ─── */
         :root {
@@ -92,11 +93,11 @@
             transition: width 0.4s ease;
         }
 
-      .main-wrap {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 1.5rem 1rem 2rem;
-}
+        .main-wrap {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem 2rem;
+        }
         .section-header {
             display: flex;
             align-items: center;
@@ -415,16 +416,16 @@
             content: '✗ ';
         }
 
-      .footer-nav {
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.85rem 1.5rem;
-    margin-top: 2rem;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.06);
-}
+        .footer-nav {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.06);
+        }
         .step-indicator {
             font-size: 0.8rem;
             color: var(--muted);
@@ -2291,14 +2292,39 @@
             </div>
         </div>
 
-        <!-- DDX Generator Button - Opens in new tab -->
-        <div style="margin-top:0.5rem; text-align:center;">
-            <button class="btn-primary" onclick="window.open('ddx-generator.html?auto=true', '_blank')" style="background:var(--ai-color); padding:0.8rem 2rem;">
-                🧠 Open Full DDX Generator
-            </button>
+        <!-- ============================================================
+        SECTION 10: DDX GENERATOR (INLINE)
+        ============================================================ -->
+        <div class="section-header">
+            <span class="section-badge ai">🧠</span>
+            <span class="section-title">Differential Diagnosis Generator</span>
+        </div>
+        <div class="card ai-card">
+            <div class="card-title">🧠 AI-Assisted Differential Diagnosis</div>
+            <div class="callout">
+                <strong>How it works:</strong> Analyses all recorded PCs, HPC, ROS, PE findings and vitals to generate ranked differentials.
+            </div>
+            <div style="display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:0.8rem;">
+                <button class="btn-ai" id="generateDdxBtn" onclick="generateDifferentials()">🧠 Generate Differentials</button>
+                <button class="btn-secondary" onclick="clearDifferentials()">✕ Clear Results</button>
+            </div>
+            <div id="ddxLoading" style="display:none; text-align:center; padding:20px; color:var(--muted);">
+                <p>Analysing clinical data…</p>
+            </div>
+            <div id="ddxResult" style="display:none;">
+                <div id="ddxSummaryBox" class="dx-item" style="border-left-color:var(--ai-color);"></div>
+                <div id="ddxList"></div>
+                <div style="display:flex; gap:0.6rem; margin-top:0.8rem; flex-wrap:wrap;">
+                    <button class="btn-secondary" onclick="copyDdxToClipboard()">📋 Copy</button>
+                    <button class="btn-accent" onclick="exportDdxToWord()">📄 Export</button>
+                </div>
+            </div>
+            <div id="ddxEmpty" style="text-align:center; padding:20px; color:var(--muted);">
+                No differentials generated yet. Complete PC/HPC/PE first.
+            </div>
         </div>
 
-        <!-- SECTION 10: FILE UPLOAD -->
+        <!-- SECTION 11: FILE UPLOAD -->
         <div class="section-header">
             <span class="section-badge">📎</span>
             <span class="section-title">Document Upload</span>
@@ -2337,7 +2363,7 @@
         </div>
 
         <div class="footer-nav">
-            <div class="step-indicator">Steps <strong>1–10</strong> complete — Demographics · PC · HPC · ROS · PMH · Drugs · Family/Social · PE · Assessment · Documents</div>
+            <div class="step-indicator">Steps <strong>1–11</strong> complete — Demographics · PC · HPC · ROS · PMH · Drugs · Family/Social · PE · Assessment · DDx · Documents</div>
             <div style="display:flex; gap:0.8rem;">
                 <button class="btn-primary" onclick="saveDraft()">💾 Save Draft</button>
                 <button class="btn-accent" onclick="downloadDraftAsPDF()">📄 Download PDF</button>
@@ -4753,7 +4779,190 @@
             }
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // 15. INIT
+            // 15. DDX ENGINE (SURGERY)
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            function generateDifferentials() {
+                const btn = document.getElementById('generateDdxBtn');
+                const loading = document.getElementById('ddxLoading');
+                const result = document.getElementById('ddxResult');
+                const empty = document.getElementById('ddxEmpty');
+
+                btn.disabled = true;
+                loading.style.display = 'block';
+                result.style.display = 'none';
+                empty.style.display = 'none';
+
+                setTimeout(() => {
+                    try {
+                        const data = collectClinicalDataForDdx();
+                        const results = runSurgDdxEngine(data);
+                        displayDdxResults(results, data);
+                        loading.style.display = 'none';
+                        result.style.display = 'block';
+                        window._lastDdxResults = results;
+                        window._lastDdxData = data;
+                    } catch (err) {
+                        console.error('DDx error:', err);
+                        loading.style.display = 'none';
+                        empty.style.display = 'block';
+                        empty.innerHTML = `<p><strong>Error generating differentials.</strong> ${err.message}</p>`;
+                        showToast('Error generating differentials: ' + err.message, '#dc2626');
+                    } finally {
+                        btn.disabled = false;
+                    }
+                }, 300);
+            }
+
+            function collectClinicalDataForDdx() {
+                const d = collectFormData();
+                const age = parseInt(d.demographics.age) || null;
+
+                const pcs = [d.complaint.pc1, d.complaint.pc2, d.complaint.pc3].filter(Boolean);
+                const categories = pcs.map(pc => pc.category).filter(Boolean);
+                const primaryCategory = categories[0] || '';
+
+                const associatedSymptoms = pcs
+                    .map(pc => (pc.associated || '').toLowerCase())
+                    .join(' ; ')
+                    .split(/[,;.]+/)
+                    .map(s => s.trim())
+                    .filter(Boolean);
+
+                const rosPresent = [];
+                Object.values(d.ros).forEach(sys => {
+                    sys.symptoms.filter(s => s.status === 'present').forEach(s => rosPresent.push(s.name.toLowerCase()));
+                });
+
+                const peFindings = d.physicalExam.findings || {};
+
+                return {
+                    age,
+                    categories,
+                    primaryCategory,
+                    associatedSymptoms,
+                    rosPresent,
+                    peFindings,
+                    vitals: { bp: d.physicalExam.bp, hr: d.physicalExam.hr, rr: d.physicalExam.rr, temp: d.physicalExam.temp, spo2: d.physicalExam.spo2 },
+                    gcs: (parseInt(d.physicalExam.gcsEye)||0) + (d.physicalExam.gcsIntubated ? 0 : (parseInt(d.physicalExam.gcsVerbal)||0)) + (parseInt(d.physicalExam.gcsMotor)||0),
+                    hpcNarrative: d.hpc.narrative,
+                    pastSurgical: d.pastHistory.surgical,
+                    pastMedical: d.pastHistory.medical,
+                    familyHistory: d.familySocial.familyHistory,
+                    hasPE: (system, finding) => (peFindings[system]?.present || []).includes(finding),
+                    hasSymptom: (kw) => associatedSymptoms.some(s => s.includes(kw)) || rosPresent.some(s => s.includes(kw))
+                };
+            }
+
+            function runSurgDdxEngine(data) {
+                const db = window.surgDdxDatabase || {};
+                const generic = window.surgGenericDdx || {};
+                let matched = [];
+
+                function evaluate(key, def) {
+                    try {
+                        const score = def.likelihood(data);
+                        if (score > 0) {
+                            return { key, name: key, score: Math.round(score),
+                                description: def.description || '',
+                                distinguishingFeatures: def.distinguishingFeatures || [],
+                                investigations: def.investigations || [],
+                                treatment: def.treatment || '' };
+                        }
+                    } catch (e) { console.warn('DDx eval error:', key, e); }
+                    return null;
+                }
+
+                data.categories.forEach(cat => {
+                    Object.entries(db[cat] || {}).forEach(([key, def]) => {
+                        if (!matched.some(m => m.key === key)) {
+                            const r = evaluate(key, def);
+                            if (r) matched.push(r);
+                        }
+                    });
+                });
+
+                Object.entries(generic).forEach(([key, def]) => {
+                    if (!matched.some(m => m.key === key)) {
+                        const r = evaluate(key, def);
+                        if (r) matched.push(r);
+                    }
+                });
+
+                matched.sort((a, b) => b.score - a.score);
+
+                if (matched.length === 0) {
+                    matched.push({
+                        key: 'Undifferentiated Surgical Presentation',
+                        name: 'Undifferentiated Surgical Presentation',
+                        score: 10,
+                        description: 'No specific match found — complete PC category, ROS, and PE findings for a more accurate differential.',
+                        distinguishingFeatures: [], investigations: ['Full clinical assessment', 'FBC', 'CRP', 'Relevant imaging'],
+                        treatment: 'Assess further and reassess once more data is available.'
+                    });
+                }
+                return matched;
+            }
+
+            function displayDdxResults(results, data) {
+                const summaryBox = document.getElementById('ddxSummaryBox');
+                const list = document.getElementById('ddxList');
+                const top = results[0];
+                const label = (s) => s >= 70 ? 'High' : s >= 45 ? 'Moderate' : 'Low';
+
+                summaryBox.innerHTML = `<strong>🧠 Clinical Analysis</strong><br>
+                    Age: ${data.age ?? 'Unknown'} | Categories: ${data.categories.join(', ') || 'None'} | ${results.length} differential(s)<br>
+                    ${top ? `Top: <strong>${top.name}</strong> (${label(top.score)}, ${top.score}%)` : ''}`;
+
+                list.innerHTML = results.map((dx, i) => `
+                    <div class="dx-item generated">
+                        <strong>${i+1}. ${dx.name}</strong>
+                        <span class="gen-ddx-badge">${label(dx.score)} ${dx.score}%</span>
+                        <div style="font-size:0.85rem; margin-top:0.3rem;">${dx.description}</div>
+                        ${dx.distinguishingFeatures.length ? `<div style="font-size:0.8rem; color:var(--muted); margin-top:0.2rem;"><strong>Key features:</strong> ${dx.distinguishingFeatures.join(', ')}</div>` : ''}
+                        ${dx.investigations.length ? `<div style="font-size:0.8rem; color:var(--muted);"><strong>Investigations:</strong> ${dx.investigations.join(', ')}</div>` : ''}
+                        ${dx.treatment ? `<div style="font-size:0.8rem; color:var(--muted);"><strong>Treatment:</strong> ${dx.treatment}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            function clearDifferentials() {
+                document.getElementById('ddxResult').style.display = 'none';
+                document.getElementById('ddxLoading').style.display = 'none';
+                document.getElementById('ddxEmpty').style.display = 'block';
+                document.getElementById('ddxList').innerHTML = '';
+                document.getElementById('ddxSummaryBox').innerHTML = '';
+                window._lastDdxResults = null;
+            }
+
+            function copyDdxToClipboard() {
+                if (!window._lastDdxResults?.length) { showToast('No differentials to copy.', '#e67e22'); return; }
+                let text = '=== DIFFERENTIAL DIAGNOSIS ===\n\n';
+                window._lastDdxResults.forEach((dx, i) => {
+                    text += `${i+1}. ${dx.name} (${dx.score}%)\n   ${dx.description}\n`;
+                    if (dx.investigations.length) text += `   Investigations: ${dx.investigations.join(', ')}\n`;
+                    if (dx.treatment) text += `   Treatment: ${dx.treatment}\n`;
+                    text += '\n';
+                });
+                navigator.clipboard.writeText(text).then(() => showToast('📋 Copied!', '#8e44ad'));
+            }
+
+            function exportDdxToWord() {
+                if (!window._lastDdxResults?.length) { showToast('No differentials to export.', '#e67e22'); return; }
+                const name = document.getElementById('patientName')?.value.trim() || 'Unnamed';
+                const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>DDx - ${name}</title></head><body>
+                    <h1>Differential Diagnosis — ${name}</h1>
+                    ${window._lastDdxResults.map((dx,i) => `<h3>${i+1}. ${dx.name} (${dx.score}%)</h3><p>${dx.description}</p>`).join('')}
+                    </body></html>`;
+                const blob = new Blob([html], { type: 'application/msword' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `DDx_${name.replace(/\s+/g,'_')}.doc`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // 16. INIT
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             document.addEventListener('DOMContentLoaded', function() {
                 renderTags(1);
@@ -4801,42 +5010,42 @@
             });
         </script>
       
-          <!-- ─── UPGRADE MODAL ─── -->
-<div id="upgradeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:99999; align-items:center; justify-content:center; padding:24px;">
-    <div style="background:white; max-width:420px; width:100%; border-radius:20px; padding:32px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,0.2); animation:fadeIn 0.3s ease;">
-        <div style="font-size:3rem; margin-bottom:12px;">🔒</div>
-        <h2 style="font-family:'Lora',serif; font-size:1.5rem; margin-bottom:8px; color:#0B1A2E;">Access Restricted</h2>
-        <p style="color:rgba(11,26,46,0.6); margin-bottom:8px; font-size:0.95rem; line-height:1.6;" id="upgradeReason">
-            This module requires a subscription.
-        </p>
-        <div style="background:rgba(245,158,11,0.08); padding:14px; border-radius:12px; margin:16px 0; border:1px solid rgba(245,158,11,0.15);">
-            <strong style="color:#D97706; font-size:0.95rem;">⚡ Quick Upgrade</strong>
-            <p style="font-size:0.85rem; color:rgba(11,26,46,0.5); margin-top:4px;">
-                Get Premium Access for only <strong style="color:#0B1A2E;">UGX 10,000/month</strong>
-            </p>
-            <p style="font-size:0.75rem; color:rgba(11,26,46,0.3); margin-top:4px;">
-                🔄 Cancel anytime
-            </p>
+        <!-- ─── UPGRADE MODAL ─── -->
+        <div id="upgradeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:99999; align-items:center; justify-content:center; padding:24px;">
+            <div style="background:white; max-width:420px; width:100%; border-radius:20px; padding:32px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,0.2); animation:fadeIn 0.3s ease;">
+                <div style="font-size:3rem; margin-bottom:12px;">🔒</div>
+                <h2 style="font-family:'Lora',serif; font-size:1.5rem; margin-bottom:8px; color:#0B1A2E;">Access Restricted</h2>
+                <p style="color:rgba(11,26,46,0.6); margin-bottom:8px; font-size:0.95rem; line-height:1.6;" id="upgradeReason">
+                    This module requires a subscription.
+                </p>
+                <div style="background:rgba(245,158,11,0.08); padding:14px; border-radius:12px; margin:16px 0; border:1px solid rgba(245,158,11,0.15);">
+                    <strong style="color:#D97706; font-size:0.95rem;">⚡ Quick Upgrade</strong>
+                    <p style="font-size:0.85rem; color:rgba(11,26,46,0.5); margin-top:4px;">
+                        Get Premium Access for only <strong style="color:#0B1A2E;">UGX 10,000/month</strong>
+                    </p>
+                    <p style="font-size:0.75rem; color:rgba(11,26,46,0.3); margin-top:4px;">
+                        🔄 Cancel anytime
+                    </p>
+                </div>
+                <div style="display:flex; gap:12px; margin-top:8px;">
+                    <button onclick="window.location.href='subscription.html'" style="flex:1; padding:12px; border:none; border-radius:12px; background:linear-gradient(135deg,#3B82F6,#2563EB); color:white; font-weight:700; font-size:0.95rem; cursor:pointer; font-family:'Inter',sans-serif; transition:transform 0.2s, box-shadow 0.2s;">
+                        🚀 Upgrade Now
+                    </button>
+                    <button onclick="document.getElementById('upgradeModal').style.display='none'" style="flex:1; padding:12px; border:none; border-radius:12px; background:rgba(255,255,255,0.1); color:#0B1A2E; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:'Inter',sans-serif; border:1px solid rgba(11,26,46,0.1);">
+                        Cancel
+                    </button>
+                </div>
+                <p style="font-size:0.7rem; color:rgba(11,26,46,0.3); margin-top:14px;">
+                    Already subscribed? <a href="#" onclick="location.reload()" style="color:#3B82F6; text-decoration:none; font-weight:600;">Refresh</a>
+                </p>
+            </div>
         </div>
-        <div style="display:flex; gap:12px; margin-top:8px;">
-            <button onclick="window.location.href='subscription.html'" style="flex:1; padding:12px; border:none; border-radius:12px; background:linear-gradient(135deg,#3B82F6,#2563EB); color:white; font-weight:700; font-size:0.95rem; cursor:pointer; font-family:'Inter',sans-serif; transition:transform 0.2s, box-shadow 0.2s;">
-                🚀 Upgrade Now
-            </button>
-            <button onclick="document.getElementById('upgradeModal').style.display='none'" style="flex:1; padding:12px; border:none; border-radius:12px; background:rgba(255,255,255,0.1); color:#0B1A2E; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:'Inter',sans-serif; border:1px solid rgba(11,26,46,0.1);">
-                Cancel
-            </button>
-        </div>
-        <p style="font-size:0.7rem; color:rgba(11,26,46,0.3); margin-top:14px;">
-            Already subscribed? <a href="#" onclick="location.reload()" style="color:#3B82F6; text-decoration:none; font-weight:600;">Refresh</a>
-        </p>
-    </div>
-</div>
 
-<style>
-    @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-    }
-</style>
+        <style>
+            @keyframes fadeIn {
+                from { opacity: 0; transform: scale(0.95); }
+                to { opacity: 1; transform: scale(1); }
+            }
+        </style>
     </body>
 </html>
