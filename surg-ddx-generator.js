@@ -79,7 +79,7 @@ const ddxDatabase = {
                 if (data.associatedSymptoms && data.associatedSymptoms.includes('headache')) score += 5;
                 if (data.rosData?.neurological?.present?.includes('Neck stiffness / Photophobia')) score += 15;
                 if (data.rosData?.neurological?.present?.includes('Lethargy / Drowsiness')) score += 10;
-                if (data.rosData?.neurological?.present?.includes('Convulsions / Fits')) score += 10;
+                if (data.rosData?.neurological?.present?.includes('Convulsions / Fits (describe)')) score += 10;
                 if (data.examData?.neurological?.pills?.includes('Neck stiffness')) score += 10;
                 if (data.examData?.neurological?.pills?.includes('Bulging fontanelle')) score += 8;
                 if (data.examData?.general?.pills?.includes('Ill-looking') || data.examData?.general?.pills?.includes('Toxic')) score += 5;
@@ -1457,9 +1457,16 @@ function runDdxEngine(complaint, patientData) {
     return allResults.sort((a, b) => b.score - a.score);
 }
 
-// Make available globally
-if (typeof window !== 'undefined') {
-    window.ddxDatabase = ddxDatabase;
-    window.genericDdx = genericDdx;
-    window.runDdxEngine = runDdxEngine;
-}
+// ============================================================
+// ALIASES for the page's expected variable names
+// ============================================================
+
+// The page looks for window.surgDdxDatabase and window.surgGenericDdx
+// We'll alias our databases to these names
+window.surgDdxDatabase = ddxDatabase;
+window.surgGenericDdx = genericDdx;
+
+// Also keep the original names for compatibility
+window.ddxDatabase = ddxDatabase;
+window.genericDdx = genericDdx;
+window.runDdxEngine = runDdxEngine;
