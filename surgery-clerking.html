@@ -4853,56 +4853,107 @@
                 };
             }
 
-            function runSurgDdxEngine(data) {
-                const db = window.surgDdxDatabase || {};
-                const generic = window.surgGenericDdx || {};
-                let matched = [];
+function runSurgDdxEngine(data) {
+    const db = window.surgDdxDatabase || {};
+    const generic = window.surgGenericDdx || {};
+    let matched = [];
 
-                function evaluate(key, def) {
-                    try {
-                        const score = def.likelihood(data);
-                        if (score > 0) {
-                            return { key, name: key, score: Math.round(score),
-                                description: def.description || '',
-                                distinguishingFeatures: def.distinguishingFeatures || [],
-                                investigations: def.investigations || [],
-                                treatment: def.treatment || '' };
-                        }
-                    } catch (e) { console.warn('DDx eval error:', key, e); }
-                    return null;
-                }
-
-                data.categories.forEach(cat => {
-                    Object.entries(db[cat] || {}).forEach(([key, def]) => {
-                        if (!matched.some(m => m.key === key)) {
-                            const r = evaluate(key, def);
-                            if (r) matched.push(r);
-                        }
-                    });
-                });
-
-                Object.entries(generic).forEach(([key, def]) => {
-                    if (!matched.some(m => m.key === key)) {
-                        const r = evaluate(key, def);
-                        if (r) matched.push(r);
-                    }
-                });
-
-                matched.sort((a, b) => b.score - a.score);
-
-                if (matched.length === 0) {
-                    matched.push({
-                        key: 'Undifferentiated Surgical Presentation',
-                        name: 'Undifferentiated Surgical Presentation',
-                        score: 10,
-                        description: 'No specific match found — complete PC category, ROS, and PE findings for a more accurate differential.',
-                        distinguishingFeatures: [], investigations: ['Full clinical assessment', 'FBC', 'CRP', 'Relevant imaging'],
-                        treatment: 'Assess further and reassess once more data is available.'
-                    });
-                }
-                return matched;
+    function evaluate(key, def) {
+        try {
+            // Check if def is a function or an object with a likelihood method
+            let score = 0;
+            if (typeof def === 'function') {
+                score = def(data);
+            } else if (typeof def.likelihood === 'function') {
+                score = def.likelihood(data);
+            } else {
+                console.warn('Invalid DDx entry for:', key);
+                return null;
             }
+            
+            if (score > 0) {
+                return { 
+                    key, 
+                    name: key, 
+                    score: Math.round(score),
+                    description: def.description || '',
+                    distinguishingFeatures: def.distinguishingFeatures || [],
+                    investigations: def.investigations || [],
+                    treatment: def.treatment || '' 
+                };
+            }
+        } catch (e) { 
+            console.warn('DDx eval error:', key, e); 
+        }
+        return null;
+    }
 
+    // 1. Check regular complaint categories from the database
+    data.categories.forEach(cat => {
+        if (db[cat]) {
+            Object.entries(db[cat]).forEach(([key, def]) => {
+                if (!matched.some(m => m.key === key)) {
+                    const r = evaluate(key, def);
+                    if (r) matched.push(r);
+                }
+            });
+        }
+    });
+
+    // 2. Check generic categories (like malnutrition)
+    // These are checked regardless of the complaint category
+    Object.entries(generic).forEach(([key, def]) => {
+        if (!matched.some(m => m.key === key)) {
+            const r = evaluate(key, def);
+            if (r) matched.push(r);
+        }
+    });
+
+    // 3. Also check if any of the data categories match generic keys
+    data.categories.forEach(cat => {
+        if (generic[cat]) {
+            Object.entries(generic[cat]).forEach(([key, def]) => {
+                if (!matched.some(m => m.key === key)) {
+                    const r = evaluate(key, def);
+                    if (r) matched.push(r);
+                }
+            });
+        }
+    });
+
+    matched.sort((a, b) => b.score - a.score);
+
+    // Remove duplicates (keep highest score)
+    const unique = [];
+    const seen = new Set();
+    matched.forEach(item => {
+        if (!seen.has(item.key)) {
+            seen.add(item.key);
+            unique.push(item);
+        } else {
+            // Keep the higher score
+            const existing = unique.find(u => u.key === item.key);
+            if (existing && item.score > existing.score) {
+                const index = unique.indexOf(existing);
+                unique[index] = item;
+            }
+        }
+    });
+    matched = unique;
+
+    if (matched.length === 0) {
+        matched.push({
+            key: 'Undifferentiated Surgical Presentation',
+            name: 'Undifferentiated Surgical Presentation',
+            score: 10,
+            description: 'No specific match found — complete PC category, ROS, and PE findings for a more accurate differential.',
+            distinguishingFeatures: [], 
+            investigations: ['Full clinical assessment', 'FBC', 'CRP', 'Relevant imaging'],
+            treatment: 'Assess further and reassess once more data is available.'
+        });
+    }
+    return matched;
+}
             function displayDdxResults(results, data) {
                 const summaryBox = document.getElementById('ddxSummaryBox');
                 const list = document.getElementById('ddxList');
