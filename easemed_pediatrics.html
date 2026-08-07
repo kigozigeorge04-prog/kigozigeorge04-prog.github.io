@@ -3114,25 +3114,14 @@
 
         // ─── SUPABASE CONFIG ───
 // ─── SUPABASE CONFIG ───
-// Using globals from access guard: window.EASEMED_SUPABASE_URL and window.EASEMED_SUPABASE_ANON_KEY
+const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
 
 let currentUser = null;
 let supabaseClient = null;
-let authInitialized = false;
 
 // ─── AUTH CHECK ───
 async function checkAuth() {
-    // Prevent multiple calls
-    if (authInitialized) return;
-    
-    // Check if access guard has already loaded and hidden content
-    const accessGuardStyle = document.getElementById('access-guard-hide-content');
-    if (accessGuardStyle && accessGuardStyle.textContent.includes('display: none')) {
-        console.log('[Auth] Access guard restricted module access - waiting');
-        // The access guard will show the upgrade modal
-        return;
-    }
-
     // Wait for Supabase SDK to be available
     if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
         console.warn('[Auth] Supabase SDK not available, retrying...');
@@ -3141,19 +3130,24 @@ async function checkAuth() {
     }
 
     try {
-        // Use the same client initialization as access guard
+        // Prefer the client created by access-guard.js
         if (window.__easemedSupabase) {
             supabaseClient = window.__easemedSupabase;
         } else {
-            // Use the global variables from access guard
-            supabaseClient = window.supabase.createClient(
-                window.EASEMED_SUPABASE_URL, 
-                window.EASEMED_SUPABASE_ANON_KEY
-            );
+            const supabaseUrl = window.EASEMED_SUPABASE_URL ||
+                (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : null);
+            const supabaseAnonKey = window.EASEMED_SUPABASE_ANON_KEY ||
+                (typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : null) ||
+                (typeof SUPABASE_ANON !== 'undefined' ? SUPABASE_ANON : null);
+
+            if (!supabaseUrl || !supabaseAnonKey) {
+                throw new Error('Supabase configuration is unavailable');
+            }
+
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
             window.__easemedSupabase = supabaseClient;
-            window.sb = supabaseClient;
         }
-        
+        window.sb = supabaseClient;
         console.log('[Auth] Supabase client initialized.');
 
         const { data: { session }, error } = await supabaseClient.auth.getSession();
@@ -3173,13 +3167,12 @@ async function checkAuth() {
         currentUser = session.user;
         window._currentUser = currentUser;
         window._sb = supabaseClient;
-        
         console.log('[Auth] User authenticated:', currentUser.email);
 
         // Check if profile is active
         const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
-            .select('is_active, expires_at, full_name')
+            .select('is_active, full_name, role, is_admin')
             .eq('id', currentUser.id)
             .single();
 
@@ -3187,38 +3180,40 @@ async function checkAuth() {
             console.warn('[Auth] Profile fetch warning:', profileError);
         }
 
+        // Update user greeting
         if (profile) {
-            if (!profile.is_active) {
-                window.location.href = 'easemed_payment.html';
-                return;
-            }
-            if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
-                await supabaseClient.from('profiles').update({ is_active: false }).eq('id', currentUser.id);
-                window.location.href = 'easemed_payment.html?reason=expired';
-                return;
-            }
-            
             const displayName = profile.full_name || currentUser.user_metadata?.full_name || 
                                currentUser.user_metadata?.name || currentUser.email;
             const greetingEl = document.getElementById('userGreeting');
-            if (greetingEl) greetingEl.textContent = '👤 ' + displayName;
+            if (greetingEl) {
+                greetingEl.textContent = '👤 ' + displayName;
+            }
         }
 
-        authInitialized = true;
-        
-        // Show content
+        // Check if user is admin (bypass subscription checks)
+        const isAdmin = profile?.is_admin === true || 
+                       profile?.role?.toLowerCase() === 'admin' ||
+                       profile?.role?.toLowerCase() === 'superadmin';
+
+        if (isAdmin) {
+            console.log('[Auth] Admin user - full access granted');
+            document.body.style.display = 'block';
+            initializePage();
+            return;
+        }
+
+        // Check if profile is active
+        if (profile && profile.is_active === false) {
+            console.warn('[Auth] Account is inactive');
+            window.location.href = 'subscription.html?reason=inactive';
+            return;
+        }
+
+        // Show the page content
         document.body.style.display = 'block';
-        const content = document.getElementById('moduleContent');
-        if (content) content.style.display = 'block';
-        
+
         // Initialize the page
-        if (typeof buildTogglePills === 'function') buildTogglePills();
-        if (typeof buildImmunizationGrid === 'function') buildImmunizationGrid();
-        if (typeof buildROS === 'function') buildROS();
-        if (typeof buildExamCards === 'function') buildExamCards();
-        if (typeof renderGallery === 'function') renderGallery();
-        if (typeof updateImageCount === 'function') updateImageCount();
-        if (typeof updateProgress === 'function') updateProgress();
+        initializePage();
 
     } catch (error) {
         console.error('[Auth] Fatal error:', error);
@@ -3226,13 +3221,40 @@ async function checkAuth() {
     }
 }
 
-// ─── PAGE INITIALIZATION ───
+// ─── INITIALIZE PAGE ───
+function initializePage() {
+    console.log('[Page] Initializing...');
+    if (typeof buildTogglePills === 'function') buildTogglePills();
+    if (typeof buildImmunizationGrid === 'function') buildImmunizationGrid();
+    if (typeof buildROS === 'function') buildROS();
+    if (typeof buildExamCards === 'function') buildExamCards();
+    if (typeof renderGallery === 'function') renderGallery();
+    if (typeof updateImageCount === 'function') updateImageCount();
+    if (typeof updateProgress === 'function') updateProgress();
+    console.log('[Page] Initialized successfully');
+}
+
+// ─── HANDLE LOGOUT ───
+async function handleLogout() {
+    try {
+        if (supabaseClient) {
+            await supabaseClient.auth.signOut();
+        }
+        localStorage.removeItem('easemed_user');
+        window.location.href = 'easemed_login.html';
+    } catch (error) {
+        console.error('[Logout] Error:', error);
+        window.location.href = 'easemed_login.html';
+    }
+}
+
+// ─── DOM CONTENT LOADED ───
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('[Pediatrics Module] Initializing...');
-    // Wait a bit for access guard to run first
-    setTimeout(checkAuth, 100);
-});        // ============================================================
-        // LOCAL STORAGE RECORDS
+    console.log('[Page] DOM ready, checking auth...');
+    document.body.style.display = 'none';
+    checkAuth();
+});
+     // LOCAL STORAGE RECORDS
         // ============================================================
         const STORAGE_KEY = 'easemed_pediatric_records';
 
