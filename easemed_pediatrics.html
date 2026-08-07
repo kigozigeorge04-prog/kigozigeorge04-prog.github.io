@@ -3114,15 +3114,26 @@
         }
 
         // ─── SUPABASE CONFIG ───
-  // ─── SUPABASE CONFIG ───
-const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+// ─── SUPABASE CONFIG ───
+// Using globals from access guard: window.EASEMED_SUPABASE_URL and window.EASEMED_SUPABASE_ANON_KEY
 
 let currentUser = null;
 let supabaseClient = null;
+let authInitialized = false;
 
 // ─── AUTH CHECK ───
 async function checkAuth() {
+    // Prevent multiple calls
+    if (authInitialized) return;
+    
+    // Check if access guard has already loaded and hidden content
+    const accessGuardStyle = document.getElementById('access-guard-hide-content');
+    if (accessGuardStyle && accessGuardStyle.textContent.includes('display: none')) {
+        console.log('[Auth] Access guard restricted module access - waiting');
+        // The access guard will show the upgrade modal
+        return;
+    }
+
     // Wait for Supabase SDK to be available
     if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
         console.warn('[Auth] Supabase SDK not available, retrying...');
@@ -3135,7 +3146,11 @@ async function checkAuth() {
         if (window.__easemedSupabase) {
             supabaseClient = window.__easemedSupabase;
         } else {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            // Use the global variables from access guard
+            supabaseClient = window.supabase.createClient(
+                window.EASEMED_SUPABASE_URL, 
+                window.EASEMED_SUPABASE_ANON_KEY
+            );
             window.__easemedSupabase = supabaseClient;
             window.sb = supabaseClient;
         }
@@ -3157,8 +3172,8 @@ async function checkAuth() {
         }
 
         currentUser = session.user;
-        window._currentUser = currentUser; // Make it globally accessible
-        window._sb = supabaseClient; // Make it globally accessible
+        window._currentUser = currentUser;
+        window._sb = supabaseClient;
         
         console.log('[Auth] User authenticated:', currentUser.email);
 
@@ -3190,17 +3205,9 @@ async function checkAuth() {
             if (greetingEl) greetingEl.textContent = '👤 ' + displayName;
         }
 
-        // Access guard will handle module access checks automatically
-        // It runs as an IIFE and will show upgrade modal if needed
+        authInitialized = true;
         
-        // Check if access guard has hidden content (meaning no access)
-        const accessGuardStyle = document.getElementById('access-guard-hide-content');
-        if (accessGuardStyle && accessGuardStyle.textContent.includes('display: none')) {
-            console.log('[Auth] Access guard restricted module access');
-            return;
-        }
-
-        // Show the page content only if access guard hasn't hidden it
+        // Show content
         document.body.style.display = 'block';
         const content = document.getElementById('moduleContent');
         if (content) content.style.display = 'block';
@@ -3223,10 +3230,9 @@ async function checkAuth() {
 // ─── PAGE INITIALIZATION ───
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Pediatrics Module] Initializing...');
-    // Start auth check
-    checkAuth();
-});
-        // ============================================================
+    // Wait a bit for access guard to run first
+    setTimeout(checkAuth, 100);
+});        // ============================================================
         // LOCAL STORAGE RECORDS
         // ============================================================
         const STORAGE_KEY = 'easemed_pediatric_records';
