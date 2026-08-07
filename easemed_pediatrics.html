@@ -3115,153 +3115,127 @@
 
         // ─── SUPABASE CONFIG ───
        
-        let currentUser = null;
-        let supabaseClient = null;
+       // ─── SUPABASE CONFIG ───
+let currentUser = null;
+let supabaseClient = null;
 
-        // ─── AUTH CHECK ───
-        async function checkAuth() {
-            // Wait for Supabase SDK to be available
-            if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-                console.warn('[Auth] Supabase SDK not available, retrying...');
-                setTimeout(checkAuth, 500);
-                return;
-            }
-
-            try {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('[Auth] Supabase client initialized.');
-
-                const { data: { session }, error } = await supabaseClient.auth.getSession();
-                
-                if (error) {
-                    console.error('[Auth] Session error:', error);
-                    window.location.href = 'easemed_login.html';
-                    return;
-                }
-
-                if (!session) {
-                    console.warn('[Auth] No session found, redirecting to login');
-                    window.location.href = 'easemed_login.html';
-                    return;
-                }
-
-                currentUser = session.user;
-                console.log('[Auth] User authenticated:', currentUser.email);
-
-                // Check if profile is active
-                const { data: profile, error: profileError } = await supabaseClient
-                    .from('profiles')
-                    .select('is_active, expires_at, full_name')
-                    .eq('id', currentUser.id)
-                    .single();
-
-                if (profileError) {
-                    console.warn('[Auth] Profile fetch warning:', profileError);
-                }
-
-                if (profile) {
-                    if (!profile.is_active) {
-                        window.location.href = 'easemed_payment.html';
-                        return;
-                    }
-                    if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
-                        await supabaseClient.from('profiles').update({ is_active: false }).eq('id', currentUser.id);
-                        window.location.href = 'easemed_payment.html?reason=expired';
-                        return;
-                    }
-                    
-                    const displayName = profile.full_name || currentUser.user_metadata?.full_name || 
-                                       currentUser.user_metadata?.name || currentUser.email;
-                    const greetingEl = document.getElementById('userGreeting');
-                    if (greetingEl) greetingEl.textContent = '👤 ' + displayName;
-                }
-
-                // Show the page content
-                document.body.style.display = 'block';
-                
-                // Initialize the page - call your existing init functions
-                if (typeof buildTogglePills === 'function') buildTogglePills();
-                if (typeof buildImmunizationGrid === 'function') buildImmunizationGrid();
-                if (typeof buildROS === 'function') buildROS();
-                if (typeof buildExamCards === 'function') buildExamCards();
-                if (typeof renderGallery === 'function') renderGallery();
-                if (typeof updateImageCount === 'function') updateImageCount();
-                if (typeof updateProgress === 'function') updateProgress();
-
-            } catch (error) {
-                console.error('[Auth] Fatal error:', error);
-                window.location.href = 'easemed_login.html';
-            }
-        }
-// Add this to the script section
-async function verifyModuleAccess() {
-    const sb = window.sb;
-    if (!sb) {
-        window.location.href = 'easemed_login.html';
-        return false;
+// ─── AUTH CHECK ───
+async function checkAuth() {
+    // Wait for Supabase SDK to be available
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+        console.warn('[Auth] Supabase SDK not available, retrying...');
+        setTimeout(checkAuth, 500);
+        return;
     }
 
     try {
-        const { data: { session } } = await sb.auth.getSession();
-        if (!session) {
+        // Use the same client initialization as access guard
+        if (window.__easemedSupabase) {
+            supabaseClient = window.__easemedSupabase;
+        } else {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            window.__easemedSupabase = supabaseClient;
+            window.sb = supabaseClient;
+        }
+        
+        console.log('[Auth] Supabase client initialized.');
+
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        
+        if (error) {
+            console.error('[Auth] Session error:', error);
             window.location.href = 'easemed_login.html';
-            return false;
+            return;
         }
 
-        const { data: sub, error } = await sb
-            .from('subscriptions')
-            .select('plan_type, allowed_modules, expiry_date')
-            .eq('user_id', session.user.id)
-            .eq('status', 'active')
-            .gte('expiry_date', new Date().toISOString())
-            .order('expiry_date', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        if (error || !sub) {
-            window.location.href = 'subscription.html?reason=expired';
-            return false;
+        if (!session) {
+            console.warn('[Auth] No session found, redirecting to login');
+            window.location.href = 'easemed_login.html';
+            return;
         }
 
-        if (sub.plan_type === 'basic') {
-            let allowed = sub.allowed_modules;
-            if (typeof allowed === 'string') {
-                allowed = allowed.split(',').map(m => m.trim());
+        currentUser = session.user;
+        console.log('[Auth] User authenticated:', currentUser.email);
+
+        // Check if profile is active
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles')
+            .select('is_active, expires_at, full_name')
+            .eq('id', currentUser.id)
+            .single();
+
+        if (profileError) {
+            console.warn('[Auth] Profile fetch warning:', profileError);
+        }
+
+        if (profile) {
+            if (!profile.is_active) {
+                window.location.href = 'easemed_payment.html';
+                return;
             }
-            if (!Array.isArray(allowed) || !allowed.includes('peds')) {
-                window.location.href = 'subscription.html?reason=upgrade&module=peds';
-                return false;
+            if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
+                await supabaseClient.from('profiles').update({ is_active: false }).eq('id', currentUser.id);
+                window.location.href = 'easemed_payment.html?reason=expired';
+                return;
             }
+            
+            const displayName = profile.full_name || currentUser.user_metadata?.full_name || 
+                               currentUser.user_metadata?.name || currentUser.email;
+            const greetingEl = document.getElementById('userGreeting');
+            if (greetingEl) greetingEl.textContent = '👤 ' + displayName;
         }
 
-        return true;
+        // Access guard will handle module access checks automatically
+        // It runs as an IIFE and will show upgrade modal if needed
+        
+        // Check if access guard has hidden content (meaning no access)
+        const accessGuardStyle = document.getElementById('access-guard-hide-content');
+        if (accessGuardStyle && accessGuardStyle.textContent.includes('display: none')) {
+            // Access guard blocked content, but we might need to show login/signup
+            console.log('[Auth] Access guard restricted module access');
+            // Don't proceed with initialization if access is blocked
+            return;
+        }
+
+        // Show the page content only if access guard hasn't hidden it
+        document.body.style.display = 'block';
+        
+        // Initialize the page - call your existing init functions
+        if (typeof buildTogglePills === 'function') buildTogglePills();
+        if (typeof buildImmunizationGrid === 'function') buildImmunizationGrid();
+        if (typeof buildROS === 'function') buildROS();
+        if (typeof buildExamCards === 'function') buildExamCards();
+        if (typeof renderGallery === 'function') renderGallery();
+        if (typeof updateImageCount === 'function') updateImageCount();
+        if (typeof updateProgress === 'function') updateProgress();
 
     } catch (error) {
-        console.error('[Module] Error:', error);
-        window.location.href = 'subscription.html?reason=error';
-        return false;
+        console.error('[Auth] Fatal error:', error);
+        window.location.href = 'easemed_login.html';
     }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const hasAccess = await verifyModuleAccess();
-    if (!hasAccess) return;
-    // Your existing code here...
-});
-        // ─── HANDLE LOGOUT ───
-        async function handleLogout() {
-            try {
-                if (supabaseClient) {
-                    await supabaseClient.auth.signOut();
-                }
-                localStorage.removeItem('easemed_user');
-                window.location.href = 'easemed_login.html';
-            } catch (error) {
-                console.error('[Logout] Error:', error);
-                window.location.href = 'easemed_login.html';
-            }
+// ─── HANDLE LOGOUT ───
+async function handleLogout() {
+    try {
+        if (supabaseClient) {
+            await supabaseClient.auth.signOut();
         }
+        // Clear any cached data
+        localStorage.removeItem('easemed_user');
+        // Redirect to login
+        window.location.href = 'easemed_login.html';
+    } catch (error) {
+        console.error('[Logout] Error:', error);
+        window.location.href = 'easemed_login.html';
+    }
+}
 
+// ─── PAGE INITIALIZATION ───
+document.addEventListener('DOMContentLoaded', () => {
+    // Start auth check
+    checkAuth();
+});
         // ─── DOM CONTENT LOADED ───
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[Page] DOM ready, checking auth...');
