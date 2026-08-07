@@ -22,11 +22,17 @@
     window.EASEMED_SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 
 
-    async function openModule(targetUrl, moduleKey) {
-    if (window._moduleNavigating) return;
+/**
+ * openModule - Gatekeeps navigation to clerkship modules.
+ * @param {string} targetUrl  - e.g. 'surgery-clerking.html'
+ * @param {string} moduleKey  - e.g. 'surgery', 'peds', 'obgyn'
+ */
+async function openModule(targetUrl, moduleKey) {
+    if (window._moduleNavigating) return; // prevent double-clicks
     window._moduleNavigating = true;
 
     try {
+        // Ensure Supabase client exists
         let sb = window._sb;
         if (!sb && window.supabase?.createClient) {
             sb = window.supabase.createClient(
@@ -40,26 +46,27 @@
             return;
         }
 
-        const { data: { session } } = await sb.auth.getSession();
-        if (!session) {
+        // Verify session
+        const { data: { session }, error: sessErr } = await sb.auth.getSession();
+        if (sessErr || !session) {
             window.location.href = 'easemed_login.html';
             return;
         }
 
-        const { data: profile, error } = await sb
+        // Verify profile is active
+        const { data: profile, error: profErr } = await sb
             .from('profiles')
-            .select('is_active, expires_at, modules, plan_type')
+            .select('is_active, expires_at')
             .eq('id', session.user.id)
             .single();
 
-        if (error || !profile) {
-            console.warn('[openModule] Profile fetch failed:', error);
+        if (profErr || !profile) {
+            console.warn('[openModule] Profile error:', profErr);
             window.location.href = 'easemed_dashboard.html';
             return;
         }
 
         if (!profile.is_active) {
-            sessionStorage.setItem('requestedModule', moduleKey);
             window.location.href = 'easemed_payment.html?module=' + encodeURIComponent(moduleKey);
             return;
         }
@@ -69,30 +76,18 @@
             return;
         }
 
-        // --- MODULE ACCESS CHECK ---
-        const userModules = Array.isArray(profile.modules) ? profile.modules : [];
-        const planType = (profile.plan_type || '').toLowerCase();
-        const hasFullAccess = ['premium', 'pro', 'full', 'all', 'complete'].includes(planType);
-        const hasModuleAccess = hasFullAccess || userModules.includes(moduleKey);
-
-        if (!hasModuleAccess) {
-            console.log(`[openModule] Module "${moduleKey}" not unlocked.`);
-            sessionStorage.setItem('requestedModule', moduleKey);
-            window.location.href = 'easemed_payment.html?module=' + encodeURIComponent(moduleKey);
-            return;
-        }
-
-        // Granted
+        // All good → navigate
         window.location.href = targetUrl;
 
     } catch (err) {
-        console.error('[openModule] Crash:', err);
+        console.error('[openModule] Error:', err);
         window.location.href = 'easemed_dashboard.html';
     } finally {
         window._moduleNavigating = false;
     }
 }
 
+// Make it global so inline onclick handlers can reach it
 window.openModule = openModule;
     
     function getCurrentModuleSlug() {
