@@ -5,7 +5,7 @@
 const ddxDatabase = {
     // ===== FEVER =====
     'fever': {
-        'Malaria': {
+        'Malaria': { 
             likelihood: function(data) { 
                 let score = 0;
                 if (data.ageMonths !== null && data.ageMonths > 1) score += 10;
