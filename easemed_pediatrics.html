@@ -3114,8 +3114,10 @@
         }
 
         // ─── SUPABASE CONFIG ───
-       
-       // ─── SUPABASE CONFIG ───
+  // ─── SUPABASE CONFIG ───
+const SUPABASE_URL = 'https://uhjcybwczelmqkkapeac.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoamN5YndjemVsbXFra2FwZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMTU3NjEsImV4cCI6MjA5Njc5MTc2MX0.mEkfofQUeBpjOgdyWqCkiX695pxbjY1LUpYrzhVH1Jc';
+
 let currentUser = null;
 let supabaseClient = null;
 
@@ -3155,6 +3157,9 @@ async function checkAuth() {
         }
 
         currentUser = session.user;
+        window._currentUser = currentUser; // Make it globally accessible
+        window._sb = supabaseClient; // Make it globally accessible
+        
         console.log('[Auth] User authenticated:', currentUser.email);
 
         // Check if profile is active
@@ -3191,16 +3196,16 @@ async function checkAuth() {
         // Check if access guard has hidden content (meaning no access)
         const accessGuardStyle = document.getElementById('access-guard-hide-content');
         if (accessGuardStyle && accessGuardStyle.textContent.includes('display: none')) {
-            // Access guard blocked content, but we might need to show login/signup
             console.log('[Auth] Access guard restricted module access');
-            // Don't proceed with initialization if access is blocked
             return;
         }
 
         // Show the page content only if access guard hasn't hidden it
         document.body.style.display = 'block';
+        const content = document.getElementById('moduleContent');
+        if (content) content.style.display = 'block';
         
-        // Initialize the page - call your existing init functions
+        // Initialize the page
         if (typeof buildTogglePills === 'function') buildTogglePills();
         if (typeof buildImmunizationGrid === 'function') buildImmunizationGrid();
         if (typeof buildROS === 'function') buildROS();
@@ -3215,39 +3220,12 @@ async function checkAuth() {
     }
 }
 
-// ─── HANDLE LOGOUT ───
-async function handleLogout() {
-    try {
-        if (supabaseClient) {
-            await supabaseClient.auth.signOut();
-        }
-        // Clear any cached data
-        localStorage.removeItem('easemed_user');
-        // Redirect to login
-        window.location.href = 'easemed_login.html';
-    } catch (error) {
-        console.error('[Logout] Error:', error);
-        window.location.href = 'easemed_login.html';
-    }
-}
-
 // ─── PAGE INITIALIZATION ───
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[Pediatrics Module] Initializing...');
     // Start auth check
     checkAuth();
 });
-        // ─── DOM CONTENT LOADED ───
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('[Page] DOM ready, checking auth...');
-            
-            // Hide body initially
-            document.body.style.display = 'none';
-            
-            // Check authentication
-            checkAuth();
-        });
-// ================================================================
-
         // ============================================================
         // LOCAL STORAGE RECORDS
         // ============================================================
