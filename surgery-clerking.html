@@ -2391,8 +2391,20 @@
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             (async function checkAuth() {
                 try {
-                    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-                    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    // NOTE: SUPABASE_URL / SUPABASE_ANON_KEY were never defined in this
+                    // file, so createClient() below used to throw a ReferenceError that
+                    // was silently swallowed by this try/catch — meaning auth was never
+                    // actually enforced on this page. Using access-guard.js's globals now.
+                    let supabase = window.__easemedSupabase;
+                    if (!supabase) {
+                        const supabaseUrl = window.EASEMED_SUPABASE_URL;
+                        const supabaseAnonKey = window.EASEMED_SUPABASE_ANON_KEY;
+                        if (!supabaseUrl || !supabaseAnonKey) throw new Error('Supabase configuration is unavailable');
+                        supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+                        window.__easemedSupabase = supabase;
+                    }
+                    window._sb = supabase;
+                    window.sb = supabase;
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session) {
                         window.location.replace('easemed_login.html');
