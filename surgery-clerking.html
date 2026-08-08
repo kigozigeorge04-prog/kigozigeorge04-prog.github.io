@@ -2410,18 +2410,21 @@
                         window.location.replace('easemed_login.html');
                         return;
                     }
+                    // NOTE: profiles.expires_at is a legacy column, stale for
+                    // essentially every user (stuck at 2026-08-01 while real
+                    // subscription status lives in the `subscriptions` table,
+                    // already checked correctly by access-guard.js). Gating on
+                    // it here — and writing is_active=false back based on it —
+                    // would lock out every currently-paying user. Only check
+                    // is_active (matches pediatrics/dashboard) and leave
+                    // module-level entitlement to access-guard.js.
                     const { data: profile } = await supabase
                         .from('profiles')
-                        .select('is_active, expires_at')
+                        .select('is_active, is_admin')
                         .eq('id', session.user.id)
                         .single();
-                    if (!profile || !profile.is_active) {
+                    if (profile && profile.is_active === false && !profile.is_admin) {
                         window.location.replace('easemed_payment.html');
-                        return;
-                    }
-                    if (profile.expires_at && new Date(profile.expires_at) < new Date()) {
-                        await supabase.from('profiles').update({ is_active: false }).eq('id', session.user.id);
-                        window.location.replace('easemed_payment.html?reason=expired');
                         return;
                     }
                 } catch (e) { console.warn('Auth check error:', e); }
