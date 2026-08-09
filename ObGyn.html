@@ -2938,11 +2938,17 @@
         // every currently-paying user. Only check is_active (matches
         // pediatrics/dashboard behavior) and leave module-level
         // entitlement to access-guard.js.
-        const { data: profile } = await sb
+const { data: profile, error: profileError } = await sb
             .from('profiles')
             .select('is_active, is_admin')
             .eq('id', session.user.id)
             .single();
+
+        if (profileError) {
+            console.warn('[Auth] Profile fetch warning:', profileError);
+            // Don't redirect on profile-fetch errors — session is valid,
+            // treat as unknown status and let the user in.
+        }
 
         if (profile && profile.is_active === false && !profile.is_admin) {
             window.location.replace('easemed_payment.html');
@@ -2957,7 +2963,10 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', checkAuth);
+  document.addEventListener('DOMContentLoaded', function() {
+    document.body.style.display = 'none';
+    checkAuth();
+  });
 
   // NOTE: module-level (basic plan / active_module) subscription enforcement
   // is already owned by js/access-guard.js — the old verifyModuleAccess()
