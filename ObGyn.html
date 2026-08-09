@@ -233,11 +233,11 @@
     line-height: 1.3;
     white-space: normal;
     max-width: 220px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+   box-shadow: 0 6px 18px rgba(0,0,0,0.2);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.15s ease, transform 0.15s ease;
-    z-index: 30;
+    z-index: 200;
     text-align: left;
 }
 .pe-finding-tag .pe-tooltip::after {
@@ -271,6 +271,16 @@
     left: auto;
     right: 14px;
     transform: translateX(0);
+}
+.pe-finding-tag.show-clue.clue-align-below .pe-tooltip {
+    bottom: auto;
+    top: calc(100% + 8px);
+}
+.pe-finding-tag.show-clue.clue-align-below .pe-tooltip::after {
+    top: auto;
+    bottom: 100%;
+    border-width: 0 5px 5px 5px;
+    border-color: transparent transparent #102a43 transparent;
 }
 
     /* Image Capture */
@@ -5316,16 +5326,22 @@ function showPeTooltip(btn) {
     });
 
     // Show tooltip
+  // Show tooltip
     btn.classList.add('show-clue');
     // Edge alignment
     requestAnimationFrame(() => {
         const rect = tooltip.getBoundingClientRect();
         const margin = 8;
-        btn.classList.remove('clue-align-left', 'clue-align-right');
+        btn.classList.remove('clue-align-left', 'clue-align-right', 'clue-align-below');
         if (rect.left < margin) {
             btn.classList.add('clue-align-left');
         } else if (rect.right > window.innerWidth - margin) {
             btn.classList.add('clue-align-right');
+        }
+        // Flip below the button if there's no room above (e.g. near the sticky topbar)
+        const topbarHeight = document.querySelector('.topbar')?.offsetHeight || 0;
+        if (rect.top < topbarHeight + margin) {
+            btn.classList.add('clue-align-below');
         }
     });
 
