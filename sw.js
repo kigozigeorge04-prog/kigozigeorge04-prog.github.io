@@ -1,11 +1,23 @@
 // ─── EaseMed Service Worker ──────────────────────────────────────
-// Version: 2.0.6
+// Version: 2.1.0
+// Changelog (2.1.0): iOS Safari PWA hardening
+//   - Capped dynamic cache size (iOS evicts caches under storage pressure /
+//     after ~7 days inactivity — an unbounded cache makes that worse)
+//   - Added fetch timeout on network-first paths (iOS WebView can hang
+//     longer than desktop on flaky mobile connections)
+//   - Added navigation preload for faster repeat HTML loads
+//   - Guarded background sync / push registration — unsupported or
+//     unreliable on iOS PWAs below iOS 16.4, and only work at all when
+//     the app has been added to the Home Screen (not in-browser Safari)
+//   - Note: iOS treats the installed (Home Screen) app as a SEPARATE
+//     storage/cache context from Safari browser tabs. If you test in
+//     Safari then re-test after "Add to Home Screen," caches will look
+//     empty again on first load — that's expected, not a bug.
 
-const CACHE_NAME = 'easemed-v2.0.6';
-const STATIC_CACHE = 'easemed-static-v2.0.6';
-const DYNAMIC_CACHE = 'easemed-dynamic-v2.0.6';
+const CACHE_VERSION = 'v2.1.0';
+const STATIC_CACHE = `easemed-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `easemed-dynamic-${CACHE_VERSION}`;
 
-// Files to cache on install
 const STATIC_FILES = [
     '/',
     '/easemed_login.html',
@@ -15,38 +27,101 @@ const STATIC_FILES = [
     '/manifest.json'
 ];
 
+// iOS Safari can evict storage aggressively — keep the dynamic cache
+// bounded so eviction (when it happens) isn't compounded by unbounded growth.
+const DYNAMIC_CACHE_MAX_ITEMS = 60;
+
+// Network requests on iOS WebView can hang far longer than desktop on poor
+// mobile connections. Race every network-first fetch against this timeout
+// so the cache/offline fallback kicks in promptly instead of the UI stalling.
+const NETWORK_TIMEOUT_MS = 6000;
+
+// ─── HELPERS ──────────────────────────────────────────────────────
+
+function fetchWithTimeout(request, timeoutMs) {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('network-timeout')), timeoutMs);
+        fetch(request)
+            .then((response) => {
+                clearTimeout(timer);
+                resolve(response);
+            })
+            .catch((err) => {
+                clearTimeout(timer);
+                reject(err);
+            });
+    });
+}
+
+async function trimCache(cacheName, maxItems) {
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+    if (keys.length <= maxItems) return;
+    // Evict oldest entries first (cache.keys() returns insertion order)
+    const excess = keys.length - maxItems;
+    for (let i = 0; i < excess; i++) {
+        await cache.delete(keys[i]);
+    }
+}
+
+async function putInCache(cacheName, request, response) {
+    try {
+        const cache = await caches.open(cacheName);
+        await cache.put(request, response);
+        if (cacheName === DYNAMIC_CACHE) {
+            await trimCache(DYNAMIC_CACHE, DYNAMIC_CACHE_MAX_ITEMS);
+        }
+    } catch (err) {
+        console.warn('[SW] Cache put error:', err);
+    }
+}
+
 // ─── INSTALL ──────────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
-    console.log('[SW] Installing version 2.0.6');
+    console.log('[SW] Installing version', CACHE_VERSION);
     event.waitUntil(
-        caches.open(STATIC_CACHE)
-            .then((cache) => {
-                console.log('[SW] Caching static assets');
-                return cache.addAll(STATIC_FILES)
-                    .catch(err => console.warn('[SW] Failed to cache some assets:', err));
-            })
-            .then(() => self.skipWaiting())
+        (async () => {
+            const cache = await caches.open(STATIC_CACHE);
+            try {
+                await cache.addAll(STATIC_FILES);
+            } catch (err) {
+                console.warn('[SW] Failed to cache some static assets:', err);
+            }
+            await cache.put('/offline.html', new Response(offlinePage, {
+                headers: { 'Content-Type': 'text/html' }
+            }));
+            await self.skipWaiting();
+        })()
     );
 });
 
 // ─── ACTIVATE ────────────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activating version 2.0.6');
+    console.log('[SW] Activating version', CACHE_VERSION);
     event.waitUntil(
-        caches.keys()
-            .then((cacheNames) => {
-                return Promise.all(
-                    cacheNames
-                        .filter((name) => {
-                            return name.startsWith('easemed-') && name !== STATIC_CACHE && name !== DYNAMIC_CACHE;
-                        })
-                        .map((name) => {
-                            console.log('[SW] Deleting old cache:', name);
-                            return caches.delete(name);
-                        })
-                );
-            })
-            .then(() => self.clients.claim())
+        (async () => {
+            const cacheNames = await caches.keys();
+            await Promise.all(
+                cacheNames
+                    .filter((name) => name.startsWith('easemed-') && name !== STATIC_CACHE && name !== DYNAMIC_CACHE)
+                    .map((name) => {
+                        console.log('[SW] Deleting old cache:', name);
+                        return caches.delete(name);
+                    })
+            );
+
+            // Navigation preload speeds up repeat HTML loads on iOS Safari.
+            // Not all iOS versions support it — feature-detect before enabling.
+            if (self.registration.navigationPreload) {
+                try {
+                    await self.registration.navigationPreload.enable();
+                } catch (err) {
+                    console.warn('[SW] Navigation preload not available:', err);
+                }
+            }
+
+            await self.clients.claim();
+        })()
     );
 });
 
@@ -55,44 +130,39 @@ self.addEventListener('fetch', (event) => {
     const request = event.request;
     const url = new URL(request.url);
 
-    // Skip non-GET requests
     if (request.method !== 'GET') {
         event.respondWith(fetch(request));
         return;
     }
 
-    // Do not intercept cross-origin requests. Their CSP permissions belong to
-    // the page, and responding here can turn a blocked request into an
-    // unhandled service-worker promise rejection.
+    // Don't intercept cross-origin requests — CSP belongs to the page, and
+    // responding here can turn a blocked request into an unhandled rejection.
     if (url.origin !== self.location.origin) {
         return;
     }
 
-    // HTML pages - network first, fallback to cache
-    if (request.headers.get('accept')?.includes('text/html')) {
+    // HTML pages — network first (with timeout + preload), fallback to cache
+    if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
         event.respondWith(
-            fetch(request)
-                .then((response) => {
-                    const clonedResponse = response.clone();
-                    caches.open(DYNAMIC_CACHE)
-                        .then((cache) => {
-                            cache.put(request, clonedResponse);
-                        })
-                        .catch(err => console.warn('[SW] Cache put error:', err));
+            (async () => {
+                try {
+                    // Use the preloaded response if the browser already started one
+                    const preloaded = 'preloadResponse' in event ? await event.preloadResponse : null;
+                    const response = preloaded || await fetchWithTimeout(request, NETWORK_TIMEOUT_MS);
+                    await putInCache(DYNAMIC_CACHE, request, response.clone());
                     return response;
-                })
-                .catch(() => {
-                    return caches.match(request)
-                        .then((cachedResponse) => {
-                            if (cachedResponse) return cachedResponse;
-                            return caches.match('/offline.html');
-                        });
-                })
+                } catch (err) {
+                    const cached = await caches.match(request);
+                    if (cached) return cached;
+                    const offline = await caches.match('/offline.html');
+                    return offline || new Response('Offline', { status: 503 });
+                }
+            })()
         );
         return;
     }
 
-    // Static assets - cache first
+    // Static assets — cache first
     if (
         request.url.includes('/js/') ||
         request.url.includes('/css/') ||
@@ -100,55 +170,42 @@ self.addEventListener('fetch', (event) => {
         request.url.includes('/static/')
     ) {
         event.respondWith(
-            caches.match(request)
-                .then((cachedResponse) => {
-                    if (cachedResponse) {
-                        return cachedResponse;
+            (async () => {
+                const cached = await caches.match(request);
+                if (cached) return cached;
+                try {
+                    const response = await fetchWithTimeout(request, NETWORK_TIMEOUT_MS);
+                    if (response.ok) {
+                        await putInCache(STATIC_CACHE, request, response.clone());
                     }
-                    return fetch(request)
-                        .then((response) => {
-                            if (response.ok) {
-                                const clonedResponse = response.clone();
-                                caches.open(STATIC_CACHE)
-                                    .then((cache) => {
-                                        cache.put(request, clonedResponse);
-                                    })
-                                    .catch(err => console.warn('[SW] Cache put error:', err));
-                            }
-                            return response;
-                        })
-                        .catch(() => {
-                            return caches.match(request);
-                        });
-                })
+                    return response;
+                } catch (err) {
+                    const fallback = await caches.match(request);
+                    return fallback || new Response('Resource not available offline', { status: 404 });
+                }
+            })()
         );
         return;
     }
 
-    // All other requests - network first
+    // Everything else — network first
     event.respondWith(
-        fetch(request)
-            .then((response) => {
+        (async () => {
+            try {
+                const response = await fetchWithTimeout(request, NETWORK_TIMEOUT_MS);
                 if (response.ok) {
-                    const clonedResponse = response.clone();
-                    caches.open(DYNAMIC_CACHE)
-                        .then((cache) => {
-                            cache.put(request, clonedResponse);
-                        })
-                        .catch(err => console.warn('[SW] Cache put error:', err));
+                    await putInCache(DYNAMIC_CACHE, request, response.clone());
                 }
                 return response;
-            })
-            .catch(() => {
-                return caches.match(request)
-                    .then((cachedResponse) => {
-                        if (cachedResponse) return cachedResponse;
-                        return new Response('Resource not available offline', {
-                            status: 404,
-                            statusText: 'Not Found'
-                        });
-                    });
-            })
+            } catch (err) {
+                const cached = await caches.match(request);
+                if (cached) return cached;
+                return new Response('Resource not available offline', {
+                    status: 404,
+                    statusText: 'Not Found'
+                });
+            }
+        })()
     );
 });
 
@@ -157,6 +214,41 @@ self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
+});
+
+// ─── PUSH (guarded — iOS 16.4+ Home Screen apps only) ────────────
+// iOS Safari does not support the Push API in-browser at all, and only
+// supports it for PWAs that have been added to the Home Screen, on iOS
+// 16.4+. Guard so this doesn't throw on unsupported iOS versions.
+self.addEventListener('push', (event) => {
+    if (!self.registration.showNotification) return;
+    let data = {};
+    try {
+        data = event.data ? event.data.json() : {};
+    } catch (err) {
+        data = { title: 'EaseMed', body: event.data ? event.data.text() : '' };
+    }
+    event.waitUntil(
+        self.registration.showNotification(data.title || 'EaseMed', {
+            body: data.body || '',
+            icon: '/icons/icon-192.png',
+            badge: '/icons/badge-72.png'
+        })
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window' }).then((clientList) => {
+            for (const client of clientList) {
+                if ('focus' in client) return client.focus();
+            }
+            if (self.clients.openWindow) {
+                return self.clients.openWindow('/modules.html');
+            }
+        })
+    );
 });
 
 // ─── OFFLINE PAGE ────────────────────────────────────────────────
@@ -200,15 +292,3 @@ const offlinePage = `
 </body>
 </html>
 `;
-
-// Cache offline page during install
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(STATIC_CACHE)
-            .then((cache) => {
-                return cache.put('/offline.html', new Response(offlinePage, {
-                    headers: { 'Content-Type': 'text/html' }
-                }));
-            })
-    );
-});
