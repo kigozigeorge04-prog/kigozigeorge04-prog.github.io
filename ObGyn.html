@@ -2889,18 +2889,12 @@
 <script>
   // ============================================================
   // SUPABASE CONFIGURATION
-  let currentPatientId = null;
+let currentUser = null;
+let supabaseClient = null;
 
-  // ─── AUTH CHECK ───
-  // NOTE: SUPABASE_URL / SUPABASE_ANON were never defined in this file, so
-  // this used to throw a ReferenceError before window._sbClient was ever
-  // set. That left window.sb/window._sbClient empty, which made the
-  // DOMContentLoaded handler below (verifyModuleAccess) immediately bounce
-  // everyone to easemed_login.html even with a valid session. Fixed to use
-  // the same safe pattern as the dashboard/pediatrics pages: prefer the
-  // client access-guard.js already created, and fall back to its exposed
-  // window.EASEMED_SUPABASE_URL / window.EASEMED_SUPABASE_ANON_KEY globals.
-  async function checkAuth() {
+// ─── AUTH CHECK ───
+async function checkAuth() {
+    // Wait for Supabase SDK to be available
     if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
         console.warn('[Auth] Supabase SDK not available, retrying...');
         setTimeout(checkAuth, 500);
@@ -2908,37 +2902,43 @@
     }
 
     try {
-        let sb;
+        // Prefer the client created by access-guard.js
         if (window.__easemedSupabase) {
-            sb = window.__easemedSupabase;
+            supabaseClient = window.__easemedSupabase;
         } else {
-            const supabaseUrl = window.EASEMED_SUPABASE_URL;
-            const supabaseAnonKey = window.EASEMED_SUPABASE_ANON_KEY;
+            const supabaseUrl = window.EASEMED_SUPABASE_URL ||
+                (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : null);
+            const supabaseAnonKey = window.EASEMED_SUPABASE_ANON_KEY ||
+                (typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : null) ||
+                (typeof SUPABASE_ANON !== 'undefined' ? SUPABASE_ANON : null);
+
             if (!supabaseUrl || !supabaseAnonKey) {
                 throw new Error('Supabase configuration is unavailable');
             }
-            sb = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-            window.__easemedSupabase = sb;
-        }
-        window._sbClient = sb;
-        window.sb = sb;
 
-        const { data: { session } } = await sb.auth.getSession();
-        if (!session) {
-            window.location.replace('easemed_login.html');
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+            window.__easemedSupabase = supabaseClient;
+        }
+        window.sb = supabaseClient;
+        console.log('[Auth] Supabase client initialized.');
+
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        
+        if (error) {
+            console.error('[Auth] Session error:', error);
+            window.location.href = 'easemed_login.html';
             return;
         }
 
-        // NOTE: profiles.expires_at is a legacy column that is stale for
-        // essentially every user (it's stuck at 2026-08-01 for the whole
-        // user base while real subscription status lives in the
-        // `subscriptions` table, which access-guard.js already checks
-        // correctly). Gating on it here — and worse, writing
-        // is_active=false back to the DB based on it — would lock out
-        // every currently-paying user. Only check is_active (matches
-        // pediatrics/dashboard behavior) and leave module-level
-        // entitlement to access-guard.js.
-const { data: profile, error: profileError } = await sb
+        if (!session) {
+            console.warn('[Auth] No session found, redirecting to login');
+            window.location.href = 'easemed_login.html';
+            return;
+        }
+
+        currentUser = session.user;
+}
+  const { data: profile, error: profileError } = await sb
             .from('profiles')
             .select('is_active, is_admin')
             .eq('id', session.user.id)
