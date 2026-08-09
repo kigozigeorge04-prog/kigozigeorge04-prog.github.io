@@ -4559,7 +4559,7 @@ function buildKnowledgeBase() {
             { check: p => complaintIncludes(p, ['obs-htn', 'obs-preeclampsia']), weight: 3, matchText: 'Complaint of hypertension or pre-eclampsia features' },
             { check: p => hasRos(p, 'cns', ['Headache', 'Visual changes']), weight: 2, matchText: 'Headache or visual changes on ROS' },
             { check: p => hasRos(p, 'cns', ['Seizures']), weight: 1, matchText: 'Seizures (could indicate eclampsia)' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting', 'Epigastric pain']), weight: 2, matchText: 'Nausea, vomiting, or epigastric pain (HELLP warning)' },
+            { check: p => hasRos(p, 'git', ['Nausea', 'Vomiting', 'Epigastric pain']), weight: 2, matchText: 'Nausea, vomiting, or epigastric pain (HELLP warning)' },
             { check: p => hasChronic(p, ['hypertension']), weight: 2, matchText: 'Chronic hypertension' },
             { check: p => p.age > 35 || p.gravida > 2, weight: 1, matchText: 'Age >35 or grand multiparity' },
             { check: p => isViable(p) && woaWeeks(p) >= 20, weight: 4, matchText: p => `Pregnancy ≥20 weeks (${woaWeeks(p)} weeks) – pre-eclampsia typically presents after 20 weeks` },
@@ -4602,7 +4602,7 @@ function buildKnowledgeBase() {
             { check: p => hasRos(p, 'urinogenital', ['Urinary frequency']), weight: 1, matchText: 'Urinary frequency on ROS' },
             { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2, matchText: 'Previous preterm birth' },
             { check: p => p.gravida > 2, weight: 1, matchText: 'Grand multiparity' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Diarrhoea']), weight: 1, matchText: 'Diarrhoea (possible infection trigger)' },
+            { check: p => hasRos(p, 'git', ['Diarrhoea']), weight: 1, matchText: 'Diarrhoea (possible infection trigger)' },
             { check: p => hasPe(p, 'vaginal', ['Cervical os open']), weight: 3, matchText: 'Pelvic exam: open cervical os' },
             { check: p => isViable(p), weight: 1, matchText: 'Viable pregnancy (≥26 weeks) – active management indicated' },
         ]
@@ -4637,8 +4637,8 @@ function buildKnowledgeBase() {
         ],
         criteria: [
             { check: p => complaintIncludes(p, ['obs-vomiting']), weight: 3, matchText: 'Complaint of vomiting in pregnancy' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2, matchText: 'Nausea or vomiting on ROS' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2, matchText: 'Weight loss on ROS' },
+            { check: p => hasRos(p, 'git', ['Nausea', 'Vomiting']), weight: 2, matchText: 'Nausea or vomiting on ROS' },
+            { check: p => hasRos(p, 'git', ['Weight loss']), weight: 2, matchText: 'Weight loss on ROS' },
             { check: p => p.gravida > 1, weight: 1, matchText: 'Multiparity' },
             { check: p => p.vitals.hr > 100, weight: 1, matchText: 'Tachycardia (possible dehydration)' },
         ]
@@ -4655,7 +4655,7 @@ function buildKnowledgeBase() {
         ],
         criteria: [
             { check: p => complaintIncludes(p, ['gyn-pv-bleed']), weight: 3, matchText: 'Complaint of vaginal bleeding' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
+            { check: p => hasRos(p, 'git', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
             { check: p => hasPe(p, 'vaginal', ['Cervical os open']), weight: 3, matchText: 'Pelvic exam: open cervical os' },
             { check: p => p.gravida > 0, weight: 1, matchText: 'Pregnant (gravida >0)' },
             { check: p => isPregnant(p) && woaWeeks(p) < 20, weight: 4, matchText: p => `Pregnancy <20 weeks (${woaWeeks(p)} weeks) – defines miscarriage` },
@@ -4674,7 +4674,7 @@ function buildKnowledgeBase() {
         ],
         criteria: [
             { check: p => complaintIncludes(p, ['gyn-pelvic-pain']), weight: 3, matchText: 'Complaint of pelvic pain' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain', 'Nausea', 'Vomiting']), weight: 2, matchText: 'Abdominal pain, nausea, or vomiting on ROS' },
+            { check: p => hasRos(p, 'git', ['Abdominal pain', 'Nausea', 'Vomiting']), weight: 2, matchText: 'Abdominal pain, nausea, or vomiting on ROS' },
             { check: p => hasPe(p, 'vaginal', ['Adnexal mass', 'Adnexal tenderness']), weight: 4, matchText: 'Pelvic exam: adnexal mass or tenderness' },
             { check: p => p.gynConditions.some(c => c.toLowerCase().includes('cyst')), weight: 2, matchText: 'Known ovarian cyst' },
         ]
@@ -4710,7 +4710,7 @@ function buildKnowledgeBase() {
         criteria: [
             { check: p => complaintIncludes(p, ['gyn-pmb']), weight: 5, matchText: 'Complaint of post-menopausal bleeding' },
             { check: p => p.menstrualStatus === 'Postmenopausal', weight: 3, matchText: 'Postmenopausal status' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Weight loss']), weight: 2, matchText: 'Weight loss on ROS' },
+            { check: p => hasRos(p, 'git', ['Weight loss']), weight: 2, matchText: 'Weight loss on ROS' },
             { check: p => hasChronic(p, ['obesity', 'hypertension', 'diabetes']), weight: 2, matchText: 'Obesity, hypertension, or diabetes' },
         ]
     });
@@ -4743,7 +4743,7 @@ function buildKnowledgeBase() {
         ],
         criteria: [
             { check: p => complaintIncludes(p, ['gyn-pv-bleed', 'gyn-mass']), weight: 3, matchText: 'Complaint of vaginal bleeding or pelvic mass' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain', 'Bloating']), weight: 2, matchText: 'Abdominal pain or bloating on ROS' },
+            { check: p => hasRos(p, 'git', ['Abdominal pain', 'Bloating']), weight: 2, matchText: 'Abdominal pain or bloating on ROS' },
             { check: p => hasPe(p, 'vaginal', ['Uterus enlarged']), weight: 4, matchText: 'Pelvic exam: enlarged uterus' },
             { check: p => p.gynConditions.some(c => c.toLowerCase().includes('fibroid')), weight: 2, matchText: 'Known uterine fibroids' },
             { check: p => p.age > 30, weight: 1, matchText: 'Age >30' },
@@ -4761,7 +4761,7 @@ function buildKnowledgeBase() {
         ],
         criteria: [
             { check: p => complaintIncludes(p, ['gyn-pelvic-pain']), weight: 3, matchText: 'Complaint of pelvic pain' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
+            { check: p => hasRos(p, 'git', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
             { check: p => hasRos(p, 'urinogenital', ['Dyspareunia']), weight: 2, matchText: 'Dyspareunia on ROS' },
             { check: p => p.gynConditions.some(c => c.toLowerCase().includes('endometriosis')), weight: 2, matchText: 'Known endometriosis' },
             { check: p => p.age < 40, weight: 1, matchText: 'Age <40' },
@@ -4849,7 +4849,7 @@ function buildKnowledgeBase() {
             { check: p => hasPe(p, 'obstetric', ['Liquor: clear', 'Liquor: meconium-stained']), weight: 2, matchText: 'Obstetric exam: liquor status noted' },
             { check: p => p.prevObsComp.some(c => c.toLowerCase().includes('preterm')), weight: 2, matchText: 'Previous preterm delivery' },
             { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 2, matchText: 'Fever – consider chorioamnionitis' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 1, matchText: 'Abdominal pain – possible infection' },
+            { check: p => hasRos(p, 'git', ['Abdominal pain']), weight: 1, matchText: 'Abdominal pain – possible infection' },
             { check: p => isViable(p), weight: 1, matchText: 'Viable pregnancy – active management (steroids/antibiotics)' },
         ]
     });
@@ -4865,7 +4865,7 @@ function buildKnowledgeBase() {
         ],
         criteria: [
             { check: p => hasRos(p, 'respiratory', ['Fever']), weight: 3, matchText: 'Fever on ROS' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
+            { check: p => hasRos(p, 'git', ['Abdominal pain']), weight: 2, matchText: 'Abdominal pain on ROS' },
             { check: p => hasPe(p, 'obstetric', ['Uterus tender', 'Liquor: offensive']), weight: 4, matchText: 'Obstetric exam: tender uterus or offensive liquor' },
             { check: p => complaintIncludes(p, ['obs-rom']), weight: 2, matchText: 'Complaint of ruptured membranes' },
             { check: p => p.vitals.temp > 38, weight: 2, matchText: 'Fever >38°C' },
@@ -4902,7 +4902,7 @@ function buildKnowledgeBase() {
         ],
         criteria: [
             { check: p => complaintIncludes(p, ['obs-molar']), weight: 4, matchText: 'Complaint of molar pregnancy signs' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Nausea', 'Vomiting']), weight: 2, matchText: 'Nausea or vomiting on ROS' },
+            { check: p => hasRos(p, 'git', ['Nausea', 'Vomiting']), weight: 2, matchText: 'Nausea or vomiting on ROS' },
             { check: p => hasRos(p, 'cns', ['Headache']), weight: 1, matchText: 'Headache on ROS' },
             { check: p => p.gravida > 0, weight: 1, matchText: 'Pregnant' },
         ]
@@ -4919,8 +4919,8 @@ function buildKnowledgeBase() {
         ],
         criteria: [
             { check: p => complaintIncludes(p, ['obs-cholestasis']), weight: 4, matchText: 'Complaint of obstetric cholestasis' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Pruritus']), weight: 3, matchText: 'Pruritus (itching) on ROS' },
-            { check: p => hasRos(p, 'gastrointestinal', ['Jaundice']), weight: 2, matchText: 'Jaundice on ROS' },
+            { check: p => hasRos(p, 'git', ['Pruritus']), weight: 3, matchText: 'Pruritus (itching) on ROS' },
+            { check: p => hasRos(p, 'git', ['Jaundice']), weight: 2, matchText: 'Jaundice on ROS' },
         ]
     });
 
