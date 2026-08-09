@@ -2889,12 +2889,8 @@
 <script>
   // ============================================================
   // SUPABASE CONFIGURATION
-let currentUser = null;
-let supabaseClient = null;
 
-// ─── AUTH CHECK ───
 async function checkAuth() {
-    // Wait for Supabase SDK to be available
     if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
         console.warn('[Auth] Supabase SDK not available, retrying...');
         setTimeout(checkAuth, 500);
@@ -2902,7 +2898,6 @@ async function checkAuth() {
     }
 
     try {
-        // Prefer the client created by access-guard.js
         if (window.__easemedSupabase) {
             supabaseClient = window.__easemedSupabase;
         } else {
@@ -2923,7 +2918,7 @@ async function checkAuth() {
         console.log('[Auth] Supabase client initialized.');
 
         const { data: { session }, error } = await supabaseClient.auth.getSession();
-        
+
         if (error) {
             console.error('[Auth] Session error:', error);
             window.location.href = 'easemed_login.html';
@@ -2937,8 +2932,9 @@ async function checkAuth() {
         }
 
         currentUser = session.user;
-}
-  const { data: profile, error: profileError } = await sb
+
+        // ↓↓↓ this block moves back INSIDE the try, no closing brace before it ↓↓↓
+        const { data: profile, error: profileError } = await supabaseClient
             .from('profiles')
             .select('is_active, is_admin')
             .eq('id', session.user.id)
@@ -2946,8 +2942,6 @@ async function checkAuth() {
 
         if (profileError) {
             console.warn('[Auth] Profile fetch warning:', profileError);
-            // Don't redirect on profile-fetch errors — session is valid,
-            // treat as unknown status and let the user in.
         }
 
         if (profile && profile.is_active === false && !profile.is_admin) {
@@ -2961,8 +2955,7 @@ async function checkAuth() {
         console.error('[Auth] Fatal error:', error);
         window.location.replace('easemed_login.html');
     }
-  }
-
+}   // ← function closes ONLY here now
   document.addEventListener('DOMContentLoaded', function() {
     document.body.style.display = 'none';
     checkAuth();
@@ -5418,8 +5411,7 @@ function onVitalChange(type) {
   // Update progress and PE data
   if (typeof updateProgress === 'function') updateProgress();
   if (typeof xpSave === 'function') xpSave('general');
-}
-              </script>
+ </script>
                         
 </body>
 </html>
