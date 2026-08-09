@@ -2284,7 +2284,7 @@
       <div><label style="font-size:0.7rem;">Temp (°C)</label><input type="number" step="0.1" id="pe_temp" placeholder="37.0" style="padding:4px 8px; font-size:0.8rem;" onchange="onVitalChange('temp')" /></div>
     </div>
     <div style="font-size:0.7rem; color:#64748b; font-style:italic;">Enter values – abnormal vitals will be automatically flagged. Click any abnormal tag below to see its clinical clue.</div>
-    <div class="pe-findings-wrap" style="margin-top:8px;">
+    <div class="pe-findings-wrap" data-system="general-vitals" style="margin-top:8px;">
       <button class="pe-finding-tag" data-finding="Tachycardia" onclick="togglePEFinding(this)">Tachycardia</button>
       <button class="pe-finding-tag" data-finding="Bradycardia" onclick="togglePEFinding(this)">Bradycardia</button>
       <button class="pe-finding-tag" data-finding="Hypertension" onclick="togglePEFinding(this)">Hypertension</button>
@@ -2970,8 +2970,9 @@ async function checkAuth() {
   // ============================================================
   // 1. IMAGE CAPTURE FUNCTIONALITY
   // ============================================================
-  let capturedImages = [];
+let capturedImages = [];
   let stream = null;
+  let currentPatientId = null;
 
   function startCamera() {
     const container = document.getElementById('videoContainer');
@@ -3637,8 +3638,11 @@ window.loadSavedRecordIntoForm = loadSavedRecordIntoForm;
   // 18. CREATE SUPABASE CLIENT
   // ============================================================
 function getSupabaseClient() {
-  if (window._sbClient) {
-    return window._sbClient;
+  if (window.__easemedSupabase) {
+    return window.__easemedSupabase;
+  }
+  if (window.sb) {
+    return window.sb;
   }
   throw new Error('Supabase client not initialized yet. Please wait for the page to finish loading.');
 }
@@ -3787,14 +3791,29 @@ function getSupabaseClient() {
         };
 
         // Check if record exists in Supabase
-        const { data: existing, error: checkError } = await sb
-          .from('patient_records')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('full_name', record.patientName)
-          .eq('module', 'obgyn')
-          .order('created_at', { ascending: false })
-          .limit(1);
+       let existing = [];
+        if (currentPatientId) {
+          const { data: byId, error: idErr } = await sb
+            .from('patient_records')
+            .select('id')
+            .eq('id', currentPatientId)
+            .eq('user_id', user.id)
+            .limit(1);
+          if (idErr) console.warn('id lookup failed, falling back to name match:', idErr);
+          existing = byId || [];
+        }
+        if (existing.length === 0) {
+          const { data: byName, error: checkError } = await sb
+            .from('patient_records')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('full_name', record.patientName)
+            .eq('module', 'obgyn')
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (checkError) throw checkError;
+          existing = byName || [];
+        }
 
         let result;
         if (existing && existing.length > 0) {
