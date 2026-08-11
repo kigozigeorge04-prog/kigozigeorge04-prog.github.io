@@ -167,10 +167,10 @@ window.openModule = openModule;
                 return false;
             }
             
-            if (subscription.plan_type === 'premium' || subscription.plan_type === 'free_trial') {
-                console.log('[AccessGuard] Premium/free trial access granted');
-                return true;
-            }
+          if (subscription.plan_type === 'premium' || subscription.plan_type === 'free-trial') {
+    console.log('[AccessGuard] Premium/free trial access granted');
+    return true;
+}
             
             const hasAccess = subscription.plan_type === 'basic' && subscription.active_module === moduleSlug;
             console.log('[AccessGuard] Basic plan access:', hasAccess);
