@@ -1494,9 +1494,53 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Service Worker -->
 <script>
     if ('serviceWorker' in navigator) {
+        let refreshing = false;
+
+        // Reload once the NEW service worker actually takes control.
+        // Without this, an updated SW can activate in the background
+        // while the open tab keeps running old JS/HTML indefinitely.
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+        });
+
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('✅ Service Worker registered'))
+                .then(reg => {
+                    console.log('✅ Service Worker registered');
+
+                    // Force an update check now (bypasses any stale
+                    // in-memory registration on long-backgrounded tabs)
+                    reg.update();
+
+                    // Re-check whenever the tab regains focus/visibility —
+                    // covers PWAs that are backgrounded for days/weeks
+                    // instead of being closed.
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') {
+                            reg.update();
+                        }
+                    });
+
+                    // A new SW found installing — tell it to activate
+                    // immediately instead of waiting.
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        if (!newWorker) return;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                            }
+                        });
+                    });
+
+                    // Catch the case where a new SW is already waiting
+                    // (e.g. install completed while this listener wasn't attached yet)
+                    if (reg.waiting) {
+                        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                })
                 .catch(err => console.warn('❌ SW registration failed:', err));
         });
     }
