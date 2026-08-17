@@ -1,5 +1,5 @@
 // ─── EaseMed Service Worker ──────────────────────────────────────
-// Version: 2.1.0
+// Version: 2.1.1
 // Changelog (2.1.0): iOS Safari PWA hardening
 //   - Capped dynamic cache size (iOS evicts caches under storage pressure /
 //     after ~7 days inactivity — an unbounded cache makes that worse)
@@ -14,7 +14,7 @@
 //     Safari then re-test after "Add to Home Screen," caches will look
 //     empty again on first load — that's expected, not a bug.
 
-const CACHE_VERSION = 'v2.1.0';
+const CACHE_VERSION = 'v2.1.1';
 const STATIC_CACHE = `easemed-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `easemed-dynamic-${CACHE_VERSION}`;
 
