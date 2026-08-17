@@ -2196,14 +2196,23 @@
                     throw error;
                 }
 
-              resetAttempts(RL_KEY);
+                resetAttempts(RL_KEY);
 
-showNotice('signupNotice', 'success', 'Account created! Redirecting…');
+                if (rememberMe) {
+                    localStorage.setItem('easemed_remembered_email', email);
+                    localStorage.setItem('easemed_remember_me', 'true');
+                } else {
+                    localStorage.removeItem('easemed_remembered_email');
+                    localStorage.setItem('easemed_remember_me', 'false');
+                }
 
-setTimeout(() => {
-    window.location.href = '/modules.html';
-}, 1000);
-                
+                showNotice('loginNotice', 'success', 'Welcome back! Redirecting…');
+                localStorage.setItem('easemed_user', JSON.stringify(data.user));
+
+                setTimeout(() => {
+                    window.location.href = '/modules.html';
+                }, 1200);
+
             } catch (error) {
                 if (isLocked(RL_KEY)) {
                     const secs = remainingLockSeconds(RL_KEY);
