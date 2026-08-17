@@ -2339,20 +2339,13 @@
                     throw error;
                 }
 
-                resetAttempts(RL_KEY);
+               resetAttempts(RL_KEY);
 
-                showNotice('signupNotice', 'success',
-                    `Account created! Check ${email} for confirmation.`
-                );
+showNotice('signupNotice', 'success', 'Account created! Redirecting…');
 
-                btn.disabled = false;
-                btn.innerHTML = 'Create account';
-
-                setTimeout(() => {
-                    switchToLogin();
-                    document.getElementById('loginEmail').value = email;
-                    showNotice('loginNotice', 'success', 'Please confirm your email and sign in.');
-                }, 2000);
+setTimeout(() => {
+    window.location.href = '/modules.html';
+}, 1000);
 
             } catch (error) {
                 if (isLocked(RL_KEY)) {
