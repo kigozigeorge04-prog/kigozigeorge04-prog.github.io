@@ -1,5 +1,12 @@
 // ─── EaseMed Service Worker ──────────────────────────────────────
-// Version: 2.1.1
+// Version: 2.1.2
+// Changelog (2.1.2): fixed TypeError on install/navigation caused by
+//   caching '/' — which vercel.json 308-redirects to '/index.html'.
+//   A cached redirected response can't be served to a navigation
+//   request (redirect mode 'manual'), which threw at runtime and
+//   surfaced in Sentry as an sw.js load failure. Now caching
+//   '/index.html' directly, and stripping `redirected` from any
+//   response before it's stored, as a permanent guard.
 // Changelog (2.1.0): iOS Safari PWA hardening
 //   - Capped dynamic cache size (iOS evicts caches under storage pressure /
 //     after ~7 days inactivity — an unbounded cache makes that worse)
@@ -14,12 +21,17 @@
 //     Safari then re-test after "Add to Home Screen," caches will look
 //     empty again on first load — that's expected, not a bug.
 
-const CACHE_VERSION = 'v2.1.1';
+const CACHE_VERSION = 'v2.1.2';
 const STATIC_CACHE = `easemed-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `easemed-dynamic-${CACHE_VERSION}`;
 
 const STATIC_FILES = [
-    '/',
+    // NOTE: do NOT list '/' here — vercel.json permanently redirects '/' to
+    // '/index.html'. Caching '/' would store a response with redirected=true,
+    // and browsers refuse to serve a cached redirected response back to a
+    // navigation request (redirect mode 'manual'), throwing a TypeError at
+    // runtime. Cache the real destination file instead.
+    '/index.html',
     '/easemed_login.html',
     '/modules.html',
     '/complete-profile.html',
@@ -66,8 +78,22 @@ async function trimCache(cacheName, maxItems) {
 
 async function putInCache(cacheName, request, response) {
     try {
+        // Defense-in-depth: never store a response flagged as `redirected`.
+        // Chrome refuses to serve a cached redirected response back to a
+        // navigation request (redirect mode 'manual'), which throws a
+        // TypeError at runtime and can look like "sw.js failed to load".
+        // Rebuilding a plain Response from the body/headers/status strips
+        // that flag so it's always safe to serve from cache later.
+        let safeResponse = response;
+        if (response.redirected) {
+            safeResponse = new Response(response.body, {
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers
+            });
+        }
         const cache = await caches.open(cacheName);
-        await cache.put(request, response);
+        await cache.put(request, safeResponse);
         if (cacheName === DYNAMIC_CACHE) {
             await trimCache(DYNAMIC_CACHE, DYNAMIC_CACHE_MAX_ITEMS);
         }
