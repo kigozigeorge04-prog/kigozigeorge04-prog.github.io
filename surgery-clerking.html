@@ -2418,15 +2418,9 @@
                     // would lock out every currently-paying user. Only check
                     // is_active (matches pediatrics/dashboard) and leave
                     // module-level entitlement to access-guard.js.
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('is_active, is_admin')
-                        .eq('id', session.user.id)
-                        .single();
-                    if (profile && profile.is_active === false && !profile.is_admin) {
-                        window.location.replace('easemed_payment.html');
-                        return;
-                    }
+                                      // NOTE: profiles.is_active is a legacy column no longer kept in
+                    // sync — module access is fully owned by js/access-guard.js
+                    // (subscriptions table).
                 } catch (e) { console.warn('Auth check error:', e); }
             })();
 
