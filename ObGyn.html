@@ -2944,23 +2944,9 @@ async function checkAuth() {
         currentUser = session.user;
 
         // ↓↓↓ this block moves back INSIDE the try, no closing brace before it ↓↓↓
-        const { data: profile, error: profileError } = await supabaseClient
-            .from('profiles')
-            .select('is_active, is_admin')
-            .eq('id', session.user.id)
-            .single();
-
-        if (profileError) {
-            console.warn('[Auth] Profile fetch warning:', profileError);
-        }
-
-        if (profile && profile.is_active === false && !profile.is_admin) {
-            window.location.replace('easemed_payment.html');
-            return;
-        }
-
+               // NOTE: profiles.is_active is a legacy column no longer kept in sync —
+        // module access is fully owned by js/access-guard.js (subscriptions table).
         document.body.style.display = 'block';
-
     } catch (error) {
         console.error('[Auth] Fatal error:', error);
         window.location.replace('easemed_login.html');
