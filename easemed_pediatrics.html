@@ -3194,12 +3194,8 @@ async function checkAuth() {
             return;
         }
 
-        // Check if profile is active
-        if (profile && profile.is_active === false) {
-            console.warn('[Auth] Account is inactive');
-            window.location.href = 'subscription.html?reason=inactive';
-            return;
-        }
+               // NOTE: profiles.is_active is a legacy column no longer kept in sync —
+        // module access is fully owned by js/access-guard.js (subscriptions table).
 
         // Show the page content
         document.body.style.display = 'block';
