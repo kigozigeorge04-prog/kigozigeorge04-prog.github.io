@@ -3238,9 +3238,18 @@ async function handleLogout() {
 
 // ─── DOM CONTENT LOADED ───
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('[Page] DOM ready, checking auth...');
     document.body.style.display = 'none';
-    checkAuth();
+    const authTimeout = setTimeout(() => {
+        document.body.style.display = 'block';
+        document.body.innerHTML = `
+            <div style="text-align:center;padding:60px 20px;font-family:sans-serif;">
+                <h2>⚠️ Connection Problem</h2>
+                <p>This is taking longer than expected. Please check your internet connection.</p>
+                <button onclick="location.reload()" style="padding:10px 24px;background:#1a5f7a;color:#fff;border:none;border-radius:8px;font-weight:600;">Retry</button>
+            </div>`;
+    }, 8000); // give up after 8 seconds
+
+    checkAuth().finally(() => clearTimeout(authTimeout));
 });
      // LOCAL STORAGE RECORDS
         // ============================================================
