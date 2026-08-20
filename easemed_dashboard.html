@@ -2137,6 +2137,70 @@
                 margin-left: 0;
             }
         }
+        /* ============================================================
+   BOTTOM NAV (Mobile-Friendly)
+   ============================================================ */
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(15, 32, 39, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 6px 12px;
+    z-index: 999;
+    justify-content: space-around;
+    align-items: center;
+    gap: 4px;
+}
+
+.mobile-bottom-nav .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.6rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.mobile-bottom-nav .nav-item:hover,
+.mobile-bottom-nav .nav-item.active {
+    color: #fff;
+    background: rgba(255,255,255,0.08);
+}
+
+.mobile-bottom-nav .nav-item .nav-icon {
+    font-size: 1.2rem;
+}
+
+.mobile-bottom-nav .nav-item .nav-label {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+@media (max-width: 768px) {
+    .mobile-bottom-nav {
+        display: flex;
+    }
+    body { padding-bottom: 70px; }
+}
+
+@media (min-width: 769px) {
+    .mobile-bottom-nav {
+        display: none !important;
+    }
+}
 
         /* Wrappers for full‑width records and XP */
         .records-wrapper {
@@ -5215,6 +5279,26 @@ async function handleLogout() {
             console.log('✅ EaseMed loaded with strict symptom/sign separation.');
         });
     </script>
-    
+    <!-- ============================================================
+MOBILE BOTTOM NAV
+============================================================ -->
+<nav class="mobile-bottom-nav">
+    <a href="#" class="nav-item active" onclick="window.scrollTo(0, 0); return false;">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Clerk</span>
+    </a>
+    <a href="#" class="nav-item" onclick="document.getElementById('xpBody').classList.toggle('open'); return false;">
+        <span class="nav-icon">🩺</span>
+        <span class="nav-label">Exam</span>
+    </a>
+    <a href="easemed_imedmnemonics.html" target="_blank" rel="noopener" class="nav-item" style="color: #2a9d8f;">
+        <span class="nav-icon">🃏</span>
+        <span class="nav-label">Mnemonics</span>
+    </a>
+    <a href="#" class="nav-item" onclick="document.getElementById('recordsList').scrollIntoView({behavior:'smooth'}); return false;">
+        <span class="nav-icon">🗂️</span>
+        <span class="nav-label">Records</span>
+    </a>
+</nav>
 </body>
 </html>
