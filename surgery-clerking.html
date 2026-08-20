@@ -1116,6 +1116,100 @@
         .ros-toggle.open .chevron {
             transform: rotate(180deg);
         }
+        /* ─── Records Panel Styles ─── */
+.records-panel {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-top: 20px;
+}
+.records-header {
+    background: var(--primary);
+    color: white;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.records-header h2 {
+    font-size: 1rem;
+}
+.records-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.btn-record {
+    padding: 5px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-record.btn-save {
+    background: #2c6e49;
+    color: #fff;
+}
+.btn-record.btn-new {
+    background: #e67e22;
+    color: #fff;
+}
+.btn-record.btn-export {
+    background: #8b5cf6;
+    color: #fff;
+}
+.records-body {
+    padding: 14px 18px;
+}
+.records-search {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+}
+.patient-card {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.patient-card-name {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+.patient-card-meta {
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+.btn-card {
+    padding: 3px 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-card.btn-load {
+    background: #e2e8f0;
+    color: var(--text);
+}
+.btn-card.btn-delete {
+    background: #fee2e2;
+    color: #dc2626;
+}
         .ros-body {
             overflow: hidden;
             max-height: 0;
@@ -2370,7 +2464,57 @@
                 <button class="btn-success" onclick="submitForm()">✅ Finish & Submit</button>
             </div>
         </div>
-
+        <!-- ============================================================ -->
+<!-- RECORDS PANEL - Saved Surgery Records                        -->
+<!-- ============================================================ -->
+<div style="max-width:860px;margin:0 auto;padding:0 0.8rem 80px;">
+    <div class="records-panel">
+        <div class="records-header">
+            <h2 style="font-size:1rem;">📂 Saved Surgery Records</h2>
+            <div class="records-actions">
+                <button class="btn-record btn-new" onclick="newPatient()">➕ New</button>
+                <button class="btn-record btn-save" onclick="saveRecordToStorage()">💾 Save</button>
+                <button class="btn-record btn-export" onclick="exportToWord()">📄 Word</button>
+                <button class="btn-record" style="background:#6c3483;color:#fff;" onclick="exportAllToWord()">📦 All</button>
+            </div>
+        </div>
+        <div class="records-body">
+            <!-- Search Bar -->
+            <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+                <input class="records-search" type="text" id="recordSearch" placeholder="🔍 Search by patient name, complaint, diagnosis..." oninput="renderRecords()" style="flex:1; min-width:200px; padding:8px 12px; border:1.5px solid var(--border); border-radius:6px; font-size:0.85rem; background:#fff;">
+                <select id="recordFilter" onchange="renderRecords()" style="padding:8px 12px; border:1.5px solid var(--border); border-radius:6px; font-size:0.85rem; background:#fff;">
+                    <option value="all">All Records</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+                <button class="btn-record" style="background:#e67e22;color:#fff;" onclick="clearSearch()">✕ Clear</button>
+            </div>
+            <div id="recordsList"></div>
+            <div id="recordsCount" style="font-size:0.75rem; color:var(--muted); text-align:center; margin-top:8px;"></div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================ -->
+<!-- RECORD PREVIEW MODAL                                         -->
+<!-- ============================================================ -->
+<div class="summary-modal-overlay" id="previewModal">
+    <div class="summary-modal" style="max-width:860px;">
+        <div class="summary-modal-header" style="background:linear-gradient(135deg,#2c6e49,#1a7a4a);">
+            <h3>📋 Patient Record Preview</h3>
+            <div style="display:flex; gap:8px;">
+                <button class="btn-close-modal" onclick="copyPreviewToClipboard()" style="background:rgba(255,255,255,0.2);color:#fff;border:none;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.8rem;font-weight:700;cursor:pointer;">📋 Copy</button>
+                <button class="btn-close-modal" onclick="closePreviewModal()">✕ Close</button>
+            </div>
+        </div>
+        <div class="summary-modal-body" id="previewContent" style="font-size:0.9rem; line-height:1.8;"></div>
+        <div style="padding:1rem 1.5rem; border-top:1px solid var(--border); display:flex; gap:10px; flex-wrap:wrap; background:var(--bg); border-radius:0 0 14px 14px;">
+            <button class="btn-primary" onclick="copyPreviewToClipboard()" style="background:#2c6e49;">📋 Copy to Clipboard</button>
+            <button class="btn-primary" onclick="exportPreviewToWord()" style="background:#8b5cf6;">📄 Export to Word</button>
+            <button class="btn-secondary" onclick="closePreviewModal()">✕ Close</button>
+        </div>
+    </div>
+</div>
         <!-- ─── SUMMARY MODAL ─── -->
         <div class="modal-overlay" id="summaryModal">
             <div class="modal-content">
@@ -2676,7 +2820,749 @@
                     metadata: { savedAt: new Date().toISOString() }
                 };
             }
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RECORDS MANAGEMENT WITH SEARCH, FILTER & PREVIEW
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+const SURGERY_STORAGE_KEY = 'easemed_surgery_records';
+
+function getRecords() {
+    try {
+        return JSON.parse(localStorage.getItem(SURGERY_STORAGE_KEY) || '[]');
+    } catch {
+        return [];
+    }
+}
+
+function saveRecords(records) {
+    localStorage.setItem(SURGERY_STORAGE_KEY, JSON.stringify(records, null, 2));
+    renderRecords();
+}
+
+function renderRecords() {
+    const container = document.getElementById('recordsList');
+    if (!container) return;
+    
+    const query = (document.getElementById('recordSearch')?.value || '').toLowerCase();
+    const filter = document.getElementById('recordFilter')?.value || 'all';
+    const now = new Date();
+    
+    let records = getRecords();
+    
+    // Apply search filter
+    if (query) {
+        records = records.filter(r => {
+            const name = (r.demographics?.patientName || '').toLowerCase();
+            const complaint = (r.complaint?.pc1?.verbatim || '').toLowerCase();
+            const diagnosis = (r.assessment?.summary || '').toLowerCase();
+            const hpc = (r.hpc?.narrative || '').toLowerCase();
+            return name.includes(query) || complaint.includes(query) || 
+                   diagnosis.includes(query) || hpc.includes(query);
+        });
+    }
+    
+    // Apply time filter
+    if (filter !== 'all') {
+        records = records.filter(r => {
+            const savedAt = new Date(r.metadata?.savedAt || r.savedAt || Date.now());
+            const diffDays = (now - savedAt) / (1000 * 60 * 60 * 24);
+            if (filter === 'today') return diffDays < 1;
+            if (filter === 'week') return diffDays < 7;
+            if (filter === 'month') return diffDays < 30;
+            return true;
+        });
+    }
+    
+    // Update count
+    const countEl = document.getElementById('recordsCount');
+    if (countEl) countEl.textContent = `📊 ${records.length} record(s) found`;
+    
+    if (!records.length) {
+        container.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:1rem;">📭 No saved surgery records</div>';
+        return;
+    }
+    
+    container.innerHTML = records.map((r, idx) => {
+        const name = r.demographics?.patientName || 'Unnamed';
+        const age = r.demographics?.age || '?';
+        const sex = r.demographics?.sex || '?';
+        const complaint = r.complaint?.pc1?.verbatim || 'No complaint';
+        const diagnosis = r.assessment?.summary?.substring(0, 60) || '';
+        const savedAt = r.metadata?.savedAt || r.savedAt || new Date().toISOString();
+        const id = r.id || idx;
+        
+        return `
+            <div class="patient-card">
+                <div>
+                    <div class="patient-card-name">🩺 ${escapeHtml(name)} (${escapeHtml(age)}/${escapeHtml(sex)})</div>
+                    <div class="patient-card-meta">${escapeHtml(complaint)} | ${new Date(savedAt).toLocaleString()}</div>
+                    ${diagnosis ? `<div class="patient-card-meta" style="color:var(--primary);">📋 ${escapeHtml(diagnosis)}${diagnosis.length > 60 ? '...' : ''}</div>` : ''}
+                </div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <button class="btn-card" style="background:#2c6e49;color:#fff;" onclick="previewRecord(${idx})">👁️ Preview</button>
+                    <button class="btn-card btn-load" onclick="loadRecord(${idx})">📋 Load</button>
+                    <button class="btn-card btn-delete" onclick="deleteRecord(${idx})">🗑️ Delete</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function clearSearch() {
+    document.getElementById('recordSearch').value = '';
+    document.getElementById('recordFilter').value = 'all';
+    renderRecords();
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+// ─── SAVE RECORD ───
+function saveRecordToStorage() {
+    const name = document.getElementById('patientName')?.value?.trim();
+    if (!name) { showToast('Enter patient name first', '#e67e22'); return; }
+    
+    const data = collectFormData();
+    const records = getRecords();
+    
+    // Check if record already exists (by patient name)
+    const existingIdx = records.findIndex(r => 
+        r.demographics?.patientName?.toLowerCase() === name.toLowerCase()
+    );
+    
+    const record = {
+        id: Date.now(),
+        ...data,
+        metadata: {
+            ...data.metadata,
+            savedAt: new Date().toISOString(),
+            module: 'surgery'
+        }
+    };
+    
+    if (existingIdx >= 0) {
+        records[existingIdx] = record;
+    } else {
+        records.unshift(record);
+    }
+    
+    saveRecords(records);
+    showToast('💾 Record saved!', '#2a9d8f');
+}
+
+// ─── LOAD RECORD ───
+function loadRecord(index) {
+    const records = getRecords();
+    const record = records[index];
+    if (!record) { showToast('Record not found', '#dc2626'); return; }
+    if (!confirm(`Load ${record.demographics?.patientName || 'this record'}?`)) return;
+    
+    restoreFormData(record);
+    generateClerkshipSummary();
+    window.scrollTo(0, 0);
+    showToast(`📂 Loaded ${record.demographics?.patientName || 'record'}`, '#2980b9');
+}
+
+// ─── DELETE RECORD ───
+function deleteRecord(index) {
+    if (!confirm('Delete this record permanently?')) return;
+    const records = getRecords();
+    const name = records[index]?.demographics?.patientName || 'record';
+    records.splice(index, 1);
+    saveRecords(records);
+    showToast(`🗑️ Deleted ${name}`, '#dc2626');
+}
+
+// ─── NEW PATIENT ───
+function newPatient() {
+    if (!confirm('Clear all form data?')) return;
+    document.querySelectorAll('input:not(.btn-camera):not([type="file"]), textarea, select').forEach(el => {
+        el.value = '';
+    });
+    document.querySelectorAll('.pe-finding-tag.present, .pe-finding-tag.absent').forEach(el => {
+        el.classList.remove('present', 'absent');
+    });
+    document.querySelectorAll('.sym-chip.present, .sym-chip.absent').forEach(el => {
+        el.classList.remove('present', 'absent');
+    });
+    document.getElementById('summarySection')?.style?.removeProperty('display');
+    showToast('🔄 New patient form ready', '#e67e22');
+    updateProgress();
+}
+
+// ─── PREVIEW RECORD ───
+function previewRecord(index) {
+    const records = getRecords();
+    const record = records[index];
+    if (!record) { showToast('Record not found', '#dc2626'); return; }
+    
+    const now = new Date(record.metadata?.savedAt || record.savedAt || Date.now()).toLocaleString();
+    const d = record;
+    const name = d.demographics?.patientName || 'Not documented';
+    const age = d.demographics?.age || '?';
+    const sex = d.demographics?.sex || '?';
+    const ip = d.demographics?.ipNumber || 'Not documented';
+    const ward = d.demographics?.ward || 'Not documented';
+    const admission = d.demographics?.admissionDate || 'Not documented';
+    const clerkedBy = d.demographics?.clerkedBy || 'Not documented';
+    
+    // PC
+    let pcHtml = '';
+    const pcs = [d.complaint?.pc1, d.complaint?.pc2, d.complaint?.pc3].filter(Boolean);
+    const pcLabels = ['PC 1', 'PC 2', 'PC 3'];
+    pcs.forEach((pc, idx) => {
+        if (pc?.verbatim) {
+            const duration = pc.durationValue && pc.durationUnit ? `${pc.durationValue} ${pc.durationUnit}` : 'Duration not specified';
+            const categoryLabel = pc.category ? pc.category.replace(/-/g, ' ').toUpperCase() : 'Unspecified';
+            pcHtml += `
+                <div style="margin-bottom:0.8rem; padding:0.5rem 0.8rem; background:#f8fafc; border-radius:6px; border-left:4px solid ${idx === 0 ? 'var(--primary)' : 'var(--accent)'};">
+                    <strong>${pcLabels[idx]}:</strong> 
+                    <span style="background:var(--primary-light); padding:0.1rem 0.6rem; border-radius:12px; font-size:0.78rem;">${categoryLabel}</span>
+                    <span style="color:var(--muted); font-size:0.85rem;">— ${duration}</span>
+                    <div style="margin-top:0.2rem; font-style:italic;">"${pc.verbatim}"</div>
+                    ${pc.associated ? `<div style="font-size:0.85rem; color:var(--muted);">Associated: ${pc.associated}</div>` : ''}
+                </div>
+            `;
+        }
+    });
+    if (!pcHtml) pcHtml = '<div style="color:var(--muted);">No presenting complaints documented.</div>';
+    
+    // HPC
+    let hpcHtml = d.hpc?.narrative || 'Not documented';
+    const socrates = [
+        d.hpc?.site && `Site: ${d.hpc.site}`,
+        d.hpc?.onset && `Onset: ${d.hpc.onset}`,
+        d.hpc?.character && `Character: ${d.hpc.character}`,
+        d.hpc?.radiation && `Radiation: ${d.hpc.radiation}`,
+        d.hpc?.severity && `Severity: ${d.hpc.severity}/10`,
+        d.hpc?.time && `Time: ${d.hpc.time}`,
+        d.hpc?.exacerbating && `Exacerbating: ${d.hpc.exacerbating}`,
+        d.hpc?.relieving && `Relieving: ${d.hpc.relieving}`,
+        d.hpc?.associations && `Associations: ${d.hpc.associations}`
+    ].filter(Boolean);
+    if (socrates.length) {
+        hpcHtml += `<div style="margin-top:0.4rem; font-size:0.85rem; color:var(--muted);">${socrates.join(' · ')}</div>`;
+    }
+    
+    // ROS
+    const sysLabels = {
+        cvs: '❤️ Cardiovascular',
+        resp: '🫁 Respiratory',
+        git: '🫃 Gastrointestinal',
+        uro: '💧 Genitourinary',
+        neuro: '🧠 Neurological',
+        msk: '🦴 Musculoskeletal',
+        endo: '⚗️ Endocrine'
+    };
+    let rosHtml = '';
+    if (d.ros) {
+        Object.entries(d.ros).forEach(([sys, data]) => {
+            const present = data.symptoms?.filter(s => s.status === 'present').map(s => s.name) || [];
+            const absent = data.symptoms?.filter(s => s.status === 'absent').map(s => s.name) || [];
+            if (present.length || absent.length) {
+                const label = sysLabels[sys] || sys.toUpperCase();
+                let parts = [];
+                if (present.length) parts.push(`<span style="color:var(--success);">${present.join(', ')} (present)</span>`);
+                if (absent.length) parts.push(`<span style="color:var(--danger);">${absent.join(', ')} (absent)</span>`);
+                rosHtml += `<div><strong>${label}:</strong> ${parts.join('; ')}${data.notes ? ' — ' + data.notes : ''}</div>`;
+            }
+        });
+    }
+    if (!rosHtml) rosHtml = '<div style="color:var(--muted);">No ROS findings documented.</div>';
+    
+    // Past History
+    let pastHtml = '';
+    if (d.pastHistory?.medical) pastHtml += `<div><strong>Medical:</strong> ${d.pastHistory.medical}</div>`;
+    if (d.pastHistory?.surgical) pastHtml += `<div><strong>Surgical:</strong> ${d.pastHistory.surgical}</div>`;
+    if (d.pastHistory?.obstetric) pastHtml += `<div><strong>Obstetric:</strong> ${d.pastHistory.obstetric}</div>`;
+    if (d.pastHistory?.transfusion) pastHtml += `<div><strong>Transfusion:</strong> ${d.pastHistory.transfusion}</div>`;
+    if (!pastHtml) pastHtml = '<div style="color:var(--muted);">No past history documented.</div>';
+    
+    // Drug History
+    let drugHtml = '';
+    if (d.drugHistory?.currentMeds) drugHtml += `<div><strong>Current meds:</strong> ${d.drugHistory.currentMeds}</div>`;
+    if (d.drugHistory?.herbalMeds) drugHtml += `<div><strong>Herbal:</strong> ${d.drugHistory.herbalMeds}</div>`;
+    if (d.drugHistory?.allergies) drugHtml += `<div><strong>Allergies:</strong> ${d.drugHistory.allergies}</div>`;
+    if (d.drugHistory?.adr) drugHtml += `<div><strong>ADR:</strong> ${d.drugHistory.adr}</div>`;
+    if (!drugHtml) drugHtml = '<div style="color:var(--muted);">No drug history documented.</div>';
+    
+    // Family & Social
+    let famHtml = '';
+    if (d.familySocial?.familyHistory) famHtml += `<div><strong>Family:</strong> ${d.familySocial.familyHistory}</div>`;
+    if (d.familySocial?.familySurgical) famHtml += `<div><strong>Family surgical:</strong> ${d.familySocial.familySurgical}</div>`;
+    if (d.familySocial?.occupation) famHtml += `<div><strong>Occupation:</strong> ${d.familySocial.occupation}</div>`;
+    let smoking = d.familySocial?.smoking || 'Not documented';
+    if (d.familySocial?.smokingDetail) smoking += ` (${d.familySocial.smokingDetail})`;
+    famHtml += `<div><strong>Smoking:</strong> ${smoking}</div>`;
+    let alcohol = d.familySocial?.alcohol || 'Not documented';
+    if (d.familySocial?.alcoholDetail) alcohol += ` (${d.familySocial.alcoholDetail})`;
+    famHtml += `<div><strong>Alcohol:</strong> ${alcohol}</div>`;
+    if (d.familySocial?.living) famHtml += `<div><strong>Living:</strong> ${d.familySocial.living}</div>`;
+    
+    // PE Findings
+    const peFindings = d.physicalExam?.findings || {};
+    let peHtml = '';
+    const peLabels = {
+        general: '🩺 General',
+        cvs: '❤️ CVS',
+        resp: '🫁 Respiratory',
+        abdo: '🫃 Abdominal',
+        gu: '💧 Genitourinary',
+        neuro: '🧠 Neurological',
+        msk: '🦴 MSK',
+        wound: '🩹 Wound',
+        other: '➕ Other'
+    };
+    Object.entries(peFindings).forEach(([system, data]) => {
+        const label = peLabels[system] || system.toUpperCase();
+        const present = data.present || [];
+        const absent = data.absent || [];
+        let parts = [];
+        if (present.length) parts.push(`<span style="color:var(--success);">${present.join(', ')} (present)</span>`);
+        if (absent.length) parts.push(`<span style="color:var(--danger);">${absent.join(', ')} (absent)</span>`);
+        const notes = d.physicalExam?.notes?.[system] || '';
+        if (parts.length) {
+            peHtml += `<div><strong>${label}:</strong> ${parts.join('; ')}${notes ? ' — ' + notes : ''}</div>`;
+        }
+    });
+    if (!peHtml) peHtml = '<div style="color:var(--muted);">No PE findings documented.</div>';
+    
+    // Vitals
+    const pe = d.physicalExam || {};
+    const vitalsHtml = `<div class="vitals-row">
+        <span class="vital-item"><strong>BP:</strong> ${pe.bp || 'N/A'}</span>
+        <span class="vital-item"><strong>HR:</strong> ${pe.hr || 'N/A'}</span>
+        <span class="vital-item"><strong>RR:</strong> ${pe.rr || 'N/A'}</span>
+        <span class="vital-item"><strong>Temp:</strong> ${pe.temp || 'N/A'}</span>
+        <span class="vital-item"><strong>SpO2:</strong> ${pe.spo2 || 'N/A'}</span>
+        <span class="vital-item"><strong>BMI:</strong> ${pe.bmi || 'N/A'}</span>
+    </div>`;
+    
+    // GCS
+    const eye = parseInt(pe.gcsEye) || 0;
+    const verbalRaw = parseInt(pe.gcsVerbal) || 0;
+    const motor = parseInt(pe.gcsMotor) || 0;
+    const intubated = pe.gcsIntubated || false;
+    let verbalDisplay = verbalRaw;
+    if (intubated) verbalDisplay = 'Intubated';
+    const total = eye + (intubated ? 0 : verbalRaw) + motor;
+    let gcsInterp = total >= 13 ? 'Mild' : total >= 9 ? 'Moderate' : total >= 3 ? 'Severe' : 'Unrecordable';
+    let gcsHtml = `<div class="gcs-box">E${eye} V${verbalDisplay} M${motor} = <span class="gcs-total">${total}/15</span> <span class="gcs-interp">(${gcsInterp})</span></div>`;
+    
+    // Files
+    let fileHtml = '';
+    if (d.files && d.files.length) {
+        fileHtml = '<ul>';
+        d.files.forEach(f => { fileHtml += `<li>${f.name} (${(f.size/1024).toFixed(1)} KB)</li>`; });
+        fileHtml += '</ul>';
+    } else {
+        fileHtml = '<div style="color:var(--muted);">No documents uploaded.</div>';
+    }
+    
+    const summaryHTML = `
+        <div style="text-align:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #dde3ea;">
+            <div style="font-size:1.2rem;font-weight:800;color:#1a5f7a;">🩺 EaseMed — Surgery Record</div>
+            <div style="font-size:0.8rem;color:#6b7f8c;margin-top:0.2rem;">Saved: ${now}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">👤 Demographics</div>
+            <p><strong>Name:</strong> ${escapeHtml(name)} | <strong>Age/Sex:</strong> ${escapeHtml(age)} / ${escapeHtml(sex)}</p>
+            <p><strong>IP No.:</strong> ${escapeHtml(ip)} | <strong>Ward:</strong> ${escapeHtml(ward)}</p>
+            <p><strong>Admission:</strong> ${escapeHtml(admission)} | <strong>Clerked by:</strong> ${escapeHtml(clerkedBy)}</p>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">📋 Presenting Complaint(s)</div>
+            <div class="summary-section-content">${pcHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">📖 History of Presenting Complaint</div>
+            <div class="summary-section-content">${hpcHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">🔄 Review of Systems</div>
+            <div class="summary-section-content">${rosHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">🩺 Past Medical & Surgical History</div>
+            <div class="summary-section-content">${pastHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">💊 Drug History & Allergies</div>
+            <div class="summary-section-content">${drugHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">👪 Family & Social History</div>
+            <div class="summary-section-content">${famHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">🔬 Physical Examination</div>
+            <div class="summary-section-content">${vitalsHtml}${peHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">🧠 Glasgow Coma Scale (GCS)</div>
+            <div class="summary-section-content">${gcsHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">📋 Investigations & Plan</div>
+            <div class="summary-section-content">
+                <strong>Investigations:</strong> ${d.assessment?.investigations || 'Not documented'}<br>
+                <strong>Plan:</strong> ${d.assessment?.treatmentPlan || 'Not documented'}<br>
+                <strong>Referrals:</strong> ${d.assessment?.referrals || 'Not documented'}
+            </div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">📁 Uploaded Documents</div>
+            <div class="summary-section-content">${fileHtml}</div>
+        </div>
+        
+        <div style="margin-top:1.5rem;padding-top:1rem;border-top:2px solid #dde3ea;font-size:0.75rem;color:#6b7f8c;text-align:center;">
+            EaseMed Surgery Clerkship | ${now} | <em>For educational use only</em>
+        </div>
+    `;
+    
+    document.getElementById('previewContent').innerHTML = summaryHTML;
+    document.getElementById('previewModal').classList.add('open');
+    window._previewRecord = record;
+}
+
+function closePreviewModal() {
+    document.getElementById('previewModal').classList.remove('open');
+    window._previewRecord = null;
+}
+
+function copyPreviewToClipboard() {
+    const content = document.getElementById('previewContent');
+    if (!content) return;
+    const text = content.textContent.trim();
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('📋 Copied to clipboard!', '#2c6e49');
+    }).catch(() => {
+        const range = document.createRange();
+        range.selectNode(content);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        showToast('📋 Copied!', '#2c6e49');
+    });
+}
+
+function exportPreviewToWord() {
+    const record = window._previewRecord;
+    if (!record) { showToast('No record to export', '#dc2626'); return; }
+    
+    const date = new Date().toLocaleString();
+    const name = record.demographics?.patientName || 'Unnamed';
+    const docHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Surgery Record - ${name}</title>
+        <style>body{font-family:'Times New Roman',serif;margin:2cm;line-height:1.5;}h1{color:#1a5f7a;font-size:22pt;}h2{color:#1a5f7a;font-size:14pt;border-bottom:1px solid #aaa;margin-top:20px;}.label{font-weight:bold;}</style></head>
+        <body>
+        <h1>🩺 EaseMed Surgery Record</h1>
+        <p>Generated: ${date}</p>
+        <h2>Demographics</h2>
+        <p><span class="label">Name:</span> ${escapeHtml(name)} | <span class="label">Age/Sex:</span> ${escapeHtml(record.demographics?.age || '')} / ${escapeHtml(record.demographics?.sex || '')}</p>
+        <p><span class="label">IP No.:</span> ${escapeHtml(record.demographics?.ipNumber || '')} | <span class="label">Ward:</span> ${escapeHtml(record.demographics?.ward || '')}</p>
+        <h2>Presenting Complaint</h2>
+        <p>${escapeHtml(record.complaint?.pc1?.verbatim || '')}</p>
+        <h2>History of Presenting Complaint</h2>
+        <p>${escapeHtml(record.hpc?.narrative || '')}</p>
+        <h2>Physical Examination</h2>
+        <p><span class="label">BP:</span> ${escapeHtml(record.physicalExam?.bp || '')} | <span class="label">HR:</span> ${escapeHtml(record.physicalExam?.hr || '')} | <span class="label">Temp:</span> ${escapeHtml(record.physicalExam?.temp || '')}</p>
+        <h2>Assessment & Plan</h2>
+        <p>${escapeHtml(record.assessment?.summary || '')}</p>
+        <footer style="margin-top:40px;text-align:center;color:gray;">EaseMed Surgery Clerking System</footer>
+        </body></html>`;
+    
+    const blob = new Blob([docHtml], { type: 'application/msword' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Surgery_Record_${name.replace(/\s+/g,'_')}.doc`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast('📄 Exported to Word', '#8b5cf6');
+}
+
+// ─── EXPORT ALL RECORDS ───
+function exportAllToWord() {
+    const records = getRecords();
+    if (!records.length) { showToast('No records to export', '#e67e22'); return; }
+    
+    const date = new Date().toLocaleString();
+    let bodyHtml = records.map((r, idx) => `
+        <div style="page-break-after:always; margin-bottom:30px; border-bottom:3px solid #1a5f7a; padding-bottom:20px;">
+            <h2 style="color:#1a5f7a; font-size:16pt;">Record ${idx+1}: ${escapeHtml(r.demographics?.patientName || 'Unnamed')}</h2>
+            <p><strong>Date:</strong> ${new Date(r.metadata?.savedAt || r.savedAt || Date.now()).toLocaleString()}</p>
+            <p><strong>Age/Sex:</strong> ${escapeHtml(r.demographics?.age || '')} / ${escapeHtml(r.demographics?.sex || '')}</p>
+            <p><strong>Complaint:</strong> "${escapeHtml(r.complaint?.pc1?.verbatim || '')}"</p>
+            <p><strong>Diagnosis:</strong> ${escapeHtml(r.assessment?.summary?.substring(0, 200) || 'Not documented')}</p>
+            ${r.hpc?.narrative ? `<p><strong>HPC:</strong> ${escapeHtml(r.hpc.narrative.substring(0, 300))}${r.hpc.narrative.length > 300 ? '...' : ''}</p>` : ''}
+        </div>
+    `).join('');
+    
+    const docHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Surgery Records</title>
+        <style>body{font-family:'Times New Roman',serif;margin:1.5cm;line-height:1.5;}h1{color:#1a5f7a;font-size:24pt;text-align:center;}.footer{margin-top:40px;text-align:center;color:gray;}</style></head>
+        <body>
+        <h1>🩺 EaseMed — All Surgery Records</h1>
+        <p style="text-align:center;color:gray;">Generated: ${date}</p>
+        <p style="text-align:center;color:gray;">Total: ${records.length} record(s)</p>
+        <hr>
+        ${bodyHtml}
+        <div class="footer">EaseMed Surgery Clerking System | ${date}</div>
+        </body></html>`;
+    
+    const blob = new Blob([docHtml], { type: 'application/msword' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `All_Surgery_Records_${new Date().toISOString().slice(0,10)}.doc`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast(`📦 Exported ${records.length} records`, '#6c3483');
+}
+
+// ─── RESTORE FORM DATA ───
+function restoreFormData(data) {
+    if (!data) return;
+    
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val !== undefined && val !== null) el.value = val;
+    };
+    
+    // Demographics
+    if (data.demographics) {
+        setVal('patientName', data.demographics.patientName);
+        setVal('age', data.demographics.age);
+        setVal('sex', data.demographics.sex);
+        setVal('ipNumber', data.demographics.ipNumber);
+        setVal('admissionDate', data.demographics.admissionDate);
+        setVal('ward', data.demographics.ward);
+        setVal('clerkedBy', data.demographics.clerkedBy);
+        setVal('nationality', data.demographics.nationality);
+        setVal('ethnicity', data.demographics.ethnicity);
+        setVal('maritalStatus', data.demographics.maritalStatus);
+        setVal('religion', data.demographics.religion);
+        setVal('educationLevel', data.demographics.educationLevel);
+        setVal('occupationDetail', data.demographics.occupationDetail);
+        setVal('referralFacility', data.demographics.referralFacility);
+        setVal('referralLevel', data.demographics.referralLevel);
+        setVal('referralReason', data.demographics.referralReason);
+        if (data.demographics.referred) {
+            const r = document.querySelector(`input[name="referred"][value="${data.demographics.referred}"]`);
+            if (r) r.checked = true;
+            toggleReferral(data.demographics.referred === 'yes' || data.demographics.referred === 'transferred');
+        }
+    }
+    
+    // PC 1
+    if (data.complaint?.pc1) {
+        const pc = data.complaint.pc1;
+        setVal('pc1Verbatim', pc.verbatim);
+        setVal('pc1DurationValue', pc.durationValue);
+        setVal('pc1DurationUnit', pc.durationUnit);
+        setVal('pc1Category', pc.category);
+        setVal('pc1Other', pc.other);
+        setVal('pc1Associated', pc.associated);
+        if (pc.onset) document.querySelector(`input[name="pc1Onset"][value="${pc.onset}"]`).checked = true;
+        if (pc.course) document.querySelector(`input[name="pc1Course"][value="${pc.course}"]`).checked = true;
+        if (pc.category) {
+            const container = document.getElementById('pc1Tags');
+            container.querySelectorAll('.tag-btn').forEach(b => {
+                if (b.dataset.cat === pc.category) {
+                    b.classList.add('selected');
+                    document.getElementById('pc1OtherWrap').style.display = pc.category === 'other' ? 'block' : 'none';
+                    renderHintPanel(pc.category, 'pc1HintPanel');
+                    updatePCLabel(1);
+                }
+            });
+        }
+    }
+    
+    // PC 2
+    if (data.complaint?.pc2?.verbatim) {
+        addPC(2);
+        const pc = data.complaint.pc2;
+        setVal('pc2Verbatim', pc.verbatim);
+        setVal('pc2DurationValue', pc.durationValue);
+        setVal('pc2DurationUnit', pc.durationUnit);
+        setVal('pc2Category', pc.category);
+        setVal('pc2Other', pc.other);
+        setVal('pc2Associated', pc.associated);
+        if (pc.onset) document.querySelector(`input[name="pc2Onset"][value="${pc.onset}"]`).checked = true;
+        if (pc.course) document.querySelector(`input[name="pc2Course"][value="${pc.course}"]`).checked = true;
+        if (pc.category) {
+            const container = document.getElementById('pc2Tags');
+            container.querySelectorAll('.tag-btn').forEach(b => {
+                if (b.dataset.cat === pc.category) {
+                    b.classList.add('selected');
+                    document.getElementById('pc2OtherWrap').style.display = pc.category === 'other' ? 'block' : 'none';
+                    renderHintPanel(pc.category, 'pc2HintPanel');
+                    updatePCLabel(2);
+                }
+            });
+        }
+    }
+    
+    // PC 3
+    if (data.complaint?.pc3?.verbatim) {
+        addPC(3);
+        const pc = data.complaint.pc3;
+        setVal('pc3Verbatim', pc.verbatim);
+        setVal('pc3DurationValue', pc.durationValue);
+        setVal('pc3DurationUnit', pc.durationUnit);
+        setVal('pc3Category', pc.category);
+        setVal('pc3Other', pc.other);
+        setVal('pc3Associated', pc.associated);
+        if (pc.onset) document.querySelector(`input[name="pc3Onset"][value="${pc.onset}"]`).checked = true;
+        if (pc.course) document.querySelector(`input[name="pc3Course"][value="${pc.course}"]`).checked = true;
+        if (pc.category) {
+            const container = document.getElementById('pc3Tags');
+            container.querySelectorAll('.tag-btn').forEach(b => {
+                if (b.dataset.cat === pc.category) {
+                    b.classList.add('selected');
+                    document.getElementById('pc3OtherWrap').style.display = pc.category === 'other' ? 'block' : 'none';
+                    renderHintPanel(pc.category, 'pc3HintPanel');
+                    updatePCLabel(3);
+                }
+            });
+        }
+    }
+    
+    // HPC
+    if (data.hpc) {
+        setVal('hpcNarrative', data.hpc.narrative);
+        setVal('hpcSite', data.hpc.site);
+        setVal('hpcOnset', data.hpc.onset);
+        setVal('hpcCharacter', data.hpc.character);
+        setVal('hpcRadiation', data.hpc.radiation);
+        setVal('hpcSeverity', data.hpc.severity);
+        setVal('hpcTime', data.hpc.time);
+        setVal('hpcExacerbating', data.hpc.exacerbating);
+        setVal('hpcRelieving', data.hpc.relieving);
+        setVal('hpcAssociations', data.hpc.associations);
+    }
+    
+    // Physical Exam
+    if (data.physicalExam) {
+        setVal('peBP', data.physicalExam.bp);
+        setVal('peHR', data.physicalExam.hr);
+        setVal('peRR', data.physicalExam.rr);
+        setVal('peTemp', data.physicalExam.temp);
+        setVal('peSpO2', data.physicalExam.spo2);
+        setVal('peBMI', data.physicalExam.bmi);
+        setVal('gcsEye', data.physicalExam.gcsEye);
+        setVal('gcsVerbal', data.physicalExam.gcsVerbal);
+        setVal('gcsMotor', data.physicalExam.gcsMotor);
+        if (data.physicalExam.gcsIntubated !== undefined) {
+            document.getElementById('gcsIntubated').checked = data.physicalExam.gcsIntubated;
+        }
+        calculateGCS();
+        if (data.physicalExam.findings) {
+            Object.entries(data.physicalExam.findings).forEach(([system, d]) => {
+                const tags = document.querySelectorAll(`.pe-finding-tag[data-pe="${system}"]`);
+                tags.forEach(tag => {
+                    const finding = tag.dataset.finding;
+                    if (d.present && d.present.includes(finding)) {
+                        tag.classList.add('present');
+                        tag.classList.remove('absent');
+                    } else if (d.absent && d.absent.includes(finding)) {
+                        tag.classList.add('absent');
+                        tag.classList.remove('present');
+                    } else {
+                        tag.classList.remove('present', 'absent');
+                    }
+                });
+            });
+        }
+    }
+    
+    // Assessment
+    if (data.assessment) {
+        setVal('summary', data.assessment.summary);
+        setVal('investigations', data.assessment.investigations);
+        setVal('treatmentPlan', data.assessment.treatmentPlan);
+        setVal('referrals', data.assessment.referrals);
+        setVal('clerkSignature', data.assessment.clerkSignature);
+        setVal('clerkDate', data.assessment.clerkDate);
+    }
+    
+    // Past History
+    if (data.pastHistory) {
+        setVal('pastMedical', data.pastHistory.medical);
+        setVal('chronicMeds', data.pastHistory.chronicMeds);
+        setVal('pastSurgical', data.pastHistory.surgical);
+        setVal('obstetricHx', data.pastHistory.obstetric);
+    }
+    
+    // Drug History
+    if (data.drugHistory) {
+        setVal('currentMeds', data.drugHistory.currentMeds);
+        setVal('herbalMeds', data.drugHistory.herbalMeds);
+        setVal('allergies', data.drugHistory.allergies);
+        setVal('adr', data.drugHistory.adr);
+    }
+    
+    // Family & Social
+    if (data.familySocial) {
+        setVal('familyHistory', data.familySocial.familyHistory);
+        setVal('familySurgical', data.familySocial.familySurgical);
+        setVal('socialOccupation', data.familySocial.occupation);
+        setVal('smokingDetail', data.familySocial.smokingDetail);
+        setVal('alcoholDetail', data.familySocial.alcoholDetail);
+        setVal('livingSituation', data.familySocial.living);
+    }
+    
+    // Files
+    if (data.files && data.files.length) {
+        uploadedFiles = data.files;
+        renderUploadedFiles();
+    }
+    if (data.fileContent) {
+        fileTextContent = data.fileContent;
+        renderUploadedFiles();
+    }
+    
+    updateProgress();
+    showToast('📂 Record loaded.', '#2a9d8f');
+}
+
+// ─── EXPORT TO WORD (Individual) ───
+function exportToWord() {
+    const data = collectFormData();
+    const name = data.demographics?.patientName || 'Unnamed';
+    const date = new Date().toLocaleString();
+    const docHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Surgery Record - ${name}</title>
+        <style>body{font-family:'Times New Roman',serif;margin:2cm;line-height:1.5;}h1{color:#1a5f7a;font-size:24pt;}h2{color:#1a5f7a;font-size:16pt;border-bottom:1px solid #aaa;margin-top:20px;}.label{font-weight:bold;}</style></head>
+        <body>
+        <h1>🩺 EaseMed Surgery Clerking Record</h1>
+        <p>Generated: ${date}</p>
+        <h2>Demographics</h2>
+        <p><span class="label">Name:</span> ${escapeHtml(name)} | <span class="label">Age/Sex:</span> ${escapeHtml(data.demographics?.age || '')} / ${escapeHtml(data.demographics?.sex || '')}</p>
+        <p><span class="label">IP No.:</span> ${escapeHtml(data.demographics?.ipNumber || '')} | <span class="label">Ward:</span> ${escapeHtml(data.demographics?.ward || '')}</p>
+        <h2>Presenting Complaint</h2>
+        <p>${escapeHtml(data.complaint?.pc1?.verbatim || '')}</p>
+        <h2>History of Presenting Complaint</h2>
+        <p>${escapeHtml(data.hpc?.narrative || '')}</p>
+        <h2>Physical Examination</h2>
+        <p><span class="label">BP:</span> ${escapeHtml(data.physicalExam?.bp || '')} | <span class="label">HR:</span> ${escapeHtml(data.physicalExam?.hr || '')} | <span class="label">Temp:</span> ${escapeHtml(data.physicalExam?.temp || '')}</p>
+        <h2>Assessment & Plan</h2>
+        <p>${escapeHtml(data.assessment?.summary || '')}</p>
+        <footer style="margin-top:40px;text-align:center;color:gray;">EaseMed Surgery Clerking System</footer>
+        </body></html>`;
+    
+    const blob = new Blob([docHtml], { type: 'application/msword' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Surgery_Record_${name.replace(/\s+/g,'_')}.doc`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast('📄 Exported to Word', '#8b5cf6');
+}
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             // 4. CLINICAL SUMMARY GENERATOR
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -4556,6 +5442,884 @@
                     setTimeout(() => toast.remove(), 400);
                 }, 3000);
             }
+            function captureFormData() {
+    const getVal = (id) => document.getElementById(id)?.value || '';
+    const getText = (id) => document.getElementById(id)?.value || '';
+    const getRadio = (name) => { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; };
+    const getCheckbox = (id) => document.getElementById(id)?.checked || false;
+
+    const getPC = (num) => {
+        const prefix = 'pc' + num;
+        return {
+            verbatim: getText(prefix + 'Verbatim'),
+            durationValue: getVal(prefix + 'DurationValue'),
+            durationUnit: getVal(prefix + 'DurationUnit'),
+            category: getVal(prefix + 'Category'),
+            other: getVal(prefix + 'Other'),
+            onset: getRadio(prefix + 'Onset'),
+            course: getRadio(prefix + 'Course'),
+            associated: getText(prefix + 'Associated')
+        };
+    };
+
+    const rosData = {};
+    Object.keys(SYS_SYMPTOMS).forEach(sys => {
+        const chips = document.querySelectorAll(`#chips-${sys} .sym-chip`);
+        const notes = document.querySelector(`#ros-card-${sys} .sys-notes`);
+        rosData[sys] = {
+            symptoms: Array.from(chips).map(c => ({ name: c.textContent, status: c.className.includes('present') ? 'present' : c.className.includes('absent') ? 'absent' : '' })),
+            notes: notes ? notes.value : ''
+        };
+    });
+
+    // PE data - collect all findings
+    const peData = {};
+    document.querySelectorAll('.pe-finding-tag').forEach(tag => {
+        const system = tag.dataset.pe;
+        const finding = tag.dataset.finding;
+        if (!peData[system]) peData[system] = { present: [], absent: [] };
+        if (tag.classList.contains('present')) peData[system].present.push(finding);
+        else if (tag.classList.contains('absent')) peData[system].absent.push(finding);
+    });
+
+    const peNotes = {};
+    document.querySelectorAll('.pe-body .pe-note-mini').forEach((note, idx) => {
+        const system = ['general', 'cvs', 'resp', 'abdo', 'gu', 'neuro', 'msk', 'wound', 'other'][idx] || 'other';
+        peNotes[system] = note.textContent || '';
+    });
+
+    return {
+        demographics: {
+            patientName: getVal('patientName'),
+            age: getVal('age'),
+            sex: getVal('sex'),
+            ipNumber: getVal('ipNumber'),
+            admissionDate: getVal('admissionDate'),
+            ward: getVal('ward'),
+            clerkedBy: getVal('clerkedBy'),
+            nationality: getVal('nationality'),
+            ethnicity: getVal('ethnicity'),
+            maritalStatus: getVal('maritalStatus'),
+            religion: getVal('religion'),
+            educationLevel: getVal('educationLevel'),
+            occupationDetail: getVal('occupationDetail'),
+            referred: getRadio('referred'),
+            referralFacility: getVal('referralFacility'),
+            referralLevel: getVal('referralLevel'),
+            referralReason: getText('referralReason')
+        },
+        complaint: {
+            pc1: getPC(1),
+            pc2: document.getElementById('pc2Tab').style.display !== 'none' ? getPC(2) : null,
+            pc3: document.getElementById('pc3Tab').style.display !== 'none' ? getPC(3) : null
+        },
+        hpc: {
+            narrative: getText('hpcNarrative'),
+            site: getVal('hpcSite'),
+            onset: getVal('hpcOnset'),
+            character: getVal('hpcCharacter'),
+            radiation: getVal('hpcRadiation'),
+            severity: getVal('hpcSeverity'),
+            time: getVal('hpcTime'),
+            exacerbating: getVal('hpcExacerbating'),
+            relieving: getVal('hpcRelieving'),
+            associations: getVal('hpcAssociations')
+        },
+        ros: rosData,
+        pastHistory: {
+            medical: getText('pastMedical'),
+            chronicMeds: getText('chronicMeds'),
+            surgical: getText('pastSurgical'),
+            transfusion: getRadio('transfusion'),
+            obstetric: getVal('obstetricHx')
+        },
+        drugHistory: {
+            currentMeds: getText('currentMeds'),
+            herbalMeds: getText('herbalMeds'),
+            allergies: getText('allergies'),
+            adr: getText('adr')
+        },
+        familySocial: {
+            familyHistory: getText('familyHistory'),
+            familySurgical: getVal('familySurgical'),
+            occupation: getText('socialOccupation'),
+            smoking: getRadio('smoking'),
+            smokingDetail: getVal('smokingDetail'),
+            alcohol: getRadio('alcohol'),
+            alcoholDetail: getVal('alcoholDetail'),
+            living: getText('livingSituation')
+        },
+        physicalExam: {
+            bp: getVal('peBP'),
+            hr: getVal('peHR'),
+            rr: getVal('peRR'),
+            temp: getVal('peTemp'),
+            spo2: getVal('peSpO2'),
+            bmi: getVal('peBMI'),
+            gcsEye: getVal('gcsEye'),
+            gcsVerbal: getVal('gcsVerbal'),
+            gcsMotor: getVal('gcsMotor'),
+            gcsIntubated: getCheckbox('gcsIntubated'),
+            findings: peData,
+            notes: peNotes
+        },
+        assessment: {
+            summary: getText('summary'),
+            investigations: getText('investigations'),
+            treatmentPlan: getText('treatmentPlan'),
+            referrals: getText('referrals'),
+            clerkSignature: getVal('clerkSignature'),
+            clerkDate: getVal('clerkDate')
+        },
+        files: uploadedFiles.map(f => ({ name: f.name, type: f.type, size: f.size })),
+        fileContent: fileTextContent,
+        metadata: {
+            savedAt: new Date().toISOString(),
+            module: 'surgery'
+        }
+    };
+}
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RECORDS MANAGEMENT WITH SEARCH, FILTER & PREVIEW
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const SURGERY_STORAGE_KEY = 'easemed_surgery_records';
+
+function getRecords() {
+    try {
+        return JSON.parse(localStorage.getItem(SURGERY_STORAGE_KEY) || '[]');
+    } catch {
+        return [];
+    }
+}
+
+function saveRecords(records) {
+    localStorage.setItem(SURGERY_STORAGE_KEY, JSON.stringify(records, null, 2));
+    renderRecords();
+}
+
+function renderRecords() {
+    const container = document.getElementById('recordsList');
+    if (!container) return;
+    
+    const query = (document.getElementById('recordSearch')?.value || '').toLowerCase();
+    const filter = document.getElementById('recordFilter')?.value || 'all';
+    const now = new Date();
+    
+    let records = getRecords();
+    
+    // Apply search filter
+    if (query) {
+        records = records.filter(r => {
+            const name = (r.demographics?.patientName || '').toLowerCase();
+            const complaint = (r.complaint?.pc1?.verbatim || '').toLowerCase();
+            const diagnosis = (r.assessment?.summary || '').toLowerCase();
+            const hpc = (r.hpc?.narrative || '').toLowerCase();
+            return name.includes(query) || complaint.includes(query) || 
+                   diagnosis.includes(query) || hpc.includes(query);
+        });
+    }
+    
+    // Apply time filter
+    if (filter !== 'all') {
+        records = records.filter(r => {
+            const savedAt = new Date(r.metadata?.savedAt || r.savedAt || Date.now());
+            const diffDays = (now - savedAt) / (1000 * 60 * 60 * 24);
+            if (filter === 'today') return diffDays < 1;
+            if (filter === 'week') return diffDays < 7;
+            if (filter === 'month') return diffDays < 30;
+            return true;
+        });
+    }
+    
+    // Update count
+    const countEl = document.getElementById('recordsCount');
+    if (countEl) countEl.textContent = `📊 ${records.length} record(s) found`;
+    
+    if (!records.length) {
+        container.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:1rem;">📭 No saved surgery records</div>';
+        return;
+    }
+    
+    container.innerHTML = records.map((r, idx) => {
+        const name = r.demographics?.patientName || 'Unnamed';
+        const age = r.demographics?.age || '?';
+        const sex = r.demographics?.sex || '?';
+        const complaint = r.complaint?.pc1?.verbatim || 'No complaint';
+        const diagnosis = r.assessment?.summary?.substring(0, 60) || '';
+        const savedAt = r.metadata?.savedAt || r.savedAt || new Date().toISOString();
+        const id = r.id || idx;
+        
+        return `
+            <div class="patient-card">
+                <div>
+                    <div class="patient-card-name">🩺 ${escapeHtml(name)} (${escapeHtml(age)}/${escapeHtml(sex)})</div>
+                    <div class="patient-card-meta">${escapeHtml(complaint)} | ${new Date(savedAt).toLocaleString()}</div>
+                    ${diagnosis ? `<div class="patient-card-meta" style="color:var(--primary);">📋 ${escapeHtml(diagnosis)}${diagnosis.length > 60 ? '...' : ''}</div>` : ''}
+                </div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <button class="btn-card" style="background:#2c6e49;color:#fff;" onclick="previewRecord(${idx})">👁️ Preview</button>
+                    <button class="btn-card btn-load" onclick="loadRecord(${idx})">📋 Load</button>
+                    <button class="btn-card btn-delete" onclick="deleteRecord(${idx})">🗑️ Delete</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function clearSearch() {
+    document.getElementById('recordSearch').value = '';
+    document.getElementById('recordFilter').value = 'all';
+    renderRecords();
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+// ─── SAVE RECORD ───
+function saveRecordToStorage() {
+    const name = document.getElementById('patientName')?.value?.trim();
+    if (!name) { showToast('Enter patient name first', '#e67e22'); return; }
+    
+    const data = collectFormData();
+    const records = getRecords();
+    
+    const existingIdx = records.findIndex(r => 
+        r.demographics?.patientName?.toLowerCase() === name.toLowerCase()
+    );
+    
+    const record = {
+        id: Date.now(),
+        ...data,
+        metadata: {
+            ...data.metadata,
+            savedAt: new Date().toISOString(),
+            module: 'surgery'
+        }
+    };
+    
+    if (existingIdx >= 0) {
+        records[existingIdx] = record;
+    } else {
+        records.unshift(record);
+    }
+    
+    saveRecords(records);
+    showToast('💾 Record saved!', '#2a9d8f');
+}
+
+// ─── LOAD RECORD ───
+function loadRecord(index) {
+    const records = getRecords();
+    const record = records[index];
+    if (!record) { showToast('Record not found', '#dc2626'); return; }
+    if (!confirm(`Load ${record.demographics?.patientName || 'this record'}?`)) return;
+    
+    restoreFormData(record);
+    generateClerkshipSummary();
+    window.scrollTo(0, 0);
+    showToast(`📂 Loaded ${record.demographics?.patientName || 'record'}`, '#2980b9');
+}
+
+// ─── DELETE RECORD ───
+function deleteRecord(index) {
+    if (!confirm('Delete this record permanently?')) return;
+    const records = getRecords();
+    const name = records[index]?.demographics?.patientName || 'record';
+    records.splice(index, 1);
+    saveRecords(records);
+    showToast(`🗑️ Deleted ${name}`, '#dc2626');
+}
+
+// ─── NEW PATIENT ───
+function newPatient() {
+    if (!confirm('Clear all form data?')) return;
+    document.querySelectorAll('input:not(.btn-camera):not([type="file"]), textarea, select').forEach(el => {
+        el.value = '';
+    });
+    document.querySelectorAll('.pe-finding-tag.present, .pe-finding-tag.absent').forEach(el => {
+        el.classList.remove('present', 'absent');
+    });
+    document.querySelectorAll('.sym-chip.present, .sym-chip.absent').forEach(el => {
+        el.classList.remove('present', 'absent');
+    });
+    showToast('🔄 New patient form ready', '#e67e22');
+    updateProgress();
+}
+
+// ─── PREVIEW RECORD ───
+function previewRecord(index) {
+    const records = getRecords();
+    const record = records[index];
+    if (!record) { showToast('Record not found', '#dc2626'); return; }
+    
+    const now = new Date(record.metadata?.savedAt || record.savedAt || Date.now()).toLocaleString();
+    const d = record;
+    const name = d.demographics?.patientName || 'Not documented';
+    const age = d.demographics?.age || '?';
+    const sex = d.demographics?.sex || '?';
+    const ip = d.demographics?.ipNumber || 'Not documented';
+    const ward = d.demographics?.ward || 'Not documented';
+    const admission = d.demographics?.admissionDate || 'Not documented';
+    const clerkedBy = d.demographics?.clerkedBy || 'Not documented';
+    
+    // PC
+    let pcHtml = '';
+    const pcs = [d.complaint?.pc1, d.complaint?.pc2, d.complaint?.pc3].filter(Boolean);
+    const pcLabels = ['PC 1', 'PC 2', 'PC 3'];
+    pcs.forEach((pc, idx) => {
+        if (pc?.verbatim) {
+            const duration = pc.durationValue && pc.durationUnit ? `${pc.durationValue} ${pc.durationUnit}` : 'Duration not specified';
+            const categoryLabel = pc.category ? pc.category.replace(/-/g, ' ').toUpperCase() : 'Unspecified';
+            pcHtml += `
+                <div style="margin-bottom:0.8rem; padding:0.5rem 0.8rem; background:#f8fafc; border-radius:6px; border-left:4px solid ${idx === 0 ? 'var(--primary)' : 'var(--accent)'};">
+                    <strong>${pcLabels[idx]}:</strong> 
+                    <span style="background:var(--primary-light); padding:0.1rem 0.6rem; border-radius:12px; font-size:0.78rem;">${categoryLabel}</span>
+                    <span style="color:var(--muted); font-size:0.85rem;">— ${duration}</span>
+                    <div style="margin-top:0.2rem; font-style:italic;">"${pc.verbatim}"</div>
+                    ${pc.associated ? `<div style="font-size:0.85rem; color:var(--muted);">Associated: ${pc.associated}</div>` : ''}
+                </div>
+            `;
+        }
+    });
+    if (!pcHtml) pcHtml = '<div style="color:var(--muted);">No presenting complaints documented.</div>';
+    
+    // HPC
+    let hpcHtml = d.hpc?.narrative || 'Not documented';
+    const socrates = [
+        d.hpc?.site && `Site: ${d.hpc.site}`,
+        d.hpc?.onset && `Onset: ${d.hpc.onset}`,
+        d.hpc?.character && `Character: ${d.hpc.character}`,
+        d.hpc?.radiation && `Radiation: ${d.hpc.radiation}`,
+        d.hpc?.severity && `Severity: ${d.hpc.severity}/10`,
+        d.hpc?.time && `Time: ${d.hpc.time}`,
+        d.hpc?.exacerbating && `Exacerbating: ${d.hpc.exacerbating}`,
+        d.hpc?.relieving && `Relieving: ${d.hpc.relieving}`,
+        d.hpc?.associations && `Associations: ${d.hpc.associations}`
+    ].filter(Boolean);
+    if (socrates.length) {
+        hpcHtml += `<div style="margin-top:0.4rem; font-size:0.85rem; color:var(--muted);">${socrates.join(' · ')}</div>`;
+    }
+    
+    // ROS
+    const sysLabels = {
+        cvs: '❤️ Cardiovascular',
+        resp: '🫁 Respiratory',
+        git: '🫃 Gastrointestinal',
+        uro: '💧 Genitourinary',
+        neuro: '🧠 Neurological',
+        msk: '🦴 Musculoskeletal',
+        endo: '⚗️ Endocrine'
+    };
+    let rosHtml = '';
+    if (d.ros) {
+        Object.entries(d.ros).forEach(([sys, data]) => {
+            const present = data.symptoms?.filter(s => s.status === 'present').map(s => s.name) || [];
+            const absent = data.symptoms?.filter(s => s.status === 'absent').map(s => s.name) || [];
+            if (present.length || absent.length) {
+                const label = sysLabels[sys] || sys.toUpperCase();
+                let parts = [];
+                if (present.length) parts.push(`<span style="color:var(--success);">${present.join(', ')} (present)</span>`);
+                if (absent.length) parts.push(`<span style="color:var(--danger);">${absent.join(', ')} (absent)</span>`);
+                rosHtml += `<div><strong>${label}:</strong> ${parts.join('; ')}${data.notes ? ' — ' + data.notes : ''}</div>`;
+            }
+        });
+    }
+    if (!rosHtml) rosHtml = '<div style="color:var(--muted);">No ROS findings documented.</div>';
+    
+    // Past History
+    let pastHtml = '';
+    if (d.pastHistory?.medical) pastHtml += `<div><strong>Medical:</strong> ${d.pastHistory.medical}</div>`;
+    if (d.pastHistory?.surgical) pastHtml += `<div><strong>Surgical:</strong> ${d.pastHistory.surgical}</div>`;
+    if (d.pastHistory?.obstetric) pastHtml += `<div><strong>Obstetric:</strong> ${d.pastHistory.obstetric}</div>`;
+    if (d.pastHistory?.transfusion) pastHtml += `<div><strong>Transfusion:</strong> ${d.pastHistory.transfusion}</div>`;
+    if (!pastHtml) pastHtml = '<div style="color:var(--muted);">No past history documented.</div>';
+    
+    // Drug History
+    let drugHtml = '';
+    if (d.drugHistory?.currentMeds) drugHtml += `<div><strong>Current meds:</strong> ${d.drugHistory.currentMeds}</div>`;
+    if (d.drugHistory?.herbalMeds) drugHtml += `<div><strong>Herbal:</strong> ${d.drugHistory.herbalMeds}</div>`;
+    if (d.drugHistory?.allergies) drugHtml += `<div><strong>Allergies:</strong> ${d.drugHistory.allergies}</div>`;
+    if (d.drugHistory?.adr) drugHtml += `<div><strong>ADR:</strong> ${d.drugHistory.adr}</div>`;
+    if (!drugHtml) drugHtml = '<div style="color:var(--muted);">No drug history documented.</div>';
+    
+    // Family & Social
+    let famHtml = '';
+    if (d.familySocial?.familyHistory) famHtml += `<div><strong>Family:</strong> ${d.familySocial.familyHistory}</div>`;
+    if (d.familySocial?.familySurgical) famHtml += `<div><strong>Family surgical:</strong> ${d.familySocial.familySurgical}</div>`;
+    if (d.familySocial?.occupation) famHtml += `<div><strong>Occupation:</strong> ${d.familySocial.occupation}</div>`;
+    let smoking = d.familySocial?.smoking || 'Not documented';
+    if (d.familySocial?.smokingDetail) smoking += ` (${d.familySocial.smokingDetail})`;
+    famHtml += `<div><strong>Smoking:</strong> ${smoking}</div>`;
+    let alcohol = d.familySocial?.alcohol || 'Not documented';
+    if (d.familySocial?.alcoholDetail) alcohol += ` (${d.familySocial.alcoholDetail})`;
+    famHtml += `<div><strong>Alcohol:</strong> ${alcohol}</div>`;
+    if (d.familySocial?.living) famHtml += `<div><strong>Living:</strong> ${d.familySocial.living}</div>`;
+    
+    // PE Findings
+    const peFindings = d.physicalExam?.findings || {};
+    let peHtml = '';
+    const peLabels = {
+        general: '🩺 General',
+        cvs: '❤️ CVS',
+        resp: '🫁 Respiratory',
+        abdo: '🫃 Abdominal',
+        gu: '💧 Genitourinary',
+        neuro: '🧠 Neurological',
+        msk: '🦴 MSK',
+        wound: '🩹 Wound',
+        other: '➕ Other'
+    };
+    Object.entries(peFindings).forEach(([system, data]) => {
+        const label = peLabels[system] || system.toUpperCase();
+        const present = data.present || [];
+        const absent = data.absent || [];
+        let parts = [];
+        if (present.length) parts.push(`<span style="color:var(--success);">${present.join(', ')} (present)</span>`);
+        if (absent.length) parts.push(`<span style="color:var(--danger);">${absent.join(', ')} (absent)</span>`);
+        const notes = d.physicalExam?.notes?.[system] || '';
+        if (parts.length) {
+            peHtml += `<div><strong>${label}:</strong> ${parts.join('; ')}${notes ? ' — ' + notes : ''}</div>`;
+        }
+    });
+    if (!peHtml) peHtml = '<div style="color:var(--muted);">No PE findings documented.</div>';
+    
+    // Vitals
+    const pe = d.physicalExam || {};
+    const vitalsHtml = `<div class="vitals-row">
+        <span class="vital-item"><strong>BP:</strong> ${pe.bp || 'N/A'}</span>
+        <span class="vital-item"><strong>HR:</strong> ${pe.hr || 'N/A'}</span>
+        <span class="vital-item"><strong>RR:</strong> ${pe.rr || 'N/A'}</span>
+        <span class="vital-item"><strong>Temp:</strong> ${pe.temp || 'N/A'}</span>
+        <span class="vital-item"><strong>SpO2:</strong> ${pe.spo2 || 'N/A'}</span>
+        <span class="vital-item"><strong>BMI:</strong> ${pe.bmi || 'N/A'}</span>
+    </div>`;
+    
+    // GCS
+    const eye = parseInt(pe.gcsEye) || 0;
+    const verbalRaw = parseInt(pe.gcsVerbal) || 0;
+    const motor = parseInt(pe.gcsMotor) || 0;
+    const intubated = pe.gcsIntubated || false;
+    let verbalDisplay = verbalRaw;
+    if (intubated) verbalDisplay = 'Intubated';
+    const total = eye + (intubated ? 0 : verbalRaw) + motor;
+    let gcsInterp = total >= 13 ? 'Mild' : total >= 9 ? 'Moderate' : total >= 3 ? 'Severe' : 'Unrecordable';
+    let gcsHtml = `<div class="gcs-box">E${eye} V${verbalDisplay} M${motor} = <span class="gcs-total">${total}/15</span> <span class="gcs-interp">(${gcsInterp})</span></div>`;
+    
+    // Files
+    let fileHtml = '';
+    if (d.files && d.files.length) {
+        fileHtml = '<ul>';
+        d.files.forEach(f => { fileHtml += `<li>${f.name} (${(f.size/1024).toFixed(1)} KB)</li>`; });
+        fileHtml += '</ul>';
+    } else {
+        fileHtml = '<div style="color:var(--muted);">No documents uploaded.</div>';
+    }
+    
+    const summaryHTML = `
+        <div style="text-align:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #dde3ea;">
+            <div style="font-size:1.2rem;font-weight:800;color:#1a5f7a;">🩺 EaseMed — Surgery Record</div>
+            <div style="font-size:0.8rem;color:#6b7f8c;margin-top:0.2rem;">Saved: ${now}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">👤 Demographics</div>
+            <p><strong>Name:</strong> ${escapeHtml(name)} | <strong>Age/Sex:</strong> ${escapeHtml(age)} / ${escapeHtml(sex)}</p>
+            <p><strong>IP No.:</strong> ${escapeHtml(ip)} | <strong>Ward:</strong> ${escapeHtml(ward)}</p>
+            <p><strong>Admission:</strong> ${escapeHtml(admission)} | <strong>Clerked by:</strong> ${escapeHtml(clerkedBy)}</p>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">📋 Presenting Complaint(s)</div>
+            <div class="summary-section-content">${pcHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">📖 History of Presenting Complaint</div>
+            <div class="summary-section-content">${hpcHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">🔄 Review of Systems</div>
+            <div class="summary-section-content">${rosHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">🩺 Past Medical & Surgical History</div>
+            <div class="summary-section-content">${pastHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">💊 Drug History & Allergies</div>
+            <div class="summary-section-content">${drugHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">👪 Family & Social History</div>
+            <div class="summary-section-content">${famHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">🔬 Physical Examination</div>
+            <div class="summary-section-content">${vitalsHtml}${peHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">🧠 Glasgow Coma Scale (GCS)</div>
+            <div class="summary-section-content">${gcsHtml}</div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">📋 Investigations & Plan</div>
+            <div class="summary-section-content">
+                <strong>Investigations:</strong> ${d.assessment?.investigations || 'Not documented'}<br>
+                <strong>Plan:</strong> ${d.assessment?.treatmentPlan || 'Not documented'}<br>
+                <strong>Referrals:</strong> ${d.assessment?.referrals || 'Not documented'}
+            </div>
+        </div>
+        
+        <div class="summary-section"><div class="summary-section-title">📁 Uploaded Documents</div>
+            <div class="summary-section-content">${fileHtml}</div>
+        </div>
+        
+        <div style="margin-top:1.5rem;padding-top:1rem;border-top:2px solid #dde3ea;font-size:0.75rem;color:#6b7f8c;text-align:center;">
+            EaseMed Surgery Clerkship | ${now} | <em>For educational use only</em>
+        </div>
+    `;
+    
+    document.getElementById('previewContent').innerHTML = summaryHTML;
+    document.getElementById('previewModal').classList.add('open');
+    window._previewRecord = record;
+}
+
+function closePreviewModal() {
+    document.getElementById('previewModal').classList.remove('open');
+    window._previewRecord = null;
+}
+
+function copyPreviewToClipboard() {
+    const content = document.getElementById('previewContent');
+    if (!content) return;
+    const text = content.textContent.trim();
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('📋 Copied to clipboard!', '#2c6e49');
+    }).catch(() => {
+        const range = document.createRange();
+        range.selectNode(content);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        showToast('📋 Copied!', '#2c6e49');
+    });
+}
+
+function exportPreviewToWord() {
+    const record = window._previewRecord;
+    if (!record) { showToast('No record to export', '#dc2626'); return; }
+    
+    const date = new Date().toLocaleString();
+    const name = record.demographics?.patientName || 'Unnamed';
+    const docHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Surgery Record - ${name}</title>
+        <style>body{font-family:'Times New Roman',serif;margin:2cm;line-height:1.5;}h1{color:#1a5f7a;font-size:22pt;}h2{color:#1a5f7a;font-size:14pt;border-bottom:1px solid #aaa;margin-top:20px;}.label{font-weight:bold;}</style></head>
+        <body>
+        <h1>🩺 EaseMed Surgery Record</h1>
+        <p>Generated: ${date}</p>
+        <h2>Demographics</h2>
+        <p><span class="label">Name:</span> ${escapeHtml(name)} | <span class="label">Age/Sex:</span> ${escapeHtml(record.demographics?.age || '')} / ${escapeHtml(record.demographics?.sex || '')}</p>
+        <p><span class="label">IP No.:</span> ${escapeHtml(record.demographics?.ipNumber || '')} | <span class="label">Ward:</span> ${escapeHtml(record.demographics?.ward || '')}</p>
+        <h2>Presenting Complaint</h2>
+        <p>${escapeHtml(record.complaint?.pc1?.verbatim || '')}</p>
+        <h2>History of Presenting Complaint</h2>
+        <p>${escapeHtml(record.hpc?.narrative || '')}</p>
+        <h2>Physical Examination</h2>
+        <p><span class="label">BP:</span> ${escapeHtml(record.physicalExam?.bp || '')} | <span class="label">HR:</span> ${escapeHtml(record.physicalExam?.hr || '')} | <span class="label">Temp:</span> ${escapeHtml(record.physicalExam?.temp || '')}</p>
+        <h2>Assessment & Plan</h2>
+        <p>${escapeHtml(record.assessment?.summary || '')}</p>
+        <footer style="margin-top:40px;text-align:center;color:gray;">EaseMed Surgery Clerking System</footer>
+        </body></html>`;
+    
+    const blob = new Blob([docHtml], { type: 'application/msword' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Surgery_Record_${name.replace(/\s+/g,'_')}.doc`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast('📄 Exported to Word', '#8b5cf6');
+}
+
+// ─── EXPORT ALL RECORDS ───
+function exportAllToWord() {
+    const records = getRecords();
+    if (!records.length) { showToast('No records to export', '#e67e22'); return; }
+    
+    const date = new Date().toLocaleString();
+    let bodyHtml = records.map((r, idx) => `
+        <div style="page-break-after:always; margin-bottom:30px; border-bottom:3px solid #1a5f7a; padding-bottom:20px;">
+            <h2 style="color:#1a5f7a; font-size:16pt;">Record ${idx+1}: ${escapeHtml(r.demographics?.patientName || 'Unnamed')}</h2>
+            <p><strong>Date:</strong> ${new Date(r.metadata?.savedAt || r.savedAt || Date.now()).toLocaleString()}</p>
+            <p><strong>Age/Sex:</strong> ${escapeHtml(r.demographics?.age || '')} / ${escapeHtml(r.demographics?.sex || '')}</p>
+            <p><strong>Complaint:</strong> "${escapeHtml(r.complaint?.pc1?.verbatim || '')}"</p>
+            <p><strong>Diagnosis:</strong> ${escapeHtml(r.assessment?.summary?.substring(0, 200) || 'Not documented')}</p>
+            ${r.hpc?.narrative ? `<p><strong>HPC:</strong> ${escapeHtml(r.hpc.narrative.substring(0, 300))}${r.hpc.narrative.length > 300 ? '...' : ''}</p>` : ''}
+        </div>
+    `).join('');
+    
+    const docHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>All Surgery Records</title>
+        <style>body{font-family:'Times New Roman',serif;margin:1.5cm;line-height:1.5;}h1{color:#1a5f7a;font-size:24pt;text-align:center;}.footer{margin-top:40px;text-align:center;color:gray;}</style></head>
+        <body>
+        <h1>🩺 EaseMed — All Surgery Records</h1>
+        <p style="text-align:center;color:gray;">Generated: ${date}</p>
+        <p style="text-align:center;color:gray;">Total: ${records.length} record(s)</p>
+        <hr>
+        ${bodyHtml}
+        <div class="footer">EaseMed Surgery Clerking System | ${date}</div>
+        </body></html>`;
+    
+    const blob = new Blob([docHtml], { type: 'application/msword' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `All_Surgery_Records_${new Date().toISOString().slice(0,10)}.doc`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast(`📦 Exported ${records.length} records`, '#6c3483');
+}
+
+// ─── RESTORE FORM DATA ───
+function restoreFormData(data) {
+    if (!data) return;
+    
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val !== undefined && val !== null) el.value = val;
+    };
+    
+    // Demographics
+    if (data.demographics) {
+        setVal('patientName', data.demographics.patientName);
+        setVal('age', data.demographics.age);
+        setVal('sex', data.demographics.sex);
+        setVal('ipNumber', data.demographics.ipNumber);
+        setVal('admissionDate', data.demographics.admissionDate);
+        setVal('ward', data.demographics.ward);
+        setVal('clerkedBy', data.demographics.clerkedBy);
+        setVal('nationality', data.demographics.nationality);
+        setVal('ethnicity', data.demographics.ethnicity);
+        setVal('maritalStatus', data.demographics.maritalStatus);
+        setVal('religion', data.demographics.religion);
+        setVal('educationLevel', data.demographics.educationLevel);
+        setVal('occupationDetail', data.demographics.occupationDetail);
+        setVal('referralFacility', data.demographics.referralFacility);
+        setVal('referralLevel', data.demographics.referralLevel);
+        setVal('referralReason', data.demographics.referralReason);
+        if (data.demographics.referred) {
+            const r = document.querySelector(`input[name="referred"][value="${data.demographics.referred}"]`);
+            if (r) r.checked = true;
+            toggleReferral(data.demographics.referred === 'yes' || data.demographics.referred === 'transferred');
+        }
+    }
+    
+    // PC 1
+    if (data.complaint?.pc1) {
+        const pc = data.complaint.pc1;
+        setVal('pc1Verbatim', pc.verbatim);
+        setVal('pc1DurationValue', pc.durationValue);
+        setVal('pc1DurationUnit', pc.durationUnit);
+        setVal('pc1Category', pc.category);
+        setVal('pc1Other', pc.other);
+        setVal('pc1Associated', pc.associated);
+        if (pc.onset) document.querySelector(`input[name="pc1Onset"][value="${pc.onset}"]`).checked = true;
+        if (pc.course) document.querySelector(`input[name="pc1Course"][value="${pc.course}"]`).checked = true;
+        if (pc.category) {
+            const container = document.getElementById('pc1Tags');
+            container.querySelectorAll('.tag-btn').forEach(b => {
+                if (b.dataset.cat === pc.category) {
+                    b.classList.add('selected');
+                    document.getElementById('pc1OtherWrap').style.display = pc.category === 'other' ? 'block' : 'none';
+                    renderHintPanel(pc.category, 'pc1HintPanel');
+                    updatePCLabel(1);
+                }
+            });
+        }
+    }
+    
+    // PC 2
+    if (data.complaint?.pc2?.verbatim) {
+        addPC(2);
+        const pc = data.complaint.pc2;
+        setVal('pc2Verbatim', pc.verbatim);
+        setVal('pc2DurationValue', pc.durationValue);
+        setVal('pc2DurationUnit', pc.durationUnit);
+        setVal('pc2Category', pc.category);
+        setVal('pc2Other', pc.other);
+        setVal('pc2Associated', pc.associated);
+        if (pc.onset) document.querySelector(`input[name="pc2Onset"][value="${pc.onset}"]`).checked = true;
+        if (pc.course) document.querySelector(`input[name="pc2Course"][value="${pc.course}"]`).checked = true;
+        if (pc.category) {
+            const container = document.getElementById('pc2Tags');
+            container.querySelectorAll('.tag-btn').forEach(b => {
+                if (b.dataset.cat === pc.category) {
+                    b.classList.add('selected');
+                    document.getElementById('pc2OtherWrap').style.display = pc.category === 'other' ? 'block' : 'none';
+                    renderHintPanel(pc.category, 'pc2HintPanel');
+                    updatePCLabel(2);
+                }
+            });
+        }
+    }
+    
+    // PC 3
+    if (data.complaint?.pc3?.verbatim) {
+        addPC(3);
+        const pc = data.complaint.pc3;
+        setVal('pc3Verbatim', pc.verbatim);
+        setVal('pc3DurationValue', pc.durationValue);
+        setVal('pc3DurationUnit', pc.durationUnit);
+        setVal('pc3Category', pc.category);
+        setVal('pc3Other', pc.other);
+        setVal('pc3Associated', pc.associated);
+        if (pc.onset) document.querySelector(`input[name="pc3Onset"][value="${pc.onset}"]`).checked = true;
+        if (pc.course) document.querySelector(`input[name="pc3Course"][value="${pc.course}"]`).checked = true;
+        if (pc.category) {
+            const container = document.getElementById('pc3Tags');
+            container.querySelectorAll('.tag-btn').forEach(b => {
+                if (b.dataset.cat === pc.category) {
+                    b.classList.add('selected');
+                    document.getElementById('pc3OtherWrap').style.display = pc.category === 'other' ? 'block' : 'none';
+                    renderHintPanel(pc.category, 'pc3HintPanel');
+                    updatePCLabel(3);
+                }
+            });
+        }
+    }
+    
+    // HPC
+    if (data.hpc) {
+        setVal('hpcNarrative', data.hpc.narrative);
+        setVal('hpcSite', data.hpc.site);
+        setVal('hpcOnset', data.hpc.onset);
+        setVal('hpcCharacter', data.hpc.character);
+        setVal('hpcRadiation', data.hpc.radiation);
+        setVal('hpcSeverity', data.hpc.severity);
+        setVal('hpcTime', data.hpc.time);
+        setVal('hpcExacerbating', data.hpc.exacerbating);
+        setVal('hpcRelieving', data.hpc.relieving);
+        setVal('hpcAssociations', data.hpc.associations);
+    }
+    
+    // Physical Exam
+    if (data.physicalExam) {
+        setVal('peBP', data.physicalExam.bp);
+        setVal('peHR', data.physicalExam.hr);
+        setVal('peRR', data.physicalExam.rr);
+        setVal('peTemp', data.physicalExam.temp);
+        setVal('peSpO2', data.physicalExam.spo2);
+        setVal('peBMI', data.physicalExam.bmi);
+        setVal('gcsEye', data.physicalExam.gcsEye);
+        setVal('gcsVerbal', data.physicalExam.gcsVerbal);
+        setVal('gcsMotor', data.physicalExam.gcsMotor);
+        if (data.physicalExam.gcsIntubated !== undefined) {
+            document.getElementById('gcsIntubated').checked = data.physicalExam.gcsIntubated;
+        }
+        calculateGCS();
+        if (data.physicalExam.findings) {
+            Object.entries(data.physicalExam.findings).forEach(([system, d]) => {
+                const tags = document.querySelectorAll(`.pe-finding-tag[data-pe="${system}"]`);
+                tags.forEach(tag => {
+                    const finding = tag.dataset.finding;
+                    if (d.present && d.present.includes(finding)) {
+                        tag.classList.add('present');
+                        tag.classList.remove('absent');
+                    } else if (d.absent && d.absent.includes(finding)) {
+                        tag.classList.add('absent');
+                        tag.classList.remove('present');
+                    } else {
+                        tag.classList.remove('present', 'absent');
+                    }
+                });
+            });
+        }
+    }
+    
+    // Assessment
+    if (data.assessment) {
+        setVal('summary', data.assessment.summary);
+        setVal('investigations', data.assessment.investigations);
+        setVal('treatmentPlan', data.assessment.treatmentPlan);
+        setVal('referrals', data.assessment.referrals);
+        setVal('clerkSignature', data.assessment.clerkSignature);
+        setVal('clerkDate', data.assessment.clerkDate);
+    }
+    
+    // Past History
+    if (data.pastHistory) {
+        setVal('pastMedical', data.pastHistory.medical);
+        setVal('chronicMeds', data.pastHistory.chronicMeds);
+        setVal('pastSurgical', data.pastHistory.surgical);
+        setVal('obstetricHx', data.pastHistory.obstetric);
+    }
+    
+    // Drug History
+    if (data.drugHistory) {
+        setVal('currentMeds', data.drugHistory.currentMeds);
+        setVal('herbalMeds', data.drugHistory.herbalMeds);
+        setVal('allergies', data.drugHistory.allergies);
+        setVal('adr', data.drugHistory.adr);
+    }
+    
+    // Family & Social
+    if (data.familySocial) {
+        setVal('familyHistory', data.familySocial.familyHistory);
+        setVal('familySurgical', data.familySocial.familySurgical);
+        setVal('socialOccupation', data.familySocial.occupation);
+        setVal('smokingDetail', data.familySocial.smokingDetail);
+        setVal('alcoholDetail', data.familySocial.alcoholDetail);
+        setVal('livingSituation', data.familySocial.living);
+    }
+    
+    // Files
+    if (data.files && data.files.length) {
+        uploadedFiles = data.files;
+        renderUploadedFiles();
+    }
+    if (data.fileContent) {
+        fileTextContent = data.fileContent;
+        renderUploadedFiles();
+    }
+    
+    updateProgress();
+    showToast('📂 Record loaded.', '#2a9d8f');
+}
+
+// ─── EXPORT TO WORD (Individual) ───
+function exportToWord() {
+    const data = collectFormData();
+    const name = data.demographics?.patientName || 'Unnamed';
+    const date = new Date().toLocaleString();
+    const docHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Surgery Record - ${name}</title>
+        <style>body{font-family:'Times New Roman',serif;margin:2cm;line-height:1.5;}h1{color:#1a5f7a;font-size:24pt;}h2{color:#1a5f7a;font-size:16pt;border-bottom:1px solid #aaa;margin-top:20px;}.label{font-weight:bold;}</style></head>
+        <body>
+        <h1>🩺 EaseMed Surgery Clerking Record</h1>
+        <p>Generated: ${date}</p>
+        <h2>Demographics</h2>
+        <p><span class="label">Name:</span> ${escapeHtml(name)} | <span class="label">Age/Sex:</span> ${escapeHtml(data.demographics?.age || '')} / ${escapeHtml(data.demographics?.sex || '')}</p>
+        <p><span class="label">IP No.:</span> ${escapeHtml(data.demographics?.ipNumber || '')} | <span class="label">Ward:</span> ${escapeHtml(data.demographics?.ward || '')}</p>
+        <h2>Presenting Complaint</h2>
+        <p>${escapeHtml(data.complaint?.pc1?.verbatim || '')}</p>
+        <h2>History of Presenting Complaint</h2>
+        <p>${escapeHtml(data.hpc?.narrative || '')}</p>
+        <h2>Physical Examination</h2>
+        <p><span class="label">BP:</span> ${escapeHtml(data.physicalExam?.bp || '')} | <span class="label">HR:</span> ${escapeHtml(data.physicalExam?.hr || '')} | <span class="label">Temp:</span> ${escapeHtml(data.physicalExam?.temp || '')}</p>
+        <h2>Assessment & Plan</h2>
+        <p>${escapeHtml(data.assessment?.summary || '')}</p>
+        <footer style="margin-top:40px;text-align:center;color:gray;">EaseMed Surgery Clerking System</footer>
+        </body></html>`;
+    
+    const blob = new Blob([docHtml], { type: 'application/msword' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Surgery_Record_${name.replace(/\s+/g,'_')}.doc`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast('📄 Exported to Word', '#8b5cf6');
+}
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             // 12. SUBMIT
@@ -5107,5 +6871,23 @@ function runSurgDdxEngine(data) {
                 to { opacity: 1; transform: scale(1); }
             }
         </style>
+        <!-- Record Preview Modal -->
+<div class="summary-modal-overlay" id="previewModal">
+    <div class="summary-modal" style="max-width:860px;">
+        <div class="summary-modal-header" style="background:linear-gradient(135deg,#2c6e49,#1a7a4a);">
+            <h3>📋 Patient Record Preview</h3>
+            <div style="display:flex; gap:8px;">
+                <button class="btn-close-modal" onclick="copyPreviewToClipboard()" style="background:rgba(255,255,255,0.2);color:#fff;border:none;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.8rem;font-weight:700;cursor:pointer;">📋 Copy</button>
+                <button class="btn-close-modal" onclick="closePreviewModal()">✕ Close</button>
+            </div>
+        </div>
+        <div class="summary-modal-body" id="previewContent" style="font-size:0.9rem; line-height:1.8;"></div>
+        <div style="padding:1rem 1.5rem; border-top:1px solid var(--border); display:flex; gap:10px; flex-wrap:wrap; background:var(--bg); border-radius:0 0 14px 14px;">
+            <button class="btn-primary" onclick="copyPreviewToClipboard()" style="background:#2c6e49;">📋 Copy to Clipboard</button>
+            <button class="btn-primary" onclick="exportPreviewToWord()" style="background:#8b5cf6;">📄 Export to Word</button>
+            <button class="btn-secondary" onclick="closePreviewModal()">✕ Close</button>
+        </div>
+    </div>
+</div>
     </body>
 </html>
