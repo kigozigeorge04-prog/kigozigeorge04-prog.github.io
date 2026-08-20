@@ -377,6 +377,86 @@ const psychComplaintToGuideKey = {
     .guide-tips{margin-top:0.6rem;font-size:0.78rem;color:var(--text);}
     .guide-tips-title{font-weight:700;color:var(--psych-dark);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.3rem;}
     .guide-tips li{margin-bottom:0.2rem;list-style:none;}
+
+    /* ─── MSE Guide Styles ─── */
+    .mse-guide-toggle {
+        background: var(--mse-color);
+        color: #fff;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        transition: background 0.2s;
+        width: 100%;
+        justify-content: center;
+    }
+    .mse-guide-toggle:hover {
+        background: #0f4a5f;
+    }
+    .mse-guide-toggle .arrow {
+        transition: transform 0.3s;
+    }
+    .mse-guide-toggle.open .arrow {
+        transform: rotate(180deg);
+    }
+    .mse-guide-content {
+        display: none;
+        margin-top: 0.8rem;
+        padding: 1rem;
+        background: var(--mse-light);
+        border-radius: 8px;
+        border-left: 4px solid var(--mse-color);
+        font-size: 0.88rem;
+        line-height: 1.7;
+        color: var(--text);
+    }
+    .mse-guide-content.open {
+        display: block;
+    }
+    .mse-guide-content h4 {
+        color: var(--mse-color);
+        font-size: 0.95rem;
+        margin: 1rem 0 0.3rem;
+    }
+    .mse-guide-content h4:first-of-type {
+        margin-top: 0;
+    }
+    .mse-guide-content ul {
+        padding-left: 1.5rem;
+        margin: 0.3rem 0 0.8rem;
+    }
+    .mse-guide-content ul li {
+        margin-bottom: 0.2rem;
+    }
+    .mse-guide-content .key-point {
+        background: #fff;
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        border-left: 3px solid var(--mse-color);
+        margin: 0.4rem 0;
+        font-weight: 500;
+    }
+    .mse-guide-content .red-flag {
+        background: #fff5f5;
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        border-left: 3px solid #c0392b;
+        margin: 0.4rem 0;
+        color: #c0392b;
+        font-weight: 500;
+    }
+    .mse-guide-content .tip-box {
+        background: #fffbea;
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        border-left: 3px solid #f59e0b;
+        margin: 0.4rem 0;
+    }
 </style>
 </head>
 <body>
@@ -521,8 +601,106 @@ const psychComplaintToGuideKey = {
 
     <div class="divider"></div>
 
+    <!-- ============================================================ -->
+    <!-- MENTAL STATE EXAMINATION SECTION WITH GUIDE                  -->
+    <!-- ============================================================ -->
     <div class="section-header"><span class="section-badge" style="background:var(--mse-color);">9</span><span class="section-title">Mental State Examination</span></div>
 
+    <!-- MSE Guide Toggle Button -->
+    <div class="card" style="border-left:3px solid var(--mse-color); background:var(--mse-light);">
+        <button class="mse-guide-toggle" id="mseGuideToggle" onclick="toggleMSEGuide()">
+            <span>📖 Show MSE Assessment Guide</span>
+            <span class="arrow">▼</span>
+        </button>
+        <div class="mse-guide-content" id="mseGuideContent">
+            <h4>🧠 What is the Mental State Examination (MSE)?</h4>
+            <p>The MSE is the psychiatric equivalent of a physical examination. It is a structured way of <strong>observing and describing</strong> a patient's current mental state, based on both <strong>objective signs</strong> observed by the clinician and <strong>subjective information</strong> reported by the patient.</p>
+            <p class="key-point">🎯 The goal is to describe what you observe <strong>objectively</strong>. Avoid making early inferences or diagnoses during the assessment itself.</p>
+
+            <h4>📋 The ASEPTIC Framework</h4>
+            <p>The MSE is traditionally organized using the <strong>ASEPTIC</strong> mnemonic. Here's what to assess in each domain:</p>
+
+            <h4>A — Appearance & Behaviour</h4>
+            <ul>
+                <li><strong>Appearance:</strong> Apparent age vs stated age, dress (appropriate, dishevelled, unusual), grooming and hygiene.</li>
+                <li><strong>Behaviour:</strong> Eye contact (good, poor, avoidant), rapport and attitude (cooperative, guarded, hostile).</li>
+                <li><strong>Psychomotor activity:</strong> Any agitation (restlessness, fidgeting) or retardation (slowed movements).</li>
+                <li><strong>Abnormal movements:</strong> Tics, tremors, or other involuntary movements.</li>
+            </ul>
+            <div class="tip-box">💡 <strong>Example:</strong> "The patient is a 45-year-old man who appears his stated age. He is dressed in a tracksuit and appears unkempt with poor hygiene. He maintained poor eye contact and was guarded throughout the interview. No abnormal movements noted."</div>
+
+            <h4>S — Speech</h4>
+            <ul>
+                <li><strong>Rate:</strong> Pressured (fast, difficult to interrupt), slow, or normal.</li>
+                <li><strong>Volume:</strong> Loud, soft, or mumbled.</li>
+                <li><strong>Tone & Rhythm:</strong> Monotone, hesitant, or fluent. Also note any speech impediments or dysphasia.</li>
+            </ul>
+
+            <h4>E — Emotion (Mood & Affect)</h4>
+            <ul>
+                <li><strong>Mood (Subjective):</strong> What the patient reports. Ask: <em>"How have you been feeling in yourself over the past few weeks?"</em> Document in their own words (e.g., "Patient describes mood as 'rock bottom'").</li>
+                <li><strong>Affect (Objective):</strong> What you observe.
+                    <ul>
+                        <li><strong>Quality:</strong> Euthymic (normal), depressed, elevated/euphoric, anxious, or flat/blunted.</li>
+                        <li><strong>Range & Stability:</strong> Is the affect reactive to the conversation? Or is it fixed and unchanging? Is it labile (rapidly shifting)?</li>
+                        <li><strong>Congruence:</strong> Is the affect appropriate for what the patient is saying (congruent) or inappropriate (e.g., laughing while describing a sad event)?</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4>P — Perception</h4>
+            <ul>
+                <li><strong>Hallucinations:</strong> Perceptions without a stimulus. Can be auditory (most common), visual, olfactory, tactile, or gustatory. Ask: <em>"Do you ever hear things that others can't hear, like voices?"</em> Clarify if voices are commenting or giving commands.</li>
+                <li><strong>Illusions:</strong> Misperceptions of a real stimulus (e.g., seeing a coat and thinking it's a person).</li>
+                <li><strong>Depersonalization/Derealization:</strong> Feelings of being detached from oneself or the world feeling unreal.</li>
+            </ul>
+            <div class="red-flag">🚨 <strong>Red Flag:</strong> Command hallucinations with compliance — major safety concern.</div>
+
+            <h4>T — Thought (Content & Process)</h4>
+            <ul>
+                <li><strong>Thought Form (Process):</strong> The flow and organization of ideas.
+                    <ul>
+                        <li><strong>Normal:</strong> Coherent, logical, and goal-directed.</li>
+                        <li><strong>Abnormalities:</strong> Flight of ideas, loosening of associations, tangentiality, circumstantiality, thought blocking.</li>
+                    </ul>
+                </li>
+                <li><strong>Thought Content:</strong> The themes of the patient's ideas and beliefs.
+                    <ul>
+                        <li><strong>Delusions:</strong> Fixed, false beliefs not shared by culture (e.g., paranoid, grandiose, persecutory).</li>
+                        <li><strong>Overvalued Ideas:</strong> Strong beliefs held with less conviction than a delusion.</li>
+                        <li><strong>Obsessions:</strong> Recurrent, intrusive thoughts.</li>
+                        <li><strong>Suicidal/Homicidal Ideation:</strong> Essential to assess for thoughts of harm to self or others.</li>
+                    </ul>
+                </li>
+            </ul>
+            <div class="red-flag">🚨 <strong>Red Flag:</strong> Suicidal ideation with plan and intent — requires immediate safety intervention.</div>
+
+            <h4>I — Insight & Judgement</h4>
+            <ul>
+                <li><strong>Insight:</strong> The patient's awareness and understanding of their own mental health condition. Ask: <em>"Do you feel you need any treatment?"</em> or <em>"What do you think is the cause of your problems?"</em> Can be graded as complete, partial, or absent.</li>
+                <li><strong>Judgement:</strong> The patient's ability to make sound decisions and foresee consequences. Often inferred from their history and actions.</li>
+            </ul>
+
+            <h4>C — Cognition</h4>
+            <ul>
+                <li><strong>Orientation:</strong> Assess for person, place, and time.</li>
+                <li><strong>Attention & Concentration:</strong> Can be assessed by asking the patient to spell "WORLD" backwards or serial 7s.</li>
+                <li><strong>Formal cognitive testing:</strong> In a full OSCE, this might be assessed using a screening tool like the MMSE or MoCA.</li>
+            </ul>
+
+            <h4>💡 Key Tips for OSCE Success</h4>
+            <ul>
+                <li><strong>Practice the Performance:</strong> Knowing the theory is not enough. The OSCE is a <strong>performance exam</strong>. Practice presenting the MSE findings out loud, in the correct order, until it becomes fluid and automatic.</li>
+                <li><strong>Use Clear Clinical Language:</strong> Avoid vague terms like "looks a bit down." Use precise terminology: "Appears dishevelled with a depressed affect."</li>
+                <li><strong>Structure Matters:</strong> Examiners reward a structured, logical presentation. Following the ASEPTIC order demonstrates your clinical reasoning and command of the examination.</li>
+                <li><strong>Always assess risk first:</strong> Screen for suicidal ideation and risk to others before proceeding with the full history.</li>
+            </ul>
+
+            <div class="key-point">📝 <strong>Remember:</strong> The MSE is a <strong>snapshot in time</strong> — it describes the patient's mental state at the time of the interview, not their entire personality or history.</div>
+        </div>
+    </div>
+
+    <!-- MSE Form Fields -->
     <div class="card mse-card">
         <div class="card-title">🩺 Mental State Examination</div>
 
@@ -637,6 +815,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (greetingEl) greetingEl.textContent = '👤 Guest';
     initializePage();
 });
+
+// ─── MSE GUIDE TOGGLE ───
+function toggleMSEGuide() {
+    const content = document.getElementById('mseGuideContent');
+    const toggle = document.getElementById('mseGuideToggle');
+    content.classList.toggle('open');
+    toggle.classList.toggle('open');
+    toggle.innerHTML = content.classList.contains('open') 
+        ? '<span>📖 Hide MSE Assessment Guide</span><span class="arrow">▼</span>'
+        : '<span>📖 Show MSE Assessment Guide</span><span class="arrow">▼</span>';
+}
 
 // ─── GUIDED SYMPTOM PROMPTS ───
 let currentPsychComplaint = '';
