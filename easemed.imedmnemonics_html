@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EaseMed – The Ward Deck (IM Mnemonics)</title>
+<style>
+/* ============================================================
+   DESIGN SYSTEM — matched to EaseMed Pediatric / ObGyn Clerkship
+   ============================================================ */
+:root {
+  --bg: #f7f9fb;
+  --surface: #ffffff;
+  --border: #dde3ea;
+  --primary: #1a5f7a;
+  --primary-dark: #154f67;
+  --primary-light: #e8f4f8;
+  --accent: #e05c2a;
+  --text: #1c2b36;
+  --muted: #6b7f8c;
+  --danger: #c0392b;
+  --success: #1a7a4a;
+  --warn-bg: #fffbea;
+  --warn-border: #f0c050;
+  --radius: 10px;
+  --shadow: 0 2px 12px rgba(26, 95, 122, 0.08);
+
+  /* per-system accents, following the same pattern as
+     --peds-color / --milestone-color / --immunization-color etc. */
+  --cardio-color: #c0392b;
+  --pulm-color:   #2563eb;
+  --gi-color:     #d97706;
+  --renal-color:  #059669;
+  --endo-color:   #8b5cf6;
+  --heme-color:   #9d174d;
+  --rheum-color:  #0f766e;
+  --id-color:     #ea580c;
+  --neuro-color:  #1a5f7a;
+  --general-color:#6b7f8c;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 84px;
+}
+
+/* --- Topbar (matches app topbar exactly) --- */
+.topbar {
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 1.2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.topbar-brand { font-size: 1rem; font-weight: 700; letter-spacing: 0.3px; display:flex; align-items:center; gap:6px; }
+.topbar-brand span { color: #9fd8f0; }
+.topbar-subtitle { font-size: 0.7rem; opacity: 0.8; }
+.topbar-right { display: flex; align-items: center; gap: 0.6rem; }
+.btn-outline-white {
+  background: transparent; border: 1.5px solid rgba(255,255,255,0.4); color: #fff;
+  padding: 0.25rem 0.8rem; border-radius: 6px; font-size: 0.75rem; cursor: pointer;
+  transition: background 0.15s; white-space: nowrap; text-decoration:none; display:inline-block;
+}
+.btn-outline-white:hover { background: rgba(255,255,255,0.12); }
+.topbar-right #deckStat { font-size: 0.75rem; color: rgba(255,255,255,0.85); display:none; }
+@media (min-width: 600px) { .topbar-right #deckStat { display: inline; } }
+
+/* --- Progress bar --- */
+.progress-bar-wrap { background: #d0e7f0; height: 4px; position: sticky; top: 50px; z-index: 99; }
+.progress-bar-fill { height: 4px; background: var(--accent); transition: width 0.4s ease; width: 0%; }
+
+/* --- Main layout --- */
+.main-wrap { max-width: 1080px; margin: 0 auto; padding: 1.2rem 0.9rem 5rem; }
+
+.callout {
+  background: var(--primary-light); border-left: 4px solid var(--primary);
+  border-radius: 0 7px 7px 0; padding: 0.6rem 0.9rem; font-size: 0.83rem;
+  color: var(--primary-dark); margin-bottom: 1rem; line-height: 1.5;
+}
+.callout strong { font-weight: 700; }
+
+/* --- Search + filter row --- */
+.controls { display:flex; gap:0.7rem; flex-wrap:wrap; align-items:center; margin-bottom: 0.9rem; }
+.search-wrap { position:relative; flex:1 1 260px; min-width:220px; }
+.search-wrap input {
+  width:100%; padding:0.5rem 0.8rem 0.5rem 2.1rem; border:1.5px solid var(--border);
+  border-radius:7px; font-size:0.85rem; color:var(--text); background:#fff; outline:none;
+  transition:border-color .15s, box-shadow .15s;
+}
+.search-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,95,122,0.08); }
+.search-wrap svg { position:absolute; left:0.7rem; top:50%; transform:translateY(-50%); opacity:.45; }
+
+.mode-toggle-btn {
+  background: var(--border); color: var(--text); border:none; padding:0.5rem 1rem;
+  border-radius:8px; font-size:0.82rem; font-weight:600; cursor:pointer; transition:background .15s;
+  white-space:nowrap;
+}
+.mode-toggle-btn:hover { background:#cbd5e0; }
+.mode-toggle-btn.on { background: var(--primary); color:#fff; }
+.mode-toggle-btn.on:hover { background: var(--primary-dark); }
+
+/* --- Filter tags (styled exactly like .tag-btn / .complaint-tags) --- */
+.complaint-tags { display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:1.1rem; }
+.tag-btn {
+  background: var(--bg); border:1.5px solid var(--border); border-radius:20px;
+  padding:0.28rem 0.75rem; font-size:0.78rem; cursor:pointer; color:var(--text);
+  transition: all .15s; display:flex; align-items:center; gap:5px;
+}
+.tag-btn:hover { border-color: var(--dot,var(--primary)); background: var(--primary-light); }
+.tag-btn .dot { width:7px; height:7px; border-radius:50%; background:var(--dot,var(--muted)); flex-shrink:0; }
+.tag-btn.selected { background: var(--dot,var(--primary)); border-color: var(--dot,var(--primary)); color:#fff; font-weight:600; }
+.tag-btn.selected .dot { background:#fff; }
+
+/* --- Grid --- */
+.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(310px,1fr)); gap:1rem; }
+.count-line { font-size:0.75rem; color:var(--muted); margin: 0 0 0.8rem; }
+
+/* --- Card (matches .card / .card-title pattern) --- */
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1rem 1.15rem; box-shadow: var(--shadow); transition: box-shadow .2s;
+  border-left: 3px solid var(--accent, var(--primary));
+  display:flex; flex-direction:column; gap:0.7rem;
+}
+.card:hover { box-shadow: 0 4px 16px rgba(26,95,122,0.1); }
+.card-title {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px;
+  color: var(--accent, var(--muted)); border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  display:flex; justify-content:space-between; align-items:center; gap:0.5rem;
+}
+.mnem-name { font-size: 1.08rem; font-weight: 700; color: var(--text); line-height:1.2; }
+.mnem-sub { font-size: 0.76rem; color: var(--muted); margin-top: 0.15rem; line-height:1.4; }
+
+.flags { display:flex; gap:6px; flex-wrap:wrap; }
+.flag {
+  font-size: 0.62rem; font-weight: 700; text-transform:uppercase; letter-spacing:0.4px;
+  padding: 2px 8px; border-radius: 20px;
+}
+.flag.emergency { background: #fde8e8; color: var(--danger); }
+.flag.emergency::before { content: "● "; }
+.flag.legacy { background: var(--warn-bg); border:1px dashed var(--warn-border); color:#8a6d1f; }
+
+/* --- Chips (decode mechanic, styled like .tag-btn / .ros-btn) --- */
+.chips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip {
+  background: var(--bg); border: 2px solid var(--border); border-radius: 20px;
+  padding: 0.2rem 0.65rem; font-size: 0.75rem; cursor:pointer; color:var(--text);
+  transition: all .15s; font-weight:600; white-space:nowrap;
+}
+.chip:hover { border-color: var(--accent); background: var(--primary-light); }
+.chip.revealed {
+  background: var(--accent); border-color: var(--accent); color:#fff; font-weight:600;
+}
+.chip .chip-term { font-weight:500; }
+.chip:not(.revealed) .chip-term { display:none; }
+
+.card-tools { display:flex; justify-content:space-between; align-items:center; }
+.mini-btn {
+  background:none; border:none; cursor:pointer; font-size:0.72rem; color:var(--primary);
+  font-weight:600; text-decoration: underline; text-underline-offset:2px; padding:0;
+}
+.mini-btn:hover { color: var(--primary-dark); }
+.deck-progress {
+  background: var(--primary-light); color: var(--primary); padding: 0.1rem 0.55rem;
+  border-radius: 20px; font-size: 0.65rem; font-weight: 700;
+}
+
+/* --- Relevance / clinical-guide-box (matches app's clinical-guide-box) --- */
+.relevance {
+  background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--accent, var(--primary));
+  border-radius: 8px; padding: 0.65rem 0.8rem; font-size: 0.8rem; color: var(--text);
+  max-height:0; opacity:0; overflow:hidden; transition: max-height .4s ease, opacity .4s ease, margin .3s ease;
+}
+.relevance.open { max-height: 400px; opacity: 1; margin-top: 2px; }
+.relevance strong { color: var(--accent, var(--primary)); }
+.rel-label { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:var(--accent,var(--primary)); display:block; margin-bottom:4px;}
+
+.pearl {
+  margin-top: 0.5rem; background: var(--warn-bg); border: 1.5px solid var(--warn-border);
+  border-radius: 6px; padding: 0.45rem 0.7rem; font-size: 0.76rem; color:#5a4000;
+}
+.pearl b { display:block; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.5px; color:#b07800; margin-bottom:2px;}
+
+.reveal-toggle {
+  background:none; border:none; cursor:pointer; align-self:flex-start;
+  font-size:0.76rem; font-weight:600; color:var(--primary); display:flex; align-items:center; gap:4px; padding:0;
+}
+.reveal-toggle svg { transition: transform .25s ease; }
+.reveal-toggle.open svg { transform: rotate(90deg); }
+
+/* --- Groups (Framingham / MEN / Anaemia) --- */
+.group-title { font-size:0.68rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px; }
+.group { margin-bottom: 2px; }
+
+/* --- Compare card --- */
+.compare { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.compare .side { background: var(--bg); border:1px solid var(--border); border-radius:7px; padding:8px 10px; }
+.compare .side h4 { font-size:0.82rem; color:var(--primary); margin-bottom:3px; }
+.compare .side p { font-size:0.74rem; color:var(--muted); line-height:1.4; }
+
+/* --- Formula card --- */
+.formula-box {
+  background: var(--text); color:#eef2f5; font-family: 'Consolas','Segoe UI',monospace;
+  font-size: 0.78rem; padding: 0.7rem 0.85rem; border-radius: 7px; line-height:1.6; overflow-x:auto;
+}
+.formula-box .op { color: #9fd8f0; }
+
+/* --- Note card --- */
+.note-body { font-size: 0.82rem; color: var(--text); line-height:1.55; }
+
+/* --- Footer nav --- */
+.footer-nav {
+  position: fixed; bottom:0; left:0; right:0; background: var(--surface); border-top:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; padding:0.6rem 1.2rem;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.06); z-index:100;
+}
+.step-indicator { font-size:0.72rem; color:var(--muted); }
+.step-indicator strong { color:var(--text); }
+.footer-nav .btn-primary {
+  background: var(--primary); color:#fff; border:none; padding:0.4rem 1rem; border-radius:8px;
+  font-size:0.8rem; font-weight:600; cursor:pointer; transition:background .15s;
+}
+.footer-nav .btn-primary:hover { background: var(--primary-dark); }
+
+.empty-state { text-align:center; padding:3rem 1rem; color:var(--muted); font-size:0.85rem; }
+
+/* --- Closing guidance panel (matches .guidance-panel) --- */
+.guidance-panel { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow:hidden; margin-top: 1.5rem; }
+.guidance-header { background: var(--primary-dark); color:#fff; padding: 0.9rem 1.1rem; }
+.guidance-header h2 { font-size: 0.95rem; font-weight:600; }
+.guidance-content { padding: 0.9rem 1.1rem; }
+.guidance-tip {
+  background: #f8fafc; border-left: 4px solid var(--primary); padding: 0.6rem 0.85rem;
+  border-radius: 0 6px 6px 0; font-size: 0.82rem; color: var(--muted); line-height:1.5;
+}
+.guidance-tip strong { color: var(--text); display:block; margin-bottom:2px; }
+.guidance-tip em { color: var(--text); }
+
+@media (max-width: 560px) {
+  .main-wrap { padding: 0.9rem 0.7rem 5rem; }
+  .card { padding: 0.85rem; }
+  .compare { grid-template-columns: 1fr; }
+  .topbar-brand { font-size: 0.88rem; }
+}
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div>
+    <div class="topbar-brand">🩺 Ease<span>Med</span></div>
+    <div class="topbar-subtitle">The Ward Deck · Internal Medicine · Hutchison's 25th Ed.</div>
+  </div>
+  <div class="topbar-right">
+    <span id="deckStat">0 / 0 decoded</span>
+    <a class="btn-outline-white" href="modules.html">← Modules</a>
+  </div>
+</nav>
+
+<div class="progress-bar-wrap">
+  <div class="progress-bar-fill" id="progressFill" style="width:0%;"></div>
+</div>
+
+<div class="main-wrap">
+
+  <div class="callout">
+    <strong>How this works:</strong> Tap a tile to decode what the letter stands for. Once every tile in a mnemonic is decoded, its clinical pearl unlocks below. Switch to Reference Mode if you just want everything visible.
+  </div>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="search" type="text" placeholder="Search a mnemonic, letter, or term…" autocomplete="off">
+    </div>
+    <button class="mode-toggle-btn" id="modeToggle">🧠 Quiz Mode</button>
+  </div>
+
+  <div class="complaint-tags" id="tabs"></div>
+  <p class="count-line" id="countLine"></p>
+  <div class="grid" id="grid"></div>
+
+  <div class="guidance-panel">
+    <div class="guidance-header"><h2>Using this deck on the ward, not just for exams</h2></div>
+    <div class="guidance-content">
+      <div class="guidance-tip">
+        <strong>Mnemonics are retrieval scaffolds</strong>
+        They're built for rapid recall under pressure, not a substitute for clinical judgement. A few of these (SIRS, Ranson's) have been partially superseded by newer scoring systems (Sepsis-3/qSOFA, APACHE II) that sit alongside them — look for the <em>legacy</em> flag. Know both the mnemonic and which one is exam tradition vs current standard, especially before quoting one on a ward round.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer-nav">
+  <div class="step-indicator">📇 <strong id="stepLabel">0 / 43</strong> mnemonics fully decoded</div>
+  <button class="btn-primary" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Top</button>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const seg = (label, term) => ({label, term});
+
+const DATA = [
+// ---------------- CARDIOLOGY ----------------
+{ id:'mona-bash', cat:'cardio', type:'acronym', name:'MONA-BASH', sub:'Acute coronary syndrome — initial + secondary bundle',
+  segments:[seg('M','Morphine'),seg('O','Oxygen'),seg('N','Nitrates'),seg('A','Aspirin'),seg('B','Beta-blocker'),seg('A','ACE-inhibitor'),seg('S','Statin'),seg('H','Heparin')],
+  relevance:"Bundles the immediate and secondary-prevention management of acute coronary syndrome into one scaffold.",
+  pearl:"Oxygen only if hypoxic (SpO2 <90%); morphine is used cautiously now, linked to worse outcomes in some trials. The mnemonic is a memory aid, not a rigid protocol." },
+{ id:'cha2ds2vasc', cat:'cardio', type:'acronym', name:'CHA₂DS₂-VASc', sub:'Stroke risk in atrial fibrillation',
+  segments:[seg('C','Congestive heart failure'),seg('H','Hypertension'),seg('A₂','Age ≥75 — 2 points'),seg('D','Diabetes'),seg('S₂','Stroke / TIA history — 2 points'),seg('V','Vascular disease'),seg('A','Age 65–74'),seg('Sc','Sex category — female')],
+  relevance:"Determines the need for anticoagulation in AF. A score ≥2 in men or ≥3 in women generally warrants anticoagulation." },
+{ id:'hasbled', cat:'cardio', type:'acronym', name:'HAS-BLED', sub:'Bleeding risk on anticoagulation',
+  segments:[seg('H','Hypertension'),seg('A','Abnormal renal / liver function'),seg('S','Stroke history'),seg('B','Bleeding history'),seg('L','Labile INR'),seg('E','Elderly (>65)'),seg('D','Drugs / alcohol')],
+  relevance:"Weighed against CHA₂DS₂-VASc to balance thrombotic vs bleeding risk before starting anticoagulation." },
+{ id:'killip', cat:'cardio', type:'acronym', name:'Killip Class', sub:'Post-MI prognostic staging',
+  segments:[seg('I','No rales, no S3'),seg('II','Rales'),seg('III','Rales + S3 / pulmonary oedema'),seg('IV','Cardiogenic shock')],
+  relevance:"Prognostic classification after MI based purely on clinical signs of heart failure — no imaging needed." },
+{ id:'jvp', cat:'cardio', type:'acronym', name:'JVP waves', sub:'a · c · v waveform, x and y descents',
+  segments:[seg('a','Atrial contraction'),seg('c','Tricuspid bulge during ventricular systole'),seg('v','Venous filling against a closed tricuspid valve')],
+  relevance:"Cannon a-waves suggest AV dissociation (complete heart block, VT); an absent a-wave suggests AF; a large v-wave suggests tricuspid regurgitation." },
+{ id:'framingham', cat:'cardio', type:'groups', name:'Framingham Criteria', sub:'Clinical diagnosis of CHF — 2 major, or 1 major + 2 minor',
+  groups:[
+    {title:'Major', segments:[seg('1','Paroxysmal nocturnal dyspnoea'),seg('2','Jugular venous distension'),seg('3','Crackles'),seg('4','Cardiomegaly'),seg('5','Acute pulmonary oedema'),seg('6','S3 gallop'),seg('7','Raised JVP'),seg('8','Hepatojugular reflux')]},
+    {title:'Minor', segments:[seg('1','Bilateral ankle oedema'),seg('2','Nocturnal cough'),seg('3','Dyspnoea on exertion'),seg('4','Hepatomegaly'),seg('5','Pleural effusion'),seg('6','↓ Vital capacity'),seg('7','Tachycardia')]}
+  ],
+  relevance:"Bedside clinical diagnosis of congestive heart failure without needing echo or BNP first." },
+{ id:'6ps', cat:'cardio', type:'acronym', name:"6 P's", sub:'Acute limb ischaemia', flags:['emergency'],
+  segments:[seg('P','Pain'),seg('P','Pallor'),seg('P','Pulselessness'),seg('P','Paraesthesia'),seg('P','Paralysis'),seg('P','Poikilothermia')],
+  relevance:"A limb-threatening vascular emergency — needs urgent revascularisation before paralysis and mottling set in." },
+
+// ---------------- PULMONOLOGY ----------------
+{ id:'pirates', cat:'pulm', type:'acronym', name:'PIRATES', sub:'Reversible causes of atrial fibrillation',
+  segments:[seg('P','Pulmonary disease'),seg('I','Ischaemia'),seg('R','Rheumatic heart disease'),seg('A','Anaemia / Atrial myxoma'),seg('T','Thyroid — hyperthyroidism'),seg('E','Ethanol'),seg('S','Sepsis')],
+  relevance:"Secondary causes to screen for whenever AF is new-onset — several are reversible if caught." },
+{ id:'abcde', cat:'pulm', type:'acronym', name:'ABCDE', sub:'Primary survey — trauma & any deteriorating patient', flags:['emergency'],
+  segments:[seg('A','Airway'),seg('B','Breathing'),seg('C','Circulation'),seg('D','Disability'),seg('E','Exposure')],
+  relevance:"The universal resuscitation sequence — prevents missing an immediate life threat while chasing a diagnosis." },
+{ id:'curb65', cat:'pulm', type:'acronym', name:'CURB-65', sub:'Pneumonia severity / admission decision',
+  segments:[seg('C','Confusion'),seg('U','Urea >7 mmol/L'),seg('R','Resp. rate ≥30'),seg('B','BP — SBP<90 or DBP≤60'),seg('65','Age ≥65')],
+  relevance:"Score ≥2 suggests hospital admission; ≥3, consider ICU referral." },
+{ id:'perc', cat:'pulm', type:'acronym', name:'PERC Rule', sub:'Rules out PE without further workup in low-risk patients',
+  segments:[seg('Age','<50'),seg('HR','<100'),seg('SpO₂','≥95%'),seg('Hpt','No haemoptysis'),seg('Est','No oestrogen use'),seg('DVT','No prior DVT/PE'),seg('Leg','No unilateral leg swelling'),seg('Sx','No surgery/trauma in 4 weeks')],
+  relevance:"If every criterion is negative in a low pre-test-probability patient, PE is essentially excluded — no D-dimer or imaging needed." },
+{ id:'wells', cat:'pulm', type:'acronym', name:'Wells Score', sub:'Pulmonary embolism probability',
+  segments:[seg('DVT','Clinical signs of DVT'),seg('PE','PE is the most likely diagnosis'),seg('HR','Heart rate >100'),seg('Imm','Immobilisation / surgery in 4 weeks'),seg('Hx','Prior DVT/PE'),seg('Hpt','Haemoptysis'),seg('Ca','Malignancy')],
+  relevance:"Guides whether to proceed straight to D-dimer or go directly to CTPA imaging." },
+{ id:'vindicate', cat:'pulm', type:'acronym', name:'VINDICATE', sub:'General differential-diagnosis framework',
+  segments:[seg('V','Vascular'),seg('I','Infectious'),seg('N','Neoplastic'),seg('D','Degenerative / Drugs'),seg('I','Idiopathic / Iatrogenic'),seg('C','Congenital'),seg('A','Autoimmune'),seg('T','Traumatic'),seg('E','Endocrine / metabolic')],
+  relevance:"A systematic way to build a broad differential in any system rather than pattern-matching to one diagnosis — useful in any dyspnoea or cough workup." },
+{ id:'lights', cat:'pulm', type:'acronym', name:"Light's Criteria", sub:'Exudate vs transudate — any 1 of 3 = exudate',
+  segments:[seg('1','Pleural/serum protein ratio > 0.5'),seg('2','Pleural/serum LDH ratio > 0.6'),seg('3','Pleural LDH > ⅔ upper limit of normal serum LDH')],
+  relevance:"Points the pleural-effusion workup toward infection/malignancy/inflammation (exudate) vs a systemic cause (transudate)." },
+
+// ---------------- GI / HEPATOLOGY ----------------
+{ id:'mudpiles', cat:'gi', type:'acronym', name:'MUDPILES', sub:'High anion-gap metabolic acidosis',
+  segments:[seg('M','Methanol'),seg('U','Uraemia'),seg('D','DKA'),seg('P','Propylene glycol / Paraldehyde'),seg('I','Iron / INH'),seg('L','Lactic acidosis'),seg('E','Ethylene glycol'),seg('S','Salicylates')],
+  relevance:"The core differential whenever the anion gap is elevated — guides toxicology and metabolic workup." },
+{ id:'getsmashed', cat:'gi', type:'acronym', name:'I GET SMASHED', sub:'Causes of pancreatitis',
+  segments:[seg('I','Idiopathic'),seg('G','Gallstones'),seg('E','Ethanol'),seg('T','Trauma'),seg('S','Steroids'),seg('M','Mumps / infections'),seg('A','Autoimmune'),seg('S','Scorpion sting'),seg('H','Hyperlipidaemia / Hypercalcaemia'),seg('E','ERCP'),seg('D','Drugs')],
+  relevance:"Gallstones and alcohol cause ~80% of cases, but the rest of the list matters for atypical presentations." },
+{ id:'ranson', cat:'gi', type:'acronym', name:"Ranson's — GA LAW", sub:'Pancreatitis severity at admission', flags:['legacy'],
+  segments:[seg('G','Glucose >200'),seg('A','Age >55'),seg('L','LDH >350'),seg('A','AST >250'),seg('W','WBC >16,000')],
+  relevance:"Predicts mortality/complication risk in acute pancreatitis at the time of admission (a second set of criteria is scored at 48 hours).",
+  pearl:"Still widely taught, but APACHE II is now more commonly used clinically." },
+{ id:'charcot', cat:'gi', type:'acronym', name:"Charcot's Triad → Reynold's Pentad", sub:'Ascending cholangitis', flags:['emergency'],
+  segments:[seg('R','RUQ pain'),seg('F','Fever'),seg('J','Jaundice'),seg('+H','Add: Hypotension'),seg('+A','Add: Altered mental status')],
+  relevance:"The first three (Charcot's Triad) suggest cholangitis. Add hypotension and confusion (Reynold's Pentad) and you're looking at severe, suppurative cholangitis — a surgical/endoscopic emergency." },
+{ id:'aeioutips', cat:'gi', type:'acronym', name:'AEIOU-TIPS', sub:'Altered mental status differential',
+  segments:[seg('A','Alcohol'),seg('E','Encephalopathy / Endocrine'),seg('I','Insulin'),seg('O','Opioids / Oxygen'),seg('U','Uraemia'),seg('T','Trauma'),seg('I','Infection'),seg('P','Psychiatric'),seg('S','Stroke / Seizure')],
+  relevance:"A broad AMS differential — critical when a cirrhotic patient presents confused: is it hepatic encephalopathy, or something else entirely?" },
+{ id:'childpugh', cat:'gi', type:'acronym', name:'Child-Pugh Score', sub:'Cirrhosis severity grading',
+  segments:[seg('A','Albumin'),seg('B','Bilirubin'),seg('C','Coagulation — INR/PT'),seg('D','Distension — ascites'),seg('E','Encephalopathy')],
+  relevance:"Grades cirrhosis severity and predicts surgical risk and prognosis." },
+
+// ---------------- NEPHROLOGY ----------------
+{ id:'aeiou-dialysis', cat:'renal', type:'acronym', name:'AEIOU', sub:'Indications for urgent dialysis', flags:['emergency'],
+  segments:[seg('A','Acidosis — refractory'),seg('E','Electrolyte abnormality — refractory hyperkalaemia'),seg('I','Ingestion / Intoxication — dialysable toxin'),seg('O','Overload — refractory fluid overload'),seg('U','Uraemia — symptomatic: encephalopathy, pericarditis')],
+  relevance:"The core exam and clinical trigger list for starting emergency dialysis in AKI." },
+{ id:'rifle', cat:'renal', type:'acronym', name:'RIFLE / KDIGO', sub:'AKI staging',
+  segments:[seg('R','Risk'),seg('I','Injury'),seg('F','Failure'),seg('L','Loss'),seg('E','End-stage')],
+  relevance:"Standardises AKI severity by creatinine rise and urine output, guiding how quickly to escalate care." },
+{ id:'prerenal', cat:'renal', type:'note', name:'Before · At · After the kidney', sub:'Pre-renal, renal, post-renal framework',
+  body:"A simple anatomic map for any AKI differential: <strong>pre-renal</strong> — reduced perfusion reaching the kidney (hypovolaemia, hypotension, heart failure); <strong>renal</strong> — intrinsic damage at the kidney itself (ATN, glomerulonephritis, interstitial nephritis); <strong>post-renal</strong> — obstruction after the kidney (stones, prostatic enlargement, strictures).",
+  relevance:"Determines the initial workup direction — volume status and FeNa for pre-renal, urinalysis/biopsy for renal, ultrasound for post-renal." },
+{ id:'fena', cat:'renal', type:'formula', name:'FeNa', sub:'Fractional excretion of sodium',
+  formula:'FeNa = (Urine Na × Plasma Cr) / (Plasma Na × Urine Cr) × 100',
+  interpretation:"<1% suggests pre-renal azotaemia (kidney is appropriately conserving sodium). >2% suggests intrinsic renal disease, such as ATN.",
+  relevance:"The calculation that turns the pre-renal/renal split from a guess into a number." },
+
+// ---------------- ENDOCRINOLOGY ----------------
+{ id:'dka-triad', cat:'endo', type:'acronym', name:'DKA Diagnostic Triad', sub:'Sugar · Acid · Ketones',
+  segments:[seg('1','Hyperglycaemia — usually >250'),seg('2','Metabolic acidosis — low bicarbonate, raised anion gap'),seg('3','Ketosis — serum or urine ketones')],
+  relevance:"Confirms DKA as distinct from HHS (hyperosmolar hyperglycaemic state), which lacks significant ketoacidosis." },
+{ id:'somogyi-dawn', cat:'endo', type:'compare', name:'Somogyi vs Dawn Phenomenon', sub:'Two causes of morning hyperglycaemia — opposite fixes',
+  sides:[
+    {title:'Somogyi', body:'Nocturnal hypoglycaemia triggers a rebound morning hyperglycaemia. The instinct to increase evening insulin is wrong — it should be decreased.'},
+    {title:'Dawn', body:'An early-morning cortisol/growth-hormone surge causes hyperglycaemia with no preceding hypoglycaemia. Needs adjustment of overnight coverage, not a cut.'}
+  ],
+  relevance:"Same bedside complaint — high morning glucose — but opposite management. Worth a 3am glucose check to tell them apart." },
+{ id:'whipple', cat:'endo', type:'acronym', name:"Whipple's Triad", sub:'Confirms true hypoglycaemia',
+  segments:[seg('1','Symptoms consistent with hypoglycaemia'),seg('2','Low plasma glucose documented at the time'),seg('3','Symptoms resolve with glucose correction')],
+  relevance:"Confirms a genuine hypoglycaemic disorder before chasing an insulinoma workup off a single low reading." },
+{ id:'men', cat:'endo', type:'groups', name:'MEN Syndromes', sub:'Multiple endocrine neoplasia clusters',
+  groups:[
+    {title:'MEN 1 — "3 P\'s"', segments:[seg('P','Pituitary'),seg('P','Parathyroid'),seg('P','Pancreas')]},
+    {title:'MEN 2A — "2 P\'s + M"', segments:[seg('P','Parathyroid'),seg('P','Phaeochromocytoma'),seg('M','Medullary thyroid carcinoma')]},
+    {title:'MEN 2B', segments:[seg('M','Medullary thyroid carcinoma'),seg('P','Phaeochromocytoma'),seg('N','Mucosal neuromas + marfanoid habitus')]}
+  ],
+  relevance:"Recognising the syndromic cluster guides relative-screening and the timing of prophylactic thyroidectomy in MEN2." },
+{ id:'cushings', cat:'endo', type:'acronym', name:"Cushing's — causes", sub:'Localise the source before testing',
+  segments:[seg('P','Pituitary'),seg('A','Adrenal'),seg('E','Ectopic'),seg('I','Iatrogenic')],
+  relevance:"Localises the likely source before ordering a dexamethasone suppression test or ACTH levels." },
+
+// ---------------- HAEMATOLOGY ----------------
+{ id:'fatrn', cat:'heme', type:'acronym', name:'TTP — "FAT RN"', sub:'Distinguishing TTP from ITP', flags:['emergency'],
+  segments:[seg('F','Fever'),seg('A','Anaemia — microangiopathic haemolytic'),seg('T','Thrombocytopenia'),seg('R','Renal dysfunction'),seg('N','Neurologic symptoms')],
+  relevance:"TTP is a haematologic emergency needing plasma exchange — NOT platelet transfusion, which can worsen it. Telling it apart from ITP changes management entirely." },
+{ id:'virchow', cat:'heme', type:'acronym', name:"Virchow's Triad", sub:'Thrombosis risk factors',
+  segments:[seg('1','Stasis'),seg('2','Hypercoagulability'),seg('3','Endothelial injury')],
+  relevance:"The framework for identifying and mitigating VTE risk in any hospitalised or surgical patient." },
+{ id:'anemia-mcv', cat:'heme', type:'groups', name:'Anaemia — MCV-based workup', sub:'Microcytic vs Macrocytic',
+  groups:[
+    {title:'Microcytic — "TAILS"', segments:[seg('T','Thalassaemia'),seg('A','Anaemia of chronic disease'),seg('I','Iron deficiency'),seg('L','Lead poisoning'),seg('S','Sideroblastic')]},
+    {title:'Macrocytic', segments:[seg('Meg','Megaloblastic — B12 / folate deficiency'),seg('Non','Non-megaloblastic — liver disease, hypothyroid, alcohol, reticulocytosis')]}
+  ],
+  relevance:"The standard, efficient first step in any anaemia workup — let the MCV point you to the right differential before ordering everything at once." },
+{ id:'5ts', cat:'heme', type:'acronym', name:"5 T's — Massive Transfusion", sub:'Complications to anticipate (variably taught)',
+  segments:[seg('1','Hypocalcaemia'),seg('2','Hyperkalaemia'),seg('3','Hypothermia'),seg('4','Coagulopathy'),seg('5','TRALI')],
+  relevance:"A checklist of what to actively monitor for during any massive transfusion protocol, rather than reacting after the fact." },
+
+// ---------------- RHEUMATOLOGY / IMMUNOLOGY ----------------
+{ id:'soapbrainmd', cat:'rheum', type:'acronym', name:'SOAP BRAIN MD', sub:'SLE diagnostic criteria (ACR) — ≥4 of 11 supports diagnosis',
+  segments:[seg('S','Serositis'),seg('O','Oral ulcers'),seg('A','Arthritis'),seg('P','Photosensitivity'),seg('B','Blood disorders'),seg('R','Renal involvement'),seg('A','ANA positive'),seg('I','Immunologic disorder'),seg('N','Neurologic disorder'),seg('M','Malar rash'),seg('D','Discoid rash')],
+  relevance:"A comprehensive multisystem screen — ≥4 of the 11 criteria supports a diagnosis of SLE." },
+{ id:'crest', cat:'rheum', type:'acronym', name:'CREST syndrome', sub:'Limited systemic sclerosis',
+  segments:[seg('C','Calcinosis'),seg('R',"Raynaud's"),seg('E','Esophageal dysmotility'),seg('S','Sclerodactyly'),seg('T','Telangiectasia')],
+  relevance:"Distinguishes limited from diffuse scleroderma — limited disease carries a better prognosis and a different antibody profile (anti-centromere vs anti-Scl-70)." },
+{ id:'pair', cat:'rheum', type:'acronym', name:"Reactive Arthritis", sub:'"Can\'t see, can\'t pee, can\'t climb a tree"',
+  segments:[seg('C','Conjunctivitis'),seg('U','Urethritis'),seg('A','Arthritis')],
+  relevance:"The classic post-infectious triad following a GI or GU infection — a memorable bedside phrase still widely used on rounds." },
+
+// ---------------- INFECTIOUS DISEASE ----------------
+{ id:'fuo', cat:'id', type:'acronym', name:'FUO Causes — "NIT"', sub:'Fever of unknown origin — broad category framework',
+  segments:[seg('N','Neoplasm'),seg('I','Infection'),seg('T','Tissue / autoimmune')],
+  relevance:"A broad category framework for FUO workup once the initial infectious screen has come back negative." },
+{ id:'sirs', cat:'id', type:'acronym', name:'SIRS Criteria', sub:'≥2 = SIRS; with an infection source = sepsis', flags:['legacy'],
+  segments:[seg('T','Temp >38 or <36'),seg('HR','HR >90'),seg('RR','RR >20 or PaCO₂ <32'),seg('WBC','WBC >12,000 or <4,000, or >10% bands')],
+  relevance:"Though qSOFA/Sepsis-3 has largely superseded SIRS as the formal sepsis definition, SIRS remains widely taught and used clinically for early recognition." },
+{ id:'qsofa', cat:'id', type:'acronym', name:'qSOFA', sub:'Quick screen for sepsis-associated organ dysfunction',
+  segments:[seg('RR','≥22'),seg('AMS','Altered mentation — GCS<15'),seg('SBP','≤100')],
+  relevance:"≥2 criteria flags a high risk of poor outcome and prompts a full sepsis workup and escalation." },
+
+// ---------------- NEUROLOGY ----------------
+{ id:'fast', cat:'neuro', type:'acronym', name:'FAST', sub:'Stroke recognition — public and clinical', flags:['emergency'],
+  segments:[seg('F','Face drooping'),seg('A','Arm weakness'),seg('S','Speech difficulty'),seg('T','Time to call emergency services')],
+  relevance:"Time-critical — the thrombolysis window is narrow, and early recognition directly changes outcomes.",
+  pearl:"The Cincinnati Prehospital Stroke Scale uses the same first three signs, minus the time-to-call step, for rapid field triage." },
+
+// ---------------- GENERAL APPROACH ----------------
+{ id:'socrates', cat:'general', type:'acronym', name:'SOCRATES', sub:'Structured pain history',
+  segments:[seg('S','Site'),seg('O','Onset'),seg('C','Character'),seg('R','Radiation'),seg('A','Associations'),seg('T','Time course'),seg('E','Exacerbating / relieving factors'),seg('S','Severity')],
+  relevance:"The standard structured history-taking tool for any pain complaint — ensures nothing is missed." },
+{ id:'oldcarts', cat:'general', type:'acronym', name:'OLD CARTS', sub:'Alternative symptom-history structure',
+  segments:[seg('O','Onset'),seg('L','Location'),seg('D','Duration'),seg('C','Character'),seg('A','Aggravating factors'),seg('R','Relieving factors'),seg('T','Timing'),seg('S','Severity')],
+  relevance:"Functionally overlaps with SOCRATES — different schools teach different versions, both aiming for the same complete symptom characterisation." },
+{ id:'vitamincdef', cat:'general', type:'acronym', name:'VITAMIN CDEF', sub:'Broad differential-diagnosis generator',
+  segments:[seg('V','Vascular'),seg('I','Infectious'),seg('T','Traumatic'),seg('A','Autoimmune'),seg('M','Metabolic'),seg('I','Iatrogenic / Idiopathic'),seg('N','Neoplastic'),seg('C','Congenital'),seg('D','Degenerative'),seg('E','Endocrine'),seg('F','Functional / Familial')],
+  relevance:"A teaching tool for building a differential from scratch, rather than pattern-matching straight to one diagnosis." },
+];
+
+const CATEGORIES = [
+  {key:'cardio', label:'Cardiology'},
+  {key:'pulm', label:'Pulmonology'},
+  {key:'gi', label:'GI / Hepatology'},
+  {key:'renal', label:'Nephrology'},
+  {key:'endo', label:'Endocrinology'},
+  {key:'heme', label:'Haematology'},
+  {key:'rheum', label:'Rheum / Immunology'},
+  {key:'id', label:'Infectious Disease'},
+  {key:'neuro', label:'Neurology'},
+  {key:'general', label:'General Approach'},
+];
+
+/* ============ STATE ============ */
+let activeCat = 'all';
+let query = '';
+let decodedTotal = 0;
+let totalSegments = 0;
+let quizMode = true;
+
+/* ============ TABS ============ */
+const tabsEl = document.getElementById('tabs');
+function renderTabs(){
+  const counts = {};
+  DATA.forEach(d => counts[d.cat] = (counts[d.cat]||0)+1);
+  let html = `<button class="tag-btn ${activeCat==='all'?'selected':''}" data-cat="all"><span class="dot"></span>All (${DATA.length})</button>`;
+  CATEGORIES.forEach(c=>{
+    html += `<button class="tag-btn ${activeCat===c.key?'selected':''}" data-cat="${c.key}" style="--dot:var(--${c.key}-color)"><span class="dot"></span>${c.label} (${counts[c.key]||0})</button>`;
+  });
+  tabsEl.innerHTML = html;
+  tabsEl.querySelectorAll('.tag-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ activeCat = btn.dataset.cat; renderTabs(); renderGrid(); });
+  });
+}
+
+/* ============ CARD BUILDERS ============ */
+function chipHTML(cardId, seg, i){
+  return `<button class="chip" data-card="${cardId}" data-idx="${i}" aria-pressed="false">
+    <span class="chip-label">${seg.label}</span><span class="chip-term"> — ${seg.term}</span>
+  </button>`;
+}
+
+function flagsHTML(flags){
+  if(!flags || !flags.length) return '';
+  return `<div class="flags">` + flags.map(f=>`<span class="flag ${f}">${f==='emergency'?'Emergency':'Legacy'}</span>`).join('') + `</div>`;
+}
+
+function relevanceHTML(item){
+  const pearl = item.pearl ? `<div class="pearl"><b>Clinical pearl</b>${item.pearl}</div>` : '';
+  return `<div class="relevance" id="rel-${item.id}"><span class="rel-label">Why it matters</span>${item.relevance}${pearl}</div>`;
+}
+
+function revealToggleHTML(id){
+  return `<button class="reveal-toggle" data-target="rel-${id}">
+    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 6 15 12 9 18"/></svg>
+    Why it matters
+  </button>`;
+}
+
+function buildAcronym(item){
+  totalSegments += item.segments.length;
+  return `
+    <div class="chips">${item.segments.map((s,i)=>chipHTML(item.id,s,i)).join('')}</div>
+    <div class="card-tools">
+      <button class="mini-btn" data-reveal-card="${item.id}">Reveal all</button>
+      <span class="deck-progress" id="deckprog-${item.id}">0/${item.segments.length}</span>
+    </div>
+    ${relevanceHTML(item)}
+  `;
+}
+
+function buildGroups(item){
+  const groupsHTML = item.groups.map((g,gi)=>{
+    totalSegments += g.segments.length;
+    const gid = item.id+'-g'+gi;
+    return `<div class="group">
+      <p class="group-title">${g.title}</p>
+      <div class="chips">${g.segments.map((s,i)=>chipHTML(gid,s,i)).join('')}</div>
+    </div>`;
+  }).join('');
+  const allSeg = item.groups.reduce((n,g)=>n+g.segments.length,0);
+  return `
+    ${groupsHTML}
+    <div class="card-tools">
+      <button class="mini-btn" data-reveal-card="${item.id}">Reveal all</button>
+      <span class="deck-progress" id="deckprog-${item.id}">0/${allSeg}</span>
+    </div>
+    ${relevanceHTML(item)}
+  `;
+}
+
+function buildCompare(item){
+  return `
+    <div class="compare">${item.sides.map(s=>`<div class="side"><h4>${s.title}</h4><p>${s.body}</p></div>`).join('')}</div>
+    ${revealToggleHTML(item.id)}
+    ${relevanceHTML(item)}
+  `;
+}
+
+function buildNote(item){
+  return `
+    <p class="note-body">${item.body}</p>
+    ${revealToggleHTML(item.id)}
+    ${relevanceHTML(item)}
+  `;
+}
+
+function buildFormula(item){
+  return `
+    <div class="formula-box">${item.formula.replace(/×/g,'<span class="op">×</span>')}</div>
+    ${revealToggleHTML(item.id)}
+    <div class="relevance" id="rel-${item.id}">
+      <span class="rel-label">Interpretation</span>${item.interpretation}
+      <p style="margin-top:8px;">${item.relevance}</p>
+    </div>
+  `;
+}
+
+function cardHTML(item){
+  let body = '';
+  if(item.type==='acronym') body = buildAcronym(item);
+  else if(item.type==='groups') body = buildGroups(item);
+  else if(item.type==='compare') body = buildCompare(item);
+  else if(item.type==='note') body = buildNote(item);
+  else if(item.type==='formula') body = buildFormula(item);
+
+  const catLabel = CATEGORIES.find(c=>c.key===item.cat).label;
+  return `<article class="card" style="--accent:var(--${item.cat}-color)" data-id="${item.id}" data-cat="${item.cat}">
+    <div class="card-title"><span>${catLabel}</span>${flagsHTML(item.flags)}</div>
+    <div>
+      <div class="mnem-name">${item.name}</div>
+      <div class="mnem-sub">${item.sub}</div>
+    </div>
+    ${body}
+  </article>`;
+}
+
+/* ============ RENDER GRID ============ */
+const gridEl = document.getElementById('grid');
+const countLineEl = document.getElementById('countLine');
+
+function renderGrid(){
+  totalSegments = 0;
+  let items = DATA.filter(d => activeCat==='all' || d.cat===activeCat);
+  if(query.trim()){
+    const q = query.trim().toLowerCase();
+    items = items.filter(d => (d.name+' '+d.sub+' '+(d.relevance||'')).toLowerCase().includes(q));
+  }
+  if(!items.length){
+    gridEl.innerHTML = `<div class="empty-state">No mnemonics match "${query}". Try a different term.</div>`;
+    countLineEl.textContent = '';
+    updateProgress();
+    return;
+  }
+  countLineEl.textContent = `Showing ${items.length} of ${DATA.length}`;
+  gridEl.innerHTML = items.map(cardHTML).join('');
+  attachCardHandlers();
+  if(!quizMode){
+    document.querySelectorAll('.chip').forEach(c=>revealChip(c));
+    document.querySelectorAll('.relevance').forEach(r=>r.classList.add('open'));
+  }
+  updateProgress();
+}
+
+/* ============ INTERACTIONS ============ */
+function revealChip(chip){
+  if(chip.classList.contains('revealed')) return;
+  chip.classList.add('revealed');
+  chip.setAttribute('aria-pressed','true');
+  decodedTotal++;
+  checkDeckComplete(chip);
+  updateProgress();
+}
+
+function checkDeckComplete(chip){
+  const article = chip.closest('article');
+  if(!article) return;
+  const id = article.dataset.id;
+  const allChips = article.querySelectorAll('.chip');
+  const revealedChips = article.querySelectorAll('.chip.revealed');
+  const progEl = document.getElementById('deckprog-'+id);
+  if(progEl) progEl.textContent = `${revealedChips.length}/${allChips.length}`;
+  if(allChips.length && revealedChips.length === allChips.length){
+    const rel = document.getElementById('rel-'+id);
+    if(rel) rel.classList.add('open');
+  }
+}
+
+function attachCardHandlers(){
+  document.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=> revealChip(chip));
+  });
+  document.querySelectorAll('[data-reveal-card]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const article = btn.closest('article');
+      article.querySelectorAll('.chip').forEach(c=>revealChip(c));
+    });
+  });
+  document.querySelectorAll('.reveal-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const target = document.getElementById(btn.dataset.target);
+      target.classList.toggle('open');
+      btn.classList.toggle('open');
+    });
+  });
+}
+
+function updateProgress(){
+  const fill = document.getElementById('progressFill');
+  const stat = document.getElementById('deckStat');
+  const stepLabel = document.getElementById('stepLabel');
+  const pct = totalSegments ? Math.min(100,(decodedTotal/totalSegments)*100) : 0;
+  fill.style.width = pct+'%';
+  stat.textContent = `${decodedTotal} / ${totalSegments} decoded`;
+
+  const cards = document.querySelectorAll('.card');
+  let fullyDecoded = 0;
+  cards.forEach(c=>{
+    const allChips = c.querySelectorAll('.chip');
+    const revealedChips = c.querySelectorAll('.chip.revealed');
+    if(allChips.length && revealedChips.length === allChips.length) fullyDecoded++;
+    else if(!allChips.length && c.querySelector('.relevance.open')) fullyDecoded++;
+  });
+  stepLabel.textContent = `${fullyDecoded} / ${DATA.length}`;
+}
+
+/* ============ SEARCH + MODE ============ */
+document.getElementById('search').addEventListener('input', (e)=>{
+  query = e.target.value;
+  renderGrid();
+});
+
+const modeToggleBtn = document.getElementById('modeToggle');
+modeToggleBtn.addEventListener('click', ()=>{
+  quizMode = !quizMode;
+  modeToggleBtn.textContent = quizMode ? '🧠 Quiz Mode' : '📖 Reference Mode';
+  modeToggleBtn.classList.toggle('on', !quizMode);
+  renderGrid();
+});
+
+/* ============ INIT ============ */
+renderTabs();
+renderGrid();
+</script>
+</body>
+</html>
