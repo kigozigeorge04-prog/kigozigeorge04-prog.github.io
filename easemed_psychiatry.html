@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EaseMed – Psychiatric Clerkship</title>
+<script>
+// ============================================================
+// EaseMed Psychiatric Symptom Guides
+// Original clinical content, structured from standard psychiatric
+// semiology and interview technique (systematic symptom elicitation,
+// MSE-based sign recognition, structured risk screening).
+// Not reproduced from any single copyrighted source.
+// ============================================================
+
+const psychSymptomGuides = {
+
+    "low mood": {
+        title: "Low Mood / Depressive Symptoms",
+        note: "Assess core depressive triad, biological features, cognition, and always screen risk.",
+        questions: [
+            { q: "How long has the low mood been present, and is it constant or does it vary through the day?", hint: "Diurnal variation (worse mornings) suggests a biological/melancholic pattern.", clues: [{label:"< 2 weeks", color:"#f59e0b"},{label:"2-4 weeks", color:"#f59e0b"},{label:"> 2 weeks (episode)", color:"#c0392b"},{label:"Worse in mornings", color:"#c0392b"},{label:"Worse in evenings", color:"#f59e0b"},{label:"Constant", color:"#c0392b"}] },
+            { q: "Has the patient lost interest or pleasure in things they used to enjoy (anhedonia)?", hint: "Core symptom — ask for specific examples, not just a yes/no.", clues: [{label:"Marked loss of interest", color:"#c0392b"},{label:"Some reduction", color:"#f59e0b"},{label:"No change", color:"#1a7a4a"}] },
+            { q: "How is their energy level?", hint: "Anergia is a core biological symptom.", clues: [{label:"Severely reduced", color:"#c0392b"},{label:"Mildly reduced", color:"#f59e0b"},{label:"Normal", color:"#1a7a4a"}] },
+            { q: "How is sleep — difficulty falling asleep, staying asleep, or early morning waking?", hint: "Early morning waking (2+ hours before usual) is a classic biological feature.", clues: [{label:"Early morning waking", color:"#c0392b"},{label:"Initial insomnia", color:"#f59e0b"},{label:"Hypersomnia", color:"#f59e0b"},{label:"Normal", color:"#1a7a4a"}] },
+            { q: "Any change in appetite or weight?", hint: "Both increase and decrease are relevant — note direction and amount.", clues: [{label:"Decreased appetite/weight loss", color:"#c0392b"},{label:"Increased appetite/weight gain", color:"#f59e0b"},{label:"No change", color:"#1a7a4a"}] },
+            { q: "How is concentration — can they read, follow conversation, or make decisions?", hint: "Poor concentration affects function and can mimic cognitive impairment in older patients.", clues: [{label:"Marked impairment", color:"#c0392b"},{label:"Mild difficulty", color:"#f59e0b"},{label:"Normal", color:"#1a7a4a"}] },
+            { q: "Do they feel guilty, worthless, or hopeless about the future?", hint: "Ask directly — patients often won't volunteer this.", clues: [{label:"Marked guilt/worthlessness", color:"#c0392b"},{label:"Some negative thoughts", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Have they had any thoughts that life isn't worth living, or of harming themselves?", hint: "Mandatory question — always ask directly, does not increase risk.", clues: [{label:"Active plan/intent", color:"#c0392b"},{label:"Passive thoughts", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Any psychotic features — hearing voices, or beliefs others might see as unusual (e.g. guilt beyond reason, nihilism, poverty)?", hint: "Psychotic depression is a psychiatric emergency and changes management significantly.", clues: [{label:"Mood-congruent psychosis present", color:"#c0392b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "What triggered this episode, and has anything similar happened before?", hint: "Establishes precipitant and recurrence pattern.", clues: [{label:"Clear precipitant", color:"#f59e0b"},{label:"No clear trigger", color:"#f59e0b"},{label:"Recurrent episodes", color:"#c0392b"}] }
+        ],
+        redFlags: [
+            "🚨 Active suicidal ideation with plan or means",
+            "🚨 Psychotic features (nihilistic delusions, guilt delusions, derogatory auditory hallucinations)",
+            "🚨 Catatonic features (mutism, stupor, refusal to eat/drink)",
+            "🚨 Severe self-neglect or inability to care for dependents"
+        ],
+        tips: [
+            "Always screen for mania/hypomania before starting an antidepressant, to avoid missing bipolar disorder.",
+            "Ask about postpartum timing in women of childbearing age.",
+            "Rule out organic causes: hypothyroidism, anaemia, medication side effects (e.g. steroids, interferon), substance use."
+        ]
+    },
+
+    "elevated mood": {
+        title: "Elevated Mood / Manic-Spectrum Symptoms",
+        note: "Establish duration, functional impairment, and screen for psychotic features and risk-taking behaviour.",
+        questions: [
+            { q: "How long has the mood been elevated, irritable, or expansive?", hint: "DSM-5 requires ≥7 days for mania, ≥4 days for hypomania (or any duration if hospitalisation required).", clues: [{label:"< 4 days", color:"#f59e0b"},{label:"4-6 days", color:"#f59e0b"},{label:"≥ 7 days", color:"#c0392b"}] },
+            { q: "Has their need for sleep decreased without feeling tired?", hint: "Decreased need for sleep (not insomnia) is a core manic feature.", clues: [{label:"Marked decrease, feels rested", color:"#c0392b"},{label:"Some reduction", color:"#f59e0b"},{label:"Normal", color:"#1a7a4a"}] },
+            { q: "Are they more talkative than usual, or do they feel pressure to keep talking?", hint: "Pressured speech is often noted by others before the patient recognises it.", clues: [{label:"Marked pressured speech", color:"#c0392b"},{label:"Mildly talkative", color:"#f59e0b"},{label:"Normal", color:"#1a7a4a"}] },
+            { q: "Do thoughts feel like they're racing, or do they jump quickly between topics?", hint: "Flight of ideas — assess during the interview by observing thought form.", clues: [{label:"Marked flight of ideas", color:"#c0392b"},{label:"Some racing thoughts", color:"#f59e0b"},{label:"Normal", color:"#1a7a4a"}] },
+            { q: "Are they easily distracted?", hint: "Ask for concrete examples — trouble finishing tasks, conversation, work.", clues: [{label:"Marked distractibility", color:"#c0392b"},{label:"Mild", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Have they taken on more activities, projects, or goals than usual, or become more sociable/sexually active?", hint: "Increased goal-directed activity — ask about work, social, sexual domains specifically.", clues: [{label:"Marked increase, multiple domains", color:"#c0392b"},{label:"Some increase", color:"#f59e0b"},{label:"No change", color:"#1a7a4a"}] },
+            { q: "Have they engaged in risky behaviour — overspending, reckless driving, sexual indiscretion, risky business decisions?", hint: "This is what typically brings mania to clinical/family attention.", clues: [{label:"Significant risk-taking with consequences", color:"#c0392b"},{label:"Some impulsivity", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Do they believe they have special powers, talents, connections, or a special mission?", hint: "Grandiosity can range from mild overconfidence to frank delusion.", clues: [{label:"Grandiose delusions", color:"#c0392b"},{label:"Mild grandiosity", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Any hallucinations or delusions during this period?", hint: "Mood-congruent psychotic features (grandiose) are common in severe mania.", clues: [{label:"Psychotic features present", color:"#c0392b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Has this affected work, relationships, or led to hospitalisation?", hint: "Functional impairment separates mania (marked impairment) from hypomania (noticeable but not disabling).", clues: [{label:"Marked impairment/hospitalisation", color:"#c0392b"},{label:"Noticeable but functioning", color:"#f59e0b"},{label:"No impairment", color:"#1a7a4a"}] }
+        ],
+        redFlags: [
+            "🚨 Psychotic features during mood elevation",
+            "🚨 Significant risk-taking behaviour with harm potential (financial ruin, unsafe sex, reckless driving)",
+            "🚨 Aggression or irritability with risk to others",
+            "🚨 Complete lack of insight leading to treatment refusal"
+        ],
+        tips: [
+            "Always ask about substance use — stimulants can mimic mania.",
+            "Screen thyroid function — hyperthyroidism can present similarly.",
+            "Ask a collateral informant when possible, as insight is often impaired."
+        ]
+    },
+
+    "anxiety": {
+        title: "Anxiety Symptoms",
+        note: "Differentiate generalised, panic, phobic, and situational anxiety; assess physical symptoms and avoidance behaviour.",
+        questions: [
+            { q: "Is the anxiety constant/free-floating, or does it come in discrete episodes?", hint: "Distinguishes GAD from panic disorder.", clues: [{label:"Constant/free-floating", color:"#f59e0b"},{label:"Discrete episodes (panic attacks)", color:"#c0392b"},{label:"Only in specific situations", color:"#f59e0b"}] },
+            { q: "If episodic, how quickly do symptoms peak, and how long do they last?", hint: "Panic attacks classically peak within 10 minutes.", clues: [{label:"Peaks < 10 min", color:"#c0392b"},{label:"Builds gradually", color:"#f59e0b"},{label:"Not applicable", color:"#1a7a4a"}] },
+            { q: "What physical symptoms occur — palpitations, sweating, trembling, chest pain, shortness of breath, choking sensation, dizziness?", hint: "Document number and type — helps rule out cardiac/respiratory causes too.", clues: [{label:"Multiple autonomic symptoms", color:"#c0392b"},{label:"Few mild symptoms", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Do they fear losing control, going crazy, or dying during these episodes?", hint: "Catastrophic cognitions are characteristic of panic.", clues: [{label:"Fear of dying/losing control", color:"#c0392b"},{label:"Mild worry", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Are there specific triggers — situations, objects, social settings, or none identifiable?", hint: "Identifies phobic vs social vs generalised anxiety.", clues: [{label:"Specific object/situation (specific phobia)", color:"#f59e0b"},{label:"Social situations", color:"#f59e0b"},{label:"No clear trigger", color:"#f59e0b"}] },
+            { q: "Do they avoid places or situations because of the anxiety?", hint: "Avoidance behaviour drives functional impairment — ask specifically what they now avoid.", clues: [{label:"Significant avoidance/agoraphobia", color:"#c0392b"},{label:"Some avoidance", color:"#f59e0b"},{label:"No avoidance", color:"#1a7a4a"}] },
+            { q: "What do they worry about, and can they control the worry?", hint: "Uncontrollable, excessive worry about multiple domains is core to GAD.", clues: [{label:"Uncontrollable, multiple domains", color:"#c0392b"},{label:"Controllable, specific concern", color:"#f59e0b"}] },
+            { q: "How long has this been present, and is it worsening?", hint: "GAD requires ≥6 months by DSM-5 criteria.", clues: [{label:"< 1 month", color:"#f59e0b"},{label:"1-6 months", color:"#f59e0b"},{label:"> 6 months", color:"#c0392b"}] },
+            { q: "Any recent trauma or significant stressor before onset?", hint: "Screen for PTSD/acute stress reaction if trauma exposure is reported.", clues: [{label:"Clear trauma trigger", color:"#c0392b"},{label:"General life stress", color:"#f59e0b"},{label:"No identifiable trigger", color:"#f59e0b"}] },
+            { q: "Any substance or caffeine use, or recent substance withdrawal?", hint: "Caffeine, stimulants, and alcohol/benzodiazepine withdrawal are common organic mimics.", clues: [{label:"Heavy caffeine/stimulant use", color:"#f59e0b"},{label:"Recent alcohol/sedative withdrawal", color:"#c0392b"},{label:"None", color:"#1a7a4a"}] }
+        ],
+        redFlags: [
+            "🚨 Chest pain requiring cardiac work-up before attributing to panic",
+            "🚨 Severe agoraphobia preventing the patient from leaving home or accessing care",
+            "🚨 Comorbid suicidal ideation (anxiety disorders carry meaningful suicide risk)",
+            "🚨 Signs of alcohol/benzodiazepine withdrawal (tremor, seizure risk)"
+        ],
+        tips: [
+            "First panic attack often presents to the emergency department as suspected cardiac event — rule out organic causes first.",
+            "Ask specifically about avoidance and reassurance-seeking, as these maintain the disorder.",
+            "In Uganda, somatic presentation of anxiety (headache, palpitations, 'heart problems') is common — screen psychological symptoms actively."
+        ]
+    },
+
+    "psychosis": {
+        title: "Psychotic Symptoms",
+        note: "Systematically characterise hallucinations, delusions, and thought disorder; always assess risk and insight.",
+        questions: [
+            { q: "Does the patient hear voices or sounds that others don't? If so, how many voices, and do they talk to the patient or about them?", hint: "Second-person (talking to) vs third-person (talking about/commentary) has diagnostic significance.", clues: [{label:"Third-person commentary voices", color:"#c0392b"},{label:"Second-person voices", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Do the voices give commands, and has the patient acted or felt compelled to act on them?", hint: "Command hallucinations with compliance are a major safety concern.", clues: [{label:"Command hallucinations, acted on", color:"#c0392b"},{label:"Command hallucinations, resisted", color:"#c0392b"},{label:"No commands", color:"#1a7a4a"}] },
+            { q: "Any visual, olfactory, gustatory, or tactile hallucinations?", hint: "Non-auditory hallucinations should raise suspicion for organic/substance-induced psychosis.", clues: [{label:"Visual hallucinations present", color:"#c0392b"},{label:"Tactile/olfactory present", color:"#c0392b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Does the patient believe people are watching, following, plotting against, or trying to harm them?", hint: "Persecutory delusions — establish conviction, systematisation, and impact on behaviour.", clues: [{label:"Fixed, systematised belief", color:"#c0392b"},{label:"Partial/wavering belief", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Does the patient believe their thoughts are being read, inserted, withdrawn, or broadcast to others?", hint: "Passivity/thought interference phenomena are first-rank symptoms of schizophrenia.", clues: [{label:"Thought interference present", color:"#c0392b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Does the patient believe they have special powers, importance, or a special mission (grandiose), or that they are guilty of terrible things, or that they/others don't exist (nihilistic)?", hint: "Mood-congruent delusions point toward affective psychosis rather than primary psychotic disorder.", clues: [{label:"Grandiose delusions", color:"#f59e0b"},{label:"Nihilistic/guilt delusions", color:"#c0392b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Is the patient's speech difficult to follow — do they jump between unrelated topics, use made-up words, or stop mid-sentence?", hint: "Formal thought disorder: loosening of associations, neologisms, thought block.", clues: [{label:"Marked disorganisation", color:"#c0392b"},{label:"Mild tangentiality", color:"#f59e0b"},{label:"Normal thought form", color:"#1a7a4a"}] },
+            { q: "How long have these symptoms been present, and did anything happen around onset (substance use, illness, major stress)?", hint: "Onset pattern and precipitant guide the differential — acute/substance-related vs insidious/primary.", clues: [{label:"Acute onset < 1 month", color:"#f59e0b"},{label:"1-6 months", color:"#f59e0b"},{label:"> 6 months, insidious", color:"#c0392b"},{label:"Clear substance trigger", color:"#c0392b"}] },
+            { q: "Does the patient recognise these experiences as symptoms of illness, or believe them to be real?", hint: "Insight assessment — critical for engagement and risk.", clues: [{label:"No insight", color:"#c0392b"},{label:"Partial insight", color:"#f59e0b"},{label:"Good insight", color:"#1a7a4a"}] },
+            { q: "Any recent substance use (cannabis, khat, amphetamines, alcohol withdrawal)?", hint: "Substance-induced psychosis is common and changes acute management.", clues: [{label:"Recent heavy substance use", color:"#c0392b"},{label:"Occasional use", color:"#f59e0b"},{label:"None reported", color:"#1a7a4a"}] }
+        ],
+        redFlags: [
+            "🚨 Command hallucinations to harm self or others, especially with stated intent",
+            "🚨 Persecutory delusions naming a specific, identifiable target for violence",
+            "🚨 Catatonic features (posturing, waxy flexibility, mutism, refusal of food/fluids)",
+            "🚨 Acute confusion/fluctuating consciousness — think delirium, not primary psychosis, until proven otherwise"
+        ],
+        tips: [
+            "Always rule out organic causes first in new-onset psychosis: infection (including cerebral malaria, HIV, neurosyphilis), metabolic derangement, substance use, and head injury.",
+            "Distinguish delirium (fluctuating consciousness, disorientation, acute onset) from functional psychosis — this changes the entire work-up.",
+            "Document hallucinations and delusions in the patient's own words where possible, rather than only your interpretation."
+        ]
+    },
+
+    "suicidal ideation": {
+        title: "Suicidal Ideation / Self-Harm",
+        note: "This is a risk-screening domain, not just a symptom — always complete in full, regardless of presenting complaint.",
+        questions: [
+            { q: "Has the patient had thoughts that life isn't worth living, or that they would be better off dead?", hint: "Start broad before asking about specific plans — reduces distress and builds rapport.", clues: [{label:"Yes, current", color:"#c0392b"},{label:"Yes, in the past", color:"#f59e0b"},{label:"No", color:"#1a7a4a"}] },
+            { q: "Have they had thoughts of actively ending their life?", hint: "Move from passive death wish to active ideation systematically.", clues: [{label:"Yes, current active ideation", color:"#c0392b"},{label:"Yes, passive only", color:"#f59e0b"},{label:"No", color:"#1a7a4a"}] },
+            { q: "Do they have a specific plan, and have they thought about method, place, or time?", hint: "Specificity of plan is a major risk multiplier.", clues: [{label:"Specific, detailed plan", color:"#c0392b"},{label:"Vague thoughts, no plan", color:"#f59e0b"},{label:"No plan", color:"#1a7a4a"}] },
+            { q: "Do they have access to the means (medication, weapon, rope, poison)?", hint: "Access to lethal means significantly increases risk and guides safety planning.", clues: [{label:"Ready access to means", color:"#c0392b"},{label:"No current access", color:"#1a7a4a"}] },
+            { q: "Have they made any preparations — writing a note, giving away possessions, saying goodbye?", hint: "Preparatory behaviour indicates high intent.", clues: [{label:"Preparations made", color:"#c0392b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Have they made any suicide attempts before? If so, when, how, and what happened?", hint: "Previous attempts are the single strongest predictor of future completed suicide.", clues: [{label:"Previous attempt(s)", color:"#c0392b"},{label:"None", color:"#f59e0b"}] },
+            { q: "What has stopped them acting on these thoughts so far (protective factors)?", hint: "Identifies reasons for living — family, religion, fear, future plans — useful for safety planning.", clues: [{label:"Strong protective factors identified", color:"#1a7a4a"},{label:"Weak/absent protective factors", color:"#c0392b"}] },
+            { q: "Is there a history of deliberate self-harm without suicidal intent (e.g. cutting for relief)?", hint: "Distinguish self-harm as emotional regulation from suicide attempts — different risk profile and management.", clues: [{label:"Yes, ongoing self-harm", color:"#f59e0b"},{label:"Past self-harm", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Any recent major loss, humiliation, financial crisis, or relationship breakdown?", hint: "Acute precipitants sharply raise short-term risk.", clues: [{label:"Recent major precipitant", color:"#c0392b"},{label:"No clear precipitant", color:"#f59e0b"}] },
+            { q: "Is there ongoing risk to any dependents (children) given the patient's current state?", hint: "Assess safeguarding needs alongside patient risk.", clues: [{label:"Dependents at risk", color:"#c0392b"},{label:"No dependents / not at risk", color:"#1a7a4a"}] }
+        ],
+        redFlags: [
+            "🚨 Current active plan with access to means — requires immediate safety intervention, do not let patient leave unassessed",
+            "🚨 Recent attempt with ongoing intent",
+            "🚨 Command hallucinations instructing self-harm",
+            "🚨 Impulsivity combined with active intoxication"
+        ],
+        tips: [
+            "Asking directly about suicide does not increase risk — avoiding the question is the more dangerous error.",
+            "Document risk assessment explicitly in every psychiatric clerking, not only when volunteered by the patient.",
+            "A documented safety plan (who to call, what to do, means restriction) should accompany every at-risk patient, even if admission isn't required."
+        ]
+    },
+
+    "insomnia": {
+        title: "Sleep Disturbance",
+        note: "Characterise the sleep problem in detail and screen for underlying mood, anxiety, or substance causes.",
+        questions: [
+            { q: "Is the problem falling asleep, staying asleep, or waking too early?", hint: "Different patterns suggest different underlying causes.", clues: [{label:"Initial insomnia", color:"#f59e0b"},{label:"Middle insomnia (frequent waking)", color:"#f59e0b"},{label:"Early morning waking", color:"#c0392b"},{label:"All of the above", color:"#c0392b"}] },
+            { q: "How many hours of sleep are they getting, and how many did they get before this started?", hint: "Quantifies severity and change from baseline.", clues: [{label:"< 4 hours", color:"#c0392b"},{label:"4-6 hours", color:"#f59e0b"},{label:"Near normal", color:"#1a7a4a"}] },
+            { q: "How long has this been going on?", hint: "Acute (<1 month, often stress-related) vs chronic (>1 month, may be primary insomnia or psychiatric).", clues: [{label:"< 1 month", color:"#f59e0b"},{label:"1-3 months", color:"#f59e0b"},{label:"> 3 months", color:"#c0392b"}] },
+            { q: "Is their mood low, anxious, or elevated alongside the sleep problem?", hint: "Sleep disturbance is a core feature of both depression and mania — check both directions.", clues: [{label:"Low mood present", color:"#c0392b"},{label:"Anxious/racing thoughts", color:"#c0392b"},{label:"Elevated mood/reduced need for sleep", color:"#c0392b"},{label:"Mood unaffected", color:"#1a7a4a"}] },
+            { q: "Any nightmares, especially of a recurring or trauma-related nature?", hint: "Trauma-related nightmares suggest PTSD; screen for other re-experiencing symptoms.", clues: [{label:"Recurring trauma nightmares", color:"#c0392b"},{label:"Occasional nightmares", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Does the patient snore heavily, or has anyone noticed pauses in breathing during sleep?", hint: "Screens for obstructive sleep apnoea as an organic contributor.", clues: [{label:"Witnessed apnoea/heavy snoring", color:"#f59e0b"},{label:"No", color:"#1a7a4a"}] },
+            { q: "What is their caffeine, alcohol, and substance use pattern, especially in the evening?", hint: "Common contributors — also ask about use of alcohol or sedatives specifically to induce sleep.", clues: [{label:"Heavy evening caffeine/substance use", color:"#f59e0b"},{label:"Using alcohol/sedatives to sleep", color:"#c0392b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "What is their sleep environment and routine like (screen use, shift work, noise)?", hint: "Sleep hygiene factors are often modifiable first-line targets.", clues: [{label:"Poor sleep hygiene identified", color:"#f59e0b"},{label:"Reasonable sleep hygiene", color:"#1a7a4a"}] },
+            { q: "How is this affecting daytime functioning — fatigue, concentration, irritability, falling asleep unintentionally?", hint: "Establishes functional impact and safety (e.g. driving risk).", clues: [{label:"Marked impairment", color:"#c0392b"},{label:"Mild impairment", color:"#f59e0b"},{label:"Minimal impact", color:"#1a7a4a"}] },
+            { q: "Are they on any medications that could affect sleep (steroids, stimulants, some antidepressants)?", hint: "Medication review is essential before diagnosing primary insomnia.", clues: [{label:"Likely medication cause", color:"#f59e0b"},{label:"No relevant medications", color:"#1a7a4a"}] }
+        ],
+        redFlags: [
+            "🚨 Insomnia with active suicidal ideation — sleep disturbance is a known short-term risk marker",
+            "🚨 Suspected sleep apnoea with cardiovascular risk factors — needs medical referral",
+            "🚨 Escalating reliance on alcohol or sedatives to sleep"
+        ],
+        tips: [
+            "Insomnia is frequently the presenting complaint that masks an underlying mood or anxiety disorder — always screen both.",
+            "Avoid starting benzodiazepines as first-line without addressing underlying cause and sleep hygiene, given dependence risk."
+        ]
+    },
+
+    "substance use": {
+        title: "Substance Use / Dependence",
+        note: "Take a substance-by-substance history: quantity, frequency, pattern, dependence features, and withdrawal risk.",
+        questions: [
+            { q: "Which substances does the patient use (alcohol, tobacco, cannabis, khat/miraa, cocaine, heroin, prescription misuse, other)?", hint: "Ask about each substance individually and specifically — general questions under-detect use.", clues: [{label:"Alcohol", color:"#f59e0b"},{label:"Cannabis", color:"#f59e0b"},{label:"Khat/miraa", color:"#f59e0b"},{label:"Other stimulants/opioids", color:"#c0392b"},{label:"Multiple substances", color:"#c0392b"},{label:"None currently", color:"#1a7a4a"}] },
+            { q: "For the main substance — how much, how often, and for how long?", hint: "Quantify precisely: units of alcohol per week, joints per day, years of use.", clues: [{label:"Heavy, daily use", color:"#c0392b"},{label:"Regular but moderate", color:"#f59e0b"},{label:"Occasional/social", color:"#1a7a4a"}] },
+            { q: "When was the substance last used?", hint: "Critical for anticipating withdrawal timing, especially alcohol and opioids.", clues: [{label:"Within last 24 hours", color:"#c0392b"},{label:"1-3 days ago", color:"#f59e0b"},{label:"> 1 week", color:"#1a7a4a"}] },
+            { q: "Have they ever tried to cut down and been unable to, or needed more to get the same effect (tolerance)?", hint: "Core dependence features per ICD/DSM criteria.", clues: [{label:"Failed attempts to cut down + tolerance", color:"#c0392b"},{label:"Some tolerance only", color:"#f59e0b"},{label:"Neither", color:"#1a7a4a"}] },
+            { q: "Have they experienced withdrawal symptoms when stopping — shaking, sweating, anxiety, seizures, hallucinations?", hint: "Alcohol and benzodiazepine withdrawal can be life-threatening (seizures, delirium tremens) — assess urgently.", clues: [{label:"Severe withdrawal history (seizures/DTs)", color:"#c0392b"},{label:"Mild withdrawal symptoms", color:"#f59e0b"},{label:"None reported", color:"#1a7a4a"}] },
+            { q: "Has substance use caused problems at work, home, with the law, or in relationships?", hint: "Functional/social consequences confirm the diagnostic picture beyond just quantity.", clues: [{label:"Significant consequences across domains", color:"#c0392b"},{label:"Some consequences", color:"#f59e0b"},{label:"No reported consequences", color:"#1a7a4a"}] },
+            { q: "Has the patient continued using despite knowing it's causing harm?", hint: "Continued use despite harm is a core dependence criterion.", clues: [{label:"Yes", color:"#c0392b"},{label:"No", color:"#1a7a4a"}] },
+            { q: "Any previous attempts at treatment, detox, or rehabilitation?", hint: "Establishes treatment history and what has/hasn't worked before.", clues: [{label:"Previous treatment attempts", color:"#f59e0b"},{label:"No previous treatment", color:"#1a7a4a"}] },
+            { q: "Is there a family history of substance use or dependence?", hint: "Family history informs risk and can guide family-inclusive treatment planning.", clues: [{label:"Family history present", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Any current psychiatric symptoms that could be substance-induced (psychosis, mood symptoms, anxiety)?", hint: "Distinguishes primary psychiatric illness from substance-induced presentation.", clues: [{label:"Substance-induced symptoms suspected", color:"#c0392b"},{label:"Symptoms independent of use", color:"#f59e0b"}] }
+        ],
+        redFlags: [
+            "🚨 Signs of current alcohol/benzodiazepine withdrawal (tremor, autonomic instability, confusion) — seizure and delirium tremens risk, needs urgent medical management",
+            "🚨 Opioid overdose signs (pinpoint pupils, respiratory depression, reduced consciousness) — emergency, needs naloxone",
+            "🚨 IV drug use — screen for HIV, hepatitis B/C, and injection site infections",
+            "🚨 Suicidal ideation while intoxicated — disinhibition significantly raises acute risk"
+        ],
+        tips: [
+            "Use a non-judgemental, direct approach — normalising the question ('many people use alcohol/other substances, how about you?') improves disclosure.",
+            "Always assess withdrawal risk before any planned abstinence, especially for alcohol and benzodiazepines.",
+            "In Uganda, khat/miraa and locally brewed spirits (e.g. waragi) are common and often under-reported — ask specifically."
+        ]
+    },
+
+    "memory problems": {
+        title: "Memory / Cognitive Complaints",
+        note: "Distinguish delirium, dementia, and pseudodementia (depression); establish onset and course carefully.",
+        questions: [
+            { q: "How did the memory problem start — suddenly or gradually?", hint: "Acute onset suggests delirium or vascular event; gradual suggests neurodegenerative process.", clues: [{label:"Sudden (hours-days)", color:"#c0392b"},{label:"Gradual (months-years)", color:"#f59e0b"},{label:"Stepwise decline", color:"#f59e0b"}] },
+            { q: "Is the level of consciousness or alertness fluctuating?", hint: "Fluctuating consciousness is a hallmark of delirium, not dementia.", clues: [{label:"Fluctuating consciousness", color:"#c0392b"},{label:"Consistently alert", color:"#1a7a4a"}] },
+            { q: "What type of memory is affected — recent events, or also long-past events?", hint: "Recent memory loss with preserved remote memory is typical early dementia pattern.", clues: [{label:"Recent memory mainly affected", color:"#f59e0b"},{label:"Both recent and remote affected", color:"#c0392b"}] },
+            { q: "Is the patient also low in mood, or has lost interest/motivation?", hint: "Depression can present with prominent cognitive complaints in older adults (pseudodementia) — screen mood carefully.", clues: [{label:"Prominent low mood/anhedonia", color:"#f59e0b"},{label:"No mood symptoms", color:"#1a7a4a"}] },
+            { q: "Any difficulty with language (word-finding), planning, or recognising familiar people/places?", hint: "Points toward a specific dementia subtype and localises cognitive domains affected.", clues: [{label:"Language difficulty", color:"#f59e0b"},{label:"Planning/executive difficulty", color:"#f59e0b"},{label:"Difficulty recognising people/places", color:"#c0392b"}] },
+            { q: "Any personality or behaviour change — disinhibition, apathy, agitation, wandering?", hint: "Behavioural change can precede memory loss in some dementia subtypes.", clues: [{label:"Marked behaviour change", color:"#f59e0b"},{label:"No behaviour change", color:"#1a7a4a"}] },
+            { q: "Is this affecting activities of daily living — finances, cooking, medications, self-care?", hint: "Functional impact distinguishes dementia (impaired ADLs) from normal ageing/mild cognitive impairment.", clues: [{label:"Significant ADL impairment", color:"#c0392b"},{label:"Mild impact only", color:"#f59e0b"},{label:"No functional impact", color:"#1a7a4a"}] },
+            { q: "Any recent infection, new medication, surgery, or metabolic illness?", hint: "Common precipitants of delirium, especially in the elderly.", clues: [{label:"Recent infection/illness/new medication", color:"#c0392b"},{label:"None identified", color:"#1a7a4a"}] },
+            { q: "Any vascular risk factors — hypertension, diabetes, previous stroke?", hint: "Relevant to vascular dementia and stepwise decline pattern.", clues: [{label:"Vascular risk factors present", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Any family history of dementia or early cognitive decline?", hint: "Relevant for younger-onset presentations.", clues: [{label:"Family history present", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] }
+        ],
+        redFlags: [
+            "🚨 Acute confusion with fluctuating consciousness — treat as delirium/medical emergency until proven otherwise",
+            "🚨 Rapidly progressive cognitive decline (weeks) — needs urgent work-up (e.g. infection, autoimmune, rapidly progressive dementia)",
+            "🚨 New focal neurological signs alongside cognitive change",
+            "🚨 Self-neglect or unsafe living situation (unattended stove, wandering, missed critical medications)"
+        ],
+        tips: [
+            "Always screen for and rule out delirium first — it is common, treatable, and easily missed if not actively considered.",
+            "Depression can closely mimic dementia in older adults ('pseudodementia') — a mood history is essential before assuming primary cognitive disorder.",
+            "A collateral history from family/caregiver is often more reliable than the patient's own account in cognitive complaints."
+        ]
+    },
+
+    "obsessions compulsions": {
+        title: "Obsessions & Compulsions",
+        note: "Establish the specific content of obsessions, the function of compulsions, insight, and time burden.",
+        questions: [
+            { q: "Does the patient have repeated, intrusive thoughts, images, or urges that feel unwanted and hard to control?", hint: "Establish that obsessions are ego-dystonic (unwanted), not simply excessive worry.", clues: [{label:"Clear intrusive, unwanted thoughts", color:"#c0392b"},{label:"General excessive worry", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "What is the content of these thoughts (contamination, harm, symmetry/order, religious/moral, sexual, hoarding)?", hint: "Content guides both understanding and targeted treatment planning.", clues: [{label:"Contamination fears", color:"#f59e0b"},{label:"Harm-related thoughts", color:"#c0392b"},{label:"Symmetry/order", color:"#f59e0b"},{label:"Religious/moral (scrupulosity)", color:"#f59e0b"},{label:"Other", color:"#f59e0b"}] },
+            { q: "Does the patient perform repetitive behaviours or mental acts in response to these thoughts (washing, checking, counting, praying)?", hint: "Compulsions are typically performed to reduce distress or prevent a feared outcome.", clues: [{label:"Clear compulsive behaviours", color:"#c0392b"},{label:"Mental rituals only", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "How much time per day do the obsessions and compulsions take up?", hint: "≥1 hour/day is a common threshold indicating clinical significance.", clues: [{label:"> 1 hour/day", color:"#c0392b"},{label:"< 1 hour/day", color:"#f59e0b"},{label:"Minimal", color:"#1a7a4a"}] },
+            { q: "Does resisting the urge to perform the compulsion cause significant anxiety?", hint: "Establishes the anxiety-reduction function of the ritual.", clues: [{label:"Marked anxiety if resisted", color:"#c0392b"},{label:"Mild discomfort", color:"#f59e0b"}] },
+            { q: "Does the patient recognise these thoughts/behaviours as excessive or unreasonable?", hint: "Insight ranges from good to absent (delusional) — affects diagnosis and treatment approach.", clues: [{label:"Good insight", color:"#1a7a4a"},{label:"Poor/absent insight", color:"#c0392b"}] },
+            { q: "Has this affected work, relationships, or daily functioning?", hint: "Functional impairment confirms clinical significance beyond quirky habit.", clues: [{label:"Significant impairment", color:"#c0392b"},{label:"Mild impact", color:"#f59e0b"},{label:"No impairment", color:"#1a7a4a"}] },
+            { q: "When did symptoms start, and was there a clear trigger?", hint: "Sudden onset in a child, especially post-infection, raises consideration of PANDAS.", clues: [{label:"Gradual onset", color:"#f59e0b"},{label:"Sudden onset, especially post-infection (child)", color:"#c0392b"}] },
+            { q: "Any tics, either now or in the past?", hint: "OCD and tic disorders (including Tourette's) commonly co-occur.", clues: [{label:"Tics present", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] },
+            { q: "Any associated low mood or anxiety symptoms?", hint: "Depression and generalised anxiety are common comorbidities.", clues: [{label:"Comorbid depression/anxiety", color:"#f59e0b"},{label:"None", color:"#1a7a4a"}] }
+        ],
+        redFlags: [
+            "🚨 Harm-related obsessions with risk of acting on them (rare, but always screen for this distinction from psychosis)",
+            "🚨 Severe functional impairment — unable to leave home, hold employment, or maintain hygiene",
+            "🚨 Comorbid suicidal ideation, which is elevated in severe OCD"
+        ],
+        tips: [
+            "Harm-related obsessions are usually ego-dystonic and distressing to the patient — this differs from psychotic ideation, where the person does not experience the thought as intrusive or unwanted.",
+            "Ask specifically about mental compulsions (counting, silent prayer, replaying events) — these are easy to miss as they aren't visible."
+        ]
+    }
+};
+
+// Map presenting-complaint tag values (used in the UI) to the guide keys above.
+const psychComplaintToGuideKey = {
+    "low mood": "low mood",
+    "elevated mood": "elevated mood",
+    "anxiety": "anxiety",
+    "psychosis": "psychosis",
+    "suicidal thoughts": "suicidal ideation",
+    "sleep problems": "insomnia",
+    "substance use": "substance use",
+    "memory problems": "memory problems",
+    "obsessions/compulsions": "obsessions compulsions"
+};
+
+</script>
+<style>
+    :root{
+        --bg:#f7f9fb; --surface:#ffffff; --border:#dde3ea;
+        --primary:#4a3f7a; --primary-light:#efe9fb; --accent:#e05c2a;
+        --text:#1c2b36; --muted:#6b7f8c; --danger:#c0392b; --success:#1a7a4a;
+        --warn-bg:#fffbea; --warn-border:#f0c050;
+        --psych-color:#6c3483; --psych-light:#f4ecf7; --psych-dark:#3d1f5c;
+        --mse-color:#1a5f7a; --mse-light:#e8f4f8;
+        --radius:10px; --shadow:0 2px 12px rgba(74,63,122,0.08);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
+    .topbar{background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0.65rem 1.2rem;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.12);}
+    .topbar-brand{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:6px;}
+    .topbar-brand span{color:#cbb8f5;}
+    .topbar-subtitle{font-size:0.7rem;opacity:0.8;}
+    .topbar-right{display:flex;align-items:center;gap:0.6rem;}
+    .topbar-right .btn-outline-white{background:transparent;border:1.5px solid rgba(255,255,255,0.4);color:#fff;padding:0.25rem 0.8rem;border-radius:6px;font-size:0.75rem;cursor:pointer;white-space:nowrap;}
+    .topbar-right .btn-outline-white:hover{background:rgba(255,255,255,0.12);}
+    #userGreeting{font-size:0.75rem;color:rgba(255,255,255,0.85);display:none;}
+    @media (min-width:600px){#userGreeting{display:inline;}}
+    .progress-bar-wrap{background:#e5daf7;height:4px;position:sticky;top:50px;z-index:99;}
+    .progress-bar-fill{height:4px;background:var(--accent);transition:width 0.4s ease;width:0%;}
+    .main-wrap{max-width:860px;margin:0 auto;padding:1.2rem 0.8rem 5rem;}
+    .section-header{display:flex;align-items:center;gap:0.7rem;margin:1.5rem 0 1rem;}
+    .section-badge{color:#fff;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:0.2rem 0.6rem;border-radius:20px;flex-shrink:0;}
+    .section-title{font-size:1rem;font-weight:700;color:var(--primary);}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1rem;box-shadow:var(--shadow);}
+    .card.psych-card{border-left:3px solid var(--psych-color);}
+    .card.mse-card{border-left:3px solid var(--mse-color);}
+    .card-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:0.7rem;border-bottom:1px solid var(--border);padding-bottom:0.4rem;}
+    .field-group{margin-bottom:0.9rem;}
+    .field-group:last-child{margin-bottom:0;}
+    label{display:block;font-size:0.8rem;font-weight:600;color:var(--text);margin-bottom:0.25rem;}
+    label .req{color:var(--danger);margin-left:2px;}
+    .hint{font-size:0.72rem;color:var(--muted);margin-bottom:0.3rem;font-style:italic;}
+    input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:0.45rem 0.7rem;border:1.5px solid var(--border);border-radius:7px;font-size:0.88rem;color:var(--text);background:#fff;outline:none;}
+    input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(74,63,122,0.1);}
+    textarea{resize:vertical;min-height:50px;line-height:1.5;}
+    .inline-row{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;}
+    .inline-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.8rem;}
+    @media (max-width:560px){.inline-row,.inline-row-3{grid-template-columns:1fr;}}
+    .radio-group,.checkbox-group{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.15rem;}
+    .radio-group label,.checkbox-group label{font-weight:400;display:flex;align-items:center;gap:0.3rem;cursor:pointer;background:var(--bg);border:1.5px solid var(--border);border-radius:6px;padding:0.25rem 0.6rem;font-size:0.8rem;margin-bottom:0;}
+    .radio-group input,.checkbox-group input{width:auto;accent-color:var(--primary);}
+    .radio-group label:has(input:checked),.checkbox-group label:has(input:checked){border-color:var(--primary);background:var(--primary-light);color:var(--primary);font-weight:600;}
+    .risk-box{background:#fff5f5;border:2px solid #fca5a5;border-radius:8px;padding:0.8rem 1rem;margin-bottom:1rem;}
+    .risk-box .card-title{color:#c0392b;}
+    .divider{border:none;border-top:1px solid var(--border);margin:1rem 0;}
+    .btn-primary{background:var(--primary);color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;}
+    .btn-primary:hover{background:#392f5f;}
+    .btn-secondary{background:var(--border);color:var(--text);border:none;padding:0.5rem 1.2rem;border-radius:8px;font-size:0.88rem;font-weight:600;cursor:pointer;}
+    .mse-domain{border:1.5px solid var(--border);border-radius:8px;margin-bottom:0.7rem;overflow:hidden;}
+    .mse-header{background:var(--bg);padding:0.5rem 0.8rem;font-size:0.85rem;font-weight:700;color:var(--mse-color);}
+    .mse-body{padding:0.6rem 0.8rem;}
+    .pill-group{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.3rem;}
+    .pill{background:var(--bg);border:1.5px solid var(--border);border-radius:20px;padding:0.25rem 0.7rem;font-size:0.78rem;cursor:pointer;}
+    .pill.selected{background:var(--mse-color);border-color:var(--mse-color);color:#fff;font-weight:600;}
+    .records-panel{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-top:20px;}
+    .records-header{background:var(--psych-dark);color:white;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .records-actions{display:flex;gap:6px;flex-wrap:wrap;}
+    .btn-record{padding:5px 12px;border:none;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;}
+    .btn-save{background:#2c6e49;color:#fff;} .btn-new{background:#e67e22;color:#fff;} .btn-export{background:#8b5cf6;color:#fff;}
+    .records-body{padding:14px 18px;}
+    .records-search{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:0.85rem;margin-bottom:12px;}
+    .patient-card{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .patient-card-name{font-weight:700;color:var(--psych-dark);font-size:0.9rem;}
+    .patient-card-meta{font-size:0.7rem;color:var(--muted);}
+    .btn-card{padding:3px 10px;border:none;border-radius:4px;font-size:0.68rem;font-weight:600;cursor:pointer;}
+    .btn-load{background:#e2e8f0;color:var(--text);} .btn-delete{background:#fee2e2;color:#dc2626;}
+    .save-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--success);color:#fff;padding:10px 24px;border-radius:12px;font-weight:600;font-size:0.85rem;box-shadow:0 6px 20px rgba(0,0,0,0.15);z-index:99999;transition:transform 0.3s cubic-bezier(.175,.885,.32,1.275);pointer-events:none;}
+    .save-toast.show{transform:translateX(-50%) translateY(0);}
+    .footer-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0.6rem 1.2rem;box-shadow:0 -2px 10px rgba(0,0,0,0.06);z-index:100;}
+    .step-indicator{font-size:0.7rem;color:var(--muted);}
+    .clinical-summary{background:#f8fafc;padding:12px 16px;border-radius:8px;font-size:0.82rem;line-height:1.6;border:1px solid var(--border);white-space:pre-wrap;}
+    .summary-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto;}
+    .summary-modal-overlay.open{display:flex;}
+    .summary-modal{background:#fff;border-radius:14px;width:100%;max-width:780px;box-shadow:0 24px 64px rgba(0,0,0,0.25);overflow:hidden;margin:auto;}
+    .summary-modal-header{background:linear-gradient(135deg,var(--psych-dark),var(--primary));color:#fff;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .summary-modal-body{padding:1.5rem;max-height:70vh;overflow-y:auto;font-size:0.85rem;line-height:1.7;}
+    .summary-section{margin-bottom:1rem;border-left:4px solid var(--primary);padding-left:1rem;}
+    .summary-section-title{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:0.3rem;}
+    .btn-close-modal{background:rgba(255,255,255,0.2);color:#fff;border:none;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.8rem;font-weight:700;cursor:pointer;}
+
+    /* ─── Guided symptom panel ─── */
+    .guide-box{background:var(--psych-light);border:1px solid #e5d4f5;border-radius:10px;padding:0.9rem 1rem;margin:0.6rem 0 1rem;}
+    .guide-box h4{font-size:0.92rem;color:var(--psych-dark);margin-bottom:0.6rem;}
+    .guide-q{border-top:1px solid #e5d4f5;padding-top:0.6rem;margin-top:0.6rem;}
+    .guide-q:first-of-type{border-top:none;margin-top:0;padding-top:0;}
+    .guide-q-text{font-weight:700;font-size:0.85rem;color:var(--text);}
+    .guide-q-hint{font-size:0.75rem;color:var(--muted);font-style:italic;margin:0.15rem 0 0.35rem;}
+    .clue-pill{display:inline-block;background:#f1f5f9;border:1px solid #cbd5e1;border-left-width:4px;border-radius:30px;padding:2px 10px;font-size:0.72rem;font-weight:500;color:#1e293b;cursor:pointer;margin:2px;}
+    .clue-pill.selected{background:var(--psych-color);border-color:var(--psych-color);color:#fff;}
+    .guide-redflags{margin-top:0.8rem;padding-top:0.7rem;border-top:1px solid #f0c050;background:#fff8e1;border-radius:6px;padding:0.6rem 0.8rem;}
+    .guide-redflags-title{font-size:0.72rem;font-weight:700;color:#c0392b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.3rem;}
+    .guide-redflags li{font-size:0.78rem;color:#c0392b;margin-bottom:0.2rem;list-style:none;}
+    .guide-tips{margin-top:0.6rem;font-size:0.78rem;color:var(--text);}
+    .guide-tips-title{font-weight:700;color:var(--psych-dark);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.3rem;}
+    .guide-tips li{margin-bottom:0.2rem;list-style:none;}
+</style>
+</head>
+<body>
+
+<nav class="topbar" id="topbar">
+    <div>
+        <div class="topbar-brand">🧠 Ease<span>Med</span></div>
+        <div class="topbar-subtitle">Psychiatric Clerkship</div>
+    </div>
+    <div class="topbar-right">
+        <button class="btn-outline-white" onclick="savePatient()">💾 Save</button>
+        <button class="btn-outline-white" onclick="window.location.href='easemed_dashboard.html'">← Dashboard</button>
+    </div>
+</nav>
+
+<div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+<div id="pageContent" class="main-wrap">
+
+    <div class="section-header"><span class="section-badge" style="background:var(--psych-color);">1</span><span class="section-title">Demographics & Circumstances</span></div>
+    <div class="card psych-card">
+        <div class="card-title">👤 Patient Identification</div>
+        <div class="inline-row">
+            <div class="field-group"><label>Patient Name <span class="req">*</span></label><input type="text" id="patientName"></div>
+            <div class="field-group"><label>Age</label><input type="number" id="patientAge"></div>
+        </div>
+        <div class="inline-row">
+            <div class="field-group"><label>Sex</label><select id="patientSex"><option>Male</option><option>Female</option></select></div>
+            <div class="field-group"><label>Marital Status</label><input type="text" id="maritalStatus"></div>
+        </div>
+        <div class="inline-row">
+            <div class="field-group"><label>Occupation</label><input type="text" id="occupation"></div>
+            <div class="field-group"><label>Source of Referral / Circumstances of Admission</label><input type="text" id="referralSource" placeholder="Self, family, police, court..."></div>
+        </div>
+        <div class="field-group"><label>Informant & Reliability</label><textarea id="informant" rows="2" placeholder="Who gave the history, and how reliable it is"></textarea></div>
+    </div>
+
+    <div class="risk-box">
+        <div class="card-title">🚨 Risk Assessment (screen first)</div>
+        <div class="inline-row">
+            <div class="field-group"><label>Suicidal ideation / self-harm</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="riskSuicide" value="none"> None</label>
+                    <label><input type="radio" name="riskSuicide" value="passive"> Passive thoughts</label>
+                    <label><input type="radio" name="riskSuicide" value="active"> Active plan/intent</label>
+                </div>
+            </div>
+            <div class="field-group"><label>Risk to others</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="riskOthers" value="none"> None</label>
+                    <label><input type="radio" name="riskOthers" value="ideation"> Ideation</label>
+                    <label><input type="radio" name="riskOthers" value="intent"> Intent/plan</label>
+                </div>
+            </div>
+        </div>
+        <div class="field-group"><label>Details / safety plan</label><textarea id="riskDetails" rows="2"></textarea></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-header"><span class="section-badge" style="background:var(--accent);">2</span><span class="section-title">Presenting Complaint & HPC</span></div>
+    <div class="card psych-card">
+        <div class="card-title">📝 Presenting Complaint</div>
+        <div class="field-group"><label>Complaint in patient's own words <span class="req">*</span></label><textarea id="complaintVerbatim" rows="2"></textarea></div>
+        <div class="inline-row">
+            <div class="field-group"><label>Duration</label><input type="number" id="durationValue"></div>
+            <div class="field-group"><label>Unit</label><select id="durationUnit"><option value="">— Select —</option><option>Days</option><option>Weeks</option><option>Months</option><option>Years</option></select></div>
+        </div>
+
+        <div class="field-group">
+            <label>Symptom category <span class="hint" style="display:inline;font-style:normal;">(select to load guided prompts)</span></label>
+            <div class="pill-group" id="psychComplaintTags"></div>
+        </div>
+
+        <div id="psychGuidePanel"></div>
+
+        <div class="field-group"><label>History of presenting complaint <span class="req">*</span></label>
+            <div class="hint">Onset, course, precipitants, mood/sleep/appetite/energy/concentration changes, psychotic features, substance use around onset, functional impact</div>
+            <textarea id="hpcNarrative" rows="7"></textarea>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-header"><span class="section-badge" style="background:#c0392b;">3</span><span class="section-title">Past Psychiatric History</span></div>
+    <div class="card psych-card">
+        <div class="card-title">📜 Past Psychiatric History</div>
+        <div class="field-group"><label>Previous episodes, diagnoses, admissions</label><textarea id="pph" rows="2"></textarea></div>
+        <div class="field-group"><label>Previous treatment (medications, ECT, therapy) & response</label><textarea id="pphTreatment" rows="2"></textarea></div>
+        <div class="field-group"><label>Previous self-harm / suicide attempts</label><textarea id="pphSelfHarm" rows="2"></textarea></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-header"><span class="section-badge" style="background:#2c3e50;">4</span><span class="section-title">Past Medical History</span></div>
+    <div class="card psych-card">
+        <div class="card-title">🩺 Past Medical History</div>
+        <div class="field-group"><label>Medical illnesses, surgeries, head injury/seizures</label><textarea id="pmh" rows="2"></textarea></div>
+        <div class="inline-row">
+            <div class="field-group"><label>Current medications</label><textarea id="medications" rows="2"></textarea></div>
+            <div class="field-group"><label>Allergies</label><textarea id="allergies" rows="2"></textarea></div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-header"><span class="section-badge" style="background:#8e44ad;">5</span><span class="section-title">Substance Use History</span></div>
+    <div class="card psych-card">
+        <div class="card-title">🍺 Substance Use</div>
+        <div class="field-group"><label>Alcohol, tobacco, khat/miraa, cannabis, other substances — quantity, frequency, duration, last use</label><textarea id="substanceUse" rows="3"></textarea></div>
+        <div class="field-group"><label>Dependence features / withdrawal history</label><textarea id="substanceDependence" rows="2"></textarea></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-header"><span class="section-badge" style="background:#6c3483;">6</span><span class="section-title">Family History</span></div>
+    <div class="card psych-card">
+        <div class="card-title">🧬 Family History</div>
+        <div class="field-group"><label>Family psychiatric illness, suicide, substance use; family structure & relationships</label><textarea id="familyHistory" rows="3"></textarea></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-header"><span class="section-badge" style="background:#d4a017;">7</span><span class="section-title">Personal History</span></div>
+    <div class="card psych-card">
+        <div class="card-title">👶 Personal History</div>
+        <div class="field-group"><label>Birth & early development</label><textarea id="personalBirth" rows="2"></textarea></div>
+        <div class="field-group"><label>Childhood & family environment</label><textarea id="personalChildhood" rows="2"></textarea></div>
+        <div class="field-group"><label>Education</label><textarea id="personalEducation" rows="2"></textarea></div>
+        <div class="field-group"><label>Occupational history</label><textarea id="personalOccupation" rows="2"></textarea></div>
+        <div class="field-group"><label>Psychosexual & relationship history</label><textarea id="personalPsychosexual" rows="2"></textarea></div>
+        <div class="field-group"><label>Forensic history</label><textarea id="personalForensic" rows="2"></textarea></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-header"><span class="section-badge" style="background:#2c6e49;">8</span><span class="section-title">Premorbid Personality</span></div>
+    <div class="card psych-card">
+        <div class="card-title">🧩 Premorbid Personality</div>
+        <div class="field-group"><label>Habitual attitudes, relationships, coping style, hobbies, predominant mood before illness</label><textarea id="premorbidPersonality" rows="3"></textarea></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-header"><span class="section-badge" style="background:var(--mse-color);">9</span><span class="section-title">Mental State Examination</span></div>
+
+    <div class="card mse-card">
+        <div class="card-title">🩺 Mental State Examination</div>
+
+        <div class="mse-domain"><div class="mse-header">Appearance & Behaviour</div><div class="mse-body">
+            <textarea id="mseAppearance" rows="2" placeholder="Grooming, eye contact, psychomotor activity, rapport, abnormal movements"></textarea>
+        </div></div>
+
+        <div class="mse-domain"><div class="mse-header">Speech</div><div class="mse-body">
+            <textarea id="mseSpeech" rows="2" placeholder="Rate, rhythm, volume, tone, spontaneity"></textarea>
+        </div></div>
+
+        <div class="mse-domain"><div class="mse-header">Mood & Affect</div><div class="mse-body">
+            <div class="inline-row">
+                <div class="field-group"><label>Subjective mood</label><input type="text" id="mseMoodSubjective" placeholder="Patient's own words"></div>
+                <div class="field-group"><label>Objective affect</label><input type="text" id="mseMoodObjective" placeholder="Range, reactivity, congruence"></div>
+            </div>
+        </div></div>
+
+        <div class="mse-domain"><div class="mse-header">Thought Form & Content</div><div class="mse-body">
+            <textarea id="mseThought" rows="3" placeholder="Form: flight of ideas, loosening of associations, thought block. Content: delusions, obsessions, suicidal/homicidal ideation, preoccupations"></textarea>
+        </div></div>
+
+        <div class="mse-domain"><div class="mse-header">Perception</div><div class="mse-body">
+            <textarea id="msePerception" rows="2" placeholder="Hallucinations (auditory, visual, other), illusions, depersonalisation/derealisation"></textarea>
+        </div></div>
+
+        <div class="mse-domain"><div class="mse-header">Cognition</div><div class="mse-body">
+            <div class="inline-row-3">
+                <div class="field-group"><label>Orientation</label><input type="text" id="mseOrientation" placeholder="Time/place/person"></div>
+                <div class="field-group"><label>Attention & Concentration</label><input type="text" id="mseAttention"></div>
+                <div class="field-group"><label>Memory</label><input type="text" id="mseMemory" placeholder="Immediate/recent/remote"></div>
+            </div>
+        </div></div>
+
+        <div class="mse-domain"><div class="mse-header">Insight & Judgement</div><div class="mse-body">
+            <div class="inline-row">
+                <div class="field-group"><label>Insight</label><input type="text" id="mseInsight"></div>
+                <div class="field-group"><label>Judgement</label><input type="text" id="mseJudgement"></div>
+            </div>
+        </div></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-header"><span class="section-badge" style="background:#2c6e49;">10</span><span class="section-title">Assessment & Plan</span></div>
+    <div class="card psych-card">
+        <div class="card-title">📋 Provisional Diagnosis & Plan</div>
+        <div class="field-group"><label>Provisional diagnosis / differentials</label><textarea id="provisionalDx" rows="2"></textarea></div>
+        <div class="field-group"><label>Management plan (investigations, pharmacological, psychological, social)</label><textarea id="managementPlan" rows="3"></textarea></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-header"><span class="section-badge" style="background:#8e44ad;">📄</span><span class="section-title">Clinical Summary</span></div>
+    <div class="card" style="border-left:3px solid #8e44ad;">
+        <div class="card-title">📄 Summary</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+            <button class="btn-primary" onclick="generateSummary()">📋 Generate Summary</button>
+            <button class="btn-primary" onclick="savePatient()" style="background:#2c6e49;">💾 Save Record</button>
+            <button class="btn-primary" onclick="resetForm()" style="background:#e67e22;">🔄 Reset Form</button>
+        </div>
+        <div id="summarySection" style="display:none;">
+            <div id="clinicalSummary" class="clinical-summary"></div>
+            <button class="btn-primary" onclick="copyToClipboard('clinicalSummary')" style="margin-top:10px;width:100%;justify-content:center;">📋 Copy Summary</button>
+        </div>
+    </div>
+</div><!-- /pageContent -->
+
+<div style="max-width:860px;margin:0 auto;padding:0 0.8rem 80px;">
+    <div class="records-panel">
+        <div class="records-header">
+            <h2 style="font-size:1rem;">📂 Saved Psychiatric Records</h2>
+            <div class="records-actions">
+                <button class="btn-record btn-new" onclick="newPatient()">➕ New</button>
+                <button class="btn-record btn-save" onclick="savePatient()">💾 Save</button>
+                <button class="btn-record btn-export" onclick="exportToWord()">📄 Word</button>
+            </div>
+        </div>
+        <div class="records-body">
+            <input class="records-search" type="text" id="recordSearch" placeholder="🔍 Search by patient name..." oninput="renderRecords()">
+            <div id="recordsList"></div>
+        </div>
+    </div>
+</div>
+
+<div class="footer-nav">
+    <div class="step-indicator">🧠 Psychiatric Clerkship</div>
+    <button class="btn-primary" onclick="generateSummary()">Complete History →</button>
+</div>
+
+<div class="save-toast" id="saveToast">✅ Saved!</div>
+
+<div class="summary-modal-overlay" id="summaryModal">
+    <div class="summary-modal">
+        <div class="summary-modal-header">
+            <h3>🧠 Psychiatric Clinical Summary</h3>
+            <button class="btn-close-modal" onclick="closeSummaryModal()">✕ Close</button>
+        </div>
+        <div class="summary-modal-body" id="summaryContent"></div>
+    </div>
+</div>
+
+<script>
+// ─── NO AUTH — plain standalone file for now ───
+function initializePage() {
+    console.log('[Page] Initialized (no auth gate)');
+    updateProgress();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const greetingEl = document.getElementById('userGreeting');
+    if (greetingEl) greetingEl.textContent = '👤 Guest';
+    initializePage();
+});
+
+// ─── GUIDED SYMPTOM PROMPTS ───
+let currentPsychComplaint = '';
+let psychSymptomAnswers = {};
+
+function buildPsychComplaintTags() {
+    const container = document.getElementById('psychComplaintTags');
+    if (!container || typeof psychComplaintToGuideKey === 'undefined') return;
+    container.innerHTML = '';
+    Object.keys(psychComplaintToGuideKey).forEach(label => {
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.className = 'pill';
+        pill.textContent = label;
+        pill.onclick = () => selectPsychComplaint(label, pill);
+        container.appendChild(pill);
+    });
+}
+
+function selectPsychComplaint(label, pillEl) {
+    document.querySelectorAll('#psychComplaintTags .pill').forEach(p => p.classList.remove('selected'));
+    pillEl.classList.add('selected');
+    currentPsychComplaint = label;
+    renderPsychGuide(psychComplaintToGuideKey[label]);
+}
+
+function renderPsychGuide(guideKey) {
+    const panel = document.getElementById('psychGuidePanel');
+    const guide = psychSymptomGuides[guideKey];
+    if (!guide) { panel.innerHTML = ''; return; }
+
+    let html = `<div class="guide-box"><h4>📖 ${escapeHtml(guide.title)}</h4>`;
+    if (guide.note) html += `<div class="guide-q-hint" style="margin-bottom:0.5rem;">${escapeHtml(guide.note)}</div>`;
+
+    guide.questions.forEach((item, idx) => {
+        const pills = item.clues.map(clue => {
+            const selected = (psychSymptomAnswers[guideKey] && psychSymptomAnswers[guideKey][`q${idx}`] === clue.label) ? 'selected' : '';
+            return `<span class="clue-pill ${selected}" style="border-left-color:${clue.color};" onclick="togglePsychCluePill(this,'${guideKey}',${idx},'${clue.label.replace(/'/g,"\\'")}')">${escapeHtml(clue.label)}</span>`;
+        }).join('');
+        html += `<div class="guide-q">
+                    <div class="guide-q-text">${escapeHtml(item.q)}</div>
+                    <div class="guide-q-hint">${escapeHtml(item.hint)}</div>
+                    <div>${pills}</div>
+                  </div>`;
+    });
+
+    if (guide.redFlags && guide.redFlags.length) {
+        html += `<div class="guide-redflags"><div class="guide-redflags-title">Red flags</div><ul>${guide.redFlags.map(f => `<li>${escapeHtml(f)}</li>`).join('')}</ul></div>`;
+    }
+    if (guide.tips && guide.tips.length) {
+        html += `<div class="guide-tips"><div class="guide-tips-title">Clinical tips</div><ul>${guide.tips.map(t => `<li>💡 ${escapeHtml(t)}</li>`).join('')}</ul></div>`;
+    }
+    html += `</div>`;
+    panel.innerHTML = html;
+}
+
+function togglePsychCluePill(el, guideKey, qIndex, value) {
+    const siblings = el.parentElement.querySelectorAll('.clue-pill');
+    siblings.forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    if (!psychSymptomAnswers[guideKey]) psychSymptomAnswers[guideKey] = {};
+    psychSymptomAnswers[guideKey][`q${qIndex}`] = value;
+    updateProgress();
+}
+
+// ─── LOCAL STORAGE RECORDS ───
+const STORAGE_KEY = 'easemed_psychiatric_records';
+function getRecords() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+function saveRecords(records) { localStorage.setItem(STORAGE_KEY, JSON.stringify(records, null, 2)); renderRecords(); }
+
+function renderRecords() {
+    const container = document.getElementById('recordsList');
+    const query = (document.getElementById('recordSearch')?.value || '').toLowerCase();
+    const records = getRecords().filter(r => !query || (r.patientName || '').toLowerCase().includes(query));
+    if (!records.length) {
+        container.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:1rem;">📭 No saved psychiatric records</div>';
+        return;
+    }
+    container.innerHTML = records.map(r => `
+        <div class="patient-card">
+            <div>
+                <div class="patient-card-name">🧠 ${escapeHtml(r.patientName || 'Unnamed')}</div>
+                <div class="patient-card-meta">${escapeHtml(r.complaintVerbatim || 'No complaint')} | ${new Date(r.savedAt).toLocaleString()}</div>
+            </div>
+            <div style="display:flex;gap:4px;">
+                <button class="btn-card btn-load" onclick="loadPatient(${r.id})">📋 Load</button>
+                <button class="btn-card btn-delete" onclick="deletePatient(${r.id})">🗑️ Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function showToast(msg, color) {
+    const toast = document.getElementById('saveToast');
+    toast.textContent = msg;
+    toast.style.background = color || '#1a7a4a';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+function deletePatient(id) {
+    if (!confirm('Delete record?')) return;
+    saveRecords(getRecords().filter(r => r.id !== id));
+    showToast('🗑️ Deleted', '#dc2626');
+}
+
+// ─── CAPTURE / RESTORE ───
+function captureFormData() {
+    return {
+        patientName: document.getElementById('patientName').value,
+        patientAge: document.getElementById('patientAge').value,
+        patientSex: document.getElementById('patientSex').value,
+        maritalStatus: document.getElementById('maritalStatus').value,
+        occupation: document.getElementById('occupation').value,
+        referralSource: document.getElementById('referralSource').value,
+        informant: document.getElementById('informant').value,
+        riskSuicide: document.querySelector('input[name="riskSuicide"]:checked')?.value || '',
+        riskOthers: document.querySelector('input[name="riskOthers"]:checked')?.value || '',
+        riskDetails: document.getElementById('riskDetails').value,
+        complaintVerbatim: document.getElementById('complaintVerbatim').value,
+        durationValue: document.getElementById('durationValue').value,
+        durationUnit: document.getElementById('durationUnit').value,
+        hpcNarrative: document.getElementById('hpcNarrative').value,
+        pph: document.getElementById('pph').value,
+        pphTreatment: document.getElementById('pphTreatment').value,
+        pphSelfHarm: document.getElementById('pphSelfHarm').value,
+        pmh: document.getElementById('pmh').value,
+        medications: document.getElementById('medications').value,
+        allergies: document.getElementById('allergies').value,
+        substanceUse: document.getElementById('substanceUse').value,
+        substanceDependence: document.getElementById('substanceDependence').value,
+        familyHistory: document.getElementById('familyHistory').value,
+        personalBirth: document.getElementById('personalBirth').value,
+        personalChildhood: document.getElementById('personalChildhood').value,
+        personalEducation: document.getElementById('personalEducation').value,
+        personalOccupation: document.getElementById('personalOccupation').value,
+        personalPsychosexual: document.getElementById('personalPsychosexual').value,
+        personalForensic: document.getElementById('personalForensic').value,
+        premorbidPersonality: document.getElementById('premorbidPersonality').value,
+        mseAppearance: document.getElementById('mseAppearance').value,
+        mseSpeech: document.getElementById('mseSpeech').value,
+        mseMoodSubjective: document.getElementById('mseMoodSubjective').value,
+        mseMoodObjective: document.getElementById('mseMoodObjective').value,
+        mseThought: document.getElementById('mseThought').value,
+        msePerception: document.getElementById('msePerception').value,
+        mseOrientation: document.getElementById('mseOrientation').value,
+        mseAttention: document.getElementById('mseAttention').value,
+        mseMemory: document.getElementById('mseMemory').value,
+        mseInsight: document.getElementById('mseInsight').value,
+        mseJudgement: document.getElementById('mseJudgement').value,
+        provisionalDx: document.getElementById('provisionalDx').value,
+        managementPlan: document.getElementById('managementPlan').value,
+        currentPsychComplaint: currentPsychComplaint,
+        psychSymptomAnswers: psychSymptomAnswers
+    };
+}
+
+function restoreFormData(data) {
+    if (!data) return;
+    Object.keys(data).forEach(key => {
+        if (key === 'riskSuicide' || key === 'riskOthers') {
+            const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
+            if (radio) radio.checked = true;
+            return;
+        }
+        if (key === 'currentPsychComplaint' || key === 'psychSymptomAnswers') return;
+        const el = document.getElementById(key);
+        if (el) el.value = data[key] || '';
+    });
+    psychSymptomAnswers = data.psychSymptomAnswers || {};
+    currentPsychComplaint = data.currentPsychComplaint || '';
+    if (currentPsychComplaint && psychComplaintToGuideKey[currentPsychComplaint]) {
+        document.querySelectorAll('#psychComplaintTags .pill').forEach(p => {
+            if (p.textContent === currentPsychComplaint) p.classList.add('selected');
+            else p.classList.remove('selected');
+        });
+        renderPsychGuide(psychComplaintToGuideKey[currentPsychComplaint]);
+    } else {
+        document.getElementById('psychGuidePanel').innerHTML = '';
+    }
+    updateProgress();
+}
+
+function savePatient() {
+    const name = document.getElementById('patientName').value.trim();
+    if (!name) { showToast('Enter patient name', '#e67e22'); return; }
+    const formData = captureFormData();
+    const records = getRecords();
+    const existingIdx = records.findIndex(r => r.patientName.toLowerCase() === name.toLowerCase());
+    const record = { id: existingIdx >= 0 ? records[existingIdx].id : Date.now(), savedAt: new Date().toISOString(), ...formData };
+    if (existingIdx >= 0) records[existingIdx] = record; else records.unshift(record);
+    saveRecords(records);
+    showToast('💾 Saved locally', '#2c6e49');
+    generateSummary();
+}
+
+function loadPatient(id) {
+    const record = getRecords().find(r => r.id === id);
+    if (!record) return;
+    if (!confirm(`Load ${record.patientName}?`)) return;
+    restoreFormData(record);
+    generateSummary();
+    window.scrollTo(0, 0);
+    showToast(`Loaded ${record.patientName}`, '#2980b9');
+}
+
+function newPatient() { resetForm(); showToast('New record ready', '#e67e22'); }
+
+function resetForm() {
+    if (!confirm('Clear all form data?')) return;
+    document.querySelectorAll('#pageContent input[type=text], #pageContent input[type=number], #pageContent textarea').forEach(el => el.value = '');
+    document.querySelectorAll('#pageContent input[type=radio]').forEach(el => el.checked = false);
+    document.getElementById('patientSex').value = 'Male';
+    document.getElementById('summarySection').style.display = 'none';
+    currentPsychComplaint = '';
+    psychSymptomAnswers = {};
+    document.querySelectorAll('#psychComplaintTags .pill').forEach(p => p.classList.remove('selected'));
+    document.getElementById('psychGuidePanel').innerHTML = '';
+    updateProgress();
+    showToast('Form cleared', '#e67e22');
+}
+
+function updateProgress() {
+    const inputs = document.querySelectorAll('#pageContent input, #pageContent textarea, #pageContent select');
+    let filled = 0;
+    inputs.forEach(el => { if (el.type === 'radio') { if (el.checked) filled++; } else if (el.value && el.value.trim() !== '') filled++; });
+    const pct = Math.min(100, (filled / Math.max(inputs.length, 1)) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+}
+document.addEventListener('input', updateProgress);
+document.addEventListener('change', updateProgress);
+
+function escapeHtml(str) { return String(str || '').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+function generateSummary() {
+    const d = captureFormData();
+    const now = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const html = `
+        <div style="text-align:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #dde3ea;">
+            <div style="font-size:1.1rem;font-weight:800;color:#4a3f7a;">EaseMed — Psychiatric Clerkship</div>
+            <div style="font-size:0.8rem;color:#6b7f8c;margin-top:0.2rem;">Clinical Summary generated ${now}</div>
+        </div>
+        <div class="summary-section"><div class="summary-section-title">1. Demographics</div>
+            <p><strong>Name:</strong> ${escapeHtml(d.patientName)} | <strong>Age:</strong> ${escapeHtml(d.patientAge)} | <strong>Sex:</strong> ${escapeHtml(d.patientSex)}</p>
+            <p><strong>Marital status:</strong> ${escapeHtml(d.maritalStatus)} | <strong>Occupation:</strong> ${escapeHtml(d.occupation)}</p>
+            <p><strong>Referral:</strong> ${escapeHtml(d.referralSource)}</p>
+            <p><strong>Informant:</strong> ${escapeHtml(d.informant)}</p>
+        </div>
+        <div class="summary-section" style="border-left-color:#c0392b;"><div class="summary-section-title">2. Risk Assessment</div>
+            <p><strong>Suicide/self-harm risk:</strong> ${escapeHtml(d.riskSuicide) || 'Not documented'}</p>
+            <p><strong>Risk to others:</strong> ${escapeHtml(d.riskOthers) || 'Not documented'}</p>
+            <p>${escapeHtml(d.riskDetails)}</p>
+        </div>
+        <div class="summary-section"><div class="summary-section-title">3. Presenting Complaint & HPC</div>
+            <p><strong>Complaint:</strong> "${escapeHtml(d.complaintVerbatim)}" (${escapeHtml(d.durationValue)} ${escapeHtml(d.durationUnit)})</p>
+            <p>${escapeHtml(d.hpcNarrative)}</p>
+        </div>
+        <div class="summary-section"><div class="summary-section-title">4. Past Psychiatric History</div>
+            <p>${escapeHtml(d.pph) || 'None'}</p><p><strong>Treatment:</strong> ${escapeHtml(d.pphTreatment) || 'None'}</p><p><strong>Self-harm history:</strong> ${escapeHtml(d.pphSelfHarm) || 'None'}</p>
+        </div>
+        <div class="summary-section"><div class="summary-section-title">5. Past Medical History</div>
+            <p>${escapeHtml(d.pmh) || 'None'}</p><p><strong>Medications:</strong> ${escapeHtml(d.medications) || 'None'}</p><p><strong>Allergies:</strong> ${escapeHtml(d.allergies) || 'None known'}</p>
+        </div>
+        <div class="summary-section"><div class="summary-section-title">6. Substance Use</div><p>${escapeHtml(d.substanceUse) || 'Not documented'}</p><p>${escapeHtml(d.substanceDependence)}</p></div>
+        <div class="summary-section"><div class="summary-section-title">7. Family History</div><p>${escapeHtml(d.familyHistory) || 'Not documented'}</p></div>
+        <div class="summary-section"><div class="summary-section-title">8. Personal History</div>
+            <p><strong>Birth/early dev:</strong> ${escapeHtml(d.personalBirth)}</p>
+            <p><strong>Childhood:</strong> ${escapeHtml(d.personalChildhood)}</p>
+            <p><strong>Education:</strong> ${escapeHtml(d.personalEducation)}</p>
+            <p><strong>Occupational:</strong> ${escapeHtml(d.personalOccupation)}</p>
+            <p><strong>Psychosexual:</strong> ${escapeHtml(d.personalPsychosexual)}</p>
+            <p><strong>Forensic:</strong> ${escapeHtml(d.personalForensic)}</p>
+        </div>
+        <div class="summary-section"><div class="summary-section-title">9. Premorbid Personality</div><p>${escapeHtml(d.premorbidPersonality) || 'Not documented'}</p></div>
+        <div class="summary-section" style="border-left-color:#1a5f7a;"><div class="summary-section-title">10. Mental State Examination</div>
+            <p><strong>Appearance/Behaviour:</strong> ${escapeHtml(d.mseAppearance)}</p>
+            <p><strong>Speech:</strong> ${escapeHtml(d.mseSpeech)}</p>
+            <p><strong>Mood (subjective):</strong> ${escapeHtml(d.mseMoodSubjective)} | <strong>Affect (objective):</strong> ${escapeHtml(d.mseMoodObjective)}</p>
+            <p><strong>Thought:</strong> ${escapeHtml(d.mseThought)}</p>
+            <p><strong>Perception:</strong> ${escapeHtml(d.msePerception)}</p>
+            <p><strong>Orientation:</strong> ${escapeHtml(d.mseOrientation)} | <strong>Attention:</strong> ${escapeHtml(d.mseAttention)} | <strong>Memory:</strong> ${escapeHtml(d.mseMemory)}</p>
+            <p><strong>Insight:</strong> ${escapeHtml(d.mseInsight)} | <strong>Judgement:</strong> ${escapeHtml(d.mseJudgement)}</p>
+        </div>
+        <div class="summary-section" style="border-left-color:#2c6e49;"><div class="summary-section-title">11. Assessment & Plan</div>
+            <p><strong>Provisional diagnosis:</strong> ${escapeHtml(d.provisionalDx) || 'Not documented'}</p>
+            <p>${escapeHtml(d.managementPlan) || 'Not documented'}</p>
+        </div>
+        <div style="margin-top:1.5rem;padding-top:1rem;border-top:2px solid #dde3ea;font-size:0.75rem;color:#6b7f8c;text-align:center;">
+            Generated by EaseMed Psychiatric Clerkship Tool | ${now} | <em>For educational use only</em>
+        </div>`;
+    document.getElementById('summaryContent').innerHTML = html;
+    document.getElementById('summaryModal').classList.add('open');
+    const summaryField = document.getElementById('clinicalSummary');
+    summaryField.textContent = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    document.getElementById('summarySection').style.display = 'block';
+}
+
+function closeSummaryModal() { document.getElementById('summaryModal').classList.remove('open'); }
+document.getElementById('summaryModal').addEventListener('click', function(e) { if (e.target === this) closeSummaryModal(); });
+
+function copyToClipboard(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    navigator.clipboard.writeText(el.textContent).then(() => showToast('📋 Copied!', '#3498db'));
+}
+
+function exportToWord() {
+    const d = captureFormData();
+    const date = new Date().toLocaleString();
+    const docHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>EaseMed Psychiatric Record - ${d.patientName}</title>
+        <style>body{font-family:'Times New Roman',serif;margin:2cm;line-height:1.4;}h1{color:#4a3f7a;font-size:24pt;}h2{color:#4a3f7a;font-size:16pt;border-bottom:1px solid #aaa;margin-top:20px;}.label{font-weight:bold;}</style></head>
+        <body><h1>EaseMed Psychiatric Clerking Record</h1><p>Generated: ${date}</p>
+        <h2>Demographics</h2><p><span class="label">Name:</span> ${escapeHtml(d.patientName)} — <span class="label">Age:</span> ${escapeHtml(d.patientAge)} — <span class="label">Sex:</span> ${escapeHtml(d.patientSex)}</p>
+        <h2>Presenting Complaint</h2><p>${escapeHtml(d.complaintVerbatim)}</p><p>${escapeHtml(d.hpcNarrative)}</p>
+        <h2>Mental State Examination</h2>
+        <p><span class="label">Appearance:</span> ${escapeHtml(d.mseAppearance)}</p>
+        <p><span class="label">Speech:</span> ${escapeHtml(d.mseSpeech)}</p>
+        <p><span class="label">Mood/Affect:</span> ${escapeHtml(d.mseMoodSubjective)} / ${escapeHtml(d.mseMoodObjective)}</p>
+        <p><span class="label">Thought:</span> ${escapeHtml(d.mseThought)}</p>
+        <p><span class="label">Perception:</span> ${escapeHtml(d.msePerception)}</p>
+        <p><span class="label">Cognition:</span> ${escapeHtml(d.mseOrientation)}, ${escapeHtml(d.mseAttention)}, ${escapeHtml(d.mseMemory)}</p>
+        <p><span class="label">Insight/Judgement:</span> ${escapeHtml(d.mseInsight)} / ${escapeHtml(d.mseJudgement)}</p>
+        <h2>Assessment & Plan</h2><p>${escapeHtml(d.provisionalDx)}</p><p>${escapeHtml(d.managementPlan)}</p>
+        <footer style="margin-top:40px;text-align:center;color:gray;">EaseMed Psychiatric Clerking System</footer>
+        </body></html>`;
+    const blob = new Blob([docHtml], { type: 'application/msword' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `EaseMed_${(d.patientName||'patient').replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,19)}.doc`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast('Word document exported', '#2c6e49');
+}
+
+// ─── SERVICE WORKER ───
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+            .then(() => console.log('✅ Service Worker registered'))
+            .catch(err => console.warn('❌ SW registration failed:', err));
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() { renderRecords(); buildPsychComplaintTags(); });
+</script>
+</body>
+</html>
