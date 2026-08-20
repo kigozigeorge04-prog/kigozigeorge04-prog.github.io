@@ -3799,9 +3799,137 @@
         'abscess': '🟠 Abscess',
         'other': '＋ Other'
     };
-  // 7. EXHAUSTIVE HINT PANELS
-            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            const HINT_PANELS = {
+ 
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 8. PC MANAGEMENT
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    function renderTags(pcNum) {
+        const container = document.getElementById('pc' + pcNum + 'Tags');
+        if (!container) return;
+        const selected = document.getElementById('pc' + pcNum + 'Category').value;
+        container.innerHTML = '';
+        complaintCategories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'tag-btn' + (cat === selected ? ' selected' : '');
+            btn.textContent = CATEGORY_LABELS[cat] || cat;
+            btn.dataset.cat = cat;
+            btn.onclick = function() { selectTagPC(pcNum, cat, this); };
+            container.appendChild(btn);
+        });
+    }
+
+    function selectTagPC(pcNum, cat, btnEl) {
+        const container = document.getElementById('pc' + pcNum + 'Tags');
+        container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
+        btnEl.classList.add('selected');
+        document.getElementById('pc' + pcNum + 'Category').value = cat;
+        const otherWrap = document.getElementById('pc' + pcNum + 'OtherWrap');
+        if (otherWrap) otherWrap.style.display = cat === 'other' ? 'block' : 'none';
+        renderHintPanel(cat, 'pc' + pcNum + 'HintPanel');
+        updatePCLabel(pcNum);
+        updateProgress();
+    }
+
+    function updatePCLabel(num) {
+        const cat = document.getElementById('pc' + num + 'Category').value;
+        const label = document.getElementById('pc' + num + 'Label');
+        if (!label) return;
+        if (cat && CATEGORY_LABELS[cat]) label.textContent = CATEGORY_LABELS[cat];
+        else label.textContent = num === 1 ? 'Primary Complaint' : 'Complaint ' + num;
+    }
+
+    function togglePCTab(tabId) {
+        const tab = document.getElementById(tabId);
+        if (!tab) return;
+        const body = tab.querySelector('.pc-tab-body');
+        if (!body) return;
+        tab.classList.toggle('open');
+        body.classList.toggle('open');
+    }
+
+    function addPC(num) {
+        if (num === 2) {
+            const tab = document.getElementById('pc2Tab');
+            tab.style.display = 'block';
+            document.getElementById('addPC2Btn').style.display = 'none';
+            document.getElementById('addPC3Btn').style.display = 'inline-block';
+            renderTags(2);
+            tab.classList.add('open');
+            document.getElementById('pc2Body').classList.add('open');
+        } else if (num === 3) {
+            const tab = document.getElementById('pc3Tab');
+            tab.style.display = 'block';
+            document.getElementById('addPC3Btn').style.display = 'none';
+            renderTags(3);
+            tab.classList.add('open');
+            document.getElementById('pc3Body').classList.add('open');
+        }
+        updateProgress();
+    }
+
+    function removePC(num) {
+        if (num === 1) return;
+        const tab = document.getElementById('pc' + num + 'Tab');
+        tab.style.display = 'none';
+        document.getElementById('pc' + num + 'Verbatim').value = '';
+        document.getElementById('pc' + num + 'DurationValue').value = '';
+        document.getElementById('pc' + num + 'DurationUnit').value = '';
+        document.getElementById('pc' + num + 'Category').value = '';
+        document.getElementById('pc' + num + 'Other').value = '';
+        document.getElementById('pc' + num + 'Associated').value = '';
+        document.querySelectorAll(`input[name="pc${num}Onset"]`).forEach(r => r.checked = false);
+        document.querySelectorAll(`input[name="pc${num}Course"]`).forEach(r => r.checked = false);
+        document.getElementById('pc' + num + 'HintPanel').innerHTML = '';
+        document.getElementById('pc' + num + 'OtherWrap').style.display = 'none';
+
+        if (num === 2) {
+            document.getElementById('addPC2Btn').style.display = 'inline-block';
+            document.getElementById('addPC3Btn').style.display = 'none';
+            const pc3Tab = document.getElementById('pc3Tab');
+            if (pc3Tab.style.display !== 'none') {
+                const pc2Label = document.getElementById('pc2Label');
+                const pc3Label = document.getElementById('pc3Label');
+                pc2Label.textContent = pc3Label.textContent;
+                ['Verbatim', 'DurationValue', 'DurationUnit', 'Category', 'Other', 'Associated'].forEach(f => {
+                    const from = document.getElementById('pc3' + f);
+                    const to = document.getElementById('pc2' + f);
+                    if (from && to) to.value = from.value;
+                });
+                ['Onset', 'Course'].forEach(type => {
+                    document.querySelectorAll(`input[name="pc3${type}"]`).forEach(r => {
+                        const target = document.querySelector(`input[name="pc2${type}"][value="${r.value}"]`);
+                        if (target) target.checked = r.checked;
+                    });
+                });
+                const hint3 = document.getElementById('pc3HintPanel');
+                const hint2 = document.getElementById('pc2HintPanel');
+                if (hint3 && hint2) hint2.innerHTML = hint3.innerHTML;
+                pc3Tab.style.display = 'none';
+                document.getElementById('pc3Label').textContent = 'Third Complaint';
+                ['Verbatim', 'DurationValue', 'DurationUnit', 'Category', 'Other', 'Associated'].forEach(f => {
+                    const el = document.getElementById('pc3' + f);
+                    if (el) el.value = '';
+                });
+                document.querySelectorAll('input[name="pc3Onset"]').forEach(r => r.checked = false);
+                document.querySelectorAll('input[name="pc3Course"]').forEach(r => r.checked = false);
+                document.getElementById('pc3HintPanel').innerHTML = '';
+                document.getElementById('pc3OtherWrap').style.display = 'none';
+                updatePCLabel(2);
+                updatePCLabel(3);
+                document.getElementById('addPC3Btn').style.display = 'none';
+                showToast('PC 2 removed, PC 3 moved to PC 2 position.', '#e67e22');
+            }
+        } else if (num === 3) {
+            document.getElementById('addPC3Btn').style.display = 'inline-block';
+        }
+        updateProgress();
+    }
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // 9. HINT PANELS
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const HINT_PANELS = {
+      
                 'abdo-pain': {
                     icon: '🔴',
                     title: 'Abdominal Pain',
@@ -5086,138 +5214,7 @@
                 }
             };
 
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 8. PC MANAGEMENT
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    function renderTags(pcNum) {
-        const container = document.getElementById('pc' + pcNum + 'Tags');
-        if (!container) return;
-        const selected = document.getElementById('pc' + pcNum + 'Category').value;
-        container.innerHTML = '';
-        complaintCategories.forEach(cat => {
-            const btn = document.createElement('button');
-            btn.className = 'tag-btn' + (cat === selected ? ' selected' : '');
-            btn.textContent = CATEGORY_LABELS[cat] || cat;
-            btn.dataset.cat = cat;
-            btn.onclick = function() { selectTagPC(pcNum, cat, this); };
-            container.appendChild(btn);
-        });
-    }
 
-    function selectTagPC(pcNum, cat, btnEl) {
-        const container = document.getElementById('pc' + pcNum + 'Tags');
-        container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
-        btnEl.classList.add('selected');
-        document.getElementById('pc' + pcNum + 'Category').value = cat;
-        const otherWrap = document.getElementById('pc' + pcNum + 'OtherWrap');
-        if (otherWrap) otherWrap.style.display = cat === 'other' ? 'block' : 'none';
-        renderHintPanel(cat, 'pc' + pcNum + 'HintPanel');
-        updatePCLabel(pcNum);
-        updateProgress();
-    }
-
-    function updatePCLabel(num) {
-        const cat = document.getElementById('pc' + num + 'Category').value;
-        const label = document.getElementById('pc' + num + 'Label');
-        if (!label) return;
-        if (cat && CATEGORY_LABELS[cat]) label.textContent = CATEGORY_LABELS[cat];
-        else label.textContent = num === 1 ? 'Primary Complaint' : 'Complaint ' + num;
-    }
-
-    function togglePCTab(tabId) {
-        const tab = document.getElementById(tabId);
-        if (!tab) return;
-        const body = tab.querySelector('.pc-tab-body');
-        if (!body) return;
-        tab.classList.toggle('open');
-        body.classList.toggle('open');
-    }
-
-    function addPC(num) {
-        if (num === 2) {
-            const tab = document.getElementById('pc2Tab');
-            tab.style.display = 'block';
-            document.getElementById('addPC2Btn').style.display = 'none';
-            document.getElementById('addPC3Btn').style.display = 'inline-block';
-            renderTags(2);
-            tab.classList.add('open');
-            document.getElementById('pc2Body').classList.add('open');
-        } else if (num === 3) {
-            const tab = document.getElementById('pc3Tab');
-            tab.style.display = 'block';
-            document.getElementById('addPC3Btn').style.display = 'none';
-            renderTags(3);
-            tab.classList.add('open');
-            document.getElementById('pc3Body').classList.add('open');
-        }
-        updateProgress();
-    }
-
-    function removePC(num) {
-        if (num === 1) return;
-        const tab = document.getElementById('pc' + num + 'Tab');
-        tab.style.display = 'none';
-        document.getElementById('pc' + num + 'Verbatim').value = '';
-        document.getElementById('pc' + num + 'DurationValue').value = '';
-        document.getElementById('pc' + num + 'DurationUnit').value = '';
-        document.getElementById('pc' + num + 'Category').value = '';
-        document.getElementById('pc' + num + 'Other').value = '';
-        document.getElementById('pc' + num + 'Associated').value = '';
-        document.querySelectorAll(`input[name="pc${num}Onset"]`).forEach(r => r.checked = false);
-        document.querySelectorAll(`input[name="pc${num}Course"]`).forEach(r => r.checked = false);
-        document.getElementById('pc' + num + 'HintPanel').innerHTML = '';
-        document.getElementById('pc' + num + 'OtherWrap').style.display = 'none';
-
-        if (num === 2) {
-            document.getElementById('addPC2Btn').style.display = 'inline-block';
-            document.getElementById('addPC3Btn').style.display = 'none';
-            const pc3Tab = document.getElementById('pc3Tab');
-            if (pc3Tab.style.display !== 'none') {
-                const pc2Label = document.getElementById('pc2Label');
-                const pc3Label = document.getElementById('pc3Label');
-                pc2Label.textContent = pc3Label.textContent;
-                ['Verbatim', 'DurationValue', 'DurationUnit', 'Category', 'Other', 'Associated'].forEach(f => {
-                    const from = document.getElementById('pc3' + f);
-                    const to = document.getElementById('pc2' + f);
-                    if (from && to) to.value = from.value;
-                });
-                ['Onset', 'Course'].forEach(type => {
-                    document.querySelectorAll(`input[name="pc3${type}"]`).forEach(r => {
-                        const target = document.querySelector(`input[name="pc2${type}"][value="${r.value}"]`);
-                        if (target) target.checked = r.checked;
-                    });
-                });
-                const hint3 = document.getElementById('pc3HintPanel');
-                const hint2 = document.getElementById('pc2HintPanel');
-                if (hint3 && hint2) hint2.innerHTML = hint3.innerHTML;
-                pc3Tab.style.display = 'none';
-                document.getElementById('pc3Label').textContent = 'Third Complaint';
-                ['Verbatim', 'DurationValue', 'DurationUnit', 'Category', 'Other', 'Associated'].forEach(f => {
-                    const el = document.getElementById('pc3' + f);
-                    if (el) el.value = '';
-                });
-                document.querySelectorAll('input[name="pc3Onset"]').forEach(r => r.checked = false);
-                document.querySelectorAll('input[name="pc3Course"]').forEach(r => r.checked = false);
-                document.getElementById('pc3HintPanel').innerHTML = '';
-                document.getElementById('pc3OtherWrap').style.display = 'none';
-                updatePCLabel(2);
-                updatePCLabel(3);
-                document.getElementById('addPC3Btn').style.display = 'none';
-                showToast('PC 2 removed, PC 3 moved to PC 2 position.', '#e67e22');
-            }
-        } else if (num === 3) {
-            document.getElementById('addPC3Btn').style.display = 'inline-block';
-        }
-        updateProgress();
-    }
-
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // 9. HINT PANELS
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    const HINT_PANELS = {
-        // ... [all your HINT_PANELS content goes here - same as before]
-        // (Too long to include here, but you should keep your existing HINT_PANELS)
-    };
 
     function renderHintPanel(category, containerId) {
         const container = document.getElementById(containerId);
