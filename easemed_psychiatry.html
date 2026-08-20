@@ -378,7 +378,7 @@ const psychComplaintToGuideKey = {
     .guide-tips-title{font-weight:700;color:var(--psych-dark);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.3rem;}
     .guide-tips li{margin-bottom:0.2rem;list-style:none;}
 
-    /* ─── MSE Guide Styles ─── */
+    /* ─── Enhanced MSE Guide Styles ─── */
     .mse-guide-toggle {
         background: var(--mse-color);
         color: #fff;
@@ -414,6 +414,8 @@ const psychComplaintToGuideKey = {
         font-size: 0.88rem;
         line-height: 1.7;
         color: var(--text);
+        max-height: 600px;
+        overflow-y: auto;
     }
     .mse-guide-content.open {
         display: block;
@@ -422,9 +424,16 @@ const psychComplaintToGuideKey = {
         color: var(--mse-color);
         font-size: 0.95rem;
         margin: 1rem 0 0.3rem;
+        border-bottom: 1px solid rgba(26, 95, 122, 0.15);
+        padding-bottom: 0.2rem;
     }
     .mse-guide-content h4:first-of-type {
         margin-top: 0;
+    }
+    .mse-guide-content h5 {
+        color: var(--psych-color);
+        font-size: 0.85rem;
+        margin: 0.6rem 0 0.2rem;
     }
     .mse-guide-content ul {
         padding-left: 1.5rem;
@@ -435,7 +444,7 @@ const psychComplaintToGuideKey = {
     }
     .mse-guide-content .key-point {
         background: #fff;
-        padding: 0.3rem 0.8rem;
+        padding: 0.4rem 0.8rem;
         border-radius: 4px;
         border-left: 3px solid var(--mse-color);
         margin: 0.4rem 0;
@@ -443,7 +452,7 @@ const psychComplaintToGuideKey = {
     }
     .mse-guide-content .red-flag {
         background: #fff5f5;
-        padding: 0.3rem 0.8rem;
+        padding: 0.4rem 0.8rem;
         border-radius: 4px;
         border-left: 3px solid #c0392b;
         margin: 0.4rem 0;
@@ -452,10 +461,53 @@ const psychComplaintToGuideKey = {
     }
     .mse-guide-content .tip-box {
         background: #fffbea;
-        padding: 0.3rem 0.8rem;
+        padding: 0.4rem 0.8rem;
         border-radius: 4px;
         border-left: 3px solid #f59e0b;
         margin: 0.4rem 0;
+    }
+    .mse-guide-content .green-box {
+        background: #e8f5e9;
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        border-left: 3px solid #2e7d32;
+        margin: 0.4rem 0;
+    }
+    .mse-guide-content .bipolar-box {
+        background: #f3e5f5;
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        border-left: 3px solid #7b1fa2;
+        margin: 0.4rem 0;
+    }
+    .mse-guide-content .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+        margin: 0.4rem 0;
+    }
+    @media (max-width: 560px) {
+        .mse-guide-content .grid-2 {
+            grid-template-columns: 1fr;
+        }
+    }
+    .mse-guide-content .mnemonic {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        color: var(--psych-dark);
+        background: var(--psych-light);
+        padding: 0.2rem 0.6rem;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    .mse-guide-content .domain-title {
+        font-weight: 700;
+        color: var(--mse-color);
+    }
+    .mse-guide-content .sub-item {
+        padding-left: 1.2rem;
+        border-left: 2px dashed #cbd5e1;
+        margin-left: 0.5rem;
     }
 </style>
 </head>
@@ -602,71 +654,98 @@ const psychComplaintToGuideKey = {
     <div class="divider"></div>
 
     <!-- ============================================================ -->
-    <!-- MENTAL STATE EXAMINATION SECTION WITH GUIDE                  -->
+    <!-- ENHANCED MSE SECTION WITH COMPREHENSIVE GUIDE               -->
     <!-- ============================================================ -->
     <div class="section-header"><span class="section-badge" style="background:var(--mse-color);">9</span><span class="section-title">Mental State Examination</span></div>
 
     <!-- MSE Guide Toggle Button -->
     <div class="card" style="border-left:3px solid var(--mse-color); background:var(--mse-light);">
         <button class="mse-guide-toggle" id="mseGuideToggle" onclick="toggleMSEGuide()">
-            <span>📖 Show MSE Assessment Guide</span>
+            <span>📖 Show Complete MSE Assessment Guide</span>
             <span class="arrow">▼</span>
         </button>
         <div class="mse-guide-content" id="mseGuideContent">
+            
+            <!-- ========================================================== -->
+            <!-- SECTION 1: WHAT IS THE MSE?                               -->
+            <!-- ========================================================== -->
             <h4>🧠 What is the Mental State Examination (MSE)?</h4>
             <p>The MSE is the psychiatric equivalent of a physical examination. It is a structured way of <strong>observing and describing</strong> a patient's current mental state, based on both <strong>objective signs</strong> observed by the clinician and <strong>subjective information</strong> reported by the patient.</p>
-            <p class="key-point">🎯 The goal is to describe what you observe <strong>objectively</strong>. Avoid making early inferences or diagnoses during the assessment itself.</p>
+            <div class="key-point">🎯 The goal is to describe what you observe <strong>objectively</strong>. Avoid making early inferences or diagnoses during the assessment itself.</div>
 
+            <!-- ========================================================== -->
+            <!-- SECTION 2: THE ASEPTIC FRAMEWORK                          -->
+            <!-- ========================================================== -->
             <h4>📋 The ASEPTIC Framework</h4>
             <p>The MSE is traditionally organized using the <strong>ASEPTIC</strong> mnemonic. Here's what to assess in each domain:</p>
 
-            <h4>A — Appearance & Behaviour</h4>
+            <!-- A — Appearance & Behaviour -->
+            <h5>A — Appearance & Behaviour</h5>
             <ul>
-                <li><strong>Appearance:</strong> Apparent age vs stated age, dress (appropriate, dishevelled, unusual), grooming and hygiene.</li>
-                <li><strong>Behaviour:</strong> Eye contact (good, poor, avoidant), rapport and attitude (cooperative, guarded, hostile).</li>
-                <li><strong>Psychomotor activity:</strong> Any agitation (restlessness, fidgeting) or retardation (slowed movements).</li>
-                <li><strong>Abnormal movements:</strong> Tics, tremors, or other involuntary movements.</li>
+                <li><strong>Appearance:</strong> Sex, apparent age vs stated age, any physical abnormalities, level of grooming, level of cleanliness</li>
+                <li><strong>Behaviour:</strong> Mode of entry, cooperativeness, eye-to-eye contact, rapport, attitude (cooperative, guarded, hostile)</li>
+                <li><strong>Psychomotor activity:</strong> Any agitation (restlessness, fidgeting) or retardation (slowed movements), posture, gestures</li>
+                <li><strong>Level of consciousness:</strong> Alert, drowsy, confused, fluctuating</li>
             </ul>
             <div class="tip-box">💡 <strong>Example:</strong> "The patient is a 45-year-old man who appears his stated age. He is dressed in a tracksuit and appears unkempt with poor hygiene. He maintained poor eye contact and was guarded throughout the interview. No abnormal movements noted."</div>
 
-            <h4>S — Speech</h4>
+            <!-- S — Speech -->
+            <h5>S — Speech</h5>
             <ul>
-                <li><strong>Rate:</strong> Pressured (fast, difficult to interrupt), slow, or normal.</li>
-                <li><strong>Volume:</strong> Loud, soft, or mumbled.</li>
-                <li><strong>Tone & Rhythm:</strong> Monotone, hesitant, or fluent. Also note any speech impediments or dysphasia.</li>
+                <li><strong>Initiation:</strong> Spontaneous or requires prompting</li>
+                <li><strong>Reaction time:</strong> Normal, prolonged, or absent</li>
+                <li><strong>Rate:</strong> Pressured (fast, difficult to interrupt), slow, or normal</li>
+                <li><strong>Productivity:</strong> Amount of speech (verbose, minimal)</li>
+                <li><strong>Volume:</strong> Loud, soft, or mumbled</li>
+                <li><strong>Tone & Rhythm:</strong> Monotone, hesitant, or fluent</li>
+                <li><strong>Relevance:</strong> Relevant to questions or tangential</li>
+                <li><strong>Stream:</strong> Continuous or interrupted</li>
+                <li><strong>Coherence:</strong> Logical and understandable or disorganised</li>
             </ul>
 
-            <h4>E — Emotion (Mood & Affect)</h4>
+            <!-- E — Emotion (Mood & Affect) -->
+            <h5>E — Emotion (Mood & Affect)</h5>
             <ul>
                 <li><strong>Mood (Subjective):</strong> What the patient reports. Ask: <em>"How have you been feeling in yourself over the past few weeks?"</em> Document in their own words (e.g., "Patient describes mood as 'rock bottom'").</li>
                 <li><strong>Affect (Objective):</strong> What you observe.
                     <ul>
-                        <li><strong>Quality:</strong> Euthymic (normal), depressed, elevated/euphoric, anxious, or flat/blunted.</li>
+                        <li><strong>Quality:</strong> Euthymic (normal), depressed, elevated/euphoric, anxious, irritable, or flat/blunted</li>
                         <li><strong>Range & Stability:</strong> Is the affect reactive to the conversation? Or is it fixed and unchanging? Is it labile (rapidly shifting)?</li>
                         <li><strong>Congruence:</strong> Is the affect appropriate for what the patient is saying (congruent) or inappropriate (e.g., laughing while describing a sad event)?</li>
                     </ul>
                 </li>
             </ul>
+            <div class="key-point">📝 <strong>Key Distinction:</strong> Mood = <em>subjective</em> (patient's report). Affect = <em>objective</em> (clinician's observation).</div>
 
-            <h4>P — Perception</h4>
+            <!-- P — Perception -->
+            <h5>P — Perception</h5>
             <ul>
-                <li><strong>Hallucinations:</strong> Perceptions without a stimulus. Can be auditory (most common), visual, olfactory, tactile, or gustatory. Ask: <em>"Do you ever hear things that others can't hear, like voices?"</em> Clarify if voices are commenting or giving commands.</li>
+                <li><strong>Hallucinations:</strong> Perceptions without a stimulus. Can be:
+                    <ul>
+                        <li><strong>Auditory</strong> (most common) — ask: <em>"Do you hear things that others don't, like voices?"</em> Clarify if voices are commenting or giving commands.</li>
+                        <li><strong>Visual</strong></li>
+                        <li><strong>Olfactory</strong> (smell)</li>
+                        <li><strong>Gustatory</strong> (taste)</li>
+                        <li><strong>Tactile</strong> (touch)</li>
+                    </ul>
+                </li>
                 <li><strong>Illusions:</strong> Misperceptions of a real stimulus (e.g., seeing a coat and thinking it's a person).</li>
                 <li><strong>Depersonalization/Derealization:</strong> Feelings of being detached from oneself or the world feeling unreal.</li>
             </ul>
-            <div class="red-flag">🚨 <strong>Red Flag:</strong> Command hallucinations with compliance — major safety concern.</div>
+            <div class="red-flag">🚨 <strong>Red Flag:</strong> Command hallucinations with compliance — major safety concern requiring immediate intervention.</div>
 
-            <h4>T — Thought (Content & Process)</h4>
+            <!-- T — Thought (Content & Process) -->
+            <h5>T — Thought (Content & Process)</h5>
             <ul>
                 <li><strong>Thought Form (Process):</strong> The flow and organization of ideas.
                     <ul>
                         <li><strong>Normal:</strong> Coherent, logical, and goal-directed.</li>
-                        <li><strong>Abnormalities:</strong> Flight of ideas, loosening of associations, tangentiality, circumstantiality, thought blocking.</li>
+                        <li><strong>Abnormalities:</strong> Flight of ideas, loosening of associations, tangentiality, circumstantiality, thought blocking, neologisms (made-up words).</li>
                     </ul>
                 </li>
                 <li><strong>Thought Content:</strong> The themes of the patient's ideas and beliefs.
                     <ul>
-                        <li><strong>Delusions:</strong> Fixed, false beliefs not shared by culture (e.g., paranoid, grandiose, persecutory).</li>
+                        <li><strong>Delusions:</strong> Fixed, false beliefs not shared by culture (e.g., paranoid, grandiose, persecutory, nihilistic, guilt).</li>
                         <li><strong>Overvalued Ideas:</strong> Strong beliefs held with less conviction than a delusion.</li>
                         <li><strong>Obsessions:</strong> Recurrent, intrusive thoughts.</li>
                         <li><strong>Suicidal/Homicidal Ideation:</strong> Essential to assess for thoughts of harm to self or others.</li>
@@ -675,28 +754,158 @@ const psychComplaintToGuideKey = {
             </ul>
             <div class="red-flag">🚨 <strong>Red Flag:</strong> Suicidal ideation with plan and intent — requires immediate safety intervention.</div>
 
-            <h4>I — Insight & Judgement</h4>
+            <!-- I — Insight & Judgement -->
+            <h5>I — Insight & Judgement</h5>
             <ul>
-                <li><strong>Insight:</strong> The patient's awareness and understanding of their own mental health condition. Ask: <em>"Do you feel you need any treatment?"</em> or <em>"What do you think is the cause of your problems?"</em> Can be graded as complete, partial, or absent.</li>
-                <li><strong>Judgement:</strong> The patient's ability to make sound decisions and foresee consequences. Often inferred from their history and actions.</li>
+                <li><strong>Insight:</strong> The patient's awareness and understanding of their own mental health condition. Ask: <em>"Do you feel you need any treatment?"</em> or <em>"What do you think is the cause of your problems?"</em> Can be graded as:
+                    <ul>
+                        <li><strong>Complete:</strong> Understands condition and need for treatment</li>
+                        <li><strong>Partial:</strong> Some awareness but limited understanding</li>
+                        <li><strong>Absent:</strong> No awareness of illness</li>
+                    </ul>
+                </li>
+                <li><strong>Judgement:</strong> The patient's ability to make sound decisions and foresee consequences. Ask situational questions like: <em>"What would you do if you smelled smoke in a crowded room?"</em> Often inferred from their history and actions.</li>
             </ul>
 
-            <h4>C — Cognition</h4>
+            <!-- C — Cognition -->
+            <h5>C — Cognition</h5>
             <ul>
-                <li><strong>Orientation:</strong> Assess for person, place, and time.</li>
-                <li><strong>Attention & Concentration:</strong> Can be assessed by asking the patient to spell "WORLD" backwards or serial 7s.</li>
-                <li><strong>Formal cognitive testing:</strong> In a full OSCE, this might be assessed using a screening tool like the MMSE or MoCA.</li>
+                <li><strong>Orientation:</strong> Assess for person, place, and time.
+                    <ul>
+                        <li><strong>Person:</strong> Oriented in self, close associates, hospital staff</li>
+                        <li><strong>Place:</strong> Knows where they are</li>
+                        <li><strong>Time:</strong> Knows date, day, time</li>
+                    </ul>
+                </li>
+                <li><strong>Attention:</strong> Normally aroused, aroused with difficulty, or inattentive to examiner.</li>
+                <li><strong>Concentration:</strong> Normally sustained, sustained with difficulty, distractible. Test with:
+                    <ul>
+                        <li>Serial 7s or 3s from 100</li>
+                        <li>Count backwards from 20</li>
+                        <li>Spell "WORLD" backwards</li>
+                    </ul>
+                </li>
+                <li><strong>Memory:</strong> Assess Immediate (digit span), Recent (what they ate for breakfast), and Remote (past events, personal history).</li>
+                <li><strong>Intelligence:</strong> General fund of information, arithmetic ability. Questions should be appropriate to the patient's age and level of education.</li>
+                <li><strong>Abstract Thinking:</strong> Interpretation of proverbs, similarities between paired objects (e.g., table and chair).</li>
+            </ul>
+            <div class="tip-box">💡 <strong>Tip:</strong> For cognitive assessment, ensure questions are appropriate to the patient's age and educational background.</div>
+
+            <!-- ========================================================== -->
+            <!-- SECTION 3: BIPOLAR DISORDERS (from DSM-5-TR)              -->
+            <!-- ========================================================== -->
+            <h4>🧬 Bipolar Disorders — DSM-5-TR Criteria</h4>
+            
+            <div class="bipolar-box">
+                <h5 style="margin-top:0; color: #7b1fa2;">Bipolar I Disorder — Mania</h5>
+                <ul>
+                    <li><strong>Duration:</strong> ≥ 7 days (or any duration if hospitalization is required)</li>
+                    <li><strong>Core Feature:</strong> At least one manic episode</li>
+                    <li><strong>Symptoms (≥3 of the following):</strong>
+                        <ul>
+                            <li>Inflated self-esteem or grandiosity</li>
+                            <li>Decreased need for sleep</li>
+                            <li>More talkative than usual</li>
+                            <li>Flight of ideas or racing thoughts</li>
+                            <li>Distractibility</li>
+                            <li>Increase in goal-directed activity or psychomotor agitation</li>
+                            <li>Excessive involvement in high-risk activities</li>
+                        </ul>
+                    </li>
+                    <li><strong>Psychosis:</strong> May occur during manic episodes</li>
+                    <li><strong>Functional Impairment:</strong> Severe; often leads to hospitalization</li>
+                    <li><strong>Course:</strong> Episodic with periods of mania and/or depression</li>
+                </ul>
+            </div>
+
+            <div class="key-point">
+                <strong>📌 DIFGAST Mnemonic for Mania:</strong><br>
+                <span class="mnemonic">D</span> — Distractibility<br>
+                <span class="mnemonic">I</span> — Impulsivity / Risky Behavior<br>
+                <span class="mnemonic">F</span> — Flight of Ideas<br>
+                <span class="mnemonic">G</span> — Grandiosity<br>
+                <span class="mnemonic">A</span> — Activity Increase<br>
+                <span class="mnemonic">S</span> — Sleep Deficit<br>
+                <span class="mnemonic">T</span> — Talkativeness
+            </div>
+
+            <div class="bipolar-box" style="background:#fce4ec; border-left-color:#c62828;">
+                <h5 style="margin-top:0; color:#c62828;">Major Depressive Episode</h5>
+                <ul>
+                    <li><strong>Duration:</strong> ≥ 2 weeks</li>
+                    <li><strong>Symptoms (≥5 of the following):</strong>
+                        <ul>
+                            <li>Depressed mood</li>
+                            <li>Loss of interest or pleasure (anhedonia)</li>
+                            <li>Change in appetite or weight</li>
+                            <li>Sleep disturbance</li>
+                            <li>Fatigue or loss of energy</li>
+                            <li>Feelings of worthlessness or excessive guilt</li>
+                            <li>Difficulty concentrating or indecisiveness</li>
+                            <li>Recurrent thoughts of death or suicidal ideation</li>
+                        </ul>
+                    </li>
+                    <li><strong>Functional Impairment:</strong> Significant distress or impairment in social, occupational, or other areas</li>
+                </ul>
+            </div>
+
+            <!-- ========================================================== -->
+            <!-- SECTION 4: PHYSIOTHERAPY REFERRAL GUIDELINES              -->
+            <!-- ========================================================== -->
+            <h4>🦿 Physiotherapy Referral in Mental Health</h4>
+            <div class="green-box">
+                <p><strong>All mental health inpatients should be screened to identify those with physiotherapy needs.</strong></p>
+                <ul>
+                    <li>Findings relevant to physiotherapy should be documented in the patient's file</li>
+                    <li>Communicate physiotherapy needs during ward rounds</li>
+                    <li>Engage the physiotherapy team for further assessment and tailored management</li>
+                </ul>
+            </div>
+            <h5>Indications for Physiotherapy Referral:</h5>
+            <ul>
+                <li>Reduced mobility due to side effects from medications</li>
+                <li>Postural instability — risk of falls</li>
+                <li>Psychomotor slowing or agitation</li>
+                <li>Chronic pain</li>
+                <li>Deconditioning from prolonged hospitalization <em>(Harrison et al., 2024)</em></li>
             </ul>
 
+            <!-- ========================================================== -->
+            <!-- SECTION 5: SEIZURE ASSESSMENT QUESTIONS                   -->
+            <!-- ========================================================== -->
+            <h4>⚡ Seizure Assessment — Essential Questions</h4>
+            <div class="tip-box">
+                <p><strong>When someone has reported having a seizure, ask:</strong></p>
+                <ol style="padding-left:1.2rem;">
+                    <li>Was any warning noted before the seizure? If so, what kind?</li>
+                    <li>What did the patient do during the seizure?</li>
+                    <li>Was the patient able to relate to the environment during the seizure? Does the patient have recollection of the seizure?</li>
+                    <li>How did the patient feel after the seizure? How long did it take to get back to baseline?</li>
+                    <li>How long did the seizure last?</li>
+                    <li>How frequently do the seizures occur?</li>
+                    <li>Is anything known to precipitate the seizures?</li>
+                    <li>Has the patient shown any response to therapy for the seizures?</li>
+                </ol>
+                <p style="margin-top:0.4rem;"><em>— Innovated by Abakunda Annet, 2016/BNC/001/PS</em></p>
+            </div>
+
+            <!-- ========================================================== -->
+            <!-- SECTION 6: OSCE TIPS                                      -->
+            <!-- ========================================================== -->
             <h4>💡 Key Tips for OSCE Success</h4>
             <ul>
                 <li><strong>Practice the Performance:</strong> Knowing the theory is not enough. The OSCE is a <strong>performance exam</strong>. Practice presenting the MSE findings out loud, in the correct order, until it becomes fluid and automatic.</li>
                 <li><strong>Use Clear Clinical Language:</strong> Avoid vague terms like "looks a bit down." Use precise terminology: "Appears dishevelled with a depressed affect."</li>
                 <li><strong>Structure Matters:</strong> Examiners reward a structured, logical presentation. Following the ASEPTIC order demonstrates your clinical reasoning and command of the examination.</li>
                 <li><strong>Always assess risk first:</strong> Screen for suicidal ideation and risk to others before proceeding with the full history.</li>
+                <li><strong>Document in patient's own words:</strong> For hallucinations and delusions, use direct quotes where possible.</li>
+                <li><strong>Consider organic causes:</strong> Always rule out delirium, infection, metabolic derangement, and substance use in new-onset presentations.</li>
             </ul>
 
             <div class="key-point">📝 <strong>Remember:</strong> The MSE is a <strong>snapshot in time</strong> — it describes the patient's mental state at the time of the interview, not their entire personality or history.</div>
+            <div style="text-align:center; margin-top:0.8rem; font-size:0.75rem; color:var(--muted);">
+                <em>Adapted from DSM-5-TR · Innovated by Nakabba Glovia Cynthia · 2013/BNC/001/PS</em>
+            </div>
         </div>
     </div>
 
@@ -704,41 +913,50 @@ const psychComplaintToGuideKey = {
     <div class="card mse-card">
         <div class="card-title">🩺 Mental State Examination</div>
 
-        <div class="mse-domain"><div class="mse-header">Appearance & Behaviour</div><div class="mse-body">
-            <textarea id="mseAppearance" rows="2" placeholder="Grooming, eye contact, psychomotor activity, rapport, abnormal movements"></textarea>
+        <div class="mse-domain"><div class="mse-header">A — Appearance & Behaviour</div><div class="mse-body">
+            <div class="hint">Sex, age (appears stated/older/younger), grooming, cleanliness, mode of entry, cooperativeness, eye contact, psychomotor activity, gestures, posture, level of consciousness</div>
+            <textarea id="mseAppearance" rows="2" placeholder="e.g., 45-year-old male, appears stated age, unkempt, poor hygiene, guarded, poor eye contact"></textarea>
         </div></div>
 
-        <div class="mse-domain"><div class="mse-header">Speech</div><div class="mse-body">
-            <textarea id="mseSpeech" rows="2" placeholder="Rate, rhythm, volume, tone, spontaneity"></textarea>
+        <div class="mse-domain"><div class="mse-header">B — Speech</div><div class="mse-body">
+            <div class="hint">Initiation, reaction time, rate, productivity, volume, tone, relevance, stream, coherence</div>
+            <textarea id="mseSpeech" rows="2" placeholder="e.g., Spontaneous, normal rate, adequate volume, coherent and relevant"></textarea>
         </div></div>
 
-        <div class="mse-domain"><div class="mse-header">Mood & Affect</div><div class="mse-body">
+        <div class="mse-domain"><div class="mse-header">C — Mood & Affect</div><div class="mse-body">
             <div class="inline-row">
-                <div class="field-group"><label>Subjective mood</label><input type="text" id="mseMoodSubjective" placeholder="Patient's own words"></div>
-                <div class="field-group"><label>Objective affect</label><input type="text" id="mseMoodObjective" placeholder="Range, reactivity, congruence"></div>
+                <div class="field-group"><label>Subjective Mood (patient's own words)</label><input type="text" id="mseMoodSubjective" placeholder="e.g., 'I feel really down'"></div>
+                <div class="field-group"><label>Objective Affect</label><input type="text" id="mseMoodObjective" placeholder="e.g., Depressed, restricted, congruent"></div>
             </div>
         </div></div>
 
-        <div class="mse-domain"><div class="mse-header">Thought Form & Content</div><div class="mse-body">
-            <textarea id="mseThought" rows="3" placeholder="Form: flight of ideas, loosening of associations, thought block. Content: delusions, obsessions, suicidal/homicidal ideation, preoccupations"></textarea>
+        <div class="mse-domain"><div class="mse-header">D — Thought (Form & Content)</div><div class="mse-body">
+            <div class="hint">Form: flow, organisation (coherent, flight of ideas, loosening). Content: delusions, obsessions, suicidal/homicidal ideation</div>
+            <textarea id="mseThought" rows="3" placeholder="e.g., Form: coherent and goal-directed. Content: no delusions or suicidal ideation"></textarea>
         </div></div>
 
-        <div class="mse-domain"><div class="mse-header">Perception</div><div class="mse-body">
-            <textarea id="msePerception" rows="2" placeholder="Hallucinations (auditory, visual, other), illusions, depersonalisation/derealisation"></textarea>
+        <div class="mse-domain"><div class="mse-header">E — Perception</div><div class="mse-body">
+            <div class="hint">Hallucinations (auditory, visual, olfactory, gustatory, tactile), illusions, depersonalisation/derealisation</div>
+            <textarea id="msePerception" rows="2" placeholder="e.g., No hallucinations or illusions reported"></textarea>
         </div></div>
 
-        <div class="mse-domain"><div class="mse-header">Cognition</div><div class="mse-body">
+        <div class="mse-domain"><div class="mse-header">F — Cognition</div><div class="mse-body">
+            <div class="hint">Consciousness, orientation (time, place, person), attention, concentration, memory (immediate/recent/remote), intelligence, abstract thinking</div>
             <div class="inline-row-3">
                 <div class="field-group"><label>Orientation</label><input type="text" id="mseOrientation" placeholder="Time/place/person"></div>
-                <div class="field-group"><label>Attention & Concentration</label><input type="text" id="mseAttention"></div>
+                <div class="field-group"><label>Attention & Concentration</label><input type="text" id="mseAttention" placeholder="e.g., Serial 7s, WORLD backwards"></div>
                 <div class="field-group"><label>Memory</label><input type="text" id="mseMemory" placeholder="Immediate/recent/remote"></div>
+            </div>
+            <div class="field-group" style="margin-top:0.5rem;">
+                <label>Abstract Thinking</label>
+                <input type="text" id="mseAbstract" placeholder="e.g., Proverbs, similarities (table and chair)">
             </div>
         </div></div>
 
-        <div class="mse-domain"><div class="mse-header">Insight & Judgement</div><div class="mse-body">
+        <div class="mse-domain"><div class="mse-header">G — Insight & H — Judgement</div><div class="mse-body">
             <div class="inline-row">
-                <div class="field-group"><label>Insight</label><input type="text" id="mseInsight"></div>
-                <div class="field-group"><label>Judgement</label><input type="text" id="mseJudgement"></div>
+                <div class="field-group"><label>Insight</label><input type="text" id="mseInsight" placeholder="Complete/partial/absent"></div>
+                <div class="field-group"><label>Judgement</label><input type="text" id="mseJudgement" placeholder="e.g., What would you do if you smelled smoke?"></div>
             </div>
         </div></div>
     </div>
@@ -749,7 +967,7 @@ const psychComplaintToGuideKey = {
     <div class="card psych-card">
         <div class="card-title">📋 Provisional Diagnosis & Plan</div>
         <div class="field-group"><label>Provisional diagnosis / differentials</label><textarea id="provisionalDx" rows="2"></textarea></div>
-        <div class="field-group"><label>Management plan (investigations, pharmacological, psychological, social)</label><textarea id="managementPlan" rows="3"></textarea></div>
+        <div class="field-group"><label>Management plan (investigations, pharmacological, psychological, social, physiotherapy referral if indicated)</label><textarea id="managementPlan" rows="3"></textarea></div>
     </div>
 
     <div class="divider"></div>
@@ -823,8 +1041,8 @@ function toggleMSEGuide() {
     content.classList.toggle('open');
     toggle.classList.toggle('open');
     toggle.innerHTML = content.classList.contains('open') 
-        ? '<span>📖 Hide MSE Assessment Guide</span><span class="arrow">▼</span>'
-        : '<span>📖 Show MSE Assessment Guide</span><span class="arrow">▼</span>';
+        ? '<span>📖 Hide Complete MSE Assessment Guide</span><span class="arrow">▼</span>'
+        : '<span>📖 Show Complete MSE Assessment Guide</span><span class="arrow">▼</span>';
 }
 
 // ─── GUIDED SYMPTOM PROMPTS ───
@@ -974,6 +1192,7 @@ function captureFormData() {
         mseOrientation: document.getElementById('mseOrientation').value,
         mseAttention: document.getElementById('mseAttention').value,
         mseMemory: document.getElementById('mseMemory').value,
+        mseAbstract: document.getElementById('mseAbstract').value,
         mseInsight: document.getElementById('mseInsight').value,
         mseJudgement: document.getElementById('mseJudgement').value,
         provisionalDx: document.getElementById('provisionalDx').value,
@@ -1107,6 +1326,7 @@ function generateSummary() {
             <p><strong>Thought:</strong> ${escapeHtml(d.mseThought)}</p>
             <p><strong>Perception:</strong> ${escapeHtml(d.msePerception)}</p>
             <p><strong>Orientation:</strong> ${escapeHtml(d.mseOrientation)} | <strong>Attention:</strong> ${escapeHtml(d.mseAttention)} | <strong>Memory:</strong> ${escapeHtml(d.mseMemory)}</p>
+            <p><strong>Abstract Thinking:</strong> ${escapeHtml(d.mseAbstract) || 'Not assessed'}</p>
             <p><strong>Insight:</strong> ${escapeHtml(d.mseInsight)} | <strong>Judgement:</strong> ${escapeHtml(d.mseJudgement)}</p>
         </div>
         <div class="summary-section" style="border-left-color:#2c6e49;"><div class="summary-section-title">11. Assessment & Plan</div>
@@ -1146,7 +1366,7 @@ function exportToWord() {
         <p><span class="label">Mood/Affect:</span> ${escapeHtml(d.mseMoodSubjective)} / ${escapeHtml(d.mseMoodObjective)}</p>
         <p><span class="label">Thought:</span> ${escapeHtml(d.mseThought)}</p>
         <p><span class="label">Perception:</span> ${escapeHtml(d.msePerception)}</p>
-        <p><span class="label">Cognition:</span> ${escapeHtml(d.mseOrientation)}, ${escapeHtml(d.mseAttention)}, ${escapeHtml(d.mseMemory)}</p>
+        <p><span class="label">Cognition:</span> Orientation: ${escapeHtml(d.mseOrientation)}, Attention: ${escapeHtml(d.mseAttention)}, Memory: ${escapeHtml(d.mseMemory)}, Abstract: ${escapeHtml(d.mseAbstract)}</p>
         <p><span class="label">Insight/Judgement:</span> ${escapeHtml(d.mseInsight)} / ${escapeHtml(d.mseJudgement)}</p>
         <h2>Assessment & Plan</h2><p>${escapeHtml(d.provisionalDx)}</p><p>${escapeHtml(d.managementPlan)}</p>
         <footer style="margin-top:40px;text-align:center;color:gray;">EaseMed Psychiatric Clerking System</footer>
