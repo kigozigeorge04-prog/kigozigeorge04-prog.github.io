@@ -3641,8 +3641,26 @@ function oiRemoveChip(e, name) {
                     { q: "Associated palpitations, chest pain?", hint: "Palpitations + dizziness = arrhythmia; chest pain = ACS." },
                     { q: "Neurological symptoms? (diplopia, dysarthria)", hint: "Any neurological deficit + dizziness = central cause (stroke/MS) — emergency." }
                 ],
-                redFlags: ["🚨 Acute vertigo + neurological deficit → posterior circulation stroke",
+                               redFlags: ["🚨 Acute vertigo + neurological deficit → posterior circulation stroke",
                     "🚨 Syncope + dizziness → arrhythmia — urgent ECG"
+                ]
+            },
+            hematemesis: {
+                title: "🩸 Haematemesis",
+                chapter: "Hutchison's Ch. 15",
+                questions: [
+                    { q: "Onset? Sudden or preceded by retching/vomiting?", hint: "Preceded by forceful retching = Mallory-Weiss tear." },
+                    { q: "Appearance? (fresh red blood, coffee-ground, clots)", hint: "Fresh red = active/brisk bleed; coffee-ground = slower bleed, altered by acid." },
+                    { q: "Volume/frequency? (streaks, cupfuls, episodes)", hint: "Large volume or recurrent episodes = higher-risk bleed." },
+                    { q: "Associated melaena or PR bleeding?", hint: "Melaena confirms upper GI source; fresh PR blood suggests brisk/large bleed." },
+                    { q: "Associated abdominal pain?", hint: "Epigastric pain = peptic ulcer; painless = varices, malignancy." },
+                    { q: "Alcohol history / known liver disease?", hint: "Liver disease + haematemesis = suspect variceal bleed until proven otherwise." },
+                    { q: "NSAID, aspirin, or anticoagulant use?", hint: "NSAIDs/aspirin = peptic ulcer risk; anticoagulants worsen any bleed." },
+                    { q: "Dizziness, syncope, or palpitations?", hint: "Suggests significant blood loss — assess haemodynamic status urgently." }
+                ],
+                redFlags: ["🚨 Haemodynamic instability (tachycardia, hypotension, syncope) → emergency resuscitation",
+                    "🚨 Known liver disease + haematemesis → suspect variceal bleed",
+                    "🚨 Large volume or recurrent bleeding → urgent endoscopy"
                 ]
             }
         };
@@ -3665,7 +3683,7 @@ function oiRemoveChip(e, name) {
         const SYMPTOM_LIST = [
             'fever', 'pain', 'chest pain', 'shortness of breath', 'cough', 'headache',
             'dizziness', 'nausea', 'diarrhea', 'constipation', 'swelling',
-            'palpitations', 'fatigue', 'weight loss', 'joint pain', 'rash'
+            'palpitations', 'fatigue', 'weight loss', 'joint pain', 'rash','hematemesis'
         ];
 
         const SYMPTOM_LABELS = {
@@ -3685,6 +3703,7 @@ function oiRemoveChip(e, name) {
             'weight loss': '⚖️ Weight Loss',
             'joint pain': '🦴 Joint Pain',
             'rash': '🔴 Skin Rash'
+            'hematemesis': '🩸 Haematemesis'
         };
 
         const SLOT_LABELS = [
@@ -4084,6 +4103,14 @@ function oiRemoveChip(e, name) {
                     { name: 'Visceral Pain', reason: 'Poorly localised pain from internal organs' },
                     { name: 'Neuropathic Pain', reason: 'Burning/shooting pain with neurological distribution' },
                     { name: 'Referred Pain', reason: 'Pain perceived distant from source' }
+                ],
+             'hematemesis': [
+                    { name: 'Peptic Ulcer Disease', reason: 'Haematemesis + epigastric pain + NSAID/aspirin use' },
+                    { name: 'Oesophageal Varices', reason: 'Haematemesis + known liver disease/alcohol history' },
+                    { name: 'Mallory-Weiss Tear', reason: 'Haematemesis following forceful retching/vomiting' },
+                    { name: 'Gastritis', reason: 'Haematemesis + NSAID use, alcohol, or stress' },
+                    { name: 'Gastric/Oesophageal Malignancy', reason: 'Haematemesis + weight loss + dysphagia' },
+                    { name: 'Coagulopathy', reason: 'Haematemesis + anticoagulant use or bleeding tendency' }
                 ]
             };
 
