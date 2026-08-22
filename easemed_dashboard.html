@@ -636,7 +636,53 @@
         .hiv-details.active {
             display: block
         }
+.oi-dropdown-wrap { position: relative; margin-top: 4px; }
 
+.oi-dropdown-trigger {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px;
+    padding: 8px 12px; cursor: pointer; font-size: 0.82rem; color: #4a5568;
+    transition: border-color 0.15s;
+}
+.oi-dropdown-trigger:hover { border-color: #1e3c72; }
+.oi-arrow { transition: transform 0.2s; font-size: 0.7rem; }
+.oi-arrow.open { transform: rotate(180deg); }
+
+.oi-dropdown-panel {
+    display: none;
+    border: 1.5px solid #e2e8f0; border-radius: 8px;
+    margin-top: 4px; padding: 10px; background: white;
+    max-height: 280px; overflow-y: auto;
+}
+.oi-dropdown-panel.open { display: block; }
+
+.oi-search {
+    width: 100%; padding: 6px 10px; border: 1.5px solid #e2e8f0;
+    border-radius: 6px; font-size: 0.78rem; margin-bottom: 8px;
+}
+
+.oi-group-label {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; margin: 8px 0 4px; padding: 2px 8px;
+    border-radius: 6px; display: inline-block;
+}
+.oi-group-label.stage3 { background: #fef5e7; color: #b7791f; }
+.oi-group-label.stage4 { background: #fef2f2; color: #c53030; }
+
+.oi-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 8px; border-radius: 6px; font-size: 0.78rem;
+    cursor: pointer; transition: background 0.12s;
+}
+.oi-item:hover { background: #f0f7ff; }
+.oi-item input[type="checkbox"] { accent-color: #1e3c72; }
+.oi-item.hidden { display: none; }
+.oi-stage-tag {
+    font-size: 0.6rem; font-weight: 700; padding: 1px 6px;
+    border-radius: 10px; margin-left: auto;
+}
+.oi-stage-tag.s3 { background: #fef5e7; color: #b7791f; }
+.oi-stage-tag.s4 { background: #fef2f2; color: #c53030; }
         .summary-actions {
             padding: 0 22px 18px 22px;
             display: grid;
@@ -2329,14 +2375,18 @@
                 <div id="hivDetails" class="hiv-details">
                     <div class="demographics-grid">
                         <div><label>HIV Status</label><select id="hivStatus"><option value="">Select</option><option value="positive">Positive</option><option value="negative">Negative</option><option value="unknown">Unknown</option></select></div>
-                        <div><label>Diagnosis Date</label><input type="text" id="hivDiagnosisDate" placeholder="DD/MM/YYYY"></div>
+                      <div>
+    <label>Diagnosis Date</label>
+    <input type="text" id="hivDiagnosisDate" placeholder="e.g. 2015, or Mar 2015, or 14/03/2015">
+</div>
                         <div><label>Diagnosis Method</label><select id="hivDiagnosisMethod"><option value="">Select</option><option>Rapid Test</option><option>Determine + Stat-Pak + UniGold</option><option>DNA PCR</option><option>Western Blot</option></select></div>
                         <div><label>WHO Stage at Diagnosis</label><select id="hivWhoStage"><option value="">Select</option><option>Stage 1</option><option>Stage 2</option><option>Stage 3</option><option>Stage 4</option></select></div>
                     </div>
                     <h4 style="margin:10px 0 6px;color:#1e3c72;font-size:0.9rem;">💊 ART</h4>
+                    <div class="ros-hint" style="margin-bottom:8px;">📅 Dates can be as precise as the patient remembers — full date, month/year, or year only (e.g. "2015").</div>
                     <div class="demographics-grid">
                         <div><label>On ART?</label><select id="hivOnArt" onchange="toggleARTDetails()"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
-                        <div><label>ART Start Date</label><input type="text" id="hivArtStartDate" placeholder="DD/MM/YYYY"></div>
+                        <div><label>ART Start Date</label><input type="text" id="hivArtStartDate" placeholder="e.g. 2018, or Jun 2018, or 10/06/2018"></div>
                     </div>
                     <div id="artDetails" style="display:none;">
                         <div class="demographics-grid">
@@ -2349,21 +2399,36 @@
                     <h4 style="margin:10px 0 6px;color:#1e3c72;font-size:0.9rem;">📊 Labs</h4>
                     <div class="demographics-grid">
                         <div><label>CD4 Count</label><input type="text" id="hivCd4" placeholder="cells/µL"></div>
-                        <div><label>CD4 Date</label><input type="text" id="hivCd4Date" placeholder="DD/MM/YYYY"></div>
-                        <div><label>Viral Load</label><input type="text" id="hivViralLoad" placeholder="copies/mL"></div>
-                        <div><label>VL Date</label><input type="text" id="hivVlDate" placeholder="DD/MM/YYYY"></div>
+                        <div><label>CD4 Date</label><input type="text" id="hivCd4Date" placeholder="e.g. 2023 or 05/2023"></div>
+<div><label>Viral Load</label><input type="text" id="hivViralLoad" placeholder="copies/mL"></div>
+<div><label>VL Date</label><input type="text" id="hivVlDate" placeholder="e.g. 2023 or 05/2023"></div>
                     </div>
-                    <h4 style="margin:10px 0 6px;color:#1e3c72;font-size:0.9rem;">🩺 Opportunistic Infections</h4>
-                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                        <label style="font-size:0.8rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" value="TB"> TB</label>
-                        <label style="font-size:0.8rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" value="Cryptococcal Meningitis"> Cryptococcal</label>
-                        <label style="font-size:0.8rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" value="PCP"> PCP</label>
-                        <label style="font-size:0.8rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" value="Esophageal Candidiasis"> Oesophageal Candidiasis</label>
-                        <label style="font-size:0.8rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" value="KS"> KS</label>
-                        <label style="font-size:0.8rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" value="CMV"> CMV</label>
-                    </div>
-                    <div style="margin-top:6px;"><label>IPT</label><select id="hivIpt"><option value="">Select</option><option>Completed 6 months</option><option>Currently on IPT</option><option>Not started</option></select></div>
-                    <div style="margin-top:6px;"><label>CPT</label><select id="hivCpt"><option value="">Select</option><option>Currently on CPT</option><option>Not on CPT</option><option>Allergic/Contraindicated</option></select></div>
+                  <h4 style="margin:10px 0 6px;color:#1e3c72;font-size:0.9rem;">🩺 Opportunistic Infections & WHO Staging Conditions</h4>
+<div class="oi-dropdown-wrap">
+    <div class="oi-dropdown-trigger" onclick="toggleOIDropdown()">
+        <span id="oiTriggerLabel">Select conditions...</span>
+        <span class="oi-arrow" id="oiArrow">▼</span>
+    </div>
+    <div class="oi-dropdown-panel" id="oiDropdownPanel">
+        <input type="text" class="oi-search" id="oiSearch" placeholder="🔍 Search conditions..." oninput="filterOIList(this.value)">
+
+        <div class="oi-group-label stage3">WHO Clinical Stage 3</div>
+        <div class="oi-list" id="oiStage3List"></div>
+
+        <div class="oi-group-label stage4">WHO Clinical Stage 4 (AIDS-defining)</div>
+        <div class="oi-list" id="oiStage4List"></div>
+    </div>
+</div>            
+                   <div style="margin-top:6px;">
+    <label>IPT</label>
+    <select id="hivIpt"><option value="">Select</option><option>Completed 6 months</option><option>Currently on IPT</option><option>Not started</option></select>
+    <div class="ros-hint">💊 <strong>IPT</strong> = Isoniazid Preventive Therapy. Daily isoniazid (usually 6 months) given to HIV+ patients to prevent active TB developing from latent infection.</div>
+</div>
+<div style="margin-top:6px;">
+    <label>CPT</label>
+    <select id="hivCpt"><option value="">Select</option><option>Currently on CPT</option><option>Not on CPT</option><option>Allergic/Contraindicated</option></select>
+    <div class="ros-hint">💊 <strong>CPT</strong> = Cotrimoxazole Preventive Therapy. Daily cotrimoxazole given to HIV+ patients (usually CD4 ≤350 or WHO stage 3/4) to prevent PCP, toxoplasmosis, and bacterial infections.</div>
+</div>
                     <div style="margin-top:6px;"><label>Partner/Family HIV Status</label><input type="text" id="hivPartnerStatus" placeholder="Partner status, children's status"></div>
                 </div>
             </div>
@@ -2392,7 +2457,7 @@
                         <div id="smokingDetailsWrap" style="display:none; margin-top:0.5rem;">
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                                 <div><label>Pack Years</label><div class="hint-sm">(Packs/day) × (Years)</div><input type="text" id="smokingPackYears" placeholder="e.g. 10" /></div>
-                                <div><label>Quit Date</label><input type="date" id="smokingQuitDate" /></div>
+                                <div><label>Quit Date</label><input type="text" id="smokingQuitDate" placeholder="e.g. 2019, or 3 years ago" /></div>
                             </div>
                             <div style="margin-top:4px;"><label>Additional Details</label><input type="text" id="smokingDetails" placeholder="e.g. Started at 18, smokes 1 pack/day" /></div>
                         </div>
@@ -2420,50 +2485,7 @@
                 </div>
             </div>
 
-            <!-- 7. MANAGEMENT PLAN -->
-            <div class="form-section">
-                <h3>📋 Management Plan</h3>
-                <textarea id="managementPlan" rows="3" placeholder="Diagnosis, investigations, treatment, referrals, follow-up..."></textarea>
-            </div>
-
-            <!-- 8. DIFFERENTIAL DIAGNOSIS -->
-            <div class="form-section">
-                <h3>🧠 Differential Diagnosis <span class="stat-card">Based on clinical data</span></h3>
-                <div class="ddx-container">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                        <h4 style="margin:0;">📊 Suggested Differentials</h4>
-                        <button class="ddx-generate-btn" onclick="generateDifferentials()">🔄 Generate Differentials</button>
-                    </div>
-                    <div id="ddxList" class="ddx-list">
-                        <div class="ddx-empty">Click "Generate Differentials" to see suggestions based on the clinical data entered.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 9. SUMMARY ACTIONS -->
-            <div class="summary-actions">
-                <button class="btn-generate" onclick="generateClinicalSummary()">📄 Generate Summary + Ward Round</button>
-                <button class="btn-generate" onclick="savePatient()" style="background:linear-gradient(135deg,#27ae60,#1e8449);">💾 Save Patient Record</button>
-            </div>
-
-            <!-- 10. SUMMARY DISPLAY -->
-            <div class="form-section" id="summarySection" style="display:none;">
-                <h3>📄 Clinical Summary</h3>
-                <div class="summary-tabs">
-                    <div class="summary-document">
-                        <h4>Complete Summary</h4>
-                        <div class="clinical-summary" id="clinicalSummary"></div>
-                        <button class="btn-generate" onclick="copyToClipboard('clinicalSummary')" style="background:linear-gradient(135deg,#3498db,#2980b9);margin-top:8px;">📋 Copy</button>
-                    </div>
-                    <div class="summary-document">
-                        <h4>5-Line Ward Round</h4>
-                        <div class="clinical-summary" id="wardRoundSummary"></div>
-                        <button class="btn-generate" onclick="copyToClipboard('wardRoundSummary')" style="background:linear-gradient(135deg,#2a9d8f,#1e7d5a);margin-top:8px;">📋 Copy</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+           
         <!-- ======================== GUIDANCE PANEL ======================== -->
         <div class="guidance-panel">
             <div class="guidance-header">
@@ -2525,6 +2547,49 @@
             </div>
         </div>
     </div>
+ <!-- 7. MANAGEMENT PLAN -->
+            <div class="form-section">
+                <h3>📋 Management Plan</h3>
+                <textarea id="managementPlan" rows="3" placeholder="Diagnosis, investigations, treatment, referrals, follow-up..."></textarea>
+            </div>
+
+            <!-- 8. DIFFERENTIAL DIAGNOSIS -->
+            <div class="form-section">
+                <h3>🧠 Differential Diagnosis <span class="stat-card">Based on clinical data</span></h3>
+                <div class="ddx-container">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <h4 style="margin:0;">📊 Suggested Differentials</h4>
+                        <button class="ddx-generate-btn" onclick="generateDifferentials()">🔄 Generate Differentials</button>
+                    </div>
+                    <div id="ddxList" class="ddx-list">
+                        <div class="ddx-empty">Click "Generate Differentials" to see suggestions based on the clinical data entered.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. SUMMARY ACTIONS -->
+            <div class="summary-actions">
+                <button class="btn-generate" onclick="generateClinicalSummary()">📄 Generate Summary + Ward Round</button>
+                <button class="btn-generate" onclick="savePatient()" style="background:linear-gradient(135deg,#27ae60,#1e8449);">💾 Save Patient Record</button>
+            </div>
+
+            <!-- 10. SUMMARY DISPLAY -->
+            <div class="form-section" id="summarySection" style="display:none;">
+                <h3>📄 Clinical Summary</h3>
+                <div class="summary-tabs">
+                    <div class="summary-document">
+                        <h4>Complete Summary</h4>
+                        <div class="clinical-summary" id="clinicalSummary"></div>
+                        <button class="btn-generate" onclick="copyToClipboard('clinicalSummary')" style="background:linear-gradient(135deg,#3498db,#2980b9);margin-top:8px;">📋 Copy</button>
+                    </div>
+                    <div class="summary-document">
+                        <h4>5-Line Ward Round</h4>
+                        <div class="clinical-summary" id="wardRoundSummary"></div>
+                        <button class="btn-generate" onclick="copyToClipboard('wardRoundSummary')" style="background:linear-gradient(135deg,#2a9d8f,#1e7d5a);margin-top:8px;">📋 Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <!-- ============================================================
     TOAST & FLOATING TIP
@@ -2685,7 +2750,7 @@ async function handleLogout() {
             if (typeof xpInit === 'function') xpInit();
             if (typeof updateProgress === 'function') updateProgress();
             if (typeof toggleReferralDetails === 'function') toggleReferralDetails();
-            
+            if (typeof buildOIDropdown === 'function') buildOIDropdown();
             console.log('[Page] Initialized successfully');
         }
 
@@ -2757,10 +2822,80 @@ async function handleLogout() {
         function toggleARTDetails() { document.getElementById('artDetails').style.display = document.getElementById('hivOnArt')
                 .value === 'yes' ? 'block' : 'none'; }
 
+        
         function toggleReferralDetails() {
             const status = document.getElementById('referralStatus').value;
             document.getElementById('referralDetails').style.display = status !== 'Self-referred' ? 'block' : 'none';
         }
+        const OI_CONDITIONS = {
+    3: [
+        "Unexplained moderate weight loss",
+        "Unexplained chronic diarrhoea >1 month",
+        "Unexplained persistent fever",
+        "Oral candidiasis",
+        "Oral hairy leukoplakia",
+        "Pulmonary TB",
+        "Severe bacterial infection (pneumonia, empyema, meningitis, bacteraemia)",
+        "Acute necrotizing ulcerative gingivitis/stomatitis",
+        "Unexplained anaemia/neutropenia/thrombocytopenia"
+    ],
+    4: [
+        "HIV wasting syndrome",
+        "Pneumocystis pneumonia (PCP)",
+        "Recurrent severe bacterial pneumonia",
+        "Chronic herpes simplex infection",
+        "Oesophageal candidiasis",
+        "Extrapulmonary TB",
+        "Kaposi sarcoma",
+        "CMV infection",
+        "CNS toxoplasmosis",
+        "HIV encephalopathy",
+        "Cryptococcal meningitis (extrapulmonary)",
+        "Disseminated non-tuberculous mycobacterial infection",
+        "Progressive multifocal leukoencephalopathy (PML)",
+        "Chronic cryptosporidiosis",
+        "Chronic isosporiasis",
+        "Disseminated mycosis (histoplasmosis/coccidioidomycosis)",
+        "Recurrent non-typhoidal Salmonella septicaemia",
+        "Lymphoma (cerebral or B-cell NHL)",
+        "Invasive cervical carcinoma",
+        "HIV-associated nephropathy or cardiomyopathy"
+    ]
+};
+
+function buildOIDropdown() {
+    const s3 = document.getElementById('oiStage3List');
+    const s4 = document.getElementById('oiStage4List');
+    s3.innerHTML = OI_CONDITIONS[3].map(c => oiItemHTML(c, 3)).join('');
+    s4.innerHTML = OI_CONDITIONS[4].map(c => oiItemHTML(c, 4)).join('');
+}
+
+function oiItemHTML(name, stage) {
+    return `<label class="oi-item">
+        <input type="checkbox" value="${name}" onchange="updateOITriggerLabel()">
+        <span>${name}</span>
+        <span class="oi-stage-tag s${stage}">Stage ${stage}</span>
+    </label>`;
+}
+
+function toggleOIDropdown() {
+    document.getElementById('oiDropdownPanel').classList.toggle('open');
+    document.getElementById('oiArrow').classList.toggle('open');
+}
+
+function filterOIList(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('.oi-item').forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.classList.toggle('hidden', q && !text.includes(q));
+    });
+}
+
+function updateOITriggerLabel() {
+    const checked = Array.from(document.querySelectorAll('#hivDetails .oi-item input:checked')).map(c => c.value);
+    const label = document.getElementById('oiTriggerLabel');
+    label.textContent = checked.length ? `${checked.length} selected` : 'Select conditions...';
+}
 
         function updateProgress() {
             const inputs = document.querySelectorAll('input, textarea, select');
@@ -4167,6 +4302,8 @@ async function handleLogout() {
             data._xpData = xpData || {};
             data._slotCollapsed = slotCollapsed || [false, true, true];
             return data;
+            data._oiSelected = Array.from(document.querySelectorAll('#hivDetails .oi-item input:checked')).map(c => c.value);
+
         }
 
         function restoreFormData(data) {
@@ -4191,6 +4328,12 @@ async function handleLogout() {
             if (data._rosData) rosData = data._rosData;
             if (data._xpData) xpData = data._xpData;
             if (data._slotCollapsed) slotCollapsed = data._slotCollapsed;
+            if (data._oiSelected) {
+    document.querySelectorAll('#hivDetails .oi-item input').forEach(cb => {
+        cb.checked = data._oiSelected.includes(cb.value);
+        cb.closest('.oi-item')?.classList.toggle('selected', cb.checked); // if you add a selected style
+    });
+    updateOITriggerLabel();
 
             toggleReferralDetails();
             if (typeof toggleARTDetails === 'function') toggleARTDetails();
@@ -4462,13 +4605,13 @@ async function handleLogout() {
                 steps: [{
                     name: "🔍 Inspection (signs)",
                     items: [
-                        "Elevated JVP", "Praecordium scars", "Visible pulsations", "Pacemaker bulge",
+                        "Elevated JVP", "Precordium scars", "Visible pulsations", "Pacemaker bulge",
                         "Cyanosis", "Oedema", "Clubbing"
                     ]
                 }, {
                     name: "🖐 Palpation (signs)",
                     items: [
-                        "Displaced apex beat", "LV heave", "RV heath", "Thrill",
+                        "Displaced apex beat", "Apical heave", "Parasternal heath", "Thrill",
                         "Apex beat tapping", "Apex beat diffuse", "Radial pulse present",
                         "Femoral pulse present", "Dorsalis pedis present", "Posterior tibial present",
                         "Capillary refill >2s", "Radio-radial delay", "Radio-femoral delay"
@@ -4480,14 +4623,24 @@ async function handleLogout() {
                         "Cardiac dullness increased (cardiomegaly)"
                     ]
                 }, {
-                    name: "🔊 Auscultation (signs)",
-                    items: [
-                        "S1 normal", "S2 normal", "S3 gallop", "S4",
-                        "Ejection systolic murmur", "Pansystolic murmur", "Late systolic murmur",
-                        "Early diastolic murmur", "Mid-diastolic murmur", "Continuous murmur",
-                        "Pericardial rub", "Murmur radiation to axilla",
-                        "Murmur radiation to carotid", "Irregular rhythm", "Muffled heart sounds"
-                    ]
+                  name: "🔊 Auscultation (signs)",
+items: [
+    "S1 normal", "S2 normal", "S3 gallop", "S4",
+    "Ejection systolic murmur", "Pansystolic murmur", "Late systolic murmur",
+    "Early diastolic murmur", "Mid-diastolic murmur", "Continuous murmur",
+    "Pericardial rub", "Murmur radiation to axilla",
+    "Murmur radiation to carotid", "Irregular rhythm", "Muffled heart sounds"
+]
+}, {
+    name: "🤸 Dynamic Manoeuvres (signs)",
+    items: [
+        "Valsalva — murmur increases", "Valsalva — murmur decreases",
+        "Squatting — murmur increases", "Squatting — murmur decreases",
+        "Standing (sudden) — murmur increases", "Standing (sudden) — murmur decreases",
+        "Passive leg raise — murmur increases", "Passive leg raise — murmur decreases",
+        "Expiration — murmur louder (left-sided)", "Inspiration — murmur louder (right-sided, Carvallo's sign)",
+        "Left lateral position — murmur louder (mitral)", "Sitting forward + expiration — murmur louder (aortic)",
+        "Isometric handgrip — murmur increases", "Isometric handgrip — murmur decreases"   ]
                 }]
             },
             resp: {
@@ -4504,12 +4657,15 @@ async function handleLogout() {
                         "Chest asymmetry", "Cyanosis"
                     ]
                 }, {
-                    name: "🖐 Palpation (signs)",
-                    items: [
-                        "Tracheal deviated", "Reduced expansion (R)", "Reduced expansion (L)",
-                        "Tactile fremitus increased", "Tactile fremitus reduced",
-                        "Subcutaneous emphysema", "Chest wall tenderness"
-                    ]
+                   name: "🖐 Palpation (signs)",
+items: [
+    "Tracheal deviated",
+    "Reduced expansion — upper/supramammary (R)", "Reduced expansion — upper/supramammary (L)",
+    "Reduced expansion — mammary (R)", "Reduced expansion — mammary (L)",
+    "Reduced expansion — inframammary (R)", "Reduced expansion — inframammary (L)",
+    "Tactile fremitus increased", "Tactile fremitus reduced",
+    "Subcutaneous emphysema", "Chest wall tenderness"
+]
                 }, {
                     name: "👊 Percussion (signs)",
                     items: [
@@ -4839,6 +4995,20 @@ async function handleLogout() {
             "Murmur radiation to axilla": "Mitral regurgitation.",
             "Murmur radiation to carotid": "Aortic stenosis.",
             "Muffled heart sounds": "Pericardial effusion, obesity.",
+            "Valsalva — murmur increases": "Classic for HOCM — reduced venous return accentuates outflow obstruction.",
+"Valsalva — murmur decreases": "Most other murmurs (AS, MR) soften with reduced preload during strain phase.",
+"Squatting — murmur increases": "Increases venous return/afterload — accentuates AS and MR.",
+"Squatting — murmur decreases": "HOCM murmur softens as increased preload/afterload reduces outflow gradient.",
+"Standing (sudden) — murmur increases": "HOCM and MVP murmurs increase with reduced venous return on standing.",
+"Standing (sudden) — murmur decreases": "AS and MR typically soften on standing due to reduced preload.",
+"Passive leg raise — murmur increases": "Increases venous return — accentuates AS, MR; softens HOCM.",
+"Passive leg raise — murmur decreases": "Reduces relative outflow obstruction — typical for HOCM.",
+"Expiration — murmur louder (left-sided)": "Left-sided murmurs (aortic, mitral) are louder in expiration.",
+"Inspiration — murmur louder (right-sided, Carvallo's sign)": "Right-sided murmurs (tricuspid, pulmonary) increase with inspiration due to increased venous return to the right heart.",
+"Left lateral position — murmur louder (mitral)": "Brings the apex closer to the chest wall — best for mitral stenosis (bell, apex).",
+"Sitting forward + expiration — murmur louder (aortic)": "Classic positioning to accentuate aortic regurgitation at the left sternal edge.",
+"Isometric handgrip — murmur increases": "Increases afterload — accentuates MR, AR, VSD.",
+"Isometric handgrip — murmur decreases": "Increased afterload reduces the outflow gradient in HOCM and AS."
             // Respiratory
             "RR >20/min": "Tachypnoea — respiratory distress, acidosis.",
             "Accessory muscle use": "Respiratory distress — COPD, asthma, pneumonia.",
@@ -4853,8 +5023,12 @@ async function handleLogout() {
             "Scoliosis": "Spinal curvature — restrictive lung disease.",
             "Chest asymmetry": "Pneumothorax, effusion, collapse.",
             "Cyanosis": "Hypoxaemia, peripheral shunting.",
-            "Reduced expansion (R)": "Right lung collapse, effusion.",
-            "Reduced expansion (L)": "Left lung collapse, effusion.",
+            "Reduced expansion — upper/supramammary (R)": "Apical pathology — upper lobe TB, apical fibrosis, right-sided.",
+"Reduced expansion — upper/supramammary (L)": "Apical pathology — upper lobe TB, apical fibrosis, left-sided.",
+"Reduced expansion — mammary (R)": "Mid-zone pathology — consolidation, collapse, right-sided.",
+"Reduced expansion — mammary (L)": "Mid-zone pathology — consolidation, collapse, left-sided.",
+"Reduced expansion — inframammary (R)": "Lower zone/basal pathology — effusion, basal collapse, right-sided.",
+"Reduced expansion — inframammary (L)": "Lower zone/basal pathology — effusion, basal collapse, left-sided.",
             "Tactile fremitus increased": "Consolidation.",
             "Tactile fremitus reduced": "Effusion, pneumothorax, fibrosis.",
             "Subcutaneous emphysema": "Pneumothorax, tracheal injury.",
