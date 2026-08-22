@@ -640,55 +640,104 @@
 
 .oi-dropdown-trigger {
     display: flex; justify-content: space-between; align-items: center;
-    background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px;
-    padding: 8px 12px; cursor: pointer; font-size: 0.82rem; color: #4a5568;
-    transition: border-color 0.15s;
+    background: white; border: 1.5px solid #e2e8f0; border-radius: 10px;
+    padding: 9px 12px; cursor: pointer; font-size: 0.82rem; color: #4a5568;
+    transition: border-color 0.15s, box-shadow 0.15s;
 }
 .oi-dropdown-trigger:hover { border-color: #1e3c72; }
-.oi-arrow { transition: transform 0.2s; font-size: 0.7rem; }
+.oi-dropdown-trigger.open {
+    border-color: #1e3c72; box-shadow: 0 0 0 3px rgba(30,60,114,0.08);
+    border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+}
+
+.oi-trigger-label { display: flex; align-items: center; gap: 8px; }
+.oi-trigger-count {
+    background: #1e3c72; color: white; font-size: 0.65rem; font-weight: 700;
+    padding: 1px 7px; border-radius: 10px; min-width: 18px; text-align: center;
+}
+
+.oi-arrow { transition: transform 0.2s; font-size: 0.7rem; color: #94a3b8; }
 .oi-arrow.open { transform: rotate(180deg); }
+
+.oi-selected-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.oi-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #eef2ff; color: #1e3c72; border: 1px solid #c7d7f5;
+    padding: 3px 6px 3px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 600;
+    max-width: 220px;
+}
+.oi-chip .chip-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oi-chip button {
+    border: none; background: rgba(30,60,114,0.12); color: #1e3c72;
+    width: 16px; height: 16px; border-radius: 50%; font-size: 0.65rem; line-height: 1;
+    cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+}
+.oi-chip button:hover { background: rgba(30,60,114,0.25); }
+.oi-chip.stage4 { background: #fff1f0; color: #c53030; border-color: #fbcccb; }
+.oi-chip.stage4 button { background: rgba(197,48,48,0.12); color: #c53030; }
+.oi-chip.stage4 button:hover { background: rgba(197,48,48,0.25); }
 
 .oi-dropdown-panel {
     display: none;
-    border: 1.5px solid #e2e8f0; border-radius: 8px;
-    margin-top: 4px; padding: 8px; background: white;
-    max-height: 280px; overflow-y: auto;
+    border: 1.5px solid #1e3c72; border-top: none;
+    border-radius: 0 0 10px 10px; background: white;
+    max-height: 300px; overflow-y: auto;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 .oi-dropdown-panel.open { display: block; }
-.oi-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-}
 
+.oi-search-wrap {
+    position: sticky; top: 0; background: white;
+    padding: 8px; border-bottom: 1px solid #eef1f4; z-index: 2;
+}
 .oi-search {
     width: 100%; padding: 6px 10px; border: 1.5px solid #e2e8f0;
-    border-radius: 6px; font-size: 0.78rem; margin-bottom: 8px;
+    border-radius: 6px; font-size: 0.78rem;
 }
+.oi-search:focus { outline: none; border-color: #1e3c72; }
+
+.oi-list-scroll { padding: 4px 6px 8px; }
 
 .oi-group-label {
-    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.04em; margin: 6px 0 2px; padding: 1px 7px;
-    border-radius: 6px; display: inline-block;
+    font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.05em; margin: 8px 4px 3px; padding: 1px 0;
+    color: #94a3b8;
 }
-.oi-group-label.stage3 { background: #fef5e7; color: #b7791f; }
-.oi-group-label.stage4 { background: #fef2f2; color: #c53030; }
+.oi-group-label.stage3 { color: #b7791f; }
+.oi-group-label.stage4 { color: #c53030; }
+
+.oi-list { display: flex; flex-direction: column; gap: 0; }
 
 .oi-item {
-    display: flex; align-items: center; gap: 6px;
-    padding: 2px 6px; border-radius: 5px; font-size: 0.75rem;
-    line-height: 1.25;
-    cursor: pointer; transition: background 0.12s;
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 6px; border-radius: 6px; font-size: 0.76rem; color: #334155;
+    cursor: pointer; transition: background 0.12s; line-height: 1.3;
 }
-        .oi-item:hover { background: #f0f7ff; }
-.oi-item input[type="checkbox"] { accent-color: #1e3c72; }
-.oi-item.hidden { display: none; }
+.oi-item:hover { background: #f1f5f9; }
+.oi-item.checked { background: #eef4ff; color: #1e3c72; font-weight: 600; }
+.oi-item input[type="checkbox"] { display: none; }
+.oi-item .oi-check-box {
+    width: 15px; height: 15px; border-radius: 4px; border: 1.5px solid #cbd5e1;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; color: white; transition: all 0.12s;
+}
+.oi-item.checked .oi-check-box { background: #1e3c72; border-color: #1e3c72; }
+.oi-item.checked.s4 .oi-check-box { background: #c53030; border-color: #c53030; }
+
+.oi-item .oi-item-text { flex: 1; }
 .oi-stage-tag {
-    font-size: 0.6rem; font-weight: 700; padding: 1px 6px;
-    border-radius: 10px; margin-left: auto;
+    font-size: 0.58rem; font-weight: 700; padding: 1px 6px;
+    border-radius: 10px; flex-shrink: 0;
 }
 .oi-stage-tag.s3 { background: #fef5e7; color: #b7791f; }
 .oi-stage-tag.s4 { background: #fef2f2; color: #c53030; }
+.oi-item.hidden { display: none; }
+.oi-empty-msg { padding: 14px; text-align: center; color: #94a3b8; font-size: 0.75rem; }
+
+@media (min-width: 640px) {
+    .oi-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6px; }
+}
+        
         .summary-actions {
             padding: 0 22px 18px 22px;
             display: grid;
@@ -2445,18 +2494,27 @@
                     </div>
                   <h4 style="margin:10px 0 6px;color:#1e3c72;font-size:0.9rem;">🩺 Opportunistic Infections & WHO Staging Conditions</h4>
 <div class="oi-dropdown-wrap">
-    <div class="oi-dropdown-trigger" onclick="toggleOIDropdown()">
-        <span id="oiTriggerLabel">Select conditions...</span>
+    <div class="oi-dropdown-trigger" id="oiTrigger" onclick="toggleOIDropdown()">
+        <span class="oi-trigger-label">
+            <span id="oiTriggerLabel">Select conditions...</span>
+            <span class="oi-trigger-count" id="oiTriggerCount" style="display:none;">0</span>
+        </span>
         <span class="oi-arrow" id="oiArrow">▼</span>
     </div>
+    <div class="oi-selected-chips" id="oiSelectedChips"></div>
     <div class="oi-dropdown-panel" id="oiDropdownPanel">
-        <input type="text" class="oi-search" id="oiSearch" placeholder="🔍 Search conditions..." oninput="filterOIList(this.value)">
+        <div class="oi-search-wrap">
+            <input type="text" class="oi-search" id="oiSearch" placeholder="🔍 Search conditions..." oninput="filterOIList(this.value)">
+        </div>
+        <div class="oi-list-scroll">
+            <div class="oi-group-label stage3">WHO Clinical Stage 3</div>
+            <div class="oi-list" id="oiStage3List"></div>
 
-        <div class="oi-group-label stage3">WHO Clinical Stage 3</div>
-        <div class="oi-list" id="oiStage3List"></div>
+            <div class="oi-group-label stage4">WHO Clinical Stage 4 (AIDS-defining)</div>
+            <div class="oi-list" id="oiStage4List"></div>
 
-        <div class="oi-group-label stage4">WHO Clinical Stage 4 (AIDS-defining)</div>
-        <div class="oi-list" id="oiStage4List"></div>
+            <div class="oi-empty-msg" id="oiEmptyMsg" style="display:none;">No matching conditions</div>
+        </div>
     </div>
 </div>            
                    <div style="margin-top:6px;">
@@ -2911,32 +2969,80 @@ function buildOIDropdown() {
 }
 
 function oiItemHTML(name, stage) {
-    return `<label class="oi-item">
-        <input type="checkbox" value="${name}" onchange="updateOITriggerLabel()">
-        <span>${name}</span>
+    return `<label class="oi-item s${stage}" data-name="${escapeHTML(name)}">
+        <input type="checkbox" value="${escapeHTML(name)}" onchange="handleOIItemToggle(this)">
+        <span class="oi-check-box">✓</span>
+        <span class="oi-item-text">${escapeHTML(name)}</span>
         <span class="oi-stage-tag s${stage}">Stage ${stage}</span>
     </label>`;
 }
 
+function handleOIItemToggle(checkbox) {
+    const item = checkbox.closest('.oi-item');
+    item.classList.toggle('checked', checkbox.checked);
+    updateOITriggerLabel();
+}
+
 function toggleOIDropdown() {
-    document.getElementById('oiDropdownPanel').classList.toggle('open');
-    document.getElementById('oiArrow').classList.toggle('open');
+    const panel = document.getElementById('oiDropdownPanel');
+    const trigger = document.getElementById('oiTrigger');
+    const arrow = document.getElementById('oiArrow');
+    const opening = !panel.classList.contains('open');
+    panel.classList.toggle('open', opening);
+    trigger.classList.toggle('open', opening);
+    arrow.classList.toggle('open', opening);
+    if (opening) {
+        const search = document.getElementById('oiSearch');
+        if (search) setTimeout(() => search.focus(), 50);
+    }
 }
 
 function filterOIList(query) {
     const q = query.toLowerCase();
+    let anyVisible = false;
     document.querySelectorAll('.oi-item').forEach(item => {
-        const text = item.textContent.toLowerCase();
-        item.classList.toggle('hidden', q && !text.includes(q));
+        const match = !q || item.dataset.name.toLowerCase().includes(q);
+        item.classList.toggle('hidden', !match);
+        if (match) anyVisible = true;
     });
+    document.querySelectorAll('.oi-group-label').forEach(label => {
+        const listId = label.classList.contains('stage3') ? 'oiStage3List' : 'oiStage4List';
+        const hasVisible = Array.from(document.querySelectorAll(`#${listId} .oi-item`)).some(i => !i.classList.contains('hidden'));
+        label.style.display = hasVisible ? '' : 'none';
+    });
+    document.getElementById('oiEmptyMsg').style.display = anyVisible ? 'none' : 'block';
 }
 
 function updateOITriggerLabel() {
-    const checked = Array.from(document.querySelectorAll('#hivDetails .oi-item input:checked')).map(c => c.value);
+    const checked = Array.from(document.querySelectorAll('#hivDetails .oi-item input:checked'));
     const label = document.getElementById('oiTriggerLabel');
-    label.textContent = checked.length ? `${checked.length} selected` : 'Select conditions...';
+    const countEl = document.getElementById('oiTriggerCount');
+    const chipsEl = document.getElementById('oiSelectedChips');
+
+    label.textContent = checked.length ? 'Conditions selected' : 'Select conditions...';
+    if (checked.length) {
+        countEl.textContent = checked.length;
+        countEl.style.display = 'inline-block';
+    } else {
+        countEl.style.display = 'none';
+    }
+
+    chipsEl.innerHTML = checked.map(cb => {
+        const stageClass = cb.closest('.oi-item').classList.contains('s4') ? 'stage4' : '';
+        const safeName = cb.value.replace(/'/g, "\\'");
+        return `<span class="oi-chip ${stageClass}"><span class="chip-text">${escapeHTML(cb.value)}</span><button type="button" onclick="oiRemoveChip(event, '${safeName}')">✕</button></span>`;
+    }).join('');
 }
 
+function oiRemoveChip(e, name) {
+    e.stopPropagation();
+    const cb = Array.from(document.querySelectorAll('#hivDetails .oi-item input')).find(c => c.value === name);
+    if (cb) {
+        cb.checked = false;
+        cb.closest('.oi-item').classList.remove('checked');
+        updateOITriggerLabel();
+    }
+}
         function updateProgress() {
             const inputs = document.querySelectorAll('input, textarea, select');
             let total = 0,
@@ -4369,14 +4475,13 @@ function updateOITriggerLabel() {
             if (data._rosData) rosData = data._rosData;
             if (data._xpData) xpData = data._xpData;
             if (data._slotCollapsed) slotCollapsed = data._slotCollapsed;
-            if (data._oiSelected) {
+                       if (data._oiSelected) {
     document.querySelectorAll('#hivDetails .oi-item input').forEach(cb => {
         cb.checked = data._oiSelected.includes(cb.value);
-        cb.closest('.oi-item')?.classList.toggle('selected', cb.checked); // if you add a selected style
+        cb.closest('.oi-item')?.classList.toggle('checked', cb.checked);
     });
     updateOITriggerLabel();
             }
-
             toggleReferralDetails();
             if (typeof toggleARTDetails === 'function') toggleARTDetails();
             Object.keys(reviewOfSystems).forEach(key => refreshROSCardState(key));
