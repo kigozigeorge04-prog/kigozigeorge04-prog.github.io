@@ -2030,7 +2030,39 @@
             width: 14px;
             height: 14px;
         }
-
+@media (max-width: 768px) {
+    #authBar {
+        padding: 8px 12px;
+    }
+    #authBar .brand {
+        font-size: 0.8rem;
+        gap: 6px;
+    }
+    #authBar .brand > span:first-child {
+        font-size: 16px;
+        padding: 3px 6px;
+    }
+    #authBar .brand .module-badge {
+        display: none; /* too crowded on phone width */
+    }
+    #authBar .topbar-nav {
+        display: none; /* duplicate of the bottom-nav Mnemonics tab */
+    }
+    #authBar .user-area {
+        gap: 8px;
+    }
+    #authBar .user-area #userGreeting {
+        display: none; /* keep just the avatar to save space */
+    }
+    #authBar .user-area .btn-logout {
+        padding: 6px 8px;
+        font-size: 0; /* hides the "Logout" text node, icon stays visible */
+    }
+    #authBar .user-area .btn-logout svg {
+        width: 16px;
+        height: 16px;
+    }
+}
         /* Social history radio groups */
         .social-sub-grid {
             display: grid;
@@ -2247,7 +2279,10 @@
         display: none !important;
     }
 }
-
+.authbar-spacer { height: 52px; }
+@media (max-width: 768px) {
+    .authbar-spacer { height: 44px; }
+}
         /* Wrappers for full‑width records and XP */
         .records-wrapper {
             max-width: 100%;
@@ -2295,8 +2330,7 @@
             </button>
         </div>
     </div>
-    <div style="height: 52px;"></div>
-
+   <div class="authbar-spacer"></div>
     <!-- ============================================================
     MAIN CONTAINER
     ============================================================ -->
@@ -2571,7 +2605,7 @@
                 </div>
             </div>
         </div>
-   RECORDS PANEL — full‑width wrapper
+  <!-- RECORDS PANEL — full‑width wrapper
     ============================================================ -->
     <div class="records-wrapper">
         <div class="records-panel">
@@ -5472,10 +5506,10 @@ MOBILE BOTTOM NAV
         <span class="nav-icon">🃏</span>
         <span class="nav-label">Mnemonics</span>
     </a>
-    <a href="#" class="nav-item" onclick="document.getElementById('recordsList').scrollIntoView({behavior:'smooth'}); return false;">
-        <span class="nav-icon">🗂️</span>
-        <span class="nav-label">Records</span>
-    </a>
+   <a href="#" class="nav-item" onclick="document.querySelector('.records-header').scrollIntoView({behavior:'smooth', block:'start'}); return false;">
+    <span class="nav-icon">🗂️</span>
+    <span class="nav-label">Records</span>
+</a>
 </nav>
 </body>
 </html>
